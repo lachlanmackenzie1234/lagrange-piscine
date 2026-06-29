@@ -1,1 +1,7 @@
 .claude/settings.local.json
+
+# Firebase admin / service-account private keys — NEVER commit (full project access)
+*firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+service-account*.json
