@@ -4,7 +4,7 @@
   const { CHEM_RANGES, OCC_STATUS } = S;
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v16'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v17'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -35,7 +35,19 @@
     const d = new Date(iso);
     return d.toLocaleString(I18n.locale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
+  const fmtTime = (iso) => (iso ? new Date(iso).toLocaleTimeString(I18n.locale(), { hour: '2-digit', minute: '2-digit' }) : '');
   const todayISO = () => new Date().toISOString().slice(0, 10);
+
+  // Live state of a pool's fill: elapsed minutes + reminder/overdue.
+  function wateringInfo(p) {
+    const w = p && p.watering;
+    if (!w || !w.startedAt) return null;
+    const start = new Date(w.startedAt).getTime();
+    const mins = Math.max(0, Math.round((Date.now() - start) / 60000));
+    let overdue = false, remainMin = null;
+    if (w.reminderMin) { const due = start + w.reminderMin * 60000; overdue = Date.now() > due; remainMin = Math.round((due - Date.now()) / 60000); }
+    return { start, mins, overdue, remainMin, reminderMin: w.reminderMin };
+  }
 
   // Nearest turnover Saturday on/after today (falls back to last known week).
   function currentWeek() {
@@ -354,6 +366,22 @@
     const week = currentWeek();
     wrap.appendChild(header(t('today_title'), t('today_sub', { date: fmtDate(week) })));
 
+    // pools currently filling — the end-of-day "did I leave a hose running?" check
+    const filling = Store.wateringPools();
+    if (filling.length) {
+      wrap.appendChild(sectionTitle(t('watering_today', { n: filling.length })));
+      const c = el('<div class="cards"></div>');
+      filling.forEach((p) => {
+        const wi = wateringInfo(p);
+        const card = el(`<a class="card watering ${wi && wi.overdue ? 'overdue' : 'active'}" href="#/pool/${p.id}">
+          <div class="card-row"><strong>💧 ${esc(p.res + ' ' + p.unit)}</strong>${wi && wi.overdue ? `<span class="chip st-backup">${esc(t('turn_off_short'))}</span>` : ''}</div>
+          <div class="card-sub">${wi ? esc(t('watering_since', { time: fmtTime(p.watering.startedAt), mins: wi.mins })) : ''}</div>
+        </a>`);
+        c.appendChild(card);
+      });
+      wrap.appendChild(c);
+    }
+
     // one-tap multi-stop route for the day's properties
     const stops = todaysStops();
     if (stops.length) {
@@ -432,8 +460,9 @@
     }
     const latest = Store.latestReading(p.id);
     const tag = latest ? t('last_date', { date: fmtDate(latest.at) }) : t('never');
+    const water = p.watering && p.watering.startedAt ? ' 💧' : '';
     return el(`<a class="card" href="#/pool/${p.id}">
-      <div class="card-row"><strong>${statusDot(p)}${esc(poolTitle(p))}</strong><span class="chip st-empty">${esc(tag)}</span></div>
+      <div class="card-row"><strong>${statusDot(p)}${esc(poolTitle(p))}${water}</strong><span class="chip st-empty">${esc(tag)}</span></div>
       ${chemPills(latest)}
     </a>`);
   }
@@ -585,6 +614,33 @@
     }
 
     if (pool) {
+      // filling / watering control
+      wrap.appendChild(sectionTitle(t('watering_section')));
+      const wi = wateringInfo(p);
+      const wb = el(`<div class="card watering ${wi ? (wi.overdue ? 'overdue' : 'active') : ''}"></div>`);
+      if (wi) {
+        wb.appendChild(el(`<p class="water-line">${esc(t('watering_since', { time: fmtTime(p.watering.startedAt), mins: wi.mins }))}</p>`));
+        if (wi.reminderMin != null) wb.appendChild(el(`<p class="water-rem">${wi.overdue ? esc(t('reminder_overdue')) : esc(t('reminder_in', { mins: Math.max(0, wi.remainMin) }))}</p>`));
+        const stop = el(`<button class="btn danger">${esc(t('stop_watering'))}</button>`);
+        stop.addEventListener('click', () => { Store.updatePool(p.id, { watering: null }); render(); });
+        wb.appendChild(stop);
+      } else {
+        const sel = el(`<select class="water-sel">
+          <option value="">${esc(t('reminder_none'))}</option>
+          <option value="15">15 min</option><option value="30">30 min</option>
+          <option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select>`);
+        const row = el(`<label class="field"><span>${esc(t('reminder'))}</span></label>`);
+        row.appendChild(sel);
+        wb.appendChild(row);
+        const start = el(`<button class="btn primary">${esc(t('start_watering'))}</button>`);
+        start.addEventListener('click', () => {
+          Store.updatePool(p.id, { watering: { startedAt: new Date().toISOString(), reminderMin: sel.value ? +sel.value : null } });
+          render();
+        });
+        wb.appendChild(start);
+      }
+      wrap.appendChild(wb);
+
       // pump & filter management
       wrap.appendChild(sectionTitle(t('pump_section')));
       const pump = el('<div class="card pump"></div>');

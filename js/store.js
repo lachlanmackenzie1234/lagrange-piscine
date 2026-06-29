@@ -96,6 +96,7 @@ const Store = (() => {
   const pools = () => load().pools;
   const pool = (id) => pools().find((p) => p.id === id);
   const poolsByRes = (code) => pools().filter((p) => p.res === code);
+  const wateringPools = () => pools().filter((p) => p.watering && p.watering.startedAt);
 
   const readingsFor = (poolId) =>
     load().readings.filter((r) => r.poolId === poolId).sort((a, b) => b.at.localeCompare(a.at));
@@ -269,7 +270,7 @@ const Store = (() => {
   return {
     KEY, slug, poolId,
     load, save,
-    residences, residence, pools, pool, poolsByRes,
+    residences, residence, pools, pool, poolsByRes, wateringPools,
     readingsFor, latestReading, occupancyFor, occupancyForWeek, weeks,
     addReading, deleteReading,
     addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, servicedOn, localDate,

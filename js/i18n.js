@@ -66,6 +66,12 @@ const I18n = (() => {
       action_cya_high: 'Stabiliser high → partial drain & refill to dilute.',
 
       // service log
+      watering_section: 'Filling / watering', watering_today: '💧 Filling now ({n})',
+      start_watering: '💧 Start filling', stop_watering: '■ Stop filling',
+      watering_since: 'Filling since {time} · {mins} min',
+      reminder: 'Reminder', reminder_none: 'None',
+      reminder_in: '⏳ Reminder in {mins} min', reminder_overdue: '⏰ Turn off — reminder passed!',
+      turn_off_short: '⏰ turn off',
       pump_section: 'Pump & filter', log_backwash: '⟲ Log backwash now',
       last_backwash: 'Last backwash: {date}', sand_date: 'Filter sand changed',
       pump_notes: 'Pump notes / particularities', pump_notes_ph: 'e.g. skimmer left side off — see valve',
@@ -188,6 +194,12 @@ const I18n = (() => {
       action_cya_high: 'Stabilisant élevé → vidange partielle puis remise à niveau pour diluer.',
 
       // suivi d’entretien
+      watering_section: 'Remplissage', watering_today: '💧 En remplissage ({n})',
+      start_watering: '💧 Démarrer le remplissage', stop_watering: '■ Arrêter',
+      watering_since: 'En remplissage depuis {time} · {mins} min',
+      reminder: 'Rappel', reminder_none: 'Aucun',
+      reminder_in: '⏳ Rappel dans {mins} min', reminder_overdue: '⏰ À couper — rappel dépassé !',
+      turn_off_short: '⏰ à couper',
       pump_section: 'Gestion de pompe', log_backwash: '⟲ Enregistrer un lavage',
       last_backwash: 'Dernier lavage : {date}', sand_date: 'Sable du filtre changé',
       pump_notes: 'Notes pompe / particularités', pump_notes_ph: 'ex. skimmer côté gauche coupé — voir vanne',

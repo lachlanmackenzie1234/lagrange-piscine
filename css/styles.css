@@ -105,6 +105,18 @@ a { color: var(--brand); text-decoration: none; }
 /* forms */
 .reading-form { background: var(--card); border: 1px solid var(--line);
   border-radius: 14px; padding: 14px; }
+.card.watering { display: flex; flex-direction: column; gap: 10px; }
+.card.watering.active { border-color: #8ec9ee; background: #eef7fd; }
+.card.watering.overdue { border-color: #f3c9c9; background: var(--high-bg); }
+.card.watering .water-line { margin: 0; font-weight: 600; }
+.card.watering .water-rem { margin: 0; font-size: .9rem; color: var(--low); }
+.card.watering.overdue .water-rem { color: var(--high); font-weight: 700; }
+.card.watering .btn { width: auto; align-self: flex-start; }
+.water-sel { font-size: 1rem; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+@media (prefers-color-scheme: dark) {
+  .card.watering.active { background: #10222e; }
+  .water-sel { background: #0f1923; }
+}
 .card.pump { display: flex; flex-direction: column; gap: 10px; }
 .card.pump .pump-line { margin: 0; font-size: .92rem; color: var(--muted); }
 .card.pump .btn { width: auto; align-self: flex-start; }
