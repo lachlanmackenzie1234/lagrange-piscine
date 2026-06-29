@@ -144,13 +144,28 @@
     return mapsUrl((res ? res.mapsQuery : '') + ' ' + p.unit);
   }
 
-  // marker colour by chemistry: green ok, red out-of-range, grey no reading
-  function poolColor(p) {
+  // Pool health status, grounded in chemistry + how long since the last check +
+  // open to-do flags. (Interval thresholds will become weather-driven later.)
+  const CHECK_DUE_DAYS = 3;      // 🟠 attention if no reading for this long
+  const CHECK_OVERDUE_DAYS = 6;  // 🔴 critical if this long
+  function poolStatus(p) {
+    if (!hasPool(p)) return { level: 'none', reason: 'na' };
     const r = Store.latestReading(p.id);
-    if (!r) return '#8a98a4';
-    const bad = ['ph', 'chlorine', 'stabilizer'].some((k) => ['low', 'high'].includes(evalMetric(k, r[k]).state));
-    return bad ? '#d12f2f' : '#1b9e4b';
+    const openTodo = Store.notesFor(p.id).some((n) => n.todo && !n.done);
+    if (!r) return openTodo ? { level: 'orange', reason: 'todo' } : { level: 'grey', reason: 'nodata' };
+    let sev = 0, reason = 'ok';
+    const critical = (r.chlorine != null && r.chlorine < 0.5) || (r.ph != null && (r.ph < 6.6 || r.ph > 8.0));
+    const out = ['ph', 'chlorine', 'stabilizer'].some((k) => ['low', 'high'].includes(evalMetric(k, r[k]).state));
+    if (critical) { sev = 2; reason = 'critical'; } else if (out) { sev = 1; reason = 'out'; }
+    const days = (Date.now() - new Date(r.at).getTime()) / 864e5;
+    if (days > CHECK_OVERDUE_DAYS && sev < 2) { sev = 2; reason = 'overdue'; }
+    else if (days > CHECK_DUE_DAYS && sev < 1) { sev = 1; reason = 'due'; }
+    if (openTodo && sev < 1) { sev = 1; reason = 'todo'; }
+    return { level: sev === 2 ? 'red' : sev === 1 ? 'orange' : 'green', reason };
   }
+  const STATUS_COLOR = { green: '#1b9e4b', orange: '#d98b00', red: '#d12f2f', grey: '#8a98a4', none: '#8a98a4' };
+  const statusColor = (lv) => STATUS_COLOR[lv] || STATUS_COLOR.grey;
+  const statusDot = (p) => `<span class="status-dot" style="background:${statusColor(poolStatus(p).level)}"></span>`;
   // Points to plot: a pin per pool that has its own GPS; else one pin per
   // residence that has coords but no pinned pools.
   function mapPoints() {
@@ -159,7 +174,7 @@
     Store.pools().forEach((p) => {
       if (p.lat != null && p.lng != null) {
         resWithPoolPins.add(p.res);
-        pts.push({ lat: p.lat, lng: p.lng, label: `${p.res} ${p.unit}`, color: hasPool(p) ? poolColor(p) : '#6b4ed6', maps: poolMapUrl(p), href: `#/pool/${p.id}` });
+        pts.push({ lat: p.lat, lng: p.lng, label: `${p.res} ${p.unit}`, color: hasPool(p) ? statusColor(poolStatus(p).level) : '#6b4ed6', maps: poolMapUrl(p), href: `#/pool/${p.id}` });
       }
     });
     Store.residences().forEach((res) => {
@@ -266,7 +281,13 @@
       const text = (fd.get('text') || '').trim();
       const files = [...(f.querySelector('.note-photos').files || [])];
       if (!text && !files.length) return;
-      const note = Store.addNote({ text, poolId: showPicker ? (fd.get('poolId') || '') : fixedPoolId, todo: !!fd.get('todo') });
+      // stamp the note with the earliest attached photo's capture time, if any
+      let at;
+      if (files.length && window.Photos) {
+        const times = (await Promise.all(files.map((f2) => Photos.exifTime(f2).catch(() => null)))).filter(Boolean).sort();
+        at = times[0] || undefined;
+      }
+      const note = Store.addNote({ text, poolId: showPicker ? (fd.get('poolId') || '') : fixedPoolId, todo: !!fd.get('todo'), at });
       for (const file of files) { try { await Photos.add({ poolId: note.poolId, noteId: note.id }, file); } catch (_) {} }
       render();
     });
@@ -380,7 +401,7 @@
     const latest = p ? Store.latestReading(p.id) : null;
     const done = servicedToday(o.poolId) ? `<span class="chip st-done">${esc(t('serviced_today'))}</span>` : '';
     return el(`<a class="card" href="#/pool/${o.poolId}">
-      <div class="card-row"><strong>${p ? esc(poolTitle(p)) : esc(o.poolId)}</strong>${statusChip(o.status)}</div>
+      <div class="card-row"><strong>${p && hasPool(p) ? statusDot(p) : ''}${p ? esc(poolTitle(p)) : esc(o.poolId)}</strong>${statusChip(o.status)}</div>
       <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}</div>
       ${chemPills(latest)}${done}
     </a>`);
@@ -395,7 +416,7 @@
     const latest = Store.latestReading(p.id);
     const tag = latest ? t('last_date', { date: fmtDate(latest.at) }) : t('never');
     return el(`<a class="card" href="#/pool/${p.id}">
-      <div class="card-row"><strong>${esc(poolTitle(p))}</strong><span class="chip st-empty">${esc(tag)}</span></div>
+      <div class="card-row"><strong>${statusDot(p)}${esc(poolTitle(p))}</strong><span class="chip st-empty">${esc(tag)}</span></div>
       ${chemPills(latest)}
     </a>`);
   }
@@ -425,10 +446,12 @@
     if (!p) { wrap.appendChild(header(t('pool_not_found'))); return wrap; }
     const res = Store.residence(p.res);
 
+    const stLevel = poolStatus(p).level;
+    const stBadge = hasPool(p) ? ` · <span class="status-word" style="color:${statusColor(stLevel)}">${esc(t('status_' + stLevel))}</span>` : '';
     wrap.appendChild(el(`<header class="page-head">
       <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
-      <h1>${esc(poolTitle(p))}</h1>
-      <p class="sub">${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}</p>
+      <h1>${hasPool(p) ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
+      <p class="sub">${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}</p>
     </header>`));
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
@@ -569,15 +592,18 @@
         ${numField('stabilizer', t('f_cya'))}
       </div>
       <label class="field"><span>${esc(t('f_note'))}</span><input name="note" type="text" placeholder="${esc(t('note_ph'))}"></label>
+      <label class="field"><span>${esc(t('f_when'))}</span><input name="at" type="datetime-local"></label>
       <div class="target-hint">${esc(t('targets', tgt))}</div>
       <button class="btn primary" type="submit">${esc(t('save_reading'))}</button>
     </form>`);
     f.addEventListener('submit', (e) => {
       e.preventDefault();
       const fd = new FormData(f);
+      const atVal = fd.get('at');
       Store.addReading({
         poolId: p.id, ph: fd.get('ph'), chlorine: fd.get('chlorine'),
         stabilizer: fd.get('stabilizer'), note: fd.get('note'),
+        at: atVal ? new Date(atVal).toISOString() : undefined,
       });
       location.hash = '#/pool/' + p.id;
       render();

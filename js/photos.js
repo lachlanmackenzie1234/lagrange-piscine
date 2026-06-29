@@ -63,15 +63,48 @@ const Photos = (() => {
     });
   }
 
+  // Read the original capture time from EXIF (DateTimeOriginal); fall back to
+  // the file's modified time. Parsed from the raw bytes before canvas strips EXIF.
+  async function exifTime(file) {
+    try {
+      const buf = await file.slice(0, 256 * 1024).arrayBuffer();
+      const v = new DataView(buf);
+      if (v.getUint16(0) !== 0xFFD8) return null; // not JPEG
+      let off = 2;
+      while (off + 4 <= v.byteLength) {
+        const marker = v.getUint16(off);
+        if (marker === 0xFFE1) { // APP1
+          if (v.getUint32(off + 4) === 0x45786966) { // "Exif"
+            const tiff = off + 10;
+            const le = v.getUint16(tiff) === 0x4949;
+            const u16 = (o) => v.getUint16(o, le);
+            const u32 = (o) => v.getUint32(o, le);
+            const readIFD = (ifd) => { const n = u16(ifd); const m = {}; for (let i = 0; i < n; i++) { const e = ifd + 2 + i * 12; m[u16(e)] = e; } return m; };
+            const readStr = (e) => { const cnt = u32(e + 4); const o2 = cnt > 4 ? tiff + u32(e + 8) : e + 8; let s = ''; for (let k = 0; k < cnt; k++) { const ch = v.getUint8(o2 + k); if (!ch) break; s += String.fromCharCode(ch); } return s; };
+            const d0 = readIFD(tiff + u32(tiff + 4));
+            let str = null;
+            if (d0[0x8769] !== undefined) { const de = readIFD(tiff + u32(d0[0x8769] + 8)); str = (de[0x9003] !== undefined && readStr(de[0x9003])) || (de[0x9004] !== undefined && readStr(de[0x9004])) || null; }
+            if (!str && d0[0x0132] !== undefined) str = readStr(d0[0x0132]);
+            if (str) { const m = str.match(/(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/); if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]).toISOString(); }
+          }
+          return null;
+        }
+        if ((marker & 0xFF00) !== 0xFF00) break;
+        off += 2 + v.getUint16(off + 2);
+      }
+    } catch (e) { /* fall through */ }
+    return null;
+  }
+
   async function add(meta, file) {
     if (!db) await init();
-    const dataUrl = await compress(file);
+    const [dataUrl, exif] = await Promise.all([compress(file), exifTime(file)]);
     const rec = {
       id: `ph-${Date.now()}-${Math.floor(performance.now())}`,
       poolId: meta.poolId || '',
       noteId: meta.noteId || '',
       label: meta.label || '',
-      at: new Date(file.lastModified || Date.now()).toISOString(), // photo's own time
+      at: exif || new Date(file.lastModified || Date.now()).toISOString(), // photo's own time
       dataUrl,
     };
     cache.set(rec.id, rec);
@@ -106,6 +139,6 @@ const Photos = (() => {
   const refsForPool = (poolId) => all().filter((p) => p.poolId === poolId && !p.noteId);
   const poolRef = (poolId, label) => all().find((p) => p.poolId === poolId && p.label === label && !p.noteId) || null;
 
-  return { init, add, remove, applyRemote, applyRemoteRemoved, get, all, byNote, refsForPool, poolRef };
+  return { init, add, remove, applyRemote, applyRemoteRemoved, get, all, byNote, refsForPool, poolRef, exifTime };
 })();
 window.Photos = Photos;
