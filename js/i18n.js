@@ -1,0 +1,119 @@
+/* Minimal i18n: EN / FR, persisted to local storage. t(key, {params}). */
+const I18n = (() => {
+  const KEY = 'lagrange-piscine.lang';
+
+  const STR = {
+    en: {
+      tab_today: 'Today', tab_pools: 'Pools', tab_schedule: 'Schedule', tab_map: 'Map', tab_more: 'More',
+
+      today_title: 'This week', today_sub: 'Turnover Saturday · {date}',
+      arrivals_title: 'Arrivals to prep ({n})',
+      arrivals_sub: 'Pools that must be checked & clean for new guests this Saturday.',
+      arrivals_empty: 'No new arrivals recorded for this week.',
+      midweek_title: 'Mid-week checks ({n})',
+      midweek_sub: 'Occupied pools to cycle and keep balanced during the stay.',
+      midweek_empty: 'Nothing mid-stay this week.',
+      chem_due_title: 'Chemistry due ({n})',
+      chem_due_sub: 'No reading logged in the last 4 days.',
+      chem_due_empty: 'All pools have a recent reading. 🎉',
+      no_reading: 'no reading', last_date: 'last {date}', never: 'never',
+
+      pools_title: 'Pools', pools_sub: '{n} pools across {m} residences',
+      to_confirm: '⚠︎ details to confirm',
+
+      back_pools: '‹ Pools', directions: '📍 Directions', occupancy: 'Occupancy',
+      log_reading: 'Log a reading',
+      f_ph: 'pH', f_cl: 'Free Cl (ppm)', f_cya: 'Stabilizer (ppm)', f_temp: 'Temp (°C)', f_note: 'Note',
+      note_ph: 'e.g. added 2 galets',
+      targets: 'Targets — pH {phmin}–{phmax} · Cl {clmin}–{clmax}ppm · CYA {cyamin}–{cyamax}ppm',
+      save_reading: 'Save reading',
+      history: 'History ({n})', history_empty: 'No readings yet. Log the first one above.',
+      th_when: 'When', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', th_temp: '°C',
+      confirm_del: 'Delete this reading?', pool_not_found: 'Pool not found',
+
+      schedule_title: 'Schedule', schedule_sub: 'Saturday turnover cycle',
+      this_week: 'this week', sched_counts: '{n} active · {m} arriving',
+
+      map_title: 'Map', map_sub: 'Open residences in Google Maps',
+      n_pools: '{n} pools', open_maps: '📍 Open in Google Maps',
+      map_tip: 'Tip: route optimisation between today’s stops is on the roadmap.',
+
+      settings_title: 'Settings & backup',
+      export_btn: '⬇︎ Export backup (.json)', import_btn: '⬆︎ Import backup',
+      reset_btn: '↺ Reset to seed data', about: 'About',
+      about_text: 'Data is stored only on this device. Export regularly to back up.',
+      language: 'Language',
+      imported_ok: 'Backup imported.', import_fail: 'Import failed: ',
+      confirm_reset: 'Discard all local changes and reload the original seed data?',
+
+      in_date: 'in {date}', out_date: 'out {date}',
+
+      st_arriving: 'Arriving (turnover)', st_occupied: 'Occupied', st_departing: 'Departing',
+      st_owner: 'Owner (PROPRIO)', st_closed: 'Closed (FERMÉE)', st_backup: 'Backup (EN SECOURS)', st_empty: 'Empty',
+    },
+    fr: {
+      tab_today: 'Aujourd’hui', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_more: 'Plus',
+
+      today_title: 'Cette semaine', today_sub: 'Rotation samedi · {date}',
+      arrivals_title: 'Arrivées à préparer ({n})',
+      arrivals_sub: 'Piscines à contrôler et nettoyer pour les nouveaux arrivants ce samedi.',
+      arrivals_empty: 'Aucune arrivée enregistrée cette semaine.',
+      midweek_title: 'Contrôles en semaine ({n})',
+      midweek_sub: 'Piscines occupées à entretenir et équilibrer pendant le séjour.',
+      midweek_empty: 'Aucun séjour en cours cette semaine.',
+      chem_due_title: 'Analyses à faire ({n})',
+      chem_due_sub: 'Aucune mesure depuis 4 jours.',
+      chem_due_empty: 'Toutes les piscines ont une mesure récente. 🎉',
+      no_reading: 'aucune mesure', last_date: 'dernière {date}', never: 'jamais',
+
+      pools_title: 'Piscines', pools_sub: '{n} piscines · {m} résidences',
+      to_confirm: '⚠︎ détails à confirmer',
+
+      back_pools: '‹ Piscines', directions: '📍 Itinéraire', occupancy: 'Occupation',
+      log_reading: 'Saisir une mesure',
+      f_ph: 'pH', f_cl: 'Chlore libre (ppm)', f_cya: 'Stabilisant (ppm)', f_temp: 'Temp. (°C)', f_note: 'Note',
+      note_ph: 'ex. ajout 2 galets',
+      targets: 'Cibles — pH {phmin}–{phmax} · Cl {clmin}–{clmax}ppm · CYA {cyamin}–{cyamax}ppm',
+      save_reading: 'Enregistrer',
+      history: 'Historique ({n})', history_empty: 'Aucune mesure pour l’instant. Saisissez la première ci-dessus.',
+      th_when: 'Quand', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', th_temp: '°C',
+      confirm_del: 'Supprimer cette mesure ?', pool_not_found: 'Piscine introuvable',
+
+      schedule_title: 'Planning', schedule_sub: 'Cycle de rotation du samedi',
+      this_week: 'cette semaine', sched_counts: '{n} actives · {m} arrivées',
+
+      map_title: 'Carte', map_sub: 'Ouvrir les résidences dans Google Maps',
+      n_pools: '{n} piscines', open_maps: '📍 Ouvrir dans Google Maps',
+      map_tip: 'Astuce : l’optimisation d’itinéraire entre les arrêts du jour arrive bientôt.',
+
+      settings_title: 'Réglages & sauvegarde',
+      export_btn: '⬇︎ Exporter la sauvegarde (.json)', import_btn: '⬆︎ Importer une sauvegarde',
+      reset_btn: '↺ Réinitialiser aux données d’origine', about: 'À propos',
+      about_text: 'Les données sont stockées uniquement sur cet appareil. Exportez régulièrement pour sauvegarder.',
+      language: 'Langue',
+      imported_ok: 'Sauvegarde importée.', import_fail: 'Échec de l’import : ',
+      confirm_reset: 'Annuler toutes les modifications locales et recharger les données d’origine ?',
+
+      in_date: 'arr. {date}', out_date: 'dép. {date}',
+
+      st_arriving: 'Arrivée (rotation)', st_occupied: 'Occupée', st_departing: 'Départ',
+      st_owner: 'Propriétaire (PROPRIO)', st_closed: 'Fermée (FERMÉE)', st_backup: 'Secours (EN SECOURS)', st_empty: 'Vide',
+    },
+  };
+
+  let lang = localStorage.getItem(KEY) || (navigator.language || 'en').slice(0, 2).toLowerCase();
+  if (!STR[lang]) lang = 'en';
+
+  function t(key, params) {
+    let s = (STR[lang] && STR[lang][key]) ?? (STR.en[key] ?? key);
+    if (params) for (const k in params) s = s.replaceAll('{' + k + '}', params[k]);
+    return s;
+  }
+  const get = () => lang;
+  const set = (l) => { if (STR[l]) { lang = l; localStorage.setItem(KEY, l); } };
+  const toggle = () => { set(lang === 'fr' ? 'en' : 'fr'); return lang; };
+  const locale = () => (lang === 'fr' ? 'fr-FR' : 'en-GB');
+
+  return { t, get, set, toggle, locale };
+})();
+window.I18n = I18n;
