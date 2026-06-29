@@ -218,6 +218,31 @@
   }
   function emptyNote(txt) { return el(`<p class="empty-note">${esc(txt)}</p>`); }
 
+  // ----- photos -----
+  function photoThumb(rec) {
+    const wrap = el('<div class="thumb"><button class="thumb-del" title="delete">✕</button></div>');
+    const img = document.createElement('img');
+    img.loading = 'lazy';
+    img.src = rec.dataUrl;
+    img.addEventListener('click', () => openPhoto(rec.id));
+    wrap.insertBefore(img, wrap.firstChild);
+    wrap.querySelector('.thumb-del').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm(t('photo_del_confirm'))) { Photos.remove(rec.id); render(); }
+    });
+    return wrap;
+  }
+  function openPhoto(id) {
+    const r = window.Photos && Photos.get(id);
+    if (!r) return;
+    const ov = el('<div class="lightbox"></div>');
+    const img = document.createElement('img');
+    img.src = r.dataUrl;
+    ov.appendChild(img);
+    ov.addEventListener('click', () => ov.remove());
+    document.body.appendChild(ov);
+  }
+
   // ----- notes / to-dos -----
   // noteForm(undefined) shows a pool picker; noteForm(poolId) is fixed to a pool.
   function noteForm(fixedPoolId) {
@@ -231,15 +256,18 @@
       <div class="note-form-row">
         ${opts}
         <label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>
+        <label class="photo-btn" title="photo">📷<input type="file" accept="image/*" class="note-photos" multiple hidden></label>
         <button class="btn primary" type="submit">${esc(t('note_save'))}</button>
       </div>
     </form>`);
-    f.addEventListener('submit', (e) => {
+    f.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(f);
       const text = (fd.get('text') || '').trim();
-      if (!text) return;
-      Store.addNote({ text, poolId: showPicker ? (fd.get('poolId') || '') : fixedPoolId, todo: !!fd.get('todo') });
+      const files = [...(f.querySelector('.note-photos').files || [])];
+      if (!text && !files.length) return;
+      const note = Store.addNote({ text, poolId: showPicker ? (fd.get('poolId') || '') : fixedPoolId, todo: !!fd.get('todo') });
+      for (const file of files) { try { await Photos.add({ poolId: note.poolId, noteId: note.id }, file); } catch (_) {} }
       render();
     });
     return f;
@@ -254,6 +282,12 @@
       <div class="note-text">${esc(n.text)}</div>
       <div class="note-actions"></div>
     </div>`);
+    const photos = window.Photos ? Photos.byNote(n.id) : [];
+    if (photos.length) {
+      const pc = el('<div class="thumbs"></div>');
+      photos.forEach((ph) => pc.appendChild(photoThumb(ph)));
+      card.insertBefore(pc, card.querySelector('.note-actions'));
+    }
     const actions = card.querySelector('.note-actions');
     if (n.todo) {
       const b = el(`<button class="link-act">${esc(n.done ? t('reopen') : t('mark_done'))}</button>`);
@@ -466,6 +500,28 @@
           <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
       }
     }
+
+    // reference photos: front gate / pool / pump room
+    wrap.appendChild(sectionTitle(t('ref_photos')));
+    const refRow = el('<div class="ref-photos"></div>');
+    [['gate', t('ref_gate')], ['pool', t('ref_pool')], ['pit', t('ref_pit')]].forEach(([key, label]) => {
+      const slot = el(`<div class="ref-slot"><span class="ref-label">${esc(label)}</span></div>`);
+      const existing = window.Photos ? Photos.poolRef(p.id, key) : null;
+      if (existing) {
+        slot.appendChild(photoThumb(existing));
+      } else {
+        const lab = el(`<label class="ref-add">${esc(t('add_photo'))}<input type="file" accept="image/*" hidden></label>`);
+        lab.querySelector('input').addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
+          render();
+        });
+        slot.appendChild(lab);
+      }
+      refRow.appendChild(slot);
+    });
+    wrap.appendChild(refRow);
 
     const occ = Store.occupancyFor(p.id);
     if (occ.length) {
@@ -764,6 +820,7 @@
     requestAnimationFrame(() => { syncRenderQueued = false; render(); });
   });
   window.addEventListener('lp-sync-status', render);
+  if (window.Photos) Photos.init();
   if (window.Sync) Sync.maybeAutoStart();
 
   if ('serviceWorker' in navigator) {

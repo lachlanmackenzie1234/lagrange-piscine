@@ -114,6 +114,10 @@ const I18n = (() => {
       notes_empty: 'No notes yet. Add the first one above.',
       done_badge: 'done',
       confirm_del_note: 'Delete this note?',
+      // photos
+      photos_section: 'Photos', ref_photos: 'Reference photos',
+      ref_gate: 'Front gate', ref_pool: 'Pool', ref_pit: 'Pump room',
+      add_photo: '＋', photo_del_confirm: 'Delete this photo?',
     },
     fr: {
       tab_today: 'Aujourd’hui', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_more: 'Plus',
@@ -226,6 +230,10 @@ const I18n = (() => {
       notes_empty: 'Aucune note. Ajoutez la première ci-dessus.',
       done_badge: 'fait',
       confirm_del_note: 'Supprimer cette note ?',
+      // photos
+      photos_section: 'Photos', ref_photos: 'Photos de référence',
+      ref_gate: 'Portail', ref_pool: 'Piscine', ref_pit: 'Local technique',
+      add_photo: '＋', photo_del_confirm: 'Supprimer cette photo ?',
     },
   };
 

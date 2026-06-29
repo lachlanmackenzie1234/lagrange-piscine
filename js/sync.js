@@ -60,6 +60,15 @@ const Sync = (() => {
     unsubs.push(fsM.onSnapshot(col('notes'), (s) => applyLog(s, 'note'),
       () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('pools'), applyPools, () => setStatus('error')));
+    unsubs.push(fsM.onSnapshot(col('photos'), applyPhotos, () => setStatus('error')));
+  }
+
+  function applyPhotos(snap) {
+    if (!window.Photos) return;
+    snap.docChanges().forEach((ch) => {
+      if (ch.type === 'removed') Photos.applyRemoteRemoved(ch.doc.id);
+      else Photos.applyRemote({ ...ch.doc.data(), id: ch.doc.id });
+    });
   }
 
   const APPLY = {
@@ -90,6 +99,7 @@ const Sync = (() => {
     st.readings.forEach((r) => jobs.push(fsM.setDoc(ref('readings', r.id), stripId(r), { merge: true })));
     st.visits.forEach((v) => jobs.push(fsM.setDoc(ref('visits', v.id), stripId(v), { merge: true })));
     (st.notes || []).forEach((n) => jobs.push(fsM.setDoc(ref('notes', n.id), stripId(n), { merge: true })));
+    (window.Photos ? Photos.all() : []).forEach((ph) => jobs.push(fsM.setDoc(ref('photos', ph.id), stripId(ph), { merge: true })));
     st.pools.filter((p) => p.lat != null).forEach((p) =>
       jobs.push(fsM.setDoc(ref('pools', p.id), { lat: p.lat, lng: p.lng, note: p.note || '' }, { merge: true })));
     await Promise.all(jobs);
@@ -146,6 +156,8 @@ const Sync = (() => {
   const removeVisit = (id) => active && fb && fb.fsM.deleteDoc(ref('visits', id)).catch(() => {});
   const pushNote = (rec) => active && fb && fb.fsM.setDoc(ref('notes', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removeNote = (id) => active && fb && fb.fsM.deleteDoc(ref('notes', id)).catch(() => {});
+  const pushPhoto = (rec) => active && fb && fb.fsM.setDoc(ref('photos', rec.id), stripId(rec), { merge: true }).catch(() => {});
+  const removePhoto = (id) => active && fb && fb.fsM.deleteDoc(ref('photos', id)).catch(() => {});
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
@@ -162,7 +174,7 @@ const Sync = (() => {
 
   return {
     enable, disable, maybeAutoStart,
-    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPool,
+    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool,
     get active() { return active; },
     get status() { return status; },
     get team() { return team; },

@@ -1,10 +1,11 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v12';
+const VERSION = 'lp-v13';
 const ASSETS = [
   './',
   './index.html',
   './css/styles.css',
   './js/i18n.js',
+  './js/photos.js',
   './js/sync.js',
   './js/seed.js',
   './js/store.js',
