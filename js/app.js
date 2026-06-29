@@ -37,6 +37,45 @@
     return { state: 'ok' };
   }
 
+  // Qualitative correction guidance for an out-of-range reading.
+  function adviceFor(r) {
+    if (!r) return [];
+    const out = [];
+    const st = (k) => evalMetric(k, r[k]).state;
+    if (st('ph') === 'high') out.push(t('action_ph_high'));
+    if (st('ph') === 'low') out.push(t('action_ph_low'));
+    if (st('chlorine') === 'high') out.push(t('action_cl_high'));
+    if (st('chlorine') === 'low') out.push(r.chlorine !== null && r.chlorine < 0.5 ? t('action_cl_vlow') : t('action_cl_low'));
+    if (st('stabilizer') === 'low') out.push(t('action_cya_low'));
+    if (st('stabilizer') === 'high') out.push(t('action_cya_high'));
+    return out;
+  }
+
+  // Unique residence stops (Maps queries) for pools with work this week.
+  function todaysStops() {
+    const occ = Store.occupancyForWeek(currentWeek())
+      .filter((o) => ['arriving', 'occupied', 'owner'].includes(o.status));
+    const seen = new Set();
+    const stops = [];
+    occ.forEach((o) => {
+      const p = Store.pool(o.poolId);
+      if (!p) return;
+      const res = Store.residence(p.res);
+      if (!res || seen.has(res.code)) return;
+      seen.add(res.code);
+      stops.push(res.mapsQuery);
+    });
+    return stops;
+  }
+  function routeUrl(stops) {
+    if (!stops.length) return null;
+    if (stops.length === 1) return mapsUrl(stops[0]);
+    const dest = encodeURIComponent(stops[stops.length - 1]);
+    const wp = stops.slice(0, -1).map(encodeURIComponent).join('|');
+    return `https://www.google.com/maps/dir/?api=1&destination=${dest}&waypoints=${wp}&travelmode=driving`;
+  }
+  const servicedToday = (poolId) => Store.servicedOn(poolId, todayISO());
+
   // ---------- router ----------
   const routes = {
     '': viewToday, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
@@ -111,6 +150,16 @@
     const wrap = document.createElement('div');
     const week = currentWeek();
     wrap.appendChild(header(t('today_title'), t('today_sub', { date: fmtDate(week) })));
+
+    // one-tap multi-stop route for the day's properties
+    const stops = todaysStops();
+    if (stops.length) {
+      const actions = el('<div class="actions"></div>');
+      actions.appendChild(el(`<a class="btn primary" target="_blank" rel="noopener"
+        href="${routeUrl(stops)}">${esc(t('nav_today', { n: stops.length }))}</a>`));
+      wrap.appendChild(actions);
+    }
+
     const occ = Store.occupancyForWeek(week);
 
     const arriving = occ.filter((o) => o.status === 'arriving');
@@ -150,10 +199,11 @@
   function occCard(o) {
     const p = Store.pool(o.poolId);
     const latest = p ? Store.latestReading(p.id) : null;
+    const done = servicedToday(o.poolId) ? `<span class="chip st-done">${esc(t('serviced_today'))}</span>` : '';
     return el(`<a class="card" href="#/pool/${o.poolId}">
       <div class="card-row"><strong>${p ? esc(poolTitle(p)) : esc(o.poolId)}</strong>${statusChip(o.status)}</div>
       <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}</div>
-      ${chemPills(latest)}
+      ${chemPills(latest)}${done}
     </a>`);
   }
 
@@ -199,7 +249,32 @@
     const actions = el('<div class="actions"></div>');
     actions.appendChild(el(`<a class="btn" target="_blank" rel="noopener"
       href="${mapsUrl((res ? res.mapsQuery : '') + ' ' + p.unit)}">${esc(t('directions'))}</a>`));
+
+    // mark-serviced toggle (adds/removes a service visit for today)
+    const doneToday = servicedToday(p.id);
+    const svcBtn = el(`<button class="btn ${doneToday ? 'done' : ''}">${esc(doneToday ? t('service_undo') : t('mark_serviced'))}</button>`);
+    svcBtn.addEventListener('click', () => {
+      if (doneToday) {
+        Store.visitsFor(p.id)
+          .filter((v) => Store.localDate(v.at) === todayISO())
+          .forEach((v) => Store.deleteVisit(v.id));
+      } else {
+        Store.addVisit(p.id, { type: 'service' });
+      }
+      render();
+    });
+    actions.appendChild(svcBtn);
     wrap.appendChild(actions);
+
+    const lastV = Store.lastVisit(p.id);
+    if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
+
+    // suggested action based on the most recent reading
+    const advice = adviceFor(Store.latestReading(p.id));
+    if (advice.length) {
+      wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
+        <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
+    }
 
     const occ = Store.occupancyFor(p.id);
     if (occ.length) {

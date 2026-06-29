@@ -57,6 +57,14 @@ a { color: var(--brand); text-decoration: none; }
   border: 1px dashed var(--line); border-radius: 12px; padding: 14px; margin: 8px 0; }
 .pool-note { font-size: .85rem; color: var(--low); background: var(--low-bg);
   border-radius: 10px; padding: 9px 12px; margin: 0 0 10px; }
+.last-serviced { font-size: .82rem; color: var(--muted); margin: -2px 0 10px; }
+.advice { background: var(--low-bg); border: 1px solid #f0d9a8; border-radius: 12px;
+  padding: 12px 14px; margin: 0 0 14px; font-size: .9rem; }
+.advice strong { color: var(--low); display: block; margin-bottom: 6px; }
+.advice ul { margin: 0; padding-left: 18px; }
+.advice li { margin: 3px 0; }
+.btn.done { background: var(--ok-bg); color: var(--ok); border-color: #bce6c9; }
+.st-done { background: var(--ok-bg); color: var(--ok); }
 
 /* chips & pills */
 .chip { font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px;

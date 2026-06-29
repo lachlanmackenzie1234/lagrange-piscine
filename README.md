@@ -19,12 +19,16 @@ local storage) and works **offline**. Export/import JSON for backup.
 
 | Tab | What it shows |
 |-----|----------------|
-| **Today** | This week's arrivals to prep, mid-week checks, and pools whose chemistry is due. |
+| **Today** | This week's arrivals to prep, mid-week checks, pools whose chemistry is due, and a one-tap **multi-stop route** for the day's properties. |
 | **Pools** | Every maintained pool grouped by residence, with its latest reading. |
-| **Pool detail** | Occupancy timeline, a log-a-reading form, and full chemistry history. |
+| **Pool detail** | Occupancy timeline, a log-a-reading form, full chemistry history, **suggested corrective actions** when a reading is out of range, and a **Mark serviced today** toggle. |
 | **Schedule** | Each Saturday turnover, grouped by residence. |
 | **Map** | Open any residence in Google Maps. |
-| **More** | Export / import backup, reset to seed data, chemistry targets. |
+| **More** | Language (FR/EN), export / import backup, reset to seed data, chemistry targets. |
+
+Interface is **bilingual (French default / English)** — switch under *More → Langue*.
+Suggested actions are qualitative prompts (e.g. "pH high → add pH⁻") meant as
+reminders, not dosing amounts — always follow your product labels.
 
 ## Run it
 

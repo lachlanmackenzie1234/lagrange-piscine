@@ -102,6 +102,36 @@ const Store = (() => {
     save();
   }
 
+  // ---- visits (service log) ----
+  function addVisit(poolId, opts = {}) {
+    const rec = {
+      id: `vs-${Date.now()}-${Math.floor(performance.now())}`,
+      poolId,
+      at: opts.at || new Date().toISOString(),
+      type: opts.type || 'service',
+      note: opts.note || '',
+    };
+    load().visits.push(rec);
+    save();
+    return rec;
+  }
+  function visitsFor(poolId) {
+    return load().visits.filter((v) => v.poolId === poolId).sort((a, b) => b.at.localeCompare(a.at));
+  }
+  const lastVisit = (poolId) => visitsFor(poolId)[0] || null;
+  function deleteVisit(id) {
+    state.visits = load().visits.filter((v) => v.id !== id);
+    save();
+  }
+  // Was this pool serviced on a given local date (YYYY-MM-DD)?
+  function servicedOn(poolId, dateISO) {
+    return load().visits.some((v) => v.poolId === poolId && localDate(v.at) === dateISO);
+  }
+  function localDate(iso) {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
   function updatePool(id, patch) {
     const p = pool(id);
     if (p) { Object.assign(p, patch); save(); }
@@ -139,7 +169,9 @@ const Store = (() => {
     load, save,
     residences, residence, pools, pool, poolsByRes,
     readingsFor, latestReading, occupancyFor, occupancyForWeek, weeks,
-    addReading, deleteReading, updatePool, updateResidence,
+    addReading, deleteReading,
+    addVisit, visitsFor, lastVisit, deleteVisit, servicedOn, localDate,
+    updatePool, updateResidence,
     exportJSON, importJSON, resetToSeed,
   };
 })();

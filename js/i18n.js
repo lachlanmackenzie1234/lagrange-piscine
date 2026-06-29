@@ -50,6 +50,25 @@ const I18n = (() => {
 
       st_arriving: 'Arriving (turnover)', st_occupied: 'Occupied', st_departing: 'Departing',
       st_owner: 'Owner (PROPRIO)', st_closed: 'Closed (FERMÉE)', st_backup: 'Backup (EN SECOURS)', st_empty: 'Empty',
+
+      // suggested actions (qualitative — verify against your products & labels)
+      advice_title: 'Suggested action',
+      action_ph_high: 'pH high → add pH⁻ (pH minus), run filtration, retest after a few hours.',
+      action_ph_low: 'pH low → add pH⁺ (pH plus), run filtration, retest.',
+      action_cl_high: 'Chlorine high → pause dosing; let it drop before guests use the pool.',
+      action_cl_low: 'Chlorine low → add tablets/galets (check the feeder/skimmer).',
+      action_cl_vlow: 'Chlorine very low → shock treat; recheck before reopening.',
+      action_cya_low: 'Stabiliser low → add cyanuric acid (stabilisant).',
+      action_cya_high: 'Stabiliser high → partial drain & refill to dilute.',
+
+      // service log
+      mark_serviced: '✓ Mark serviced today',
+      serviced_today: 'Serviced today',
+      last_serviced: 'Last serviced {date}',
+      service_undo: 'Undo today’s service',
+      done_today_title: 'Done today ({n})',
+      // day route
+      nav_today: '🧭 Navigate today’s stops ({n})',
     },
     fr: {
       tab_today: 'Aujourd’hui', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_more: 'Plus',
@@ -98,6 +117,25 @@ const I18n = (() => {
 
       st_arriving: 'Arrivée (rotation)', st_occupied: 'Occupée', st_departing: 'Départ',
       st_owner: 'Propriétaire (PROPRIO)', st_closed: 'Fermée (FERMÉE)', st_backup: 'Secours (EN SECOURS)', st_empty: 'Vide',
+
+      // actions suggérées (indicatif — à vérifier selon vos produits et leurs notices)
+      advice_title: 'Action suggérée',
+      action_ph_high: 'pH élevé → ajouter du pH⁻ (pH moins), faire tourner la filtration, recontrôler après quelques heures.',
+      action_ph_low: 'pH bas → ajouter du pH⁺ (pH plus), faire tourner la filtration, recontrôler.',
+      action_cl_high: 'Chlore élevé → suspendre le dosage ; laisser baisser avant la baignade.',
+      action_cl_low: 'Chlore bas → ajouter des galets (vérifier le diffuseur/skimmer).',
+      action_cl_vlow: 'Chlore très bas → traitement choc ; recontrôler avant réouverture.',
+      action_cya_low: 'Stabilisant bas → ajouter du stabilisant (acide cyanurique).',
+      action_cya_high: 'Stabilisant élevé → vidange partielle puis remise à niveau pour diluer.',
+
+      // suivi d’entretien
+      mark_serviced: '✓ Marquer entretenue aujourd’hui',
+      serviced_today: 'Entretenue aujourd’hui',
+      last_serviced: 'Dernier entretien {date}',
+      service_undo: 'Annuler l’entretien du jour',
+      done_today_title: 'Faites aujourd’hui ({n})',
+      // itinéraire du jour
+      nav_today: '🧭 Itinéraire des arrêts du jour ({n})',
     },
   };
 
