@@ -49,7 +49,6 @@ const RESIDENCES = [
     mapsQuery: 'ZAC de l’Ardilouse, 6 Rés Eden Parc 6, 33680 Lacanau',
     lat: 45.002698, lng: -1.169749,
     note: 'Two clusters in the Ardilouse golf zone. Bas lots 3–7 ≈ 45.0027, −1.1697 (ZAC de l’Ardilouse / Rés Eden Parc 6). Lots 11 & 12 ("Lot. Éden Club") ≈ 44.9976, −1.1718. Street numbered evenly 2–12; LOT→unit 7→2, 4→8, 3→10 confirmed by boss.',
-    verify: true,
   },
   {
     code: 'GP', name: 'Green Parc',

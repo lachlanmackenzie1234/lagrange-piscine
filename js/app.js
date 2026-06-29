@@ -164,7 +164,7 @@
         Store.pools().map((p) => `<option value="${p.id}">${esc(p.res + ' ' + p.unit)}</option>`).join('') + '</select>'
       : '';
     const f = el(`<form class="note-form">
-      <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(t('note_ph'))}">
+      <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(t('note_log_ph'))}">
       <div class="note-form-row">
         ${opts}
         <label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>
@@ -449,10 +449,7 @@
         ${numField('chlorine', t('f_cl'))}
         ${numField('stabilizer', t('f_cya'))}
       </div>
-      <div class="grid2">
-        ${numField('temp', t('f_temp'))}
-        <label class="field"><span>${esc(t('f_note'))}</span><input name="note" type="text" placeholder="${esc(t('note_ph'))}"></label>
-      </div>
+      <label class="field"><span>${esc(t('f_note'))}</span><input name="note" type="text" placeholder="${esc(t('note_ph'))}"></label>
       <div class="target-hint">${esc(t('targets', tgt))}</div>
       <button class="btn primary" type="submit">${esc(t('save_reading'))}</button>
     </form>`);
@@ -461,7 +458,7 @@
       const fd = new FormData(f);
       Store.addReading({
         poolId: p.id, ph: fd.get('ph'), chlorine: fd.get('chlorine'),
-        stabilizer: fd.get('stabilizer'), temp: fd.get('temp'), note: fd.get('note'),
+        stabilizer: fd.get('stabilizer'), note: fd.get('note'),
       });
       location.hash = '#/pool/' + p.id;
       render();
@@ -479,7 +476,7 @@
   function readingsTable(p, readings) {
     const tbl = el(`<table class="readings"><thead><tr>
       <th>${esc(t('th_when'))}</th><th>${esc(t('th_ph'))}</th><th>${esc(t('th_cl'))}</th>
-      <th>${esc(t('th_cya'))}</th><th>${esc(t('th_temp'))}</th><th></th></tr></thead><tbody></tbody></table>`);
+      <th>${esc(t('th_cya'))}</th><th></th></tr></thead><tbody></tbody></table>`);
     const tb = tbl.querySelector('tbody');
     readings.forEach((r) => {
       const tr = el(`<tr>
@@ -487,7 +484,6 @@
         <td class="${evalMetric('ph', r.ph).state}">${r.ph ?? '—'}</td>
         <td class="${evalMetric('chlorine', r.chlorine).state}">${r.chlorine ?? '—'}</td>
         <td class="${evalMetric('stabilizer', r.stabilizer).state}">${r.stabilizer ?? '—'}</td>
-        <td>${r.temp ?? '—'}</td>
         <td><button class="link-del" data-id="${r.id}">✕</button></td>
       </tr>`);
       tr.querySelector('.link-del').addEventListener('click', () => {
@@ -571,6 +567,32 @@
     return wrap;
   }
 
+  // ----- exports -----
+  function downloadFile(name, text, type) {
+    const blob = new Blob([text], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  const csvCell = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  function readingsCsv() {
+    const rows = [['residence', 'unit', 'datetime', 'pH', 'chlorine_ppm', 'stabilizer_ppm', 'note']];
+    const all = Store.pools().flatMap((p) => Store.readingsFor(p.id).map((r) => ({ p, r })));
+    all.sort((a, b) => a.r.at.localeCompare(b.r.at));
+    all.forEach(({ p, r }) => rows.push([p.res, p.unit, r.at, r.ph ?? '', r.chlorine ?? '', r.stabilizer ?? '', r.note || '']));
+    return rows.map((row) => row.map(csvCell).join(',')).join('\n');
+  }
+  function notesCsv() {
+    const rows = [['datetime', 'residence', 'unit', 'todo', 'done', 'text']];
+    Store.notes().slice().reverse().forEach((n) => {
+      const p = n.poolId ? Store.pool(n.poolId) : null;
+      rows.push([n.at, p ? p.res : '', p ? p.unit : '', n.todo ? 'todo' : '', n.done ? 'done' : '', n.text]);
+    });
+    return rows.map((row) => row.map(csvCell).join(',')).join('\n');
+  }
+
   const SYNC_STATE = { off: 'sync_state_off', connecting: 'sync_state_connecting', online: 'sync_state_online', offline: 'sync_state_offline', error: 'sync_state_error' };
   function syncSection() {
     const box = el('<div class="sync-box"></div>');
@@ -611,14 +633,15 @@
     wrap.appendChild(syncSection());
 
     const exportBtn = el(`<button class="btn">${esc(t('export_btn'))}</button>`);
-    exportBtn.addEventListener('click', () => {
-      const blob = new Blob([Store.exportJSON()], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `lagrange-piscine-backup-${todayISO()}.json`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
+    exportBtn.addEventListener('click', () =>
+      downloadFile(`lagrange-piscine-backup-${todayISO()}.json`, Store.exportJSON(), 'application/json'));
+
+    const csvReadBtn = el(`<button class="btn">${esc(t('export_csv_readings'))}</button>`);
+    csvReadBtn.addEventListener('click', () =>
+      downloadFile(`lagrange-piscine-readings-${todayISO()}.csv`, readingsCsv(), 'text/csv'));
+    const csvNoteBtn = el(`<button class="btn">${esc(t('export_csv_notes'))}</button>`);
+    csvNoteBtn.addEventListener('click', () =>
+      downloadFile(`lagrange-piscine-notes-${todayISO()}.csv`, notesCsv(), 'text/csv'));
 
     const importInput = el('<input type="file" accept="application/json" hidden>');
     const importBtn = el(`<button class="btn">${esc(t('import_btn'))}</button>`);
@@ -648,7 +671,7 @@
     const logBtn = el(`<a class="btn" href="#/log">📝 ${esc(t('log_title'))}</a>`);
 
     const box = el('<div class="settings"></div>');
-    [logBtn, langRow, exportBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
+    [logBtn, langRow, exportBtn, csvReadBtn, csvNoteBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
     wrap.appendChild(box);
 
     wrap.appendChild(sectionTitle(t('about')));
