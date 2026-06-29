@@ -130,6 +130,26 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .sched-row:first-of-type { border-top: none; }
 .muted { color: var(--muted); }
 
+/* notes / to-dos */
+.note-form { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 12px; margin: 6px 0 4px; }
+.note-input { width: 100%; font-size: 1rem; padding: 10px; border: 1px solid var(--line);
+  border-radius: 10px; background: #fff; color: var(--ink); }
+.note-input:focus { outline: 2px solid var(--brand); border-color: var(--brand); }
+.note-form-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.note-select { font-size: .9rem; padding: 8px; border: 1px solid var(--line); border-radius: 10px;
+  background: #fff; color: var(--ink); }
+.note-todo { font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.note-form-row .btn { margin-left: auto; width: auto; padding: 9px 18px; }
+.card.note .note-text { margin-top: 4px; font-size: .98rem; white-space: pre-wrap; }
+.card.note .note-meta { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.card.note.note-done .note-text { text-decoration: line-through; color: var(--muted); }
+.note-actions { display: flex; gap: 14px; margin-top: 8px; }
+.link-act { background: none; border: none; color: var(--brand); font-size: .85rem; font-weight: 600; cursor: pointer; padding: 0; }
+.link-act.del { color: var(--na); margin-left: auto; }
+.see-all { float: right; font-size: .85rem; font-weight: 600; margin-top: 2px; }
+@media (prefers-color-scheme: dark) { .note-input, .note-select { background: #0f1923; } }
+
 .settings { display: flex; flex-direction: column; gap: 10px; }
 .sync-box { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   padding: 4px 14px 14px; margin-bottom: 14px; }

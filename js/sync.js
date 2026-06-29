@@ -57,18 +57,21 @@ const Sync = (() => {
       () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('visits'), (s) => applyLog(s, 'visit'),
       () => setStatus('error')));
+    unsubs.push(fsM.onSnapshot(col('notes'), (s) => applyLog(s, 'note'),
+      () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('pools'), applyPools, () => setStatus('error')));
   }
 
+  const APPLY = {
+    reading: { put: (r) => Store.applyRemoteReading(r), del: (id) => Store.applyRemoteReadingRemoved(id) },
+    visit: { put: (r) => Store.applyRemoteVisit(r), del: (id) => Store.applyRemoteVisitRemoved(id) },
+    note: { put: (r) => Store.applyRemoteNote(r), del: (id) => Store.applyRemoteNoteRemoved(id) },
+  };
   function applyLog(snap, kind) {
+    const a = APPLY[kind];
     snap.docChanges().forEach((ch) => {
-      const id = ch.doc.id;
-      if (ch.type === 'removed') {
-        kind === 'reading' ? Store.applyRemoteReadingRemoved(id) : Store.applyRemoteVisitRemoved(id);
-      } else {
-        const rec = { ...ch.doc.data(), id };
-        kind === 'reading' ? Store.applyRemoteReading(rec) : Store.applyRemoteVisit(rec);
-      }
+      if (ch.type === 'removed') a.del(ch.doc.id);
+      else a.put({ ...ch.doc.data(), id: ch.doc.id });
     });
     window.dispatchEvent(new CustomEvent('lp-data-changed'));
   }
@@ -86,6 +89,7 @@ const Sync = (() => {
     const jobs = [];
     st.readings.forEach((r) => jobs.push(fsM.setDoc(ref('readings', r.id), stripId(r), { merge: true })));
     st.visits.forEach((v) => jobs.push(fsM.setDoc(ref('visits', v.id), stripId(v), { merge: true })));
+    (st.notes || []).forEach((n) => jobs.push(fsM.setDoc(ref('notes', n.id), stripId(n), { merge: true })));
     st.pools.filter((p) => p.lat != null).forEach((p) =>
       jobs.push(fsM.setDoc(ref('pools', p.id), { lat: p.lat, lng: p.lng, note: p.note || '' }, { merge: true })));
     await Promise.all(jobs);
@@ -140,6 +144,8 @@ const Sync = (() => {
   const removeReading = (id) => active && fb && fb.fsM.deleteDoc(ref('readings', id)).catch(() => {});
   const pushVisit = (rec) => active && fb && fb.fsM.setDoc(ref('visits', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removeVisit = (id) => active && fb && fb.fsM.deleteDoc(ref('visits', id)).catch(() => {});
+  const pushNote = (rec) => active && fb && fb.fsM.setDoc(ref('notes', rec.id), stripId(rec), { merge: true }).catch(() => {});
+  const removeNote = (id) => active && fb && fb.fsM.deleteDoc(ref('notes', id)).catch(() => {});
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
@@ -156,7 +162,7 @@ const Sync = (() => {
 
   return {
     enable, disable, maybeAutoStart,
-    pushReading, removeReading, pushVisit, removeVisit, pushPool,
+    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPool,
     get active() { return active; },
     get status() { return status; },
     get team() { return team; },

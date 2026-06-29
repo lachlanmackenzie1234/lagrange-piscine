@@ -24,7 +24,8 @@ local storage) and works **offline**. Export/import JSON for backup.
 | **Pool detail** | Occupancy timeline, a log-a-reading form, full chemistry history, **suggested corrective actions** when a reading is out of range, a **Mark serviced today** toggle, and **capture GPS here** (stand at the pool, tap once → precise pin for directions/routing). |
 | **Schedule** | Each Saturday turnover, grouped by residence. |
 | **Map** | Open any residence in Google Maps. |
-| **More** | Language (FR/EN), export / import backup, reset to seed data, chemistry targets. |
+| **Notes & log** (`#/log`) | Chronological **to-do / observation log** — the "preventive layer". Quick-capture notes (optionally tagged to a pool, optionally a to-do), open to-dos pin to **Today**, full history time-ordered. Syncs across the team. Reachable from Today ("see all") and *More*. |
+| **More** | Language (FR/EN), Team sync, notes & log, export / import backup, reset to seed, chemistry targets. |
 
 Every unit is labelled by its **residence-code prefix + logement number** (e.g.
 `EC 12`, `HO 187`) to match the rental papers. Residences are either **pool

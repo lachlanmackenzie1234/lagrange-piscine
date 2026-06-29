@@ -40,6 +40,7 @@ const Store = (() => {
       occupancy,
       readings: [], // chemistry readings
       visits: [],   // maintenance visits / checks
+      notes: [],    // chronological notes / to-dos (the "preventive layer")
       coordsSeedVersion: COORDS_SEED,
       createdAt: new Date().toISOString(),
     };
@@ -75,6 +76,7 @@ const Store = (() => {
       if (raw) {
         state = JSON.parse(raw);
         if (!state.schema) state.schema = SCHEMA;
+        ['readings', 'visits', 'notes'].forEach((k) => { if (!Array.isArray(state[k])) state[k] = []; });
         migrate();
         return state;
       }
@@ -163,6 +165,44 @@ const Store = (() => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
+  // ---- notes / to-dos (chronological, optionally tied to a pool) ----
+  function addNote(n) {
+    const rec = {
+      id: `nt-${Date.now()}-${Math.floor(performance.now())}`,
+      at: n.at || new Date().toISOString(),
+      text: (n.text || '').trim(),
+      poolId: n.poolId || '',
+      todo: !!n.todo,
+      done: false,
+    };
+    load().notes.push(rec);
+    save();
+    mirror((s) => s.pushNote(rec));
+    return rec;
+  }
+  const notes = () => load().notes.slice().sort((a, b) => b.at.localeCompare(a.at));
+  const notesFor = (poolId) => notes().filter((n) => n.poolId === poolId);
+  const openTodos = () => notes().filter((n) => n.todo && !n.done);
+  function setNoteDone(id, done) {
+    const n = load().notes.find((x) => x.id === id);
+    if (n) { n.done = !!done; save(); mirror((s) => s.pushNote(n)); }
+    return n;
+  }
+  function deleteNote(id) {
+    state.notes = load().notes.filter((n) => n.id !== id);
+    save();
+    mirror((s) => s.removeNote(id));
+  }
+  function applyRemoteNote(rec) {
+    const i = load().notes.findIndex((n) => n.id === rec.id);
+    if (i >= 0) state.notes[i] = rec; else state.notes.push(rec);
+    save();
+  }
+  function applyRemoteNoteRemoved(id) {
+    state.notes = load().notes.filter((n) => n.id !== id);
+    save();
+  }
+
   // ---- sync glue ----
   // Fire a mirror callback to Team Sync if it's active (no-op otherwise).
   function mirror(fn) {
@@ -231,9 +271,11 @@ const Store = (() => {
     readingsFor, latestReading, occupancyFor, occupancyForWeek, weeks,
     addReading, deleteReading,
     addVisit, visitsFor, lastVisit, deleteVisit, servicedOn, localDate,
+    addNote, notes, notesFor, openTodos, setNoteDone, deleteNote,
     updatePool, updateResidence,
     applyRemoteReading, applyRemoteReadingRemoved,
     applyRemoteVisit, applyRemoteVisitRemoved, applyRemotePool,
+    applyRemoteNote, applyRemoteNoteRemoved,
     exportJSON, importJSON, resetToSeed,
   };
 })();

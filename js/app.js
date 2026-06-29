@@ -79,7 +79,7 @@
   // ---------- router ----------
   const routes = {
     '': viewToday, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
-    'schedule': viewSchedule, 'map': viewMap, 'settings': viewSettings,
+    'schedule': viewSchedule, 'map': viewMap, 'log': viewLog, 'settings': viewSettings,
   };
 
   function parseHash() {
@@ -155,6 +155,54 @@
   }
   function emptyNote(txt) { return el(`<p class="empty-note">${esc(txt)}</p>`); }
 
+  // ----- notes / to-dos -----
+  // noteForm(undefined) shows a pool picker; noteForm(poolId) is fixed to a pool.
+  function noteForm(fixedPoolId) {
+    const showPicker = fixedPoolId === undefined;
+    const opts = showPicker
+      ? `<select name="poolId" class="note-select"><option value="">${esc(t('note_general'))}</option>` +
+        Store.pools().map((p) => `<option value="${p.id}">${esc(p.res + ' ' + p.unit)}</option>`).join('') + '</select>'
+      : '';
+    const f = el(`<form class="note-form">
+      <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(t('note_ph'))}">
+      <div class="note-form-row">
+        ${opts}
+        <label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>
+        <button class="btn primary" type="submit">${esc(t('note_save'))}</button>
+      </div>
+    </form>`);
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(f);
+      const text = (fd.get('text') || '').trim();
+      if (!text) return;
+      Store.addNote({ text, poolId: showPicker ? (fd.get('poolId') || '') : fixedPoolId, todo: !!fd.get('todo') });
+      render();
+    });
+    return f;
+  }
+
+  function noteItem(n) {
+    const p = n.poolId ? Store.pool(n.poolId) : null;
+    const tag = p ? `<a class="chip st-empty" href="#/pool/${p.id}">${esc(p.res + ' ' + p.unit)}</a>` : '';
+    const todoChip = n.todo ? `<span class="chip ${n.done ? 'st-done' : 'st-arriving'}">${n.done ? esc(t('done_badge')) : '☐'}</span>` : '';
+    const card = el(`<div class="card note${n.done ? ' note-done' : ''}">
+      <div class="card-row"><span class="note-meta">${fmtDateTime(n.at)} ${tag}</span>${todoChip}</div>
+      <div class="note-text">${esc(n.text)}</div>
+      <div class="note-actions"></div>
+    </div>`);
+    const actions = card.querySelector('.note-actions');
+    if (n.todo) {
+      const b = el(`<button class="link-act">${esc(n.done ? t('reopen') : t('mark_done'))}</button>`);
+      b.addEventListener('click', () => { Store.setNoteDone(n.id, !n.done); render(); });
+      actions.appendChild(b);
+    }
+    const del = el('<button class="link-act del">✕</button>');
+    del.addEventListener('click', () => { if (confirm(t('confirm_del_note'))) { Store.deleteNote(n.id); render(); } });
+    actions.appendChild(del);
+    return card;
+  }
+
   const PILL_LABEL = { ph: 'pH', chlorine: 'Cl', stabilizer: 'CYA' };
   function chemPills(r) {
     if (!r) return `<div class="pills"><span class="pill na">${esc(t('no_reading'))}</span></div>`;
@@ -179,6 +227,18 @@
         href="${routeUrl(stops)}">${esc(t('nav_today', { n: stops.length }))}</a>`));
       wrap.appendChild(actions);
     }
+
+    // preventive layer: open to-dos + quick capture; full history under #/log
+    const todos = Store.openTodos();
+    const noteHead = el(`<div class="section-title"><h2>${esc(t('todos_title', { n: todos.length }))}</h2></div>`);
+    noteHead.appendChild(el(`<a class="see-all" href="#/log">${esc(t('see_all'))}</a>`));
+    wrap.appendChild(noteHead);
+    if (todos.length) {
+      const c = el('<div class="cards"></div>');
+      todos.forEach((n) => c.appendChild(noteItem(n)));
+      wrap.appendChild(c);
+    }
+    wrap.appendChild(noteForm(undefined));
 
     // maintenance views consider only pools we actually service
     const occ = Store.occupancyForWeek(week).filter((o) => hasPool(Store.pool(o.poolId)));
@@ -355,6 +415,16 @@
       wrap.appendChild(ol);
     }
 
+    // notes / to-dos for this pool (available for every unit, incl. HO)
+    wrap.appendChild(sectionTitle(t('notes_section')));
+    wrap.appendChild(noteForm(p.id));
+    const pNotes = Store.notesFor(p.id);
+    if (pNotes.length) {
+      const nc = el('<div class="cards"></div>');
+      pNotes.forEach((n) => nc.appendChild(noteItem(n)));
+      wrap.appendChild(nc);
+    }
+
     if (pool) {
       wrap.appendChild(sectionTitle(t('log_reading')));
       wrap.appendChild(readingForm(p));
@@ -455,6 +525,31 @@
     return wrap;
   }
 
+  // ---------- view: LOG (notes & to-dos) ----------
+  function viewLog() {
+    const wrap = document.createElement('div');
+    wrap.appendChild(header(t('log_title'), t('log_sub')));
+    wrap.appendChild(noteForm(undefined));
+    const all = Store.notes();
+    const open = all.filter((n) => n.todo && !n.done);
+    const rest = all.filter((n) => !(n.todo && !n.done));
+    if (open.length) {
+      wrap.appendChild(sectionTitle(t('todos_title', { n: open.length })));
+      const c = el('<div class="cards"></div>');
+      open.forEach((n) => c.appendChild(noteItem(n)));
+      wrap.appendChild(c);
+    }
+    wrap.appendChild(sectionTitle(t('notes_recent')));
+    if (rest.length) {
+      const c = el('<div class="cards"></div>');
+      rest.forEach((n) => c.appendChild(noteItem(n)));
+      wrap.appendChild(c);
+    } else if (!open.length) {
+      wrap.appendChild(emptyNote(t('notes_empty')));
+    }
+    return wrap;
+  }
+
   // ---------- view: MAP ----------
   function viewMap() {
     const wrap = document.createElement('div');
@@ -550,8 +645,10 @@
     langRow.querySelectorAll('[data-lang]').forEach((b) =>
       b.addEventListener('click', () => { I18n.set(b.dataset.lang); render(); }));
 
+    const logBtn = el(`<a class="btn" href="#/log">📝 ${esc(t('log_title'))}</a>`);
+
     const box = el('<div class="settings"></div>');
-    [langRow, exportBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
+    [logBtn, langRow, exportBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
     wrap.appendChild(box);
 
     wrap.appendChild(sectionTitle(t('about')));
