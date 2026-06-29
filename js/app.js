@@ -179,7 +179,8 @@
     });
     Store.residences().forEach((res) => {
       if (res.lat != null && res.lng != null && !resWithPoolPins.has(res.code)) {
-        pts.push({ lat: res.lat, lng: res.lng, label: `${res.code} · ${res.name}`, color: res.nonPool ? '#6b4ed6' : '#0277bd', maps: coordsQueryUrl(res.lat, res.lng) });
+        // approximate base pins link to the place name (accurate) rather than the rough coord
+        pts.push({ lat: res.lat, lng: res.lng, label: `${res.code} · ${res.name}${res.approx ? ' ~' : ''}`, color: res.nonPool ? '#6b4ed6' : '#0277bd', maps: mapsUrl(res.mapsQuery) });
       }
     });
     return pts;
@@ -513,7 +514,7 @@
     }
 
     if (pool) {
-      const lastV = Store.lastVisit(p.id);
+      const lastV = Store.lastService(p.id);
       if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
 
       // suggested action based on the most recent reading
@@ -568,6 +569,23 @@
     }
 
     if (pool) {
+      // pump & filter management
+      wrap.appendChild(sectionTitle(t('pump_section')));
+      const pump = el('<div class="card pump"></div>');
+      const lb = Store.lastBackwash(p.id);
+      pump.appendChild(el(`<p class="pump-line">${esc(t('last_backwash', { date: lb ? fmtDateTime(lb.at) : t('never') }))}</p>`));
+      const bwBtn = el(`<button class="btn">${esc(t('log_backwash'))}</button>`);
+      bwBtn.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
+      pump.appendChild(bwBtn);
+      const sand = el(`<label class="field"><span>${esc(t('sand_date'))}</span><input type="date" value="${esc(p.sandDate || '')}"></label>`);
+      sand.querySelector('input').addEventListener('change', (e) => Store.updatePool(p.id, { sandDate: e.target.value }));
+      pump.appendChild(sand);
+      const pn = el(`<label class="field"><span>${esc(t('pump_notes'))}</span><textarea rows="2" placeholder="${esc(t('pump_notes_ph'))}"></textarea></label>`);
+      pn.querySelector('textarea').value = p.pumpNote || '';
+      pn.querySelector('textarea').addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
+      pump.appendChild(pn);
+      wrap.appendChild(pump);
+
       wrap.appendChild(sectionTitle(t('log_reading')));
       wrap.appendChild(readingForm(p));
 

@@ -32,16 +32,19 @@ const RESIDENCES = [
   {
     code: 'EC', name: 'Eden Club',
     mapsQuery: 'Lagrange Vacances Eden Club, Lacanau-Océan',
+    lat: 44.9996, lng: -1.1752, approx: true,
     note: 'Rés Eden Club, off Rte du Baganais. Houses 01–22, T4/T5.',
   },
   {
     code: 'AG', name: 'Atlantic Green',
     mapsQuery: 'Lagrange Vacances Atlantic Green, Lacanau-Océan',
+    lat: 44.9978, lng: -1.1690, approx: true,
     note: 'Rés Atlantic Green, off Rte du Baganais. Houses 01–40.',
   },
   {
     code: 'EP', name: 'Eden Parc Golf',
     mapsQuery: 'Lagrange Vacances Eden Parc Golf, Lacanau-Océan',
+    lat: 45.0013, lng: -1.1722, approx: true,
     note: 'Eden Parc Golf (Lagrange code L-GOLF) — Rue du Birdie / Rue Eden Parc / Impasse du Pitch. Unit codes carry a plot number (e.g. 6B/75).',
   },
   {
@@ -53,6 +56,7 @@ const RESIDENCES = [
   {
     code: 'GP', name: 'Green Parc',
     mapsQuery: 'Lagrange Vacances Green Parc, Lacanau-Océan',
+    lat: 45.0038, lng: -1.1665, approx: true,
     note: 'Villa Green Parc (Lagrange code L-GREP) — ~500 m from Golf de l’Ardilouse, ~3.5 km from the beach. No plan supplied yet.',
   },
   {

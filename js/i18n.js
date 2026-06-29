@@ -38,7 +38,7 @@ const I18n = (() => {
 
       map_title: 'Map', map_sub: 'Open residences in Google Maps',
       n_pools: '{n} pools', open_maps: '📍 Open in Google Maps',
-      map_tip: 'Tip: route optimisation between today’s stops is on the roadmap.',
+      map_tip: 'Residence pins marked “~” are approximate — capture GPS at a pool to drop an exact pin.',
 
       settings_title: 'Settings & backup',
       export_btn: '⬇︎ Backup (.json)', import_btn: '⬆︎ Import backup',
@@ -65,6 +65,9 @@ const I18n = (() => {
       action_cya_high: 'Stabiliser high → partial drain & refill to dilute.',
 
       // service log
+      pump_section: 'Pump & filter', log_backwash: '⟲ Log backwash now',
+      last_backwash: 'Last backwash: {date}', sand_date: 'Filter sand changed',
+      pump_notes: 'Pump notes / particularities', pump_notes_ph: 'e.g. skimmer left side off — see valve',
       mark_serviced: '✓ Mark serviced today',
       serviced_today: 'Serviced today',
       last_serviced: 'Last serviced {date}',
@@ -156,7 +159,7 @@ const I18n = (() => {
 
       map_title: 'Carte', map_sub: 'Ouvrir les résidences dans Google Maps',
       n_pools: '{n} piscines', open_maps: '📍 Ouvrir dans Google Maps',
-      map_tip: 'Astuce : l’optimisation d’itinéraire entre les arrêts du jour arrive bientôt.',
+      map_tip: 'Les repères « ~ » sont approximatifs — enregistrez le GPS à une piscine pour un repère exact.',
 
       settings_title: 'Réglages & sauvegarde',
       export_btn: '⬇︎ Sauvegarde (.json)', import_btn: '⬆︎ Importer une sauvegarde',
@@ -183,6 +186,9 @@ const I18n = (() => {
       action_cya_high: 'Stabilisant élevé → vidange partielle puis remise à niveau pour diluer.',
 
       // suivi d’entretien
+      pump_section: 'Gestion de pompe', log_backwash: '⟲ Enregistrer un lavage',
+      last_backwash: 'Dernier lavage : {date}', sand_date: 'Sable du filtre changé',
+      pump_notes: 'Notes pompe / particularités', pump_notes_ph: 'ex. skimmer côté gauche coupé — voir vanne',
       mark_serviced: '✓ Marquer entretenue aujourd’hui',
       serviced_today: 'Entretenue aujourd’hui',
       last_serviced: 'Dernier entretien {date}',

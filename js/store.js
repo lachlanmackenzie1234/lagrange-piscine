@@ -47,7 +47,7 @@ const Store = (() => {
   }
 
   // Bump when seed coordinates change; migrate() back-fills existing installs.
-  const COORDS_SEED = 2;
+  const COORDS_SEED = 3;
 
   // Fill in pool/residence coordinates added to the seed since this device was
   // first seeded — only where the user hasn't already set their own. Never
@@ -151,14 +151,16 @@ const Store = (() => {
     return load().visits.filter((v) => v.poolId === poolId).sort((a, b) => b.at.localeCompare(a.at));
   }
   const lastVisit = (poolId) => visitsFor(poolId)[0] || null;
+  const lastService = (poolId) => visitsFor(poolId).find((v) => (v.type || 'service') === 'service') || null;
+  const lastBackwash = (poolId) => visitsFor(poolId).find((v) => v.type === 'backwash') || null;
   function deleteVisit(id) {
     state.visits = load().visits.filter((v) => v.id !== id);
     save();
     mirror((s) => s.removeVisit(id));
   }
-  // Was this pool serviced on a given local date (YYYY-MM-DD)?
+  // Was this pool serviced (not just backwashed) on a given local date?
   function servicedOn(poolId, dateISO) {
-    return load().visits.some((v) => v.poolId === poolId && localDate(v.at) === dateISO);
+    return load().visits.some((v) => v.poolId === poolId && (v.type || 'service') === 'service' && localDate(v.at) === dateISO);
   }
   function localDate(iso) {
     const d = new Date(iso);
@@ -270,7 +272,7 @@ const Store = (() => {
     residences, residence, pools, pool, poolsByRes,
     readingsFor, latestReading, occupancyFor, occupancyForWeek, weeks,
     addReading, deleteReading,
-    addVisit, visitsFor, lastVisit, deleteVisit, servicedOn, localDate,
+    addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, servicedOn, localDate,
     addNote, notes, notesFor, openTodos, setNoteDone, deleteNote,
     updatePool, updateResidence,
     applyRemoteReading, applyRemoteReadingRemoved,

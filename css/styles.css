@@ -105,6 +105,14 @@ a { color: var(--brand); text-decoration: none; }
 /* forms */
 .reading-form { background: var(--card); border: 1px solid var(--line);
   border-radius: 14px; padding: 14px; }
+.card.pump { display: flex; flex-direction: column; gap: 10px; }
+.card.pump .pump-line { margin: 0; font-size: .92rem; color: var(--muted); }
+.card.pump .btn { width: auto; align-self: flex-start; }
+.card.pump textarea { font-size: 1rem; padding: 10px; border: 1px solid var(--line);
+  border-radius: 10px; background: #fff; color: var(--ink); width: 100%; resize: vertical; font-family: inherit; }
+.card.pump input[type=date] { font-size: 1rem; padding: 9px 10px; border: 1px solid var(--line);
+  border-radius: 10px; background: #fff; color: var(--ink); }
+@media (prefers-color-scheme: dark) { .card.pump textarea, .card.pump input[type=date] { background: #0f1923; } }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .field { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--muted); }

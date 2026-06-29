@@ -161,9 +161,8 @@ const Sync = (() => {
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
-    if ('lat' in patch) f.lat = patch.lat ?? null;
-    if ('lng' in patch) f.lng = patch.lng ?? null;
-    if ('note' in patch) f.note = patch.note ?? '';
+    ['lat', 'lng', 'note', 'sandDate', 'pumpNote'].forEach((k) => { if (k in patch) f[k] = patch[k] ?? null; });
+    if (!Object.keys(f).length) return;
     fb.fsM.setDoc(ref('pools', poolId), f, { merge: true }).catch(() => {});
   }
 
