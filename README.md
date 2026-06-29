@@ -76,10 +76,13 @@ These were inferred from the source images and are flagged in-app:
 
 - **`HO`** residence full name (no matching Lagrange code found; possibly a
   non-Lagrange cluster). **`GP` confirmed as Green Parc.**
-- **`EPP`** located on site: **Allée des Villas de l'Ardilouse** (~45.002, −1.177),
-  numbered evenly 2–12 down the street. Inferred LOT→unit: 7→2, 6→4, 5→6, 4→8,
-  3→10, 2→12 (7→2, 4→8, 3→10 confirmed by boss). The **haut** cluster (LOT 11)
-  is still to confirm. Unit keys unchanged so occupancy links hold.
+- **`EPP`** located & pinned. Two clusters in the Ardilouse golf zone: bas lots
+  3–7 ≈ `45.0027, −1.1697` (ZAC de l'Ardilouse / Rés Eden Parc 6); lots 11 & 12
+  ("Lot. Éden Club") ≈ `44.9976, −1.1718`. LOT→unit 7→2, 4→8, 3→10 confirmed;
+  exact unit # for 11/12 still to confirm. Unit keys unchanged so occupancy holds.
+- **`HO`** flagged **management-only** (`nonPool: true`) — likely no private pool,
+  so not serviced. Rule of thumb: *pool visible on the map = we maintain it*.
+  Pending confirmation against the maps, then HO can be removed.
 - Whether the highlighted pools are the **complete** maintenance list, or just this
   fortnight's active ones.
 - Exact chemistry target bands you work to (the defaults above are standard for

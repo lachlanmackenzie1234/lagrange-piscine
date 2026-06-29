@@ -20,6 +20,8 @@ const Store = (() => {
       type: p.type || '',
       note: p.note || '',
       verify: !!p.verify,
+      lat: p.lat ?? null,
+      lng: p.lng ?? null,
     }));
     const occupancy = S.OCCUPANCY.map((o, i) => ({
       id: `occ-${i}`,
@@ -38,8 +40,32 @@ const Store = (() => {
       occupancy,
       readings: [], // chemistry readings
       visits: [],   // maintenance visits / checks
+      coordsSeedVersion: COORDS_SEED,
       createdAt: new Date().toISOString(),
     };
+  }
+
+  // Bump when seed coordinates change; migrate() back-fills existing installs.
+  const COORDS_SEED = 2;
+
+  // Fill in pool/residence coordinates added to the seed since this device was
+  // first seeded — only where the user hasn't already set their own. Never
+  // overwrites a coordinate the user captured/edited.
+  function migrate() {
+    if ((state.coordsSeedVersion || 0) >= COORDS_SEED) return;
+    const S = window.SEED;
+    S.POOLS.forEach((sp) => {
+      if (sp.lat == null) return;
+      const p = state.pools.find((x) => x.id === poolId(sp.res, sp.unit));
+      if (p && p.lat == null) { p.lat = sp.lat; p.lng = sp.lng; }
+    });
+    S.RESIDENCES.forEach((sr) => {
+      if (sr.lat == null) return;
+      const r = state.residences.find((x) => x.code === sr.code);
+      if (r && r.lat == null) { r.lat = sr.lat; r.lng = sr.lng; }
+    });
+    state.coordsSeedVersion = COORDS_SEED;
+    save();
   }
 
   function load() {
@@ -49,6 +75,7 @@ const Store = (() => {
       if (raw) {
         state = JSON.parse(raw);
         if (!state.schema) state.schema = SCHEMA;
+        migrate();
         return state;
       }
     } catch (e) { console.warn('load failed, reseeding', e); }

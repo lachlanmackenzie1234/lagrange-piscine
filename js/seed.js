@@ -46,9 +46,9 @@ const RESIDENCES = [
   },
   {
     code: 'EPP', name: 'Eden Parc (Pitch lots)',
-    mapsQuery: 'Allée des Villas de l’Ardilouse, Lacanau-Océan',
-    lat: 45.002, lng: -1.177,
-    note: 'Allée des Villas de l’Ardilouse (Eden Parc Golf, beside Golf de l’Ardilouse). Street numbered evenly 2–12; inferred LOT→unit 7→2, 6→4, 5→6, 4→8, 3→10, 2→12 (7→2, 4→8, 3→10 confirmed by boss). LOT 11 (haut cluster) still to confirm on site.',
+    mapsQuery: 'ZAC de l’Ardilouse, 6 Rés Eden Parc 6, 33680 Lacanau',
+    lat: 45.002698, lng: -1.169749,
+    note: 'Two clusters in the Ardilouse golf zone. Bas lots 3–7 ≈ 45.0027, −1.1697 (ZAC de l’Ardilouse / Rés Eden Parc 6). Lots 11 & 12 ("Lot. Éden Club") ≈ 44.9976, −1.1718. Street numbered evenly 2–12; LOT→unit 7→2, 4→8, 3→10 confirmed by boss.',
     verify: true,
   },
   {
@@ -57,10 +57,11 @@ const RESIDENCES = [
     note: 'Villa Green Parc (Lagrange code L-GREP) — ~500 m from Golf de l’Ardilouse, ~3.5 km from the beach. No plan supplied yet.',
   },
   {
-    code: 'HO', name: 'HO — to confirm',
+    code: 'HO', name: 'HO — management only?',
     mapsQuery: 'Lacanau-Océan',
-    note: 'Residence code "HO" — full name not yet confirmed (no matching Lagrange code found; possibly a non-Lagrange cluster). No plan supplied yet.',
+    note: '⚠︎ Likely rental-management only — NOT pool-maintenance properties (no private pool on the maps). Rule: pool visible on the map = we service it; the rest is just letting management. Confirm against the maps, then these can be removed.',
     verify: true,
+    nonPool: true,
   },
 ];
 
@@ -95,11 +96,11 @@ const POOLS = [
   // Eden Parc Pitch lots. `unit` keeps the rotation-sheet/LOT number (so the
   // occupancy links hold); `note` records the boss's 2026 renumbering until
   // confirmed on site.
-  { res: 'EPP', unit: '3',  note: 'Plan LOT 3 (T5 open) → 2026 #10' },
-  { res: 'EPP', unit: '4',  note: 'Plan LOT 4 (T5 pp ter) → 2026 #8' },
-  { res: 'EPP', unit: '7',  note: 'Plan LOT 7 (T5 open) → 2026 #2' },
-  { res: 'EPP', unit: '11', note: 'Plan LOT 11 (T5 G) → 2026 # to confirm', verify: true },
-  { res: 'EPP', unit: '12', note: '2026 # to confirm (no matching LOT on plan)', verify: true },
+  { res: 'EPP', unit: '3',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 3 (T5 open) → 2026 #10 · bas cluster' },
+  { res: 'EPP', unit: '4',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 4 (T5 pp ter) → 2026 #8 · bas cluster' },
+  { res: 'EPP', unit: '7',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 7 (T5 open) → 2026 #2 · bas cluster' },
+  { res: 'EPP', unit: '11', lat: 44.997581, lng: -1.171753, note: 'Plan LOT 11 (T5 G) · "Lot. Éden Club" cluster · confirm unit #', verify: true },
+  { res: 'EPP', unit: '12', lat: 44.997581, lng: -1.171753, note: '"12 Lot." · same cluster as 11 · confirm unit #', verify: true },
 
   // GP
   { res: 'GP', unit: '18' },
