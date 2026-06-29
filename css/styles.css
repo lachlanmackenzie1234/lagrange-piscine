@@ -218,6 +218,15 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
   border: 1px solid var(--line); background: var(--card); z-index: 0; }
 .leaflet-map .leaflet-popup-content a { font-weight: 600; }
 
+/* weather */
+.wx-current { text-align: center; padding: 18px; }
+.wx-temp { font-size: 2.6rem; font-weight: 800; }
+.wx-meta { color: var(--muted); font-size: .92rem; margin-top: 4px; }
+.wx-updated { color: var(--muted); font-size: .76rem; margin-top: 8px; }
+.wx-chip { font-size: .72rem; font-weight: 600; padding: 2px 7px; border-radius: 8px;
+  background: #e7f0fe; color: #1558d6; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { .wx-chip { background: #16263d; color: #7fb0ff; } }
+
 /* tab bar */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--tab-h) + env(safe-area-inset-bottom));
@@ -228,9 +237,10 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 }
 .tabbar a {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px; font-size: .68rem; color: var(--muted); font-weight: 600;
+  gap: 2px; font-size: .6rem; color: var(--muted); font-weight: 600; min-width: 0;
 }
-.tabbar a span { font-size: 1.25rem; line-height: 1; }
+.tabbar a .lbl { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tabbar a span.ic { font-size: 1.15rem; line-height: 1; }
 .tabbar a.active { color: var(--brand); }
 
 @media (prefers-color-scheme: dark) {

@@ -4,7 +4,7 @@
   const { CHEM_RANGES, OCC_STATUS } = S;
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v17'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v18'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -107,7 +107,7 @@
   // ---------- router ----------
   const routes = {
     '': viewToday, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
-    'schedule': viewSchedule, 'map': viewMap, 'log': viewLog, 'settings': viewSettings,
+    'schedule': viewSchedule, 'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings,
   };
 
   function parseHash() {
@@ -316,7 +316,7 @@
         const times = (await Promise.all(files.map((f2) => Photos.exifTime(f2).catch(() => null)))).filter(Boolean).sort();
         at = times[0] || undefined;
       }
-      const note = Store.addNote({ text, poolId: showPicker ? (fd.get('poolId') || '') : fixedPoolId, todo: !!fd.get('todo'), at });
+      const note = Store.addNote({ text, poolId: showPicker ? (fd.get('poolId') || '') : fixedPoolId, todo: !!fd.get('todo'), at, weather: window.Weather && Weather.current() });
       for (const file of files) { try { await Photos.add({ poolId: note.poolId, noteId: note.id }, file); } catch (_) {} }
       render();
     });
@@ -328,7 +328,7 @@
     const tag = p ? `<a class="chip st-empty" href="#/pool/${p.id}">${esc(p.res + ' ' + p.unit)}</a>` : '';
     const todoChip = n.todo ? `<span class="chip ${n.done ? 'st-done' : 'st-arriving'}">${n.done ? esc(t('done_badge')) : '☐'}</span>` : '';
     const card = el(`<div class="card note${n.done ? ' note-done' : ''}">
-      <div class="card-row"><span class="note-meta">${fmtDateTime(n.at)} ${tag}</span>${todoChip}</div>
+      <div class="card-row"><span class="note-meta">${fmtDateTime(n.at)} ${tag} ${wxChip(n.weather)}</span>${todoChip}</div>
       <div class="note-text">${esc(n.text)}</div>
       <div class="note-actions"></div>
     </div>`);
@@ -694,6 +694,7 @@
         poolId: p.id, ph: fd.get('ph'), chlorine: fd.get('chlorine'),
         stabilizer: fd.get('stabilizer'), note: fd.get('note'),
         at: atVal ? new Date(atVal).toISOString() : undefined,
+        weather: window.Weather && Weather.current(),
       });
       location.hash = '#/pool/' + p.id;
       render();
@@ -715,7 +716,7 @@
     const tb = tbl.querySelector('tbody');
     readings.forEach((r) => {
       const tr = el(`<tr>
-        <td>${fmtDateTime(r.at)}${r.note ? `<div class="cell-note">${esc(r.note)}</div>` : ''}</td>
+        <td>${fmtDateTime(r.at)}${r.weather ? ' ' + wxChip(r.weather) : ''}${r.note ? `<div class="cell-note">${esc(r.note)}</div>` : ''}</td>
         <td class="${evalMetric('ph', r.ph).state}">${r.ph ?? '—'}</td>
         <td class="${evalMetric('chlorine', r.chlorine).state}">${r.chlorine ?? '—'}</td>
         <td class="${evalMetric('stabilizer', r.stabilizer).state}">${r.stabilizer ?? '—'}</td>
@@ -778,6 +779,59 @@
     } else if (!open.length) {
       wrap.appendChild(emptyNote(t('notes_empty')));
     }
+    return wrap;
+  }
+
+  // ---------- weather ----------
+  function wmo(code) {
+    if (code === 0) return { e: '☀️', k: 'wx_clear' };
+    if (code <= 3) return { e: '⛅', k: 'wx_cloud' };
+    if (code === 45 || code === 48) return { e: '🌫️', k: 'wx_fog' };
+    if (code >= 71 && code <= 77) return { e: '🌨️', k: 'wx_snow' };
+    if (code === 85 || code === 86) return { e: '🌨️', k: 'wx_snow' };
+    if (code >= 95) return { e: '⛈️', k: 'wx_storm' };
+    if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { e: '🌧️', k: 'wx_rain' };
+    return { e: '🌥️', k: 'wx_unknown' };
+  }
+  // compact chip for a weather snapshot stamped on a record
+  function wxChip(w) {
+    if (!w || w.temp == null) return '';
+    return `<span class="wx-chip">${wmo(w.code).e} ${Math.round(w.temp)}°${w.hum != null ? ' · ' + Math.round(w.hum) + '%' : ''}</span>`;
+  }
+
+  function viewWeather() {
+    const wrap = document.createElement('div');
+    wrap.appendChild(header(t('weather_title'), 'Lacanau-Océan'));
+    const d = window.Weather && Weather.data;
+    if (!d || !d.current) {
+      wrap.appendChild(emptyNote(t('wx_loading')));
+      if (window.Weather) Weather.load(true);
+      return wrap;
+    }
+    const c = d.current;
+    const w = wmo(c.weather_code);
+    wrap.appendChild(el(`<div class="card wx-current">
+      <div class="wx-temp">${w.e} ${Math.round(c.temperature_2m)}°</div>
+      <div class="wx-meta">${esc(t(w.k))} · 💧 ${Math.round(c.relative_humidity_2m)}% · 💨 ${Math.round(c.wind_speed_10m)} km/h · UV ${Math.round(c.uv_index)}</div>
+      <div class="wx-updated">${esc(t('wx_updated', { time: fmtTime(d.at) }))}</div>
+    </div>`));
+
+    wrap.appendChild(sectionTitle(t('wx_forecast')));
+    const daily = d.daily;
+    const cards = el('<div class="cards"></div>');
+    (daily.time || []).forEach((day, i) => {
+      const dw = wmo(daily.weather_code[i]);
+      cards.appendChild(el(`<div class="card">
+        <div class="card-row"><strong>${fmtDate(day)}</strong><span>${dw.e} ${Math.round(daily.temperature_2m_max[i])}° / ${Math.round(daily.temperature_2m_min[i])}°</span></div>
+        <div class="card-sub">🌧️ ${daily.precipitation_sum[i]} mm · UV ${Math.round(daily.uv_index_max[i])}</div>
+      </div>`));
+    });
+    wrap.appendChild(cards);
+
+    const refresh = el(`<button class="btn">↻ ${esc(t('wx_refresh'))}</button>`);
+    refresh.addEventListener('click', () => { Weather.load(true).then(() => render()); });
+    wrap.appendChild(refresh);
+    Weather.load(false); // background refresh if stale
     return wrap;
   }
 
@@ -939,7 +993,9 @@
     requestAnimationFrame(() => { syncRenderQueued = false; render(); });
   });
   window.addEventListener('lp-sync-status', render);
+  window.addEventListener('lp-weather', render);
   if (window.Photos) Photos.init();
+  if (window.Weather) Weather.load();
   if (window.Sync) Sync.maybeAutoStart();
 
   if ('serviceWorker' in navigator) {

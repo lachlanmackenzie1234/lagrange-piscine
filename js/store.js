@@ -122,6 +122,7 @@ const Store = (() => {
       stabilizer: numOrNull(r.stabilizer),
       temp: numOrNull(r.temp),
       note: r.note || '',
+      weather: r.weather || null,
     };
     load().readings.push(rec);
     save();
@@ -177,6 +178,7 @@ const Store = (() => {
       poolId: n.poolId || '',
       todo: !!n.todo,
       done: false,
+      weather: n.weather || null,
     };
     load().notes.push(rec);
     save();
