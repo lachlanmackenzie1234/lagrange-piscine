@@ -46,8 +46,8 @@ const RESIDENCES = [
   },
   {
     code: 'EPP', name: 'Eden Parc (Pitch lots)',
-    mapsQuery: 'Eden Parc Golf, Impasse du Pitch, Lacanau-Océan',
-    note: 'Lots near Fairway 12 / Golf de l’Ardilouse (EPP haut & bas plans). Lot→unit mapping unconfirmed.',
+    mapsQuery: 'Eden Parc Golf, 2 Avenue Henri Seguin, Lacanau-Océan',
+    note: 'Part of Eden Parc Golf domain (2 Av. Henri Seguin), beside Golf de l’Ardilouse — lots between Fairway 12 and the golf maintenance building. Boss’s 2026 renumbering (pen): LOT 3→#10, LOT 4→#8, LOT 7→#2; LOT 11 & "12" to confirm on site.',
     verify: true,
   },
   {
@@ -91,12 +91,14 @@ const POOLS = [
   { res: 'EP', unit: '52B/46' },
   { res: 'EP', unit: '6E/99' },
 
-  // Eden Parc Pitch lots
-  { res: 'EPP', unit: '3' },
-  { res: 'EPP', unit: '4' },
-  { res: 'EPP', unit: '7' },
-  { res: 'EPP', unit: '11' },
-  { res: 'EPP', unit: '12' },
+  // Eden Parc Pitch lots. `unit` keeps the rotation-sheet/LOT number (so the
+  // occupancy links hold); `note` records the boss's 2026 renumbering until
+  // confirmed on site.
+  { res: 'EPP', unit: '3',  note: 'Plan LOT 3 (T5 open) → 2026 #10' },
+  { res: 'EPP', unit: '4',  note: 'Plan LOT 4 (T5 pp ter) → 2026 #8' },
+  { res: 'EPP', unit: '7',  note: 'Plan LOT 7 (T5 open) → 2026 #2' },
+  { res: 'EPP', unit: '11', note: 'Plan LOT 11 (T5 G) → 2026 # to confirm', verify: true },
+  { res: 'EPP', unit: '12', note: '2026 # to confirm (no matching LOT on plan)', verify: true },
 
   // GP
   { res: 'GP', unit: '18' },

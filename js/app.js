@@ -194,6 +194,8 @@
       <p class="sub">${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}</p>
     </header>`));
 
+    if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
+
     const actions = el('<div class="actions"></div>');
     actions.appendChild(el(`<a class="btn" target="_blank" rel="noopener"
       href="${mapsUrl((res ? res.mapsQuery : '') + ' ' + p.unit)}">${esc(t('directions'))}</a>`));

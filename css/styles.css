@@ -55,6 +55,8 @@ a { color: var(--brand); text-decoration: none; }
 .card-sub.link { color: var(--brand); margin-top: 6px; font-weight: 600; }
 .empty-note { color: var(--muted); font-size: .9rem; background: var(--card);
   border: 1px dashed var(--line); border-radius: 12px; padding: 14px; margin: 8px 0; }
+.pool-note { font-size: .85rem; color: var(--low); background: var(--low-bg);
+  border-radius: 10px; padding: 9px 12px; margin: 0 0 10px; }
 
 /* chips & pills */
 .chip { font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px;

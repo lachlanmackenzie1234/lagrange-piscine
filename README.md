@@ -72,7 +72,10 @@ These were inferred from the source images and are flagged in-app:
 
 - **`HO`** residence full name (no matching Lagrange code found; possibly a
   non-Lagrange cluster). **`GP` confirmed as Green Parc.**
-- **`EPP`** lot → unit-number mapping (plans show LOT 2–11; sheets show units 3,4,7,11,12).
+- **`EPP`** 2026 renumbering — boss's pen mapping read from the plans:
+  LOT 3→#10, LOT 4→#8, LOT 7→#2 (LOT 11 & unit 12 still to confirm on site).
+  Stored as per-pool notes; unit keys unchanged so occupancy links hold.
+  Domain anchor: Eden Parc Golf, 2 Avenue Henri Seguin (beside Golf de l'Ardilouse).
 - Whether the highlighted pools are the **complete** maintenance list, or just this
   fortnight's active ones.
 - Exact chemistry target bands you work to (the defaults above are standard for
