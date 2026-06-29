@@ -46,6 +46,7 @@ const I18n = (() => {
       reset_btn: '↺ Reset to seed data', about: 'About',
       about_text: 'Data is stored only on this device. Export regularly to back up.',
       language: 'Language',
+      update_app: 'Update app (clear cache)', updating: 'Updating…',
       imported_ok: 'Backup imported.', import_fail: 'Import failed: ',
       confirm_reset: 'Discard all local changes and reload the original seed data?',
 
@@ -167,6 +168,7 @@ const I18n = (() => {
       reset_btn: '↺ Réinitialiser aux données d’origine', about: 'À propos',
       about_text: 'Les données sont stockées uniquement sur cet appareil. Exportez régulièrement pour sauvegarder.',
       language: 'Langue',
+      update_app: 'Mettre à jour (vider le cache)', updating: 'Mise à jour…',
       imported_ok: 'Sauvegarde importée.', import_fail: 'Échec de l’import : ',
       confirm_reset: 'Annuler toutes les modifications locales et recharger les données d’origine ?',
 

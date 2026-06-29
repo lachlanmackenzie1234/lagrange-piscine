@@ -4,6 +4,22 @@
   const { CHEM_RANGES, OCC_STATUS } = S;
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
+  const APP_VERSION = 'v16'; // keep in step with sw.js VERSION
+
+  // Nuclear refresh: drop the service worker + all caches, then reload fresh.
+  async function forceUpdate() {
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) { /* ignore */ }
+    location.reload();
+  }
 
   // ---------- helpers ----------
   const el = (html) => { const tpl = document.createElement('template'); tpl.innerHTML = html.trim(); return tpl.content.firstElementChild; };
@@ -841,8 +857,11 @@
 
     const logBtn = el(`<a class="btn" href="#/log">📝 ${esc(t('log_title'))}</a>`);
 
+    const updateBtn = el(`<button class="btn">↻ ${esc(t('update_app'))} · ${APP_VERSION}</button>`);
+    updateBtn.addEventListener('click', () => { updateBtn.disabled = true; updateBtn.textContent = t('updating'); forceUpdate(); });
+
     const box = el('<div class="settings"></div>');
-    [logBtn, langRow, exportBtn, csvReadBtn, csvNoteBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
+    [logBtn, updateBtn, langRow, exportBtn, csvReadBtn, csvNoteBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
     wrap.appendChild(box);
 
     wrap.appendChild(sectionTitle(t('about')));
@@ -877,7 +896,9 @@
       });
     }
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then((reg) => {
+      // updateViaCache:'none' → the SW script is always fetched fresh, so new
+      // versions are detected reliably (no stale/mixed asset caches).
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
         reg.update().catch(() => {});
         setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
       }).catch(() => {});
