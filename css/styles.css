@@ -173,6 +173,11 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
   font-weight: 700; font-size: .85rem; padding: 7px 14px; cursor: pointer; }
 .lang-seg button.on { background: var(--brand); color: #fff; }
 
+/* leaflet map */
+.leaflet-map { height: 320px; border-radius: 14px; overflow: hidden; margin-bottom: 14px;
+  border: 1px solid var(--line); background: var(--card); z-index: 0; }
+.leaflet-map .leaflet-popup-content a { font-weight: 600; }
+
 /* tab bar */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--tab-h) + env(safe-area-inset-bottom));

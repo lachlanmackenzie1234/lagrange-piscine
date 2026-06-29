@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v11';
+const VERSION = 'lp-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -27,6 +27,18 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+
+  // Cache the Leaflet map library (CDN) for offline use; map tiles stay online-only.
+  if (url.hostname === 'unpkg.com' && url.pathname.includes('/leaflet')) {
+    e.respondWith(caches.open('lp-vendor').then(async (c) => {
+      const hit = await c.match(e.request);
+      if (hit) return hit;
+      const res = await fetch(e.request);
+      if (res.ok) c.put(e.request, res.clone());
+      return res;
+    }).catch(() => fetch(e.request)));
+    return;
+  }
 
   // Cache the Firebase SDK (gstatic) so Team Sync works offline after first load.
   if (url.hostname === 'www.gstatic.com' && url.pathname.includes('/firebasejs/')) {

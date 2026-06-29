@@ -143,6 +143,69 @@
     const res = Store.residence(p.res);
     return mapsUrl((res ? res.mapsQuery : '') + ' ' + p.unit);
   }
+
+  // marker colour by chemistry: green ok, red out-of-range, grey no reading
+  function poolColor(p) {
+    const r = Store.latestReading(p.id);
+    if (!r) return '#8a98a4';
+    const bad = ['ph', 'chlorine', 'stabilizer'].some((k) => ['low', 'high'].includes(evalMetric(k, r[k]).state));
+    return bad ? '#d12f2f' : '#1b9e4b';
+  }
+  // Points to plot: a pin per pool that has its own GPS; else one pin per
+  // residence that has coords but no pinned pools.
+  function mapPoints() {
+    const pts = [];
+    const resWithPoolPins = new Set();
+    Store.pools().forEach((p) => {
+      if (p.lat != null && p.lng != null) {
+        resWithPoolPins.add(p.res);
+        pts.push({ lat: p.lat, lng: p.lng, label: `${p.res} ${p.unit}`, color: hasPool(p) ? poolColor(p) : '#6b4ed6', maps: poolMapUrl(p), href: `#/pool/${p.id}` });
+      }
+    });
+    Store.residences().forEach((res) => {
+      if (res.lat != null && res.lng != null && !resWithPoolPins.has(res.code)) {
+        pts.push({ lat: res.lat, lng: res.lng, label: `${res.code} · ${res.name}`, color: res.nonPool ? '#6b4ed6' : '#0277bd', maps: coordsQueryUrl(res.lat, res.lng) });
+      }
+    });
+    return pts;
+  }
+  let leafletPromise = null;
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    if (leafletPromise) return leafletPromise;
+    leafletPromise = new Promise((resolve, reject) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(css);
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s.onload = () => resolve(window.L);
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    return leafletPromise;
+  }
+  async function initLeaflet(container) {
+    try {
+      const L = await loadLeaflet();
+      if (!container.isConnected) return;
+      const pts = mapPoints();
+      const map = L.map(container).setView([45.0, -1.175], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+      const bounds = [];
+      pts.forEach((pt) => {
+        const m = L.circleMarker([pt.lat, pt.lng], { radius: 8, color: '#fff', weight: 2, fillColor: pt.color, fillOpacity: 0.95 }).addTo(map);
+        const link = pt.href ? `<a href="${pt.href}">${esc(pt.label)}</a>` : `<b>${esc(pt.label)}</b>`;
+        m.bindPopup(`${link}<br><a href="${pt.maps}" target="_blank" rel="noopener">Google Maps ↗</a>`);
+        bounds.push([pt.lat, pt.lng]);
+      });
+      if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+      setTimeout(() => map.invalidateSize(), 100);
+    } catch (e) {
+      container.style.display = 'none'; // offline / blocked → list below still works
+    }
+  }
   // "in <date> → out <date>" localized
   function inOut(o) {
     const parts = [];
@@ -550,6 +613,14 @@
   function viewMap() {
     const wrap = document.createElement('div');
     wrap.appendChild(header(t('map_title'), t('map_sub')));
+
+    // interactive map from stored coordinates (best-effort; list below is the fallback)
+    if (mapPoints().length) {
+      const mapDiv = el('<div class="leaflet-map"></div>');
+      wrap.appendChild(mapDiv);
+      initLeaflet(mapDiv);
+    }
+
     const cards = el('<div class="cards"></div>');
     Store.residences().forEach((res) => {
       const n = Store.poolsByRes(res.code).length;
