@@ -244,14 +244,16 @@
   }
 
   // ---------- view: POOLS ----------
+  // Pool residences only — management-only rentals (e.g. HO) live in Schedule.
   function viewPools() {
     const wrap = document.createElement('div');
-    wrap.appendChild(header(t('pools_title'), t('pools_sub', { n: Store.pools().length, m: Store.residences().length })));
-    Store.residences().forEach((res) => {
+    const poolRes = Store.residences().filter((r) => !r.nonPool);
+    const nPools = Store.pools().filter((p) => hasPool(p)).length;
+    wrap.appendChild(header(t('pools_title'), t('pools_sub', { n: nPools, m: poolRes.length })));
+    poolRes.forEach((res) => {
       const list = Store.poolsByRes(res.code);
       if (!list.length) return;
-      const sub = res.nonPool ? t('mgmt_only') : (res.verify ? t('to_confirm') : '');
-      wrap.appendChild(sectionTitle(`${res.code} · ${res.name} (${list.length})`, sub));
+      wrap.appendChild(sectionTitle(`${res.code} · ${res.name} (${list.length})`, res.verify ? t('to_confirm') : ''));
       const cards = el('<div class="cards"></div>');
       list.forEach((p) => cards.appendChild(poolMiniCard(p)));
       wrap.appendChild(cards);
@@ -462,9 +464,10 @@
       const n = Store.poolsByRes(res.code).length;
       const href = res.lat != null && res.lng != null ? coordsQueryUrl(res.lat, res.lng) : mapsUrl(res.mapsQuery);
       const tag = res.nonPool ? `<span class="chip st-mgmt">${esc(t('mgmt_only'))}</span>` : `<span class="chip st-empty">${esc(t('n_pools', { n }))}</span>`;
+      const addr = res.mapsQuery + (res.lat != null ? ` · ${res.lat}, ${res.lng}` : '');
       cards.appendChild(el(`<a class="card" target="_blank" rel="noopener" href="${href}">
         <div class="card-row"><strong>${esc(res.code)} · ${esc(res.name)}</strong>${tag}</div>
-        <div class="card-sub">${esc(res.note || '')}</div>
+        <div class="card-sub">${esc(addr)}</div>
         <div class="card-sub link">${esc(t('open_maps'))}</div>
       </a>`));
     });
