@@ -49,12 +49,10 @@
     return { name: name || '', args: rest };
   }
 
-  // Apply translations to the static chrome (tab bar, toggle) + <html lang>.
+  // Apply translations to the static chrome (tab bar) + <html lang>.
   function applyChrome() {
     document.documentElement.lang = I18n.get();
     document.querySelectorAll('[data-i18n]').forEach((n) => { n.textContent = t(n.dataset.i18n); });
-    const btn = document.getElementById('lang-toggle');
-    if (btn) btn.textContent = I18n.get() === 'fr' ? 'EN' : 'FR'; // shows the language you'd switch TO
   }
 
   function render() {
@@ -380,8 +378,6 @@
 
   // ---------- boot ----------
   Store.load();
-  const toggleBtn = document.getElementById('lang-toggle');
-  if (toggleBtn) toggleBtn.addEventListener('click', () => { I18n.toggle(); render(); });
   if (!location.hash) location.hash = '#/today';
   render();
 

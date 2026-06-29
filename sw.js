@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v2';
+const VERSION = 'lp-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -26,18 +26,17 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  // Network-first for same-origin navigations, cache-first for assets.
-  if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).catch(() => caches.match('./index.html')));
-    return;
-  }
-  if (url.origin === location.origin) {
-    e.respondWith(
-      caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+  if (url.origin !== location.origin) return; // let cross-origin requests pass through
+
+  // Network-first: always prefer fresh code/data when online; fall back to
+  // cache (and finally the app shell) only when offline. Avoids stale JS/CSS.
+  e.respondWith(
+    fetch(e.request)
+      .then((res) => {
         const copy = res.clone();
         caches.open(VERSION).then((c) => c.put(e.request, copy));
         return res;
-      }).catch(() => hit))
-    );
-  }
+      })
+      .catch(() => caches.match(e.request).then((hit) => hit || caches.match('./index.html')))
+  );
 });

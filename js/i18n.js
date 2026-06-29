@@ -101,8 +101,9 @@ const I18n = (() => {
     },
   };
 
-  let lang = localStorage.getItem(KEY) || (navigator.language || 'en').slice(0, 2).toLowerCase();
-  if (!STR[lang]) lang = 'en';
+  // Default to French (colleagues use FR); English is opt-in via Settings.
+  let lang = localStorage.getItem(KEY) || 'fr';
+  if (!STR[lang]) lang = 'fr';
 
   function t(key, params) {
     let s = (STR[lang] && STR[lang][key]) ?? (STR.en[key] ?? key);
