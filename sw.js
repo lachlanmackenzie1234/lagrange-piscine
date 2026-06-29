@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v10';
+const VERSION = 'lp-v11';
 const ASSETS = [
   './',
   './index.html',
