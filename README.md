@@ -61,7 +61,8 @@ first run. After that, your edits persist locally and the seed is only re-applie
 via **More → Reset to seed data**.
 
 - **Residences** — `EC` Eden Club, `AG` Atlantic Green, `EP` Eden Parc Golf,
-  `EPP` Eden Parc (Pitch lots), `GP` Green Parc, `HO` (to confirm).
+  `EPP` Eden Parc (Pitch lots), `GP` Green Parc (pool *tbc*),
+  `HO` Les Hameaux de l'Océan (Carcans, management-only).
   Names verified against Lagrange's own residence codes
   (`L-EDEC`, `L-GREE`, `L-GOLF`, `L-GREP`).
 - **Pools** — the orange-highlighted units on the residence plans / listed on the
@@ -81,22 +82,44 @@ via **More → Reset to seed data**.
 
 These were inferred from the source images and are flagged in-app:
 
-- **`HO`** residence full name (no matching Lagrange code found; possibly a
-  non-Lagrange cluster). **`GP` confirmed as Green Parc.**
 - **`EPP`** located & pinned. Two clusters in the Ardilouse golf zone: bas lots
   3–7 ≈ `45.0027, −1.1697` (ZAC de l'Ardilouse / Rés Eden Parc 6); lots 11 & 12
   ("Lot. Éden Club") ≈ `44.9976, −1.1718`. LOT→unit 7→2, 4→8, 3→10 confirmed;
   exact unit # for 11/12 still to confirm. Unit keys unchanged so occupancy holds.
-- **`HO`** flagged **management-only** (`nonPool: true`) — likely no private pool,
-  so not serviced. Rule of thumb: *pool visible on the map = we maintain it*.
-  Pending confirmation against the maps, then HO can be removed.
-- Whether the highlighted pools are the **complete** maintenance list, or just this
-  fortnight's active ones.
-- Exact chemistry target bands you work to (the defaults above are standard for
-  outdoor stabilized pools).
+- **`HO`** confirmed **management-only** — Les Hameaux de l'Océan, Carcans-Plage
+  (no pools). Kept for cross-referencing; excluded from maintenance views.
+- **`GP` (Green Parc)** — pool status unconfirmed (possibly *38 Lot. Green Land,
+  33680 Lacanau*). Left as a pool residence for now; to be confirmed / GPS-captured
+  on a future visit.
+- Individual pool-less units inside a pool residence can be marked `nonPool` on the
+  unit (not just the residence) — they drop out of maintenance views but stay in
+  Schedule. To be annotated as they're identified.
+
+## Teams (roadmap to a shared tool)
+
+The business runs as several teams. This app is **pool-first**, but the structure
+is meant to generalise so it could become a shared team tool later:
+
+| Team | Scope |
+|------|-------|
+| Management | calls, lists, scheduling, staffing |
+| Cleaning | in-person reception + on-departure property checks |
+| Gardening | garden upkeep (a subset of properties) |
+| **Pools** | pool maintenance — most properties (a few cleaned individually) — **current focus** |
+| Technician | repairs & inspections |
+
+How it would extend (no team data invented yet):
+
+- Each residence is `pool` or `nonPool` (management-only); per-**unit** `nonPool`
+  exceptions are supported too. The same idea generalises to a per-property
+  **services** tag (pool / garden / cleaning / …) plus a **role filter**.
+- The existing **Today vs Schedule** split already models it: each team gets its own
+  "today's work" view over a **shared rental calendar**.
 
 ## Roadmap
 
-- Route optimisation between today's stops (Google Maps directions API).
+- Confirm GP and any pool-less units; tag per-unit exceptions.
+- Route optimisation (nearest-first ordering once enough pools have GPS pins).
 - Optional Google Calendar import of the turnover sheet.
 - Photo attachments per visit; consumables/dosing log.
+- Optional multi-team mode (role filter + per-property service tags).
