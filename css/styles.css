@@ -131,6 +131,21 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .muted { color: var(--muted); }
 
 .settings { display: flex; flex-direction: column; gap: 10px; }
+.sync-box { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 4px 14px 14px; margin-bottom: 14px; }
+.sync-box .section-title { margin: 14px 0 8px; }
+.sync-status { font-size: .9rem; font-weight: 700; margin: 4px 0 10px; }
+.sync-status.s-online { color: var(--ok); }
+.sync-status.s-offline { color: var(--low); }
+.sync-status.s-connecting { color: var(--muted); }
+.sync-status.s-error { color: var(--high); }
+.sync-status.s-off { color: var(--muted); }
+.sync-input { font-size: 1.05rem; padding: 10px; border: 1px solid var(--line);
+  border-radius: 10px; background: #fff; color: var(--ink); width: 100%; margin-top: 4px; }
+.sync-input:focus { outline: 2px solid var(--brand); border-color: var(--brand); }
+.sync-box .btn { margin-top: 10px; width: 100%; }
+.sync-hint { font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
+@media (prefers-color-scheme: dark) { .sync-input { background: #0f1923; } }
 .lang-row { display: flex; justify-content: space-between; align-items: center;
   background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
 .lang-seg { display: flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }

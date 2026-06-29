@@ -473,10 +473,44 @@
     return wrap;
   }
 
+  const SYNC_STATE = { off: 'sync_state_off', connecting: 'sync_state_connecting', online: 'sync_state_online', offline: 'sync_state_offline', error: 'sync_state_error' };
+  function syncSection() {
+    const box = el('<div class="sync-box"></div>');
+    box.appendChild(el(`<div class="section-title"><h2>${esc(t('sync_title'))}</h2><p>${esc(t('sync_desc'))}</p></div>`));
+    if (!window.Sync) return box;
+    const st = Sync.status;
+    const on = Sync.active;
+    const stateTxt = t(SYNC_STATE[st] || 'sync_state_off');
+    box.appendChild(el(`<p class="sync-status s-${st}">${esc(on && Sync.team ? t('sync_on_team', { team: Sync.team }) + ' · ' + stateTxt : stateTxt)}</p>`));
+
+    if (!on) {
+      const input = el(`<input class="sync-input" type="text" inputmode="text" autocapitalize="none" autocomplete="off" placeholder="${esc(t('team_code_ph'))}" value="${esc(Sync.team || '')}">`);
+      const btn = el(`<button class="btn primary">${esc(t('sync_connect'))}</button>`);
+      btn.addEventListener('click', async () => {
+        const code = input.value.trim();
+        if (!code) { input.focus(); return; }
+        btn.disabled = true;
+        try { await Sync.enable(code); } catch (_) { /* status line shows the error */ }
+        render();
+      });
+      const field = el(`<label class="field"><span>${esc(t('team_code'))}</span></label>`);
+      field.appendChild(input);
+      box.appendChild(field);
+      box.appendChild(btn);
+      box.appendChild(el(`<p class="sync-hint">${esc(t('sync_hint'))}</p>`));
+    } else {
+      const btn = el(`<button class="btn danger">${esc(t('sync_disconnect'))}</button>`);
+      btn.addEventListener('click', () => { Sync.disable(); render(); });
+      box.appendChild(btn);
+    }
+    return box;
+  }
+
   // ---------- view: SETTINGS ----------
   function viewSettings() {
     const wrap = document.createElement('div');
     wrap.appendChild(header(t('settings_title')));
+    wrap.appendChild(syncSection());
 
     const exportBtn = el(`<button class="btn">${esc(t('export_btn'))}</button>`);
     exportBtn.addEventListener('click', () => {
@@ -527,6 +561,16 @@
   Store.load();
   if (!location.hash) location.hash = '#/today';
   render();
+
+  // re-render when Team Sync brings in remote changes or its status shifts
+  let syncRenderQueued = false;
+  window.addEventListener('lp-data-changed', () => {
+    if (syncRenderQueued) return;        // coalesce bursts of remote deltas
+    syncRenderQueued = true;
+    requestAnimationFrame(() => { syncRenderQueued = false; render(); });
+  });
+  window.addEventListener('lp-sync-status', render);
+  if (window.Sync) Sync.maybeAutoStart();
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

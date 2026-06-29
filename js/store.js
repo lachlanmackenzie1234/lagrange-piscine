@@ -122,11 +122,13 @@ const Store = (() => {
     };
     load().readings.push(rec);
     save();
+    mirror((s) => s.pushReading(rec));
     return rec;
   }
   function deleteReading(id) {
     state.readings = load().readings.filter((r) => r.id !== id);
     save();
+    mirror((s) => s.removeReading(id));
   }
 
   // ---- visits (service log) ----
@@ -140,6 +142,7 @@ const Store = (() => {
     };
     load().visits.push(rec);
     save();
+    mirror((s) => s.pushVisit(rec));
     return rec;
   }
   function visitsFor(poolId) {
@@ -149,6 +152,7 @@ const Store = (() => {
   function deleteVisit(id) {
     state.visits = load().visits.filter((v) => v.id !== id);
     save();
+    mirror((s) => s.removeVisit(id));
   }
   // Was this pool serviced on a given local date (YYYY-MM-DD)?
   function servicedOn(poolId, dateISO) {
@@ -159,9 +163,38 @@ const Store = (() => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
+  // ---- sync glue ----
+  // Fire a mirror callback to Team Sync if it's active (no-op otherwise).
+  function mirror(fn) {
+    if (window.Sync && window.Sync.active) { try { fn(window.Sync); } catch (_) {} }
+  }
+  // Remote changes coming back from Team Sync — apply WITHOUT re-mirroring.
+  function applyRemoteReading(rec) {
+    const i = load().readings.findIndex((r) => r.id === rec.id);
+    if (i >= 0) state.readings[i] = rec; else state.readings.push(rec);
+    save();
+  }
+  function applyRemoteReadingRemoved(id) {
+    state.readings = load().readings.filter((r) => r.id !== id);
+    save();
+  }
+  function applyRemoteVisit(rec) {
+    const i = load().visits.findIndex((v) => v.id === rec.id);
+    if (i >= 0) state.visits[i] = rec; else state.visits.push(rec);
+    save();
+  }
+  function applyRemoteVisitRemoved(id) {
+    state.visits = load().visits.filter((v) => v.id !== id);
+    save();
+  }
+  function applyRemotePool(poolId, fields) {
+    const p = pool(poolId);
+    if (p) { Object.assign(p, fields); save(); }
+  }
+
   function updatePool(id, patch) {
     const p = pool(id);
-    if (p) { Object.assign(p, patch); save(); }
+    if (p) { Object.assign(p, patch); save(); mirror((s) => s.pushPool(id, patch)); }
     return p;
   }
   function updateResidence(code, patch) {
@@ -199,6 +232,8 @@ const Store = (() => {
     addReading, deleteReading,
     addVisit, visitsFor, lastVisit, deleteVisit, servicedOn, localDate,
     updatePool, updateResidence,
+    applyRemoteReading, applyRemoteReadingRemoved,
+    applyRemoteVisit, applyRemoteVisitRemoved, applyRemotePool,
     exportJSON, importJSON, resetToSeed,
   };
 })();

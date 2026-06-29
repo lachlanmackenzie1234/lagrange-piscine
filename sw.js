@@ -1,10 +1,11 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v7';
+const VERSION = 'lp-v8';
 const ASSETS = [
   './',
   './index.html',
   './css/styles.css',
   './js/i18n.js',
+  './js/sync.js',
   './js/seed.js',
   './js/store.js',
   './js/app.js',
@@ -26,7 +27,20 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  if (url.origin !== location.origin) return; // let cross-origin requests pass through
+
+  // Cache the Firebase SDK (gstatic) so Team Sync works offline after first load.
+  if (url.hostname === 'www.gstatic.com' && url.pathname.includes('/firebasejs/')) {
+    e.respondWith(caches.open('lp-vendor').then(async (c) => {
+      const hit = await c.match(e.request);
+      if (hit) return hit;
+      const res = await fetch(e.request);
+      if (res.ok) c.put(e.request, res.clone());
+      return res;
+    }).catch(() => fetch(e.request)));
+    return;
+  }
+
+  if (url.origin !== location.origin) return; // let other cross-origin requests pass through
 
   // Network-first: always prefer fresh code/data when online; fall back to
   // cache (and finally the app shell) only when offline. Avoids stale JS/CSS.

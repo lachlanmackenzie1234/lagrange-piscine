@@ -1,0 +1,17 @@
+rules_version = '2';
+
+// Lagrange Piscine — Team Sync security rules.
+//
+// Paste this into Firebase Console → Firestore Database → Rules → Publish.
+//
+// All team data lives under teams/{teamCode}/… . Access requires an
+// authenticated session (the app signs in anonymously in the background).
+// The team code is a shared secret known only to your phones — it is NOT in
+// the public source — so it acts as the access key on top of the auth check.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /teams/{team}/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

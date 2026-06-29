@@ -116,6 +116,27 @@ How it would extend (no team data invented yet):
 - The existing **Today vs Schedule** split already models it: each team gets its own
   "today's work" view over a **shared rental calendar**.
 
+## Team Sync (optional, two+ phones)
+
+Off by default; the app is fully local/offline without it. When enabled
+(*More → Team sync*), it mirrors **chemistry readings, services, and GPS pins**
+between phones via **Firebase Firestore** — offline-first, auto-merging,
+store-and-forward (logs while offline, syncs when back online).
+
+- **Conflict-free:** readings & visits are append-only docs keyed by unique id;
+  pool GPS/notes are last-write-wins. Two people on different houses never clash.
+- **Pairing:** both phones enter the same **team code** under *More → Team sync*.
+  Data is scoped to `teams/{teamCode}/…`.
+- **Security:** the web `apiKey` in `js/sync.js` is a public client identifier
+  (safe to commit); access is gated by [`firestore.rules`](firestore.rules)
+  (auth required) + the secret team code. The **Admin SDK service-account key is
+  a secret and must never be committed** (git-ignored).
+
+Setup (one-time): create a Firebase project, enable **Firestore** + **Anonymous
+auth**, paste [`firestore.rules`](firestore.rules) into the Rules tab, and put the
+web config in `js/sync.js`. The Firebase SDK is loaded from gstatic and cached by
+the service worker for offline use.
+
 ## Roadmap
 
 - Confirm GP and any pool-less units; tag per-unit exceptions.
