@@ -59,7 +59,7 @@
     const stops = [];
     occ.forEach((o) => {
       const p = Store.pool(o.poolId);
-      if (!p) return;
+      if (!p || !hasPool(p)) return;
       const res = Store.residence(p.res);
       if (!res || seen.has(res.code)) return;
       seen.add(res.code);
@@ -116,9 +116,15 @@
     const m = OCC_STATUS[status] || OCC_STATUS.empty;
     return `<span class="chip ${m.cls}">${esc(t('st_' + status))}</span>`;
   }
+  // Primary label = residence code prefix + logement number (matches the papers).
   function poolTitle(p) {
-    const res = Store.residence(p.res);
-    return `${res ? res.name : p.res} · ${p.unit}`;
+    return `${p.res} ${p.unit}`;
+  }
+  // True when this is a pool we actually maintain (not a management-only rental).
+  function hasPool(p) {
+    if (!p || p.nonPool) return false;
+    const r = Store.residence(p.res);
+    return !(r && r.nonPool);
   }
   function mapsUrl(query) {
     return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
@@ -174,7 +180,8 @@
       wrap.appendChild(actions);
     }
 
-    const occ = Store.occupancyForWeek(week);
+    // maintenance views consider only pools we actually service
+    const occ = Store.occupancyForWeek(week).filter((o) => hasPool(Store.pool(o.poolId)));
 
     const arriving = occ.filter((o) => o.status === 'arriving');
     wrap.appendChild(sectionTitle(t('arrivals_title', { n: arriving.length }), t('arrivals_sub')));
@@ -205,6 +212,7 @@
   function staleReadings() {
     const cutoff = Date.now() - 4 * 864e5;
     return Store.pools().filter((p) => {
+      if (!hasPool(p)) return false; // skip management-only rentals
       const r = Store.latestReading(p.id);
       return !r || new Date(r.at).getTime() < cutoff;
     });
@@ -222,6 +230,11 @@
   }
 
   function poolMiniCard(p) {
+    if (!hasPool(p)) {
+      return el(`<a class="card mgmt" href="#/pool/${p.id}">
+        <div class="card-row"><strong>${esc(poolTitle(p))}</strong><span class="chip st-mgmt">${esc(t('mgmt_only'))}</span></div>
+      </a>`);
+    }
     const latest = Store.latestReading(p.id);
     const tag = latest ? t('last_date', { date: fmtDate(latest.at) }) : t('never');
     return el(`<a class="card" href="#/pool/${p.id}">
@@ -237,7 +250,8 @@
     Store.residences().forEach((res) => {
       const list = Store.poolsByRes(res.code);
       if (!list.length) return;
-      wrap.appendChild(sectionTitle(`${res.name} (${list.length})`, res.verify ? t('to_confirm') : ''));
+      const sub = res.nonPool ? t('mgmt_only') : (res.verify ? t('to_confirm') : '');
+      wrap.appendChild(sectionTitle(`${res.code} · ${res.name} (${list.length})`, sub));
       const cards = el('<div class="cards"></div>');
       list.forEach((p) => cards.appendChild(poolMiniCard(p)));
       wrap.appendChild(cards);
@@ -260,45 +274,53 @@
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
 
+    const pool = hasPool(p);
+    const coords = p.lat != null && p.lng != null;
+
     const actions = el('<div class="actions"></div>');
     actions.appendChild(el(`<a class="btn" target="_blank" rel="noopener"
       href="${poolMapUrl(p)}">${esc(t('directions'))}</a>`));
 
-    // capture GPS at the pool (builds precise pins over time)
-    const coords = p.lat != null && p.lng != null;
-    const geoBtn = el(`<button class="btn">${esc(coords ? t('update_location') : t('set_location'))}</button>`);
-    geoBtn.addEventListener('click', () => {
-      if (!navigator.geolocation) { alert(t('geo_unsupported')); return; }
-      geoBtn.disabled = true;
-      geoBtn.textContent = t('geo_locating');
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          Store.updatePool(p.id, { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6) });
-          render();
-        },
-        () => { alert(t('geo_error')); geoBtn.disabled = false; geoBtn.textContent = coords ? t('update_location') : t('set_location'); },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    });
-    actions.appendChild(geoBtn);
+    if (pool) {
+      // capture GPS at the pool (builds precise pins over time)
+      const geoBtn = el(`<button class="btn">${esc(coords ? t('update_location') : t('set_location'))}</button>`);
+      geoBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) { alert(t('geo_unsupported')); return; }
+        geoBtn.disabled = true;
+        geoBtn.textContent = t('geo_locating');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            Store.updatePool(p.id, { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6) });
+            render();
+          },
+          () => { alert(t('geo_error')); geoBtn.disabled = false; geoBtn.textContent = coords ? t('update_location') : t('set_location'); },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      });
+      actions.appendChild(geoBtn);
 
-    // mark-serviced toggle (adds/removes a service visit for today)
-    const doneToday = servicedToday(p.id);
-    const svcBtn = el(`<button class="btn ${doneToday ? 'done' : ''}">${esc(doneToday ? t('service_undo') : t('mark_serviced'))}</button>`);
-    svcBtn.addEventListener('click', () => {
-      if (doneToday) {
-        Store.visitsFor(p.id)
-          .filter((v) => Store.localDate(v.at) === todayISO())
-          .forEach((v) => Store.deleteVisit(v.id));
-      } else {
-        Store.addVisit(p.id, { type: 'service' });
-      }
-      render();
-    });
-    actions.appendChild(svcBtn);
+      // mark-serviced toggle (adds/removes a service visit for today)
+      const doneToday = servicedToday(p.id);
+      const svcBtn = el(`<button class="btn ${doneToday ? 'done' : ''}">${esc(doneToday ? t('service_undo') : t('mark_serviced'))}</button>`);
+      svcBtn.addEventListener('click', () => {
+        if (doneToday) {
+          Store.visitsFor(p.id)
+            .filter((v) => Store.localDate(v.at) === todayISO())
+            .forEach((v) => Store.deleteVisit(v.id));
+        } else {
+          Store.addVisit(p.id, { type: 'service' });
+        }
+        render();
+      });
+      actions.appendChild(svcBtn);
+    }
     wrap.appendChild(actions);
 
-    if (coords) {
+    if (!pool) {
+      wrap.appendChild(el(`<p class="empty-note">${esc(t('mgmt_note'))}</p>`));
+    }
+
+    if (pool && coords) {
       const row = el(`<p class="coords-row"><span>${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</span>
         <button class="link-clear">${esc(t('clear_location'))}</button></p>`);
       row.querySelector('.link-clear').addEventListener('click', () => {
@@ -308,14 +330,16 @@
       wrap.appendChild(row);
     }
 
-    const lastV = Store.lastVisit(p.id);
-    if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
+    if (pool) {
+      const lastV = Store.lastVisit(p.id);
+      if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
 
-    // suggested action based on the most recent reading
-    const advice = adviceFor(Store.latestReading(p.id));
-    if (advice.length) {
-      wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
-        <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
+      // suggested action based on the most recent reading
+      const advice = adviceFor(Store.latestReading(p.id));
+      if (advice.length) {
+        wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
+          <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
+      }
     }
 
     const occ = Store.occupancyFor(p.id);
@@ -329,13 +353,15 @@
       wrap.appendChild(ol);
     }
 
-    wrap.appendChild(sectionTitle(t('log_reading')));
-    wrap.appendChild(readingForm(p));
+    if (pool) {
+      wrap.appendChild(sectionTitle(t('log_reading')));
+      wrap.appendChild(readingForm(p));
 
-    const readings = Store.readingsFor(p.id);
-    wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
-    if (readings.length) wrap.appendChild(readingsTable(p, readings));
-    else wrap.appendChild(emptyNote(t('history_empty')));
+      const readings = Store.readingsFor(p.id);
+      wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
+      if (readings.length) wrap.appendChild(readingsTable(p, readings));
+      else wrap.appendChild(emptyNote(t('history_empty')));
+    }
     return wrap;
   }
 
@@ -435,8 +461,9 @@
     Store.residences().forEach((res) => {
       const n = Store.poolsByRes(res.code).length;
       const href = res.lat != null && res.lng != null ? coordsQueryUrl(res.lat, res.lng) : mapsUrl(res.mapsQuery);
+      const tag = res.nonPool ? `<span class="chip st-mgmt">${esc(t('mgmt_only'))}</span>` : `<span class="chip st-empty">${esc(t('n_pools', { n }))}</span>`;
       cards.appendChild(el(`<a class="card" target="_blank" rel="noopener" href="${href}">
-        <div class="card-row"><strong>${esc(res.name)}</strong><span class="chip st-empty">${esc(t('n_pools', { n }))}</span></div>
+        <div class="card-row"><strong>${esc(res.code)} · ${esc(res.name)}</strong>${tag}</div>
         <div class="card-sub">${esc(res.note || '')}</div>
         <div class="card-sub link">${esc(t('open_maps'))}</div>
       </a>`));

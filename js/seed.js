@@ -57,10 +57,9 @@ const RESIDENCES = [
     note: 'Villa Green Parc (Lagrange code L-GREP) — ~500 m from Golf de l’Ardilouse, ~3.5 km from the beach. No plan supplied yet.',
   },
   {
-    code: 'HO', name: 'HO — management only?',
-    mapsQuery: 'Lacanau-Océan',
-    note: '⚠︎ Likely rental-management only — NOT pool-maintenance properties (no private pool on the maps). Rule: pool visible on the map = we service it; the rest is just letting management. Confirm against the maps, then these can be removed.',
-    verify: true,
+    code: 'HO', name: 'Les Hameaux de l’Océan',
+    mapsQuery: 'Lagrange Vacances Les Hameaux de l’Océan, Rue des Mouettes, 33121 Carcans',
+    note: 'Carcans-Plage (Rue des Mouettes, 33121 Carcans) — rental management only, no pools we maintain. Kept to cross-reference the calendars / rental papers.',
     nonPool: true,
   },
 ];

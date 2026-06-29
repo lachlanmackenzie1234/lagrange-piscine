@@ -77,6 +77,10 @@ const I18n = (() => {
       geo_unsupported: 'Geolocation isn’t available on this device/browser.',
       clear_location: 'Clear GPS',
       coords_label: '📍 {lat}, {lng}',
+      // management-only (no pool) residences
+      mgmt_only: 'Rental only — no pool',
+      mgmt_note: 'Rental management only — no pool to maintain here. Listed so the prefix + number matches the rental papers.',
+      rentals_label: 'rentals',
     },
     fr: {
       tab_today: 'Aujourd’hui', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_more: 'Plus',
@@ -152,6 +156,10 @@ const I18n = (() => {
       geo_unsupported: 'Géolocalisation indisponible sur cet appareil/navigateur.',
       clear_location: 'Effacer le GPS',
       coords_label: '📍 {lat}, {lng}',
+      // résidences en gestion seule (sans piscine)
+      mgmt_only: 'Location seule — sans piscine',
+      mgmt_note: 'Gestion locative uniquement — pas de piscine à entretenir ici. Listée pour que le préfixe + numéro corresponde aux feuilles de location.',
+      rentals_label: 'locations',
     },
   };
 

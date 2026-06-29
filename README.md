@@ -26,6 +26,13 @@ local storage) and works **offline**. Export/import JSON for backup.
 | **Map** | Open any residence in Google Maps. |
 | **More** | Language (FR/EN), export / import backup, reset to seed data, chemistry targets. |
 
+Every unit is labelled by its **residence-code prefix + logement number** (e.g.
+`EC 12`, `HO 187`) to match the rental papers. Residences are either **pool
+(maintained)** or **management-only** (`nonPool`, e.g. `HO` = Les Hameaux de
+l'Océan in Carcans — no pools). Management-only units stay listed and appear in
+**Schedule** for the full rental picture, but are excluded from the maintenance
+views (Today's pool work, chemistry-due, the day route) and have no chemistry log.
+
 Interface is **bilingual (French default / English)** — switch under *More → Langue*.
 Suggested actions are qualitative prompts (e.g. "pH high → add pH⁻") meant as
 reminders, not dosing amounts — always follow your product labels.

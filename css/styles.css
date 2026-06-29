@@ -68,6 +68,8 @@ a { color: var(--brand); text-decoration: none; }
 .advice li { margin: 3px 0; }
 .btn.done { background: var(--ok-bg); color: var(--ok); border-color: #bce6c9; }
 .st-done { background: var(--ok-bg); color: var(--ok); }
+.st-mgmt { background: #ece9fd; color: #6b4ed6; }
+.card.mgmt { opacity: .82; }
 
 /* chips & pills */
 .chip { font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px;
