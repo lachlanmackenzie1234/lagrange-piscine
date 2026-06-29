@@ -1,0 +1,14 @@
+{
+  "name": "Lagrange Piscine",
+  "short_name": "Piscine",
+  "description": "Pool maintenance & chemistry tracker for Lagrange Vacances residences in Lacanau-Océan.",
+  "start_url": "./index.html#/today",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f5f7",
+  "theme_color": "#0277bd",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
