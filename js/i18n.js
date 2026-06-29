@@ -69,6 +69,14 @@ const I18n = (() => {
       done_today_title: 'Done today ({n})',
       // day route
       nav_today: '🧭 Navigate today’s stops ({n})',
+      // GPS location capture
+      set_location: '📍 Set GPS here',
+      update_location: '📍 Update GPS',
+      geo_locating: 'Locating…',
+      geo_error: 'Could not get your location. Allow location access and try again.',
+      geo_unsupported: 'Geolocation isn’t available on this device/browser.',
+      clear_location: 'Clear GPS',
+      coords_label: '📍 {lat}, {lng}',
     },
     fr: {
       tab_today: 'Aujourd’hui', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_more: 'Plus',
@@ -136,6 +144,14 @@ const I18n = (() => {
       done_today_title: 'Faites aujourd’hui ({n})',
       // itinéraire du jour
       nav_today: '🧭 Itinéraire des arrêts du jour ({n})',
+      // capture de position GPS
+      set_location: '📍 Enregistrer position GPS',
+      update_location: '📍 Mettre à jour le GPS',
+      geo_locating: 'Localisation…',
+      geo_error: 'Position introuvable. Autorisez la localisation puis réessayez.',
+      geo_unsupported: 'Géolocalisation indisponible sur cet appareil/navigateur.',
+      clear_location: 'Effacer le GPS',
+      coords_label: '📍 {lat}, {lng}',
     },
   };
 

@@ -46,8 +46,9 @@ const RESIDENCES = [
   },
   {
     code: 'EPP', name: 'Eden Parc (Pitch lots)',
-    mapsQuery: 'Eden Parc Golf, 2 Avenue Henri Seguin, Lacanau-Océan',
-    note: 'Part of Eden Parc Golf domain (2 Av. Henri Seguin), beside Golf de l’Ardilouse — lots between Fairway 12 and the golf maintenance building. Boss’s 2026 renumbering (pen): LOT 3→#10, LOT 4→#8, LOT 7→#2; LOT 11 & "12" to confirm on site.',
+    mapsQuery: 'Allée des Villas de l’Ardilouse, Lacanau-Océan',
+    lat: 45.002, lng: -1.177,
+    note: 'Allée des Villas de l’Ardilouse (Eden Parc Golf, beside Golf de l’Ardilouse). Street numbered evenly 2–12; inferred LOT→unit 7→2, 6→4, 5→6, 4→8, 3→10, 2→12 (7→2, 4→8, 3→10 confirmed by boss). LOT 11 (haut cluster) still to confirm on site.',
     verify: true,
   },
   {

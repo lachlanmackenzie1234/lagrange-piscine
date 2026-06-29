@@ -21,7 +21,7 @@ local storage) and works **offline**. Export/import JSON for backup.
 |-----|----------------|
 | **Today** | This week's arrivals to prep, mid-week checks, pools whose chemistry is due, and a one-tap **multi-stop route** for the day's properties. |
 | **Pools** | Every maintained pool grouped by residence, with its latest reading. |
-| **Pool detail** | Occupancy timeline, a log-a-reading form, full chemistry history, **suggested corrective actions** when a reading is out of range, and a **Mark serviced today** toggle. |
+| **Pool detail** | Occupancy timeline, a log-a-reading form, full chemistry history, **suggested corrective actions** when a reading is out of range, a **Mark serviced today** toggle, and **capture GPS here** (stand at the pool, tap once → precise pin for directions/routing). |
 | **Schedule** | Each Saturday turnover, grouped by residence. |
 | **Map** | Open any residence in Google Maps. |
 | **More** | Language (FR/EN), export / import backup, reset to seed data, chemistry targets. |
@@ -76,10 +76,10 @@ These were inferred from the source images and are flagged in-app:
 
 - **`HO`** residence full name (no matching Lagrange code found; possibly a
   non-Lagrange cluster). **`GP` confirmed as Green Parc.**
-- **`EPP`** 2026 renumbering — boss's pen mapping read from the plans:
-  LOT 3→#10, LOT 4→#8, LOT 7→#2 (LOT 11 & unit 12 still to confirm on site).
-  Stored as per-pool notes; unit keys unchanged so occupancy links hold.
-  Domain anchor: Eden Parc Golf, 2 Avenue Henri Seguin (beside Golf de l'Ardilouse).
+- **`EPP`** located on site: **Allée des Villas de l'Ardilouse** (~45.002, −1.177),
+  numbered evenly 2–12 down the street. Inferred LOT→unit: 7→2, 6→4, 5→6, 4→8,
+  3→10, 2→12 (7→2, 4→8, 3→10 confirmed by boss). The **haut** cluster (LOT 11)
+  is still to confirm. Unit keys unchanged so occupancy links hold.
 - Whether the highlighted pools are the **complete** maintenance list, or just this
   fortnight's active ones.
 - Exact chemistry target bands you work to (the defaults above are standard for

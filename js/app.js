@@ -63,7 +63,7 @@
       const res = Store.residence(p.res);
       if (!res || seen.has(res.code)) return;
       seen.add(res.code);
-      stops.push(res.mapsQuery);
+      stops.push(res.lat != null && res.lng != null ? `${res.lat},${res.lng}` : res.mapsQuery);
     });
     return stops;
   }
@@ -122,6 +122,20 @@
   }
   function mapsUrl(query) {
     return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+  }
+  const coordsQueryUrl = (lat, lng) => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  // Pool's own GPS wins; else its residence's; else null.
+  function poolCoords(p) {
+    if (p && p.lat != null && p.lng != null) return { lat: p.lat, lng: p.lng };
+    const r = p && Store.residence(p.res);
+    if (r && r.lat != null && r.lng != null) return { lat: r.lat, lng: r.lng };
+    return null;
+  }
+  function poolMapUrl(p) {
+    const c = poolCoords(p);
+    if (c) return coordsQueryUrl(c.lat, c.lng);
+    const res = Store.residence(p.res);
+    return mapsUrl((res ? res.mapsQuery : '') + ' ' + p.unit);
   }
   // "in <date> → out <date>" localized
   function inOut(o) {
@@ -248,7 +262,25 @@
 
     const actions = el('<div class="actions"></div>');
     actions.appendChild(el(`<a class="btn" target="_blank" rel="noopener"
-      href="${mapsUrl((res ? res.mapsQuery : '') + ' ' + p.unit)}">${esc(t('directions'))}</a>`));
+      href="${poolMapUrl(p)}">${esc(t('directions'))}</a>`));
+
+    // capture GPS at the pool (builds precise pins over time)
+    const coords = p.lat != null && p.lng != null;
+    const geoBtn = el(`<button class="btn">${esc(coords ? t('update_location') : t('set_location'))}</button>`);
+    geoBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) { alert(t('geo_unsupported')); return; }
+      geoBtn.disabled = true;
+      geoBtn.textContent = t('geo_locating');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          Store.updatePool(p.id, { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6) });
+          render();
+        },
+        () => { alert(t('geo_error')); geoBtn.disabled = false; geoBtn.textContent = coords ? t('update_location') : t('set_location'); },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+    actions.appendChild(geoBtn);
 
     // mark-serviced toggle (adds/removes a service visit for today)
     const doneToday = servicedToday(p.id);
@@ -265,6 +297,16 @@
     });
     actions.appendChild(svcBtn);
     wrap.appendChild(actions);
+
+    if (coords) {
+      const row = el(`<p class="coords-row"><span>${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</span>
+        <button class="link-clear">${esc(t('clear_location'))}</button></p>`);
+      row.querySelector('.link-clear').addEventListener('click', () => {
+        Store.updatePool(p.id, { lat: null, lng: null });
+        render();
+      });
+      wrap.appendChild(row);
+    }
 
     const lastV = Store.lastVisit(p.id);
     if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
@@ -392,7 +434,8 @@
     const cards = el('<div class="cards"></div>');
     Store.residences().forEach((res) => {
       const n = Store.poolsByRes(res.code).length;
-      cards.appendChild(el(`<a class="card" target="_blank" rel="noopener" href="${mapsUrl(res.mapsQuery)}">
+      const href = res.lat != null && res.lng != null ? coordsQueryUrl(res.lat, res.lng) : mapsUrl(res.mapsQuery);
+      cards.appendChild(el(`<a class="card" target="_blank" rel="noopener" href="${href}">
         <div class="card-row"><strong>${esc(res.name)}</strong><span class="chip st-empty">${esc(t('n_pools', { n }))}</span></div>
         <div class="card-sub">${esc(res.note || '')}</div>
         <div class="card-sub link">${esc(t('open_maps'))}</div>
