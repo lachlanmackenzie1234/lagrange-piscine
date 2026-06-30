@@ -250,7 +250,7 @@ const Store = (() => {
 
   function numOrNull(v) {
     if (v === '' || v === null || v === undefined) return null;
-    const n = Number(v);
+    const n = Number(String(v).replace(',', '.').trim()); // accept comma decimals
     return Number.isFinite(n) ? n : null;
   }
 

@@ -4,7 +4,7 @@
   const { CHEM_RANGES, OCC_STATUS } = S;
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v18'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v19'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -704,9 +704,11 @@
 
   function numField(name, label) {
     const r = CHEM_RANGES[name];
-    const step = r ? r.step : 0.1;
+    // type=text + inputmode=decimal: shows the decimal keypad, accepts any
+    // precision and both '.' and ',' (parsed in the store). type=number with a
+    // step blocked the decimal key / extra decimals on mobile.
     return `<label class="field"><span>${esc(label)}</span>
-      <input name="${name}" type="number" inputmode="decimal" step="${step}" placeholder="${r ? r.ideal : ''}"></label>`;
+      <input name="${name}" type="text" inputmode="decimal" autocomplete="off" pattern="[0-9.,]*" placeholder="${r ? r.ideal : ''}"></label>`;
   }
 
   function readingsTable(p, readings) {
