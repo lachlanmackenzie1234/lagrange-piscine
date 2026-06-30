@@ -237,6 +237,12 @@ const Store = (() => {
     if (n) { n.done = !!done; save(); mirror((s) => s.pushNote(n)); }
     return n;
   }
+  // Edit a note's text in place (fix a typo / add a forgotten detail).
+  function updateNote(id, patch) {
+    const n = load().notes.find((x) => x.id === id);
+    if (n) { Object.assign(n, patch); save(); mirror((s) => s.pushNote(n)); }
+    return n;
+  }
   function deleteNote(id) {
     state.notes = load().notes.filter((n) => n.id !== id);
     save();
@@ -299,14 +305,21 @@ const Store = (() => {
   }
 
   // ---- backup ----
+  // Full backup: the whole local state PLUS the photos (which live in IndexedDB,
+  // not the localStorage blob) as base64. So a single file captures everything —
+  // pools, coordinates, readings, visits/treatments, notes, and images.
   function exportJSON() {
-    return JSON.stringify(load(), null, 2);
+    const data = { ...load(), photos: (window.Photos ? Photos.all() : []) };
+    return JSON.stringify(data, null, 2);
   }
   function importJSON(text) {
     const data = JSON.parse(text);
     if (!data || !data.pools) throw new Error('Not a valid backup file.');
+    const photos = Array.isArray(data.photos) ? data.photos : [];
+    delete data.photos;
     state = data;
     save();
+    if (window.Photos && photos.length && Photos.importAll) Photos.importAll(photos);
   }
   function resetToSeed() {
     state = seedState();
@@ -321,7 +334,7 @@ const Store = (() => {
     addReading, deleteReading,
     addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, updateVisit, servicedOn, localDate,
     addTreatment, treatmentsFor, lastTreatment,
-    addNote, notes, notesFor, openTodos, setNoteDone, deleteNote,
+    addNote, notes, notesFor, openTodos, setNoteDone, updateNote, deleteNote,
     updatePool, updateResidence,
     applyRemoteReading, applyRemoteReadingRemoved,
     applyRemoteVisit, applyRemoteVisitRemoved, applyRemotePool,

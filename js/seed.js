@@ -29,7 +29,7 @@ const CYA_SALT = { min: 60, max: 80, ideal: 70 };
 const PRODUCTS = [
   { id: 'hth-stick',   brand: 'HTH',     name: 'Stick',       kind: 'cl-unstab', unit: 'stick', grammage: 300, active: 0.65, addsCya: false, note: 'Hypochlorite de calcium · non stabilisé' },
   { id: 'hth-galet',   brand: 'HTH',     name: 'Galet',       kind: 'cl-stab',   unit: 'galet', grammage: 200, active: 0.90, addsCya: true,  note: 'Trichlore · stabilisé (+CYA)' },
-  { id: 'hypomen-pro', brand: 'Hypomen', name: 'Pro (choc)',  kind: 'shock',     unit: 'dose',  grammage: null, active: 0.65, addsCya: false, note: 'Chlore choc · non stabilisé' },
+  { id: 'hypomen-pro', brand: 'Hypomen', name: 'Pro (choc)',  kind: 'shock',     unit: 'dose',  grammage: null, active: 0.65, addsCya: false, shockDosePerM3: 150, note: 'Chlore choc · non stabilisé · ≈ 150 g/m³ (Acti — vérifier le nom exact / “Euro-choc”)' },
   { id: 'hth-phminus', brand: 'HTH',     name: 'pH-',         kind: 'ph-minus',  unit: 'dose' },
   { id: 'mareva-phplus', brand: 'Mareva', name: 'pH+',        kind: 'ph-plus',   unit: 'dose' },
   { id: 'hth-borkler', brand: 'HTH',     name: 'Borkler gel', kind: 'algae',     unit: 'dose' },

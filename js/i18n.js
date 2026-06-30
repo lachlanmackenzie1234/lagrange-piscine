@@ -112,6 +112,10 @@ const I18n = (() => {
       treat_sub: 'log what you dosed (the colleague sees it)',
       treat_qty: 'Qty',
       edit_time: 'Tap to edit the time',
+      validate: 'Validate',
+      modify: 'Modify',
+      done: 'Done',
+      edit_note: 'Edit',
       depot: 'Depot',
 
       // service log
@@ -291,6 +295,10 @@ const I18n = (() => {
       treat_sub: 'noter ce qui a été ajouté (visible par le collègue)',
       treat_qty: 'Qté',
       edit_time: 'Toucher pour modifier l’heure',
+      validate: 'Valider',
+      modify: 'Modifier',
+      done: 'Terminé',
+      edit_note: 'Modifier',
       depot: 'Dépôt',
 
       // suivi d’entretien

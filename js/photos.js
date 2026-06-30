@@ -133,12 +133,19 @@ const Photos = (() => {
     changed();
   }
 
+  // Restore photos from a full backup (writes to cache + IndexedDB).
+  async function importAll(records) {
+    if (!db) await init();
+    for (const r of records) { if (r && r.id) { cache.set(r.id, r); await putDb(r); } }
+    changed();
+  }
+
   const get = (id) => cache.get(id) || null;
   const all = () => [...cache.values()];
   const byNote = (noteId) => all().filter((p) => p.noteId === noteId).sort((a, b) => a.at.localeCompare(b.at));
   const refsForPool = (poolId) => all().filter((p) => p.poolId === poolId && !p.noteId);
   const poolRef = (poolId, label) => all().find((p) => p.poolId === poolId && p.label === label && !p.noteId) || null;
 
-  return { init, add, remove, applyRemote, applyRemoteRemoved, get, all, byNote, refsForPool, poolRef, exifTime };
+  return { init, add, remove, applyRemote, applyRemoteRemoved, importAll, get, all, byNote, refsForPool, poolRef, exifTime };
 })();
 window.Photos = Photos;

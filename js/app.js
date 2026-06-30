@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v24'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v25'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -193,6 +193,12 @@
     document.querySelectorAll('[data-i18n]').forEach((n) => { n.textContent = t(n.dataset.i18n); });
   }
 
+  // Per-route scroll memory: tapping a pool then returning (back button OR the
+  // bottom tab) keeps your place in the list; in-place edits don't jump to top.
+  const scrollMem = {};
+  const hashKey = () => location.hash || '#/today';
+  window.addEventListener('scroll', () => { scrollMem[hashKey()] = window.scrollY; }, { passive: true });
+
   function render() {
     const { name, args } = parseHash();
     const view = routes[name] || viewToday;
@@ -203,7 +209,7 @@
         (name === '' && a.dataset.route === 'today'));
     });
     applyChrome();
-    window.scrollTo(0, 0);
+    window.scrollTo(0, scrollMem[hashKey()] || 0);
   }
   window.addEventListener('hashchange', render);
 
@@ -465,6 +471,20 @@
       b.addEventListener('click', () => { Store.setNoteDone(n.id, !n.done); render(); });
       actions.appendChild(b);
     }
+    // edit in place — fix a typo / add a forgotten detail without delete+rewrite
+    const edit = el(`<button class="link-act">${esc(t('edit_note'))}</button>`);
+    edit.addEventListener('click', () => {
+      const textDiv = card.querySelector('.note-text');
+      if (!textDiv) return;
+      const ta = el('<textarea class="note-edit" rows="2"></textarea>');
+      ta.value = n.text;
+      const save = el(`<button class="btn primary note-edit-save">${esc(t('note_save'))}</button>`);
+      save.addEventListener('click', () => { const v = ta.value.trim(); if (v) Store.updateNote(n.id, { text: v }); render(); });
+      textDiv.replaceWith(ta);
+      ta.after(save);
+      ta.focus();
+    });
+    actions.appendChild(edit);
     const del = el('<button class="link-act del">✕</button>');
     del.addEventListener('click', () => { if (confirm(t('confirm_del_note'))) { Store.deleteNote(n.id); render(); } });
     actions.appendChild(del);
@@ -863,7 +883,7 @@
       const bwBtn = el(`<button class="btn">${esc(t('log_backwash'))}</button>`);
       bwBtn.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
       pump.appendChild(bwBtn);
-      const sand = el(`<label class="field"><span>${esc(t('sand_date'))}</span><input type="date" value="${esc(p.sandDate || '')}"></label>`);
+      const sand = el(`<label class="field-inline"><span>${esc(t('sand_date'))}</span><input type="date" class="date-sm" value="${esc(p.sandDate || '')}"></label>`);
       sand.querySelector('input').addEventListener('change', (e) => Store.updatePool(p.id, { sandDate: e.target.value }));
       pump.appendChild(sand);
       const pn = el(`<label class="field"><span>${esc(t('pump_notes'))}</span><textarea rows="2" placeholder="${esc(t('pump_notes_ph'))}"></textarea></label>`);
@@ -974,35 +994,47 @@
     return `${q != null ? q + ' ' : ''}${unit}${q > 1 ? 's' : ''} · ${productLabel(prod)}`;
   }
 
-  // Pool volume calculator: length × width × average depth → m³.
+  // Pool volume calculator: length × width × average depth → m³. Collapses to a
+  // one-line summary once set (a one-shot input — small footprint in the UI).
   function volumeSection(p) {
     const box = el('<div class="card volume"></div>');
-    const d = p.dims || {};
-    const field = (key, label, val) =>
-      `<label class="vfield"><span>${esc(label)}</span><input data-k="${key}" type="text" inputmode="decimal" autocomplete="off" pattern="[0-9.,]*" value="${val != null ? esc(val) : ''}"></label>`;
-    box.appendChild(el(`<div class="vgrid">
-      ${field('l', t('vol_len'), d.l)}
-      ${field('w', t('vol_wid'), d.w)}
-      ${field('dmin', t('vol_dmin'), d.dmin)}
-      ${field('dmax', t('vol_dmax'), d.dmax)}
-    </div>`));
-    const out = el(`<p class="vol-out">${p.volM3 != null ? esc(t('vol_result', { v: p.volM3 })) : esc(t('vol_hint'))}</p>`);
-    box.appendChild(out);
-    const recompute = (persist) => {
-      const num = (k) => numDec(box.querySelector(`[data-k="${k}"]`).value);
-      const l = num('l'), w = num('w'), dmin = num('dmin'), dmax = num('dmax');
-      let vol = null;
-      if (l && w && (dmin != null || dmax != null)) {
-        const depth = ((dmin == null ? dmax : dmin) + (dmax == null ? dmin : dmax)) / 2;
-        vol = Math.round(l * w * depth * 10) / 10;
-      }
-      out.textContent = vol != null ? t('vol_result', { v: vol }) : t('vol_hint');
-      if (persist) Store.updatePool(p.id, { dims: { l, w, dmin, dmax }, volM3: vol });
-    };
-    box.querySelectorAll('input').forEach((inp) => {
-      inp.addEventListener('input', () => recompute(false));
-      inp.addEventListener('change', () => recompute(true));
-    });
+    function collapsed() {
+      box.innerHTML = '';
+      const sum = el(`<div class="one-shot"><span class="os-val">${esc(t('vol_result', { v: p.volM3 }))}</span></div>`);
+      const mod = el(`<button class="btn sm">${esc(t('modify'))}</button>`);
+      mod.addEventListener('click', expanded);
+      sum.appendChild(mod);
+      box.appendChild(sum);
+    }
+    function expanded() {
+      box.innerHTML = '';
+      const d = p.dims || {};
+      const field = (key, label, val) =>
+        `<label class="vfield"><span>${esc(label)}</span><input data-k="${key}" type="text" inputmode="decimal" maxlength="5" autocomplete="off" pattern="[0-9.,]*" value="${val != null ? esc(val) : ''}"></label>`;
+      box.appendChild(el(`<div class="vgrid">${field('l', t('vol_len'), d.l)}${field('w', t('vol_wid'), d.w)}${field('dmin', t('vol_dmin'), d.dmin)}${field('dmax', t('vol_dmax'), d.dmax)}</div>`));
+      const out = el(`<p class="vol-out">${p.volM3 != null ? esc(t('vol_result', { v: p.volM3 })) : esc(t('vol_hint'))}</p>`);
+      const recompute = (persist) => {
+        const num = (k) => numDec(box.querySelector(`[data-k="${k}"]`).value);
+        const l = num('l'), w = num('w'), dmin = num('dmin'), dmax = num('dmax');
+        let vol = null;
+        if (l && w && (dmin != null || dmax != null)) {
+          const depth = ((dmin == null ? dmax : dmin) + (dmax == null ? dmin : dmax)) / 2;
+          vol = Math.round(l * w * depth * 10) / 10;
+        }
+        out.textContent = vol != null ? t('vol_result', { v: vol }) : t('vol_hint');
+        if (persist) Store.updatePool(p.id, { dims: { l, w, dmin, dmax }, volM3: vol });
+      };
+      box.querySelectorAll('input').forEach((inp) => {
+        inp.addEventListener('input', () => recompute(false));
+        inp.addEventListener('change', () => recompute(true));
+      });
+      const done = el(`<div class="one-shot-foot"></div>`);
+      const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
+      ok.addEventListener('click', () => { recompute(true); if (p.volM3 != null) collapsed(); });
+      done.appendChild(out); done.appendChild(ok);
+      box.appendChild(done);
+    }
+    if (p.volM3 != null) collapsed(); else expanded();
     return box;
   }
 
@@ -1035,12 +1067,15 @@
         // tap the time to correct it (e.g. backdate to when you actually dosed)
         const timeBtn = el(`<button class="treat-time" title="${esc(t('edit_time'))}">${esc(fmtDateTime(tr.at))}</button>`);
         timeBtn.addEventListener('click', () => {
+          // explicit validate (no commit-on-change): on iOS the wheel fires
+          // 'change' on every release, which would close the picker, drop the
+          // minutes and jump the page. Commit only when ✓ is tapped.
+          const wrap = el('<span class="time-edit"></span>');
           const inp = el(`<input type="datetime-local" class="treat-time-edit" value="${toLocalInput(tr.at)}">`);
-          let done = false;
-          const commit = () => { if (done) return; done = true; if (inp.value) Store.updateVisit(tr.id, { at: new Date(inp.value).toISOString() }); render(); };
-          inp.addEventListener('change', commit);
-          inp.addEventListener('blur', () => { if (!done) render(); });
-          timeBtn.replaceWith(inp);
+          const ok = el(`<button class="time-ok" title="${esc(t('validate'))}">✓</button>`);
+          ok.addEventListener('click', () => { if (inp.value) Store.updateVisit(tr.id, { at: new Date(inp.value).toISOString() }); render(); });
+          wrap.appendChild(inp); wrap.appendChild(ok);
+          timeBtn.replaceWith(wrap);
           inp.focus();
         });
         meta.appendChild(timeBtn);
