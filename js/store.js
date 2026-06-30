@@ -21,6 +21,11 @@ const Store = (() => {
       note: p.note || '',
       verify: !!p.verify,
       nonPool: !!p.nonPool,
+      salt: !!p.salt,             // salt-chlorine-generator pool
+      electroNote: p.electroNote || '',
+      dims: null,                 // { l, w, dmin, dmax } in metres
+      volM3: null,                // pool volume (m³), from dims or entered
+      covered: !!p.covered,       // has a cover (slows chlorine loss)
       lat: p.lat ?? null,
       lng: p.lng ?? null,
     }));
@@ -49,11 +54,12 @@ const Store = (() => {
 
   // Bump when seed coordinates / classifications change; migrate() reconciles
   // existing installs.
-  const COORDS_SEED = 4;
+  const COORDS_SEED = 5;
 
   // Back-fill seed coordinates (only where the user hasn't set their own — never
-  // overwrites a captured GPS) and sync the nonPool classification from seed
-  // (authoritative; not user-editable).
+  // overwrites a captured GPS) and sync the seed classifications (nonPool, salt)
+  // which are authoritative / not user-editable. Adds any new seed residences
+  // (e.g. the dépôt) to existing installs.
   function migrate() {
     if ((state.coordsSeedVersion || 0) >= COORDS_SEED) return;
     const S = window.SEED;
@@ -62,12 +68,15 @@ const Store = (() => {
       if (!p) return;
       if (sp.lat != null && p.lat == null) { p.lat = sp.lat; p.lng = sp.lng; }
       p.nonPool = !!sp.nonPool;
+      p.salt = !!sp.salt;
+      if (p.salt && !p.electroNote && sp.electroNote) p.electroNote = sp.electroNote;
     });
     S.RESIDENCES.forEach((sr) => {
-      const r = state.residences.find((x) => x.code === sr.code);
-      if (!r) return;
+      let r = state.residences.find((x) => x.code === sr.code);
+      if (!r) { r = { ...sr }; state.residences.push(r); }  // new POI/residence (dépôt)
       if (sr.lat != null && r.lat == null) { r.lat = sr.lat; r.lng = sr.lng; }
       r.nonPool = !!sr.nonPool;
+      r.poi = !!sr.poi;
     });
     state.coordsSeedVersion = COORDS_SEED;
     save();
@@ -124,6 +133,7 @@ const Store = (() => {
       ph: numOrNull(r.ph),
       chlorine: numOrNull(r.chlorine),
       stabilizer: numOrNull(r.stabilizer),
+      salt: numOrNull(r.salt),    // salt pools (g/L)
       temp: numOrNull(r.temp),
       note: r.note || '',
       weather: r.weather || null,
@@ -164,6 +174,29 @@ const Store = (() => {
     save();
     mirror((s) => s.removeVisit(id));
   }
+  // ---- product applications ("produits ajoutés") ----
+  // Stored as visits with type 'treatment' (so they ride the existing visits
+  // sync, append-only). productId references SEED.PRODUCTS; qty is a count of
+  // sticks/galets/doses.
+  function addTreatment(poolId, opts = {}) {
+    const rec = {
+      id: `tr-${Date.now()}-${Math.floor(performance.now())}`,
+      poolId,
+      at: opts.at || new Date().toISOString(),
+      type: 'treatment',
+      productId: opts.productId || '',
+      qty: numOrNull(opts.qty),
+      note: opts.note || '',
+      weather: opts.weather || null,
+    };
+    load().visits.push(rec);
+    save();
+    mirror((s) => s.pushVisit(rec));
+    return rec;
+  }
+  const treatmentsFor = (poolId) => visitsFor(poolId).filter((v) => v.type === 'treatment');
+  const lastTreatment = (poolId) => treatmentsFor(poolId)[0] || null;
+
   // Was this pool serviced (not just backwashed) on a given local date?
   function servicedOn(poolId, dateISO) {
     return load().visits.some((v) => v.poolId === poolId && (v.type || 'service') === 'service' && localDate(v.at) === dateISO);
@@ -280,6 +313,7 @@ const Store = (() => {
     readingsFor, latestReading, occupancyFor, occupancyForWeek, weeks,
     addReading, deleteReading,
     addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, servicedOn, localDate,
+    addTreatment, treatmentsFor, lastTreatment,
     addNote, notes, notesFor, openTodos, setNoteDone, deleteNote,
     updatePool, updateResidence,
     applyRemoteReading, applyRemoteReadingRemoved,

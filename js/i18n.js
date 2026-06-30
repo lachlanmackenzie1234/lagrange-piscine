@@ -83,6 +83,35 @@ const I18n = (() => {
       chem_due_now: 'now',
       chem_due_in: '~{days} d · {date}',
       chem_next_h: 'until Cl ~{floor}',
+      chem_salt: 'Salt',
+      chem_salt_h: 'aim {min}–{max} g/L',
+      chem_cya: 'Stabiliser',
+      chem_cya_h: 'aim {min}–{max} ppm',
+      chem_dose: 'To reach target',
+      chem_dose_v: '≈ {stick} stick · {galet} galet',
+      chem_dose_h: '{vol} m³ · +{delta} ppm',
+      chem_dose_novol: 'set the volume',
+      chem_dose_novol_h: 'add pool size below',
+      status_treated: 'treated — recheck',
+      salt_pool: 'Salt pool',
+
+      // pool volume
+      vol_section: 'Pool volume',
+      vol_sub: 'length × width × average depth',
+      vol_len: 'Length (m)',
+      vol_wid: 'Width (m)',
+      vol_dmin: 'Shallow (m)',
+      vol_dmax: 'Deep (m)',
+      vol_result: '≈ {v} m³',
+      vol_hint: 'enter the dimensions',
+      f_salt: 'Salt (g/L)',
+      target_salt: 'salt {min}–{max} g/L',
+
+      // products applied
+      treat_section: 'Products added',
+      treat_sub: 'log what you dosed (the colleague sees it)',
+      treat_qty: 'Qty',
+      depot: 'Depot',
 
       // service log
       watering_section: 'Filling / watering', watering_today: '💧 Filling now ({n})',
@@ -232,6 +261,35 @@ const I18n = (() => {
       chem_due_now: 'maintenant',
       chem_due_in: '~{days} j · {date}',
       chem_next_h: 'jusqu’à Cl ~{floor}',
+      chem_salt: 'Sel',
+      chem_salt_h: 'viser {min}–{max} g/L',
+      chem_cya: 'Stabilisant',
+      chem_cya_h: 'viser {min}–{max} ppm',
+      chem_dose: 'Pour la cible',
+      chem_dose_v: '≈ {stick} stick · {galet} galet',
+      chem_dose_h: '{vol} m³ · +{delta} ppm',
+      chem_dose_novol: 'saisir le volume',
+      chem_dose_novol_h: 'ajouter la taille ci-dessous',
+      status_treated: 'traité — à revérifier',
+      salt_pool: 'Piscine au sel',
+
+      // volume du bassin
+      vol_section: 'Volume du bassin',
+      vol_sub: 'longueur × largeur × profondeur moyenne',
+      vol_len: 'Longueur (m)',
+      vol_wid: 'Largeur (m)',
+      vol_dmin: 'Petit bain (m)',
+      vol_dmax: 'Grand bain (m)',
+      vol_result: '≈ {v} m³',
+      vol_hint: 'saisir les dimensions',
+      f_salt: 'Sel (g/L)',
+      target_salt: 'sel {min}–{max} g/L',
+
+      // produits ajoutés
+      treat_section: 'Produits ajoutés',
+      treat_sub: 'noter ce qui a été ajouté (visible par le collègue)',
+      treat_qty: 'Qté',
+      depot: 'Dépôt',
 
       // suivi d’entretien
       watering_section: 'Remplissage', watering_today: '💧 En remplissage ({n})',

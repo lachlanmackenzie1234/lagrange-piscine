@@ -1,10 +1,12 @@
 /* Lagrange Piscine — app shell, router and views. Vanilla JS, no build step. */
 (() => {
   const S = window.SEED;
-  const { CHEM_RANGES, OCC_STATUS } = S;
+  const { CHEM_RANGES, OCC_STATUS, PRODUCTS, CYA_SALT } = S;
+  const productById = (id) => (PRODUCTS || []).find((x) => x.id === id) || null;
+  const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v22'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v23'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -112,6 +114,15 @@
       const bioLoss = 0.5 * Math.pow(1.5, (wt - 25) / 10);
       const loss = covered ? bioLoss + uvLoss * 0.25 : uvLoss + bioLoss;
       return Math.max(0.2, loss);
+    },
+    // Recommended CYA band — higher for salt pools (the cell makes chlorine
+    // continuously, so it needs more UV protection).
+    cyaBand(salt) { return salt ? CYA_SALT : { min: CHEM_RANGES.stabilizer.min, max: CHEM_RANGES.stabilizer.max, ideal: CHEM_RANGES.stabilizer.ideal }; },
+    // Grams of a product needed to raise FC by ΔFC in a given volume.
+    // 1 g of available chlorine per m³ ≈ 1 ppm, so grams = m³·ΔFC ÷ active%.
+    gramsForFC(volM3, deltaFC, active) {
+      if (!volM3 || deltaFC <= 0 || !active) return 0;
+      return (volM3 * deltaFC) / active;
     },
   };
   // Upcoming sun/heat from the forecast — this is what makes the interval
@@ -236,6 +247,17 @@
   // open to-do flags. (Interval thresholds will become weather-driven later.)
   const CHECK_DUE_DAYS = 3;      // 🟠 attention if no reading for this long
   const CHECK_OVERDUE_DAYS = 6;  // 🔴 critical if this long
+  // Words hinting a chlorine product was applied, for the free-text fallback.
+  const CL_NOTE_RE = /\b(stick|galet|chlore|chlor|choc|hypomen|javel|pastille)\b/i;
+  // Most recent moment this pool was treated after `sinceISO` (structured
+  // treatment, or a note mentioning a product). Null if none.
+  function treatedSince(p, sinceISO) {
+    const since = new Date(sinceISO).getTime();
+    const tr = Store.lastTreatment(p.id);
+    if (tr && new Date(tr.at).getTime() > since) return tr.at;
+    const n = Store.notesFor(p.id).find((x) => new Date(x.at).getTime() > since && CL_NOTE_RE.test(x.text || ''));
+    return n ? n.at : null;
+  }
   function poolStatus(p) {
     if (!hasPool(p)) return { level: 'none', reason: 'na' };
     const r = Store.latestReading(p.id);
@@ -249,6 +271,9 @@
     if (days > CHECK_OVERDUE_DAYS && sev < 2) { sev = 2; reason = 'overdue'; }
     else if (days > CHECK_DUE_DAYS && sev < 1) { sev = 1; reason = 'due'; }
     if (openTodo && sev < 1) { sev = 1; reason = 'todo'; }
+    // Predictive-preventive: a critical pool that's since been dosed drops to
+    // 🟠 "treated — recheck" rather than staying 🔴, until a new reading confirms.
+    if (sev === 2 && treatedSince(p, r.at)) { sev = 1; reason = 'treated'; }
     return { level: sev === 2 ? 'red' : sev === 1 ? 'orange' : 'green', reason };
   }
   const STATUS_COLOR = { green: '#1b9e4b', orange: '#d98b00', red: '#d12f2f', grey: '#8a98a4', none: '#8a98a4' };
@@ -268,7 +293,7 @@
     Store.residences().forEach((res) => {
       if (res.lat != null && res.lng != null && !resWithPoolPins.has(res.code)) {
         // approximate base pins link to the place name (accurate) rather than the rough coord
-        pts.push({ lat: res.lat, lng: res.lng, label: `${res.code} · ${res.name}${res.approx ? ' ~' : ''}`, color: res.nonPool ? '#6b4ed6' : '#0277bd', maps: mapsUrl(res.mapsQuery) });
+        pts.push({ lat: res.lat, lng: res.lng, label: `${res.poi ? '🏬 ' : ''}${res.code} · ${res.name}${res.approx ? ' ~' : ''}`, color: res.poi ? '#00897b' : res.nonPool ? '#6b4ed6' : '#0277bd', maps: res.poi ? coordsQueryUrl(res.lat, res.lng) : mapsUrl(res.mapsQuery) });
       }
     });
     return pts;
@@ -466,18 +491,28 @@
     const row = (cls, k, v, h) => el(`<div class="chem-row ${cls}">
       <span class="cr-k">${esc(k)}</span><span class="cr-v">${esc(v)}</span><span class="cr-h">${esc(h)}</span></div>`);
 
-    // active chlorine fraction from pH (the HOCl curve)
+    // active chlorine fraction from pH (the HOCl curve) — the priority on salt pools
     const frac = Chem.hoclFraction(ph);
     if (frac != null) {
       const pct = Math.round(frac * 100);
       rows.appendChild(row(pct >= 50 ? 'ok' : pct >= 30 ? 'warn' : 'bad',
         t('chem_active'), pct + '%', t('chem_active_h', { ph })));
     }
+    // salt level (salt pools) vs the working band
+    if (p.salt) {
+      const sb = CHEM_RANGES.salt, sv = r.salt;
+      const cls = sv == null ? '' : (sv < sb.min || sv > sb.max) ? 'warn' : 'ok';
+      rows.appendChild(row(cls, t('chem_salt'), sv == null ? '—' : sv + ' g/L', t('chem_salt_h', { min: sb.min, max: sb.max })));
+    }
     // target FC from CYA
     if (cya != null) {
       const tFC = Chem.targetFC(cya), mFC = Chem.minFC(cya);
       const cls = fc == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad';
       rows.appendChild(row(cls, t('chem_target_fc'), tFC, t('chem_target_fc_h', { cya })));
+      // stabiliser vs recommended band (higher for salt pools)
+      const band = Chem.cyaBand(!!p.salt);
+      const ccls = cya > 100 ? 'bad' : (cya < band.min || cya > band.max) ? 'warn' : 'ok';
+      rows.appendChild(row(ccls, t('chem_cya'), cya, t('chem_cya_h', { min: band.min, max: band.max })));
     }
     // predicted daily loss (model, blended with measured decay when available)
     const fd = forecastDrivers();
@@ -498,10 +533,27 @@
       else { cls = daysFromNow < 1.5 ? 'warn' : 'ok'; v = t('chem_due_in', { days: daysFromNow.toFixed(1), date: fmtDate(new Date(dueTime).toISOString().slice(0, 10)) }); }
       rows.appendChild(row(cls, t('chem_next'), v, t('chem_next_h', { floor })));
     }
+    // dose helper: products needed to reach the FC target (needs pool volume)
+    if (fc != null && cya != null) {
+      const delta = Chem.targetFC(cya) - fc;
+      if (delta > 0.1) {
+        if (p.volM3) {
+          const stick = productById('hth-stick'), galet = productById('hth-galet');
+          const nStick = Chem.gramsForFC(p.volM3, delta, stick.active) / stick.grammage;
+          const nGalet = Chem.gramsForFC(p.volM3, delta, galet.active) / galet.grammage;
+          rows.appendChild(row('', t('chem_dose'),
+            t('chem_dose_v', { stick: nStick.toFixed(1), galet: nGalet.toFixed(1) }),
+            t('chem_dose_h', { vol: p.volM3, delta: delta.toFixed(1) })));
+        } else {
+          rows.appendChild(row('warn', t('chem_dose'), t('chem_dose_novol'), t('chem_dose_novol_h')));
+        }
+      }
+    }
 
     const box = el('<div class="chem-panel"></div>');
     box.appendChild(el(`<div class="section-title"><h2>🧪 ${esc(t('chem_title'))}</h2><p>${esc(t('chem_sub'))}</p></div>`));
     box.appendChild(rows);
+    if (p.salt && p.electroNote) box.appendChild(el(`<p class="chem-note">⚡ ${esc(p.electroNote)}</p>`));
     return box;
   }
 
@@ -637,12 +689,14 @@
     if (!p) { wrap.appendChild(header(t('pool_not_found'))); return wrap; }
     const res = Store.residence(p.res);
 
-    const stLevel = poolStatus(p).level;
-    const stBadge = hasPool(p) ? ` · <span class="status-word" style="color:${statusColor(stLevel)}">${esc(t('status_' + stLevel))}</span>` : '';
+    const ps = poolStatus(p);
+    const stWord = ps.reason === 'treated' ? t('status_treated') : t('status_' + ps.level);
+    const stBadge = hasPool(p) ? ` · <span class="status-word" style="color:${statusColor(ps.level)}">${esc(stWord)}</span>` : '';
+    const saltBadge = p.salt ? ` · <span class="salt-word">🧂 ${esc(t('salt_pool'))}</span>` : '';
     wrap.appendChild(el(`<header class="page-head">
       <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
       <h1>${hasPool(p) ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
-      <p class="sub">${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}</p>
+      <p class="sub">${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}${saltBadge}</p>
     </header>`));
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
@@ -683,7 +737,7 @@
       svcBtn.addEventListener('click', () => {
         if (doneToday) {
           Store.visitsFor(p.id)
-            .filter((v) => Store.localDate(v.at) === todayISO())
+            .filter((v) => (v.type || 'service') === 'service' && Store.localDate(v.at) === todayISO())
             .forEach((v) => Store.deleteVisit(v.id));
         } else {
           Store.addVisit(p.id, { type: 'service' });
@@ -795,6 +849,10 @@
       }
       wrap.appendChild(wb);
 
+      // pool volume (drives the dose helper)
+      wrap.appendChild(sectionTitle(t('vol_section'), t('vol_sub')));
+      wrap.appendChild(volumeSection(p));
+
       // pump & filter management
       wrap.appendChild(sectionTitle(t('pump_section')));
       const pump = el('<div class="card pump"></div>');
@@ -814,6 +872,10 @@
 
       wrap.appendChild(sectionTitle(t('log_reading')));
       wrap.appendChild(readingForm(p));
+
+      // products applied (dosing log)
+      wrap.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
+      wrap.appendChild(treatmentSection(p));
 
       const readings = Store.readingsFor(p.id);
       wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
@@ -835,9 +897,10 @@
         ${numField('chlorine', t('f_cl'))}
         ${numField('stabilizer', t('f_cya'))}
       </div>
+      ${p.salt ? `<label class="field"><span>${esc(t('f_salt'))}</span><input name="salt" type="text" inputmode="decimal" autocomplete="off" pattern="[0-9.,]*" placeholder="${CHEM_RANGES.salt.ideal}"></label>` : ''}
       <label class="field"><span>${esc(t('f_note'))}</span><input name="note" type="text" placeholder="${esc(t('note_ph'))}"></label>
       <label class="field"><span>${esc(t('f_when'))}</span><input name="at" type="datetime-local"></label>
-      <div class="target-hint">${esc(t('targets', tgt))}</div>
+      <div class="target-hint">${esc(t('targets', tgt))}${p.salt ? ' · ' + esc(t('target_salt', { min: CHEM_RANGES.salt.min, max: CHEM_RANGES.salt.max })) : ''}</div>
       <button class="btn primary" type="submit">${esc(t('save_reading'))}</button>
     </form>`);
     f.addEventListener('submit', (e) => {
@@ -846,7 +909,7 @@
       const atVal = fd.get('at');
       Store.addReading({
         poolId: p.id, ph: fd.get('ph'), chlorine: fd.get('chlorine'),
-        stabilizer: fd.get('stabilizer'), note: fd.get('note'),
+        stabilizer: fd.get('stabilizer'), salt: fd.get('salt'), note: fd.get('note'),
         at: atVal ? new Date(atVal).toISOString() : undefined,
         weather: window.Weather && Weather.current(),
       });
@@ -884,6 +947,82 @@
       tb.appendChild(tr);
     });
     return tbl;
+  }
+
+  // parse a decimal that may use a comma (mobile keypads)
+  const numDec = (v) => {
+    if (v === '' || v == null) return null;
+    const n = Number(String(v).replace(',', '.').trim());
+    return Number.isFinite(n) ? n : null;
+  };
+
+  // Pool volume calculator: length × width × average depth → m³.
+  function volumeSection(p) {
+    const box = el('<div class="card volume"></div>');
+    const d = p.dims || {};
+    const field = (key, label, val) =>
+      `<label class="vfield"><span>${esc(label)}</span><input data-k="${key}" type="text" inputmode="decimal" autocomplete="off" pattern="[0-9.,]*" value="${val != null ? esc(val) : ''}"></label>`;
+    box.appendChild(el(`<div class="vgrid">
+      ${field('l', t('vol_len'), d.l)}
+      ${field('w', t('vol_wid'), d.w)}
+      ${field('dmin', t('vol_dmin'), d.dmin)}
+      ${field('dmax', t('vol_dmax'), d.dmax)}
+    </div>`));
+    const out = el(`<p class="vol-out">${p.volM3 != null ? esc(t('vol_result', { v: p.volM3 })) : esc(t('vol_hint'))}</p>`);
+    box.appendChild(out);
+    const recompute = (persist) => {
+      const num = (k) => numDec(box.querySelector(`[data-k="${k}"]`).value);
+      const l = num('l'), w = num('w'), dmin = num('dmin'), dmax = num('dmax');
+      let vol = null;
+      if (l && w && (dmin != null || dmax != null)) {
+        const depth = ((dmin == null ? dmax : dmin) + (dmax == null ? dmin : dmax)) / 2;
+        vol = Math.round(l * w * depth * 10) / 10;
+      }
+      out.textContent = vol != null ? t('vol_result', { v: vol }) : t('vol_hint');
+      if (persist) Store.updatePool(p.id, { dims: { l, w, dmin, dmax }, volM3: vol });
+    };
+    box.querySelectorAll('input').forEach((inp) => {
+      inp.addEventListener('input', () => recompute(false));
+      inp.addEventListener('change', () => recompute(true));
+    });
+    return box;
+  }
+
+  // "Produits ajoutés": quick-log what was added (stick/galet/pH/choc…) with a
+  // quantity, so the colleague sees it and it feeds the predictive status.
+  function treatmentSection(p) {
+    const box = el('<div class="treat"></div>');
+    const qty = el('<input class="treat-qty" type="text" inputmode="decimal" autocomplete="off" pattern="[0-9.,]*" value="1">');
+    const qtyWrap = el(`<label class="treat-qtywrap"><span>${esc(t('treat_qty'))}</span></label>`);
+    qtyWrap.appendChild(qty);
+    box.appendChild(qtyWrap);
+    const btns = el('<div class="treat-btns"></div>');
+    ['hth-stick', 'hth-galet', 'hypomen-pro', 'hth-phminus', 'mareva-phplus', 'acti-floc']
+      .map(productById).filter(Boolean).forEach((prod) => {
+        const b = el(`<button class="btn treat-btn"><span>${esc(prod.name)}</span><small>${esc(prod.brand)}</small></button>`);
+        b.addEventListener('click', () => {
+          Store.addTreatment(p.id, { productId: prod.id, qty: qty.value, weather: window.Weather && Weather.current() });
+          render();
+        });
+        btns.appendChild(b);
+      });
+    box.appendChild(btns);
+    const list = Store.treatmentsFor(p.id).slice(0, 8);
+    if (list.length) {
+      const ul = el('<div class="treat-list"></div>');
+      list.forEach((tr) => {
+        const prod = productById(tr.productId);
+        const label = prod
+          ? `${tr.qty ? tr.qty + '× ' : ''}${productLabel(prod)}${prod.grammage ? ` · ${prod.grammage} g` : ''}`
+          : (tr.note || '—');
+        const itm = el(`<div class="treat-item"><span class="ti-label">${esc(label)}</span>
+          <span class="treat-meta">${fmtDateTime(tr.at)} ${wxChip(tr.weather)}<button class="link-del" data-id="${tr.id}">✕</button></span></div>`);
+        itm.querySelector('.link-del').addEventListener('click', () => { Store.deleteVisit(tr.id); render(); });
+        ul.appendChild(itm);
+      });
+      box.appendChild(ul);
+    }
+    return box;
   }
 
   // ---------- view: SCHEDULE ----------
@@ -1007,7 +1146,7 @@
     Store.residences().forEach((res) => {
       const n = Store.poolsByRes(res.code).length;
       const href = res.lat != null && res.lng != null ? coordsQueryUrl(res.lat, res.lng) : mapsUrl(res.mapsQuery);
-      const tag = res.nonPool ? `<span class="chip st-mgmt">${esc(t('mgmt_only'))}</span>` : `<span class="chip st-empty">${esc(t('n_pools', { n }))}</span>`;
+      const tag = res.poi ? `<span class="chip st-depot">🏬 ${esc(t('depot'))}</span>` : res.nonPool ? `<span class="chip st-mgmt">${esc(t('mgmt_only'))}</span>` : `<span class="chip st-empty">${esc(t('n_pools', { n }))}</span>`;
       const addr = res.mapsQuery + (res.lat != null ? ` · ${res.lat}, ${res.lng}` : '');
       cards.appendChild(el(`<a class="card" target="_blank" rel="noopener" href="${href}">
         <div class="card-row"><strong>${esc(res.code)} · ${esc(res.name)}</strong>${tag}</div>

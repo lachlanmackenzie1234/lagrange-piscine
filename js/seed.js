@@ -15,7 +15,27 @@ const CHEM_RANGES = {
   ph:         { label: 'pH',                 unit: '',    min: 7.0, max: 7.6, ideal: 7.2, step: 0.1 },
   chlorine:   { label: 'Free chlorine',      unit: 'ppm', min: 1.0, max: 3.0, ideal: 2.0, step: 0.1 },
   stabilizer: { label: 'Stabilizer (CYA)',   unit: 'ppm', min: 30,  max: 50,  ideal: 40,  step: 1 },
+  // salt pools: higher CYA protects the continuously-generated chlorine from UV.
+  salt:       { label: 'Salt',               unit: 'g/L', min: 3.0, max: 5.0, ideal: 4.0, step: 0.1 },
 };
+// Salt-chlorine-generator pools want a higher stabiliser band than manual pools.
+const CYA_SALT = { min: 60, max: 80, ideal: 70 };
+
+// Products carried daily in the car. `active` = available-chlorine fraction
+// (for dosing maths); `grammage` = grams per stick/galet/dose; `addsCya` flags
+// stabilised chlorine (raises CYA as it dissolves). Figures sourced from the
+// manufacturers' product pages (HTH Stick cal-hypo ~65%, HTH Maxitab galet
+// trichlor ~90%). The dépôt also stocks liquid chlorine etc. (not listed here).
+const PRODUCTS = [
+  { id: 'hth-stick',   brand: 'HTH',     name: 'Stick',       kind: 'cl-unstab', unit: 'stick', grammage: 300, active: 0.65, addsCya: false, note: 'Hypochlorite de calcium · non stabilisé' },
+  { id: 'hth-galet',   brand: 'HTH',     name: 'Galet',       kind: 'cl-stab',   unit: 'galet', grammage: 200, active: 0.90, addsCya: true,  note: 'Trichlore · stabilisé (+CYA)' },
+  { id: 'hypomen-pro', brand: 'Hypomen', name: 'Pro (choc)',  kind: 'shock',     unit: 'dose',  grammage: null, active: 0.65, addsCya: false, note: 'Chlore choc · non stabilisé' },
+  { id: 'hth-phminus', brand: 'HTH',     name: 'pH-',         kind: 'ph-minus',  unit: 'dose' },
+  { id: 'mareva-phplus', brand: 'Mareva', name: 'pH+',        kind: 'ph-plus',   unit: 'dose' },
+  { id: 'hth-borkler', brand: 'HTH',     name: 'Borkler gel', kind: 'algae',     unit: 'dose' },
+  { id: 'acti-yellow', brand: 'Acti',    name: 'Yellow',      kind: 'algae',     unit: 'dose',  note: 'Algues moutardes' },
+  { id: 'acti-floc',   brand: 'Acti',    name: 'Floc Bag',    kind: 'floc',      unit: 'sachet' },
+];
 
 // Status codes seen on the rotation sheets.
 const OCC_STATUS = {
@@ -65,6 +85,13 @@ const RESIDENCES = [
     note: 'Carcans-Plage (Rue des Mouettes, 33121 Carcans) — rental management only, no pools we maintain. Kept to cross-reference the calendars / rental papers.',
     nonPool: true,
   },
+  {
+    code: 'DEPOT', name: 'Dépôt produits',
+    mapsQuery: '45.0069865,-1.1680504',
+    lat: 45.0069865, lng: -1.1680504,
+    note: 'Stock produits (chlore liquide, stabilisant, etc.). Point de ravitaillement.',
+    nonPool: true, poi: true,
+  },
 ];
 
 // Pools maintained, grouped by residence. `unit` is the rotation-sheet code.
@@ -89,7 +116,7 @@ const POOLS = [
   { res: 'EP', unit: '19B/90' },
   { res: 'EP', unit: '30B/63' },
   { res: 'EP', unit: '5P', note: 'No pool (rental only)', nonPool: true },
-  { res: 'EP', unit: '27B/94' },
+  { res: 'EP', unit: '27B/94', salt: true, note: 'Piscine au sel · électrolyse' },
   { res: 'EP', unit: '40B/52' },
   { res: 'EP', unit: '31B/96' },
   { res: 'EP', unit: '52B/46' },
@@ -99,7 +126,7 @@ const POOLS = [
   // occupancy links hold); `note` records the boss's 2026 renumbering until
   // confirmed on site.
   { res: 'EPP', unit: '3',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 3 (T5 open) → 2026 #10 · bas cluster' },
-  { res: 'EPP', unit: '4',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 4 (T5 pp ter) → 2026 #8 · bas cluster' },
+  { res: 'EPP', unit: '4',  lat: 45.002698, lng: -1.169749, salt: true, electroNote: 'Sondes d’électrolyse HS — en attente de réparation. Doser le chlore manuellement en attendant.', note: 'Plan LOT 4 (T5 pp ter) → 2026 #8 · bas cluster · piscine au sel' },
   { res: 'EPP', unit: '7',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 7 (T5 open) → 2026 #2 · bas cluster' },
   { res: 'EPP', unit: '11', lat: 44.997581, lng: -1.171753, note: '"Lot. Éden Club" cluster · no pool (rental only)', nonPool: true },
   { res: 'EPP', unit: '12', lat: 44.997581, lng: -1.171753, note: '"12 Lot." cluster · no pool (rental only)', nonPool: true },
@@ -168,4 +195,4 @@ const OCCUPANCY = [
   { res: 'HO', unit: '187', week: SAT.jul04, name: 'SHARAPOVA', departure: '2026-07-05', status: 'occupied' },
 ];
 
-window.SEED = { CHEM_RANGES, OCC_STATUS, RESIDENCES, POOLS, OCCUPANCY, SAT };
+window.SEED = { CHEM_RANGES, CYA_SALT, PRODUCTS, OCC_STATUS, RESIDENCES, POOLS, OCCUPANCY, SAT };
