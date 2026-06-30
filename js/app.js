@@ -4,7 +4,7 @@
   const { CHEM_RANGES, OCC_STATUS } = S;
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v21'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v22'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -77,6 +77,66 @@
     if (st('stabilizer') === 'low') out.push(t('action_cya_low'));
     if (st('stabilizer') === 'high') out.push(t('action_cya_high'));
     return out;
+  }
+
+  // ----- chemistry engine (advisory; standard outdoor-pool chemistry) -----
+  // Heuristic, transparent coefficients — refined per pool by its own history.
+  const Chem = {
+    // Fraction of free chlorine present as HOCl, the form that actually
+    // sanitises. Dissociation curve, pKa ≈ 7.54 at ~25 °C.
+    hoclFraction(ph) {
+      if (ph == null) return null;
+      return 1 / (1 + Math.pow(10, ph - 7.54));
+    },
+    // Stabiliser shields chlorine from UV: 1 = unprotected → ~0 = well buffered.
+    uvProtection(cya) {
+      const c = cya == null ? CHEM_RANGES.stabilizer.ideal : cya;
+      return 1 / (1 + c / 15);
+    },
+    // Target free chlorine scales with CYA (~7.5% rule), with sane floors.
+    targetFC(cya) {
+      const c = cya == null ? CHEM_RANGES.stabilizer.ideal : cya;
+      return Math.max(1, Math.round(0.075 * c * 10) / 10);
+    },
+    // Safe minimum FC; below it algae risk climbs (~5% of CYA, floor 0.5).
+    minFC(cya) {
+      const c = cya == null ? CHEM_RANGES.stabilizer.ideal : cya;
+      return Math.max(0.5, Math.round(0.05 * c * 10) / 10);
+    },
+    // Predicted free-chlorine loss (ppm/day): sun (UV ÷ CYA buffer) + a
+    // temperature-driven organic/bather term, mostly blocked by a cover.
+    dailyLoss(cya, uvIndex, temp, covered) {
+      const uv = uvIndex == null ? 5 : uvIndex;
+      const wt = temp == null ? 24 : temp;
+      const uvLoss = 3.0 * (uv / 6) * this.uvProtection(cya);
+      const bioLoss = 0.5 * Math.pow(1.5, (wt - 25) / 10);
+      const loss = covered ? bioLoss + uvLoss * 0.25 : uvLoss + bioLoss;
+      return Math.max(0.2, loss);
+    },
+  };
+  // Upcoming sun/heat from the forecast — this is what makes the interval
+  // adaptive (a heatwave pulls the next check sooner; a cool spell pushes it out).
+  function forecastDrivers() {
+    const d = window.Weather && Weather.data;
+    if (!d || !d.daily || !d.daily.uv_index_max) return null;
+    const avg = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : null);
+    const uvs = d.daily.uv_index_max.slice(0, 3).filter((x) => x != null);
+    const temps = (d.daily.temperature_2m_max || []).slice(0, 3).filter((x) => x != null);
+    if (!uvs.length) return null;
+    return { uv: avg(uvs), temp: avg(temps) };
+  }
+  // Measured FC decay between the two most recent readings (per pool), used to
+  // self-calibrate the model. Null if a dose clearly happened (FC went up) or
+  // the gap is too short/long to trust.
+  function observedLoss(p) {
+    const rs = Store.readingsFor(p.id).filter((r) => r.chlorine != null); // newest first
+    if (rs.length < 2) return null;
+    const [newer, older] = rs;
+    const days = (new Date(newer.at).getTime() - new Date(older.at).getTime()) / 864e5;
+    if (days < 0.5 || days > 14) return null;
+    const drop = older.chlorine - newer.chlorine;
+    if (drop <= 0) return null;
+    return drop / days;
   }
 
   // Unique residence stops (Maps queries) for pools with work this week.
@@ -394,6 +454,57 @@
     return `<div class="pills">${cell('ph')}${cell('chlorine')}${cell('stabilizer')}</div>`;
   }
 
+  // Advisory chemistry read-out for a pool's latest reading: how much chlorine
+  // is actually active (pH), the CYA-scaled target, and a forecast-driven
+  // estimate of when the next check is due. Read-only for now (the green/orange
+  // dots still come from poolStatus); we wire it into the dots once validated.
+  function chemPanel(p) {
+    const r = Store.latestReading(p.id);
+    if (!r) return null;
+    const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
+    const rows = el('<div class="chem-rows"></div>');
+    const row = (cls, k, v, h) => el(`<div class="chem-row ${cls}">
+      <span class="cr-k">${esc(k)}</span><span class="cr-v">${esc(v)}</span><span class="cr-h">${esc(h)}</span></div>`);
+
+    // active chlorine fraction from pH (the HOCl curve)
+    const frac = Chem.hoclFraction(ph);
+    if (frac != null) {
+      const pct = Math.round(frac * 100);
+      rows.appendChild(row(pct >= 50 ? 'ok' : pct >= 30 ? 'warn' : 'bad',
+        t('chem_active'), pct + '%', t('chem_active_h', { ph })));
+    }
+    // target FC from CYA
+    if (cya != null) {
+      const tFC = Chem.targetFC(cya), mFC = Chem.minFC(cya);
+      const cls = fc == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad';
+      rows.appendChild(row(cls, t('chem_target_fc'), tFC, t('chem_target_fc_h', { cya })));
+    }
+    // predicted daily loss (model, blended with measured decay when available)
+    const fd = forecastDrivers();
+    const uv = fd ? fd.uv : (r.weather && r.weather.uv);
+    const temp = fd ? fd.temp : (r.weather && r.weather.temp);
+    const modelLoss = Chem.dailyLoss(cya, uv, temp, !!p.covered);
+    const obs = observedLoss(p);
+    const loss = obs != null ? (modelLoss + obs) / 2 : modelLoss;
+    rows.appendChild(row('', t('chem_decay'), '~' + loss.toFixed(1),
+      t('chem_decay_h') + (obs != null ? ' · ' + t('chem_calibrated') : '')));
+    // next check: when FC is predicted to reach the safe floor
+    if (fc != null && loss > 0) {
+      const floor = Chem.minFC(cya);
+      const dueTime = new Date(r.at).getTime() + ((fc - floor) / loss) * 864e5;
+      const daysFromNow = (dueTime - Date.now()) / 864e5;
+      let cls, v;
+      if (daysFromNow <= 0) { cls = 'bad'; v = t('chem_due_now'); }
+      else { cls = daysFromNow < 1.5 ? 'warn' : 'ok'; v = t('chem_due_in', { days: daysFromNow.toFixed(1), date: fmtDate(new Date(dueTime).toISOString().slice(0, 10)) }); }
+      rows.appendChild(row(cls, t('chem_next'), v, t('chem_next_h', { floor })));
+    }
+
+    const box = el('<div class="chem-panel"></div>');
+    box.appendChild(el(`<div class="section-title"><h2>🧪 ${esc(t('chem_title'))}</h2><p>${esc(t('chem_sub'))}</p></div>`));
+    box.appendChild(rows);
+    return box;
+  }
+
   // ---------- view: TODAY ----------
   function viewToday() {
     const wrap = document.createElement('div');
@@ -607,6 +718,10 @@
         wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
           <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
       }
+
+      // advisory chemistry read-out (active chlorine, target FC, next check)
+      const chem = chemPanel(p);
+      if (chem) wrap.appendChild(chem);
     }
 
     // reference photos: front gate / pool / pump room

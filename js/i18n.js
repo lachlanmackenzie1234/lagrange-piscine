@@ -69,6 +69,21 @@ const I18n = (() => {
       action_cya_low: 'Stabiliser low → add cyanuric acid (stabilisant).',
       action_cya_high: 'Stabiliser high → partial drain & refill to dilute.',
 
+      // chemistry panel (advisory)
+      chem_title: 'Chemistry',
+      chem_sub: 'Estimated from the last test + forecast',
+      chem_active: 'Active chlorine',
+      chem_active_h: 'at pH {ph} (HOCl)',
+      chem_target_fc: 'Target chlorine',
+      chem_target_fc_h: 'for CYA {cya}',
+      chem_decay: 'Daily loss',
+      chem_decay_h: 'ppm/day in sun',
+      chem_calibrated: 'calibrated',
+      chem_next: 'Next check',
+      chem_due_now: 'now',
+      chem_due_in: '~{days} d · {date}',
+      chem_next_h: 'until Cl ~{floor}',
+
       // service log
       watering_section: 'Filling / watering', watering_today: '💧 Filling now ({n})',
       start_watering: '💧 Start filling', stop_watering: '■ Stop filling',
@@ -202,6 +217,21 @@ const I18n = (() => {
       action_cl_vlow: 'Chlore très bas → traitement choc ; recontrôler avant réouverture.',
       action_cya_low: 'Stabilisant bas → ajouter du stabilisant (acide cyanurique).',
       action_cya_high: 'Stabilisant élevé → vidange partielle puis remise à niveau pour diluer.',
+
+      // panneau chimie (indicatif)
+      chem_title: 'Chimie',
+      chem_sub: 'Estimé depuis le dernier test + prévisions',
+      chem_active: 'Chlore actif',
+      chem_active_h: 'à pH {ph} (HOCl)',
+      chem_target_fc: 'Chlore cible',
+      chem_target_fc_h: 'pour stab. {cya}',
+      chem_decay: 'Perte/jour',
+      chem_decay_h: 'ppm/jour au soleil',
+      chem_calibrated: 'calibré',
+      chem_next: 'Prochaine vérif',
+      chem_due_now: 'maintenant',
+      chem_due_in: '~{days} j · {date}',
+      chem_next_h: 'jusqu’à Cl ~{floor}',
 
       // suivi d’entretien
       watering_section: 'Remplissage', watering_today: '💧 En remplissage ({n})',
