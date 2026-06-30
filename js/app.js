@@ -4,7 +4,7 @@
   const { CHEM_RANGES, OCC_STATUS } = S;
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v19'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v20'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -475,7 +475,7 @@
     const nPools = Store.pools().filter((p) => hasPool(p)).length;
     wrap.appendChild(header(t('pools_title'), t('pools_sub', { n: nPools, m: poolRes.length })));
     poolRes.forEach((res) => {
-      const list = Store.poolsByRes(res.code);
+      const list = Store.poolsByRes(res.code).filter(hasPool); // hide nonPool units
       if (!list.length) return;
       wrap.appendChild(sectionTitle(`${res.code} · ${res.name} (${list.length})`, res.verify ? t('to_confirm') : ''));
       const cards = el('<div class="cards"></div>');

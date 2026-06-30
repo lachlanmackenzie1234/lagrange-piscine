@@ -20,6 +20,7 @@ const Store = (() => {
       type: p.type || '',
       note: p.note || '',
       verify: !!p.verify,
+      nonPool: !!p.nonPool,
       lat: p.lat ?? null,
       lng: p.lng ?? null,
     }));
@@ -46,24 +47,27 @@ const Store = (() => {
     };
   }
 
-  // Bump when seed coordinates change; migrate() back-fills existing installs.
-  const COORDS_SEED = 3;
+  // Bump when seed coordinates / classifications change; migrate() reconciles
+  // existing installs.
+  const COORDS_SEED = 4;
 
-  // Fill in pool/residence coordinates added to the seed since this device was
-  // first seeded — only where the user hasn't already set their own. Never
-  // overwrites a coordinate the user captured/edited.
+  // Back-fill seed coordinates (only where the user hasn't set their own — never
+  // overwrites a captured GPS) and sync the nonPool classification from seed
+  // (authoritative; not user-editable).
   function migrate() {
     if ((state.coordsSeedVersion || 0) >= COORDS_SEED) return;
     const S = window.SEED;
     S.POOLS.forEach((sp) => {
-      if (sp.lat == null) return;
       const p = state.pools.find((x) => x.id === poolId(sp.res, sp.unit));
-      if (p && p.lat == null) { p.lat = sp.lat; p.lng = sp.lng; }
+      if (!p) return;
+      if (sp.lat != null && p.lat == null) { p.lat = sp.lat; p.lng = sp.lng; }
+      p.nonPool = !!sp.nonPool;
     });
     S.RESIDENCES.forEach((sr) => {
-      if (sr.lat == null) return;
       const r = state.residences.find((x) => x.code === sr.code);
-      if (r && r.lat == null) { r.lat = sr.lat; r.lng = sr.lng; }
+      if (!r) return;
+      if (sr.lat != null && r.lat == null) { r.lat = sr.lat; r.lng = sr.lng; }
+      r.nonPool = !!sr.nonPool;
     });
     state.coordsSeedVersion = COORDS_SEED;
     save();

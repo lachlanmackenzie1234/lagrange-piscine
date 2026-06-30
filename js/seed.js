@@ -88,7 +88,7 @@ const POOLS = [
   { res: 'EP', unit: '6B/75' },
   { res: 'EP', unit: '19B/90' },
   { res: 'EP', unit: '30B/63' },
-  { res: 'EP', unit: '5P' },
+  { res: 'EP', unit: '5P', note: 'No pool (rental only)', nonPool: true },
   { res: 'EP', unit: '27B/94' },
   { res: 'EP', unit: '40B/52' },
   { res: 'EP', unit: '31B/96' },
@@ -101,8 +101,8 @@ const POOLS = [
   { res: 'EPP', unit: '3',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 3 (T5 open) → 2026 #10 · bas cluster' },
   { res: 'EPP', unit: '4',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 4 (T5 pp ter) → 2026 #8 · bas cluster' },
   { res: 'EPP', unit: '7',  lat: 45.002698, lng: -1.169749, note: 'Plan LOT 7 (T5 open) → 2026 #2 · bas cluster' },
-  { res: 'EPP', unit: '11', lat: 44.997581, lng: -1.171753, note: 'Plan LOT 11 (T5 G) · "Lot. Éden Club" cluster · confirm unit #', verify: true },
-  { res: 'EPP', unit: '12', lat: 44.997581, lng: -1.171753, note: '"12 Lot." · same cluster as 11 · confirm unit #', verify: true },
+  { res: 'EPP', unit: '11', lat: 44.997581, lng: -1.171753, note: '"Lot. Éden Club" cluster · no pool (rental only)', nonPool: true },
+  { res: 'EPP', unit: '12', lat: 44.997581, lng: -1.171753, note: '"12 Lot." cluster · no pool (rental only)', nonPool: true },
 
   // GP
   { res: 'GP', unit: '18' },
