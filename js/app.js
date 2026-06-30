@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v23'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v24'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -285,9 +285,11 @@
     const pts = [];
     const resWithPoolPins = new Set();
     Store.pools().forEach((p) => {
-      if (p.lat != null && p.lng != null) {
+      // only pools we actually maintain get a pin; rental-only units (e.g. the
+      // EPP "Lot. Éden Club" lots) stay off the map to keep it clean.
+      if (hasPool(p) && p.lat != null && p.lng != null) {
         resWithPoolPins.add(p.res);
-        pts.push({ lat: p.lat, lng: p.lng, label: `${p.res} ${p.unit}`, color: hasPool(p) ? statusColor(poolStatus(p).level) : '#6b4ed6', maps: poolMapUrl(p), href: `#/pool/${p.id}` });
+        pts.push({ lat: p.lat, lng: p.lng, label: `${p.res} ${p.unit}`, color: statusColor(poolStatus(p).level), maps: poolMapUrl(p), href: `#/pool/${p.id}` });
       }
     });
     Store.residences().forEach((res) => {
@@ -955,6 +957,22 @@
     const n = Number(String(v).replace(',', '.').trim());
     return Number.isFinite(n) ? n : null;
   };
+  // ISO → value for a <input type="datetime-local"> (local time, no seconds)
+  function toLocalInput(iso) {
+    const d = new Date(iso);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  // Human label for a logged treatment: unit products show "3× … · 300 g";
+  // powders (no grammage) show a dose count "1 dose · …".
+  function treatmentLabel(tr) {
+    const prod = productById(tr.productId);
+    if (!prod) return tr.note || '—';
+    const q = tr.qty;
+    if (prod.grammage) return `${q ? q + '× ' : ''}${productLabel(prod)} · ${prod.grammage} g`;
+    const unit = prod.unit || 'dose';
+    return `${q != null ? q + ' ' : ''}${unit}${q > 1 ? 's' : ''} · ${productLabel(prod)}`;
+  }
 
   // Pool volume calculator: length × width × average depth → m³.
   function volumeSection(p) {
@@ -1011,13 +1029,25 @@
     if (list.length) {
       const ul = el('<div class="treat-list"></div>');
       list.forEach((tr) => {
-        const prod = productById(tr.productId);
-        const label = prod
-          ? `${tr.qty ? tr.qty + '× ' : ''}${productLabel(prod)}${prod.grammage ? ` · ${prod.grammage} g` : ''}`
-          : (tr.note || '—');
-        const itm = el(`<div class="treat-item"><span class="ti-label">${esc(label)}</span>
-          <span class="treat-meta">${fmtDateTime(tr.at)} ${wxChip(tr.weather)}<button class="link-del" data-id="${tr.id}">✕</button></span></div>`);
-        itm.querySelector('.link-del').addEventListener('click', () => { Store.deleteVisit(tr.id); render(); });
+        const itm = el(`<div class="treat-item"><span class="ti-label">${esc(treatmentLabel(tr))}</span>
+          <span class="treat-meta"></span></div>`);
+        const meta = itm.querySelector('.treat-meta');
+        // tap the time to correct it (e.g. backdate to when you actually dosed)
+        const timeBtn = el(`<button class="treat-time" title="${esc(t('edit_time'))}">${esc(fmtDateTime(tr.at))}</button>`);
+        timeBtn.addEventListener('click', () => {
+          const inp = el(`<input type="datetime-local" class="treat-time-edit" value="${toLocalInput(tr.at)}">`);
+          let done = false;
+          const commit = () => { if (done) return; done = true; if (inp.value) Store.updateVisit(tr.id, { at: new Date(inp.value).toISOString() }); render(); };
+          inp.addEventListener('change', commit);
+          inp.addEventListener('blur', () => { if (!done) render(); });
+          timeBtn.replaceWith(inp);
+          inp.focus();
+        });
+        meta.appendChild(timeBtn);
+        if (tr.weather) meta.appendChild(el(`<span>${wxChip(tr.weather)}</span>`));
+        const del = el('<button class="link-del">✕</button>');
+        del.addEventListener('click', () => { Store.deleteVisit(tr.id); render(); });
+        meta.appendChild(del);
         ul.appendChild(itm);
       });
       box.appendChild(ul);

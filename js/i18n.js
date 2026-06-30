@@ -111,6 +111,7 @@ const I18n = (() => {
       treat_section: 'Products added',
       treat_sub: 'log what you dosed (the colleague sees it)',
       treat_qty: 'Qty',
+      edit_time: 'Tap to edit the time',
       depot: 'Depot',
 
       // service log
@@ -289,6 +290,7 @@ const I18n = (() => {
       treat_section: 'Produits ajoutés',
       treat_sub: 'noter ce qui a été ajouté (visible par le collègue)',
       treat_qty: 'Qté',
+      edit_time: 'Toucher pour modifier l’heure',
       depot: 'Dépôt',
 
       // suivi d’entretien

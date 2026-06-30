@@ -174,6 +174,13 @@ const Store = (() => {
     save();
     mirror((s) => s.removeVisit(id));
   }
+  // Edit a visit/treatment in place (e.g. correct its time). Re-pushes the
+  // whole record to sync.
+  function updateVisit(id, patch) {
+    const v = load().visits.find((x) => x.id === id);
+    if (v) { Object.assign(v, patch); save(); mirror((s) => s.pushVisit(v)); }
+    return v;
+  }
   // ---- product applications ("produits ajoutés") ----
   // Stored as visits with type 'treatment' (so they ride the existing visits
   // sync, append-only). productId references SEED.PRODUCTS; qty is a count of
@@ -312,7 +319,7 @@ const Store = (() => {
     residences, residence, pools, pool, poolsByRes, wateringPools,
     readingsFor, latestReading, occupancyFor, occupancyForWeek, weeks,
     addReading, deleteReading,
-    addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, servicedOn, localDate,
+    addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, updateVisit, servicedOn, localDate,
     addTreatment, treatmentsFor, lastTreatment,
     addNote, notes, notesFor, openTodos, setNoteDone, deleteNote,
     updatePool, updateResidence,
