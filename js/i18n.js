@@ -114,7 +114,9 @@ const I18n = (() => {
       edit_time: 'Tap to edit the time',
       validate: 'Validate',
       modify: 'Modify',
+      set: 'Set',
       done: 'Done',
+      unknown: 'Unknown',
       edit_note: 'Edit',
       depot: 'Depot',
 
@@ -297,7 +299,9 @@ const I18n = (() => {
       edit_time: 'Toucher pour modifier l’heure',
       validate: 'Valider',
       modify: 'Modifier',
+      set: 'Définir',
       done: 'Terminé',
+      unknown: 'Inconnue',
       edit_note: 'Modifier',
       depot: 'Dépôt',
 

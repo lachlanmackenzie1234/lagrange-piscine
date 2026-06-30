@@ -114,14 +114,18 @@ a { color: var(--brand); text-decoration: none; }
   background: var(--bg); color: var(--ink); }
 .time-ok { border: none; border-radius: 6px; background: var(--brand); color: #fff;
   font-size: .85rem; padding: 4px 9px; cursor: pointer; }
-/* compact one-shot inputs (volume summary, etc.) */
-.one-shot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.one-shot .os-val { font-weight: 700; font-size: 1.05rem; }
+/* compact one-shot inputs (volume, sand date — rarely changed) */
+.os-inline + .os-inline, .pump .os-inline { margin-top: 12px; }
+.one-shot { display: flex; align-items: baseline; gap: 8px; }
+.one-shot .os-k { color: var(--muted); font-size: .85rem; }
+.one-shot .os-val { font-weight: 700; font-size: 1.02rem; }
+.one-shot .os-val.unknown { font-weight: 500; color: var(--muted); font-style: italic; }
+.one-shot .btn.sm { margin-left: auto; }
+.os-head { color: var(--muted); font-size: .8rem; margin-bottom: 8px; }
 .one-shot-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
 .one-shot-foot .vol-out { margin: 0; }
+.os-btns { display: flex; gap: 8px; }
 .btn.sm { width: auto; flex: 0 0 auto; padding: 6px 14px; font-size: .85rem; }
-.field-inline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
-.field-inline > span { color: var(--muted); font-size: .85rem; }
 .date-sm { width: auto; flex: 0 0 auto; padding: 7px 10px; border: 1px solid var(--line);
   border-radius: 8px; background: var(--bg); color: var(--ink); font-size: .95rem; }
 /* inline note editing */

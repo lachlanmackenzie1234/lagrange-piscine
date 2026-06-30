@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v25'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v26'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -39,6 +39,13 @@
   };
   const fmtTime = (iso) => (iso ? new Date(iso).toLocaleTimeString(I18n.locale(), { hour: '2-digit', minute: '2-digit' }) : '');
   const todayISO = () => new Date().toISOString().slice(0, 10);
+  // Local date+time stamp for export filenames: YYYY-MM-DD_HHMMSS (sorts well,
+  // unique per save — avoids the browser's "(1)/(2)" same-name de-dup).
+  function fileStamp() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  }
 
   // Live state of a pool's fill: elapsed minutes + reminder/overdue.
   function wateringInfo(p) {
@@ -871,8 +878,7 @@
       }
       wrap.appendChild(wb);
 
-      // pool volume (drives the dose helper)
-      wrap.appendChild(sectionTitle(t('vol_section'), t('vol_sub')));
+      // pool volume (drives the dose helper) — compact one-shot, self-labelled
       wrap.appendChild(volumeSection(p));
 
       // pump & filter management
@@ -883,9 +889,23 @@
       const bwBtn = el(`<button class="btn">${esc(t('log_backwash'))}</button>`);
       bwBtn.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
       pump.appendChild(bwBtn);
-      const sand = el(`<label class="field-inline"><span>${esc(t('sand_date'))}</span><input type="date" class="date-sm" value="${esc(p.sandDate || '')}"></label>`);
-      sand.querySelector('input').addEventListener('change', (e) => Store.updatePool(p.id, { sandDate: e.target.value }));
-      pump.appendChild(sand);
+      // sand-change date — compact; "inconnue" by default (some pumps aren't annotated)
+      pump.appendChild(collapsible({
+        label: t('sand_date'),
+        value: () => p.sandDate ? { text: fmtDate(p.sandDate), empty: false } : { text: t('unknown'), empty: true },
+        buildEditor: (box, done) => {
+          const inp = el(`<input type="date" class="date-sm" value="${esc(p.sandDate || '')}">`);
+          inp.addEventListener('change', () => Store.updatePool(p.id, { sandDate: inp.value }));
+          const unk = el(`<button class="btn sm">${esc(t('unknown'))}</button>`);
+          unk.addEventListener('click', () => { Store.updatePool(p.id, { sandDate: '' }); done(); });
+          const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
+          ok.addEventListener('click', done);
+          const foot = el('<div class="one-shot-foot"></div>');
+          const btns = el('<div class="os-btns"></div>'); btns.appendChild(unk); btns.appendChild(ok);
+          foot.appendChild(inp); foot.appendChild(btns);
+          box.appendChild(foot);
+        },
+      }));
       const pn = el(`<label class="field"><span>${esc(t('pump_notes'))}</span><textarea rows="2" placeholder="${esc(t('pump_notes_ph'))}"></textarea></label>`);
       pn.querySelector('textarea').value = p.pumpNote || '';
       pn.querySelector('textarea').addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
@@ -994,48 +1014,61 @@
     return `${q != null ? q + ' ' : ''}${unit}${q > 1 ? 's' : ''} · ${productLabel(prod)}`;
   }
 
-  // Pool volume calculator: length × width × average depth → m³. Collapses to a
-  // one-line summary once set (a one-shot input — small footprint in the UI).
+  // Compact field for a rarely-changed value: shows "label : value · [btn]"
+  // (value defaults to "inconnue"); tapping reveals an editor that collapses
+  // back when done. Keeps low-frequency config small so the daily logging owns
+  // the screen space.
+  function collapsible({ label, value, buildEditor }) {
+    const wrap = el('<div class="os-inline"></div>');
+    function summary() {
+      wrap.innerHTML = '';
+      const v = value();
+      const row = el(`<div class="one-shot"><span class="os-k">${esc(label)}</span><span class="os-val ${v.empty ? 'unknown' : ''}">${esc(v.text)}</span></div>`);
+      const btn = el(`<button class="btn sm">${esc(v.empty ? t('set') : t('modify'))}</button>`);
+      btn.addEventListener('click', () => { wrap.innerHTML = ''; buildEditor(wrap, summary); });
+      row.appendChild(btn);
+      wrap.appendChild(row);
+    }
+    summary();
+    return wrap;
+  }
+
+  // Pool volume — collapsed to "Volume du bassin : inconnue · Définir" until set.
   function volumeSection(p) {
-    const box = el('<div class="card volume"></div>');
-    function collapsed() {
-      box.innerHTML = '';
-      const sum = el(`<div class="one-shot"><span class="os-val">${esc(t('vol_result', { v: p.volM3 }))}</span></div>`);
-      const mod = el(`<button class="btn sm">${esc(t('modify'))}</button>`);
-      mod.addEventListener('click', expanded);
-      sum.appendChild(mod);
-      box.appendChild(sum);
-    }
-    function expanded() {
-      box.innerHTML = '';
-      const d = p.dims || {};
-      const field = (key, label, val) =>
-        `<label class="vfield"><span>${esc(label)}</span><input data-k="${key}" type="text" inputmode="decimal" maxlength="5" autocomplete="off" pattern="[0-9.,]*" value="${val != null ? esc(val) : ''}"></label>`;
-      box.appendChild(el(`<div class="vgrid">${field('l', t('vol_len'), d.l)}${field('w', t('vol_wid'), d.w)}${field('dmin', t('vol_dmin'), d.dmin)}${field('dmax', t('vol_dmax'), d.dmax)}</div>`));
-      const out = el(`<p class="vol-out">${p.volM3 != null ? esc(t('vol_result', { v: p.volM3 })) : esc(t('vol_hint'))}</p>`);
-      const recompute = (persist) => {
-        const num = (k) => numDec(box.querySelector(`[data-k="${k}"]`).value);
-        const l = num('l'), w = num('w'), dmin = num('dmin'), dmax = num('dmax');
-        let vol = null;
-        if (l && w && (dmin != null || dmax != null)) {
-          const depth = ((dmin == null ? dmax : dmin) + (dmax == null ? dmin : dmax)) / 2;
-          vol = Math.round(l * w * depth * 10) / 10;
-        }
-        out.textContent = vol != null ? t('vol_result', { v: vol }) : t('vol_hint');
-        if (persist) Store.updatePool(p.id, { dims: { l, w, dmin, dmax }, volM3: vol });
-      };
-      box.querySelectorAll('input').forEach((inp) => {
-        inp.addEventListener('input', () => recompute(false));
-        inp.addEventListener('change', () => recompute(true));
-      });
-      const done = el(`<div class="one-shot-foot"></div>`);
-      const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
-      ok.addEventListener('click', () => { recompute(true); if (p.volM3 != null) collapsed(); });
-      done.appendChild(out); done.appendChild(ok);
-      box.appendChild(done);
-    }
-    if (p.volM3 != null) collapsed(); else expanded();
-    return box;
+    const card = el('<div class="card volume"></div>');
+    card.appendChild(collapsible({
+      label: t('vol_section'),
+      value: () => p.volM3 != null ? { text: t('vol_result', { v: p.volM3 }), empty: false } : { text: t('unknown'), empty: true },
+      buildEditor: (box, done) => {
+        const d = p.dims || {};
+        const field = (key, label, val) =>
+          `<label class="vfield"><span>${esc(label)}</span><input data-k="${key}" type="text" inputmode="decimal" maxlength="5" autocomplete="off" pattern="[0-9.,]*" value="${val != null ? esc(val) : ''}"></label>`;
+        box.appendChild(el(`<div class="os-head">${esc(t('vol_sub'))}</div>`));
+        box.appendChild(el(`<div class="vgrid">${field('l', t('vol_len'), d.l)}${field('w', t('vol_wid'), d.w)}${field('dmin', t('vol_dmin'), d.dmin)}${field('dmax', t('vol_dmax'), d.dmax)}</div>`));
+        const out = el(`<p class="vol-out">${p.volM3 != null ? esc(t('vol_result', { v: p.volM3 })) : esc(t('vol_hint'))}</p>`);
+        const recompute = (persist) => {
+          const num = (k) => numDec(box.querySelector(`[data-k="${k}"]`).value);
+          const l = num('l'), w = num('w'), dmin = num('dmin'), dmax = num('dmax');
+          let vol = null;
+          if (l && w && (dmin != null || dmax != null)) {
+            const depth = ((dmin == null ? dmax : dmin) + (dmax == null ? dmin : dmax)) / 2;
+            vol = Math.round(l * w * depth * 10) / 10;
+          }
+          out.textContent = vol != null ? t('vol_result', { v: vol }) : t('vol_hint');
+          if (persist) Store.updatePool(p.id, { dims: { l, w, dmin, dmax }, volM3: vol });
+        };
+        box.querySelectorAll('input').forEach((inp) => {
+          inp.addEventListener('input', () => recompute(false));
+          inp.addEventListener('change', () => recompute(true));
+        });
+        const foot = el('<div class="one-shot-foot"></div>');
+        const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
+        ok.addEventListener('click', () => { recompute(true); done(); });
+        foot.appendChild(out); foot.appendChild(ok);
+        box.appendChild(foot);
+      },
+    }));
+    return card;
   }
 
   // "Produits ajoutés": quick-log what was added (stick/galet/pH/choc…) with a
@@ -1289,16 +1322,18 @@
     wrap.appendChild(header(t('settings_title')));
     wrap.appendChild(syncSection());
 
+    // date + time in the filename so successive saves sort cleanly and don't
+    // collide into "(1)/(2)" (the browser's de-dup of same-named downloads).
     const exportBtn = el(`<button class="btn">${esc(t('export_btn'))}</button>`);
     exportBtn.addEventListener('click', () =>
-      downloadFile(`lagrange-piscine-backup-${todayISO()}.json`, Store.exportJSON(), 'application/json'));
+      downloadFile(`lagrange-piscine-backup-${fileStamp()}.json`, Store.exportJSON(), 'application/json'));
 
     const csvReadBtn = el(`<button class="btn">${esc(t('export_csv_readings'))}</button>`);
     csvReadBtn.addEventListener('click', () =>
-      downloadFile(`lagrange-piscine-readings-${todayISO()}.csv`, readingsCsv(), 'text/csv'));
+      downloadFile(`lagrange-piscine-readings-${fileStamp()}.csv`, readingsCsv(), 'text/csv'));
     const csvNoteBtn = el(`<button class="btn">${esc(t('export_csv_notes'))}</button>`);
     csvNoteBtn.addEventListener('click', () =>
-      downloadFile(`lagrange-piscine-notes-${todayISO()}.csv`, notesCsv(), 'text/csv'));
+      downloadFile(`lagrange-piscine-notes-${fileStamp()}.csv`, notesCsv(), 'text/csv'));
 
     const importInput = el('<input type="file" accept="application/json" hidden>');
     const importBtn = el(`<button class="btn">${esc(t('import_btn'))}</button>`);
