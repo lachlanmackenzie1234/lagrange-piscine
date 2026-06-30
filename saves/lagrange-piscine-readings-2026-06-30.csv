@@ -1,0 +1,7 @@
+residence,unit,datetime,pH,chlorine_ppm,stabilizer_ppm,note
+AG,8,2026-06-29T12:38:00.000Z,8.3,0,5,piscine tournée
+AG,8,2026-06-29T15:17:00.000Z,7.4,1.1,13,ajout 4 sticks dans skimmer + lavage de filtre + chlore shock + PH down
+AG,8,2026-06-30T08:54:41.071Z,7.4,2.1,6,Ajout 4 galet stab + floc
+EP,52B/46,2026-06-30T09:30:12.686Z,7.6,0,14,Ajout 4 galets stab + nettoyage + filtre + remplissage 
+EP,31B/96,2026-06-30T10:20:48.509Z,,,26,1 galet + shock 
+EP,31B/96,2026-06-30T10:26:12.508Z,7.03,0.95,26,

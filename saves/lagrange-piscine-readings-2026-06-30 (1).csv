@@ -1,0 +1,13 @@
+residence,unit,datetime,pH,chlorine_ppm,stabilizer_ppm,note
+AG,8,2026-06-29T12:38:00.000Z,8.3,0,5,piscine tournée
+AG,8,2026-06-29T15:17:00.000Z,7.4,1.1,13,ajout 4 sticks dans skimmer + lavage de filtre + chlore shock + PH down
+AG,8,2026-06-30T08:54:41.071Z,7.4,2.1,6,Ajout 4 galet stab + floc
+EP,52B/46,2026-06-30T09:30:12.686Z,7.6,0,14,Ajout 4 galets stab + nettoyage + filtre + remplissage 
+EP,31B/96,2026-06-30T10:20:48.509Z,,,26,1 galet + shock 
+EP,31B/96,2026-06-30T10:26:12.508Z,7.03,0.95,26,
+GP,39,2026-06-30T12:24:34.032Z,7.5,0,46,Ajout 2 stick + shock + ph-
+EPP,7,2026-06-30T13:05:47.012Z,8.4,0,14,Ajout 2 galet + floc + ph- + shock
+EPP,7,2026-06-30T13:11:33.150Z,6.61,,,Ph - (dodo y est allez fort!)
+EPP,3,2026-06-30T13:28:30.893Z,7.17,0.25,30,2 galets
+AG,7,2026-06-30T14:19:02.285Z,7.28,0.05,66,"3 stick , 50g shock "
+AG,9,2026-06-30T14:28:45.792Z,7.39,0.05,53,2 sticks ajouté + mini shock
