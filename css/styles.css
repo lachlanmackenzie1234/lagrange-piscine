@@ -185,6 +185,16 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .ref-slot .thumb { width: 100%; height: 90px; }
 .ref-add { width: 100%; height: 90px; display: flex; align-items: center; justify-content: center;
   border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 1.5rem; cursor: pointer; background: var(--card); }
+/* map picker */
+.map-picker { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; background: var(--bg); }
+.mp-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  padding-top: calc(env(safe-area-inset-top) + 10px); border-bottom: 1px solid var(--line); background: var(--card); }
+.mp-title { flex: 1; font-weight: 700; }
+.mp-cancel { background: none; border: none; font-size: 1.2rem; color: var(--muted); cursor: pointer; }
+.mp-bar .btn { width: auto; padding: 9px 16px; }
+.mp-map { flex: 1; min-height: 0; }
+.mp-pin { font-size: 26px; text-align: center; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); cursor: grab; }
+
 .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 50; display: flex;
   align-items: center; justify-content: center; padding: 16px; }
 .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }

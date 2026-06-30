@@ -4,7 +4,7 @@
   const { CHEM_RANGES, OCC_STATUS } = S;
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v20'; // keep in step with sw.js VERSION
+  const APP_VERSION = 'v21'; // keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -230,6 +230,40 @@
     });
     return leafletPromise;
   }
+  // Place a pool's pin precisely by eye on a satellite map (beats a GPS fix).
+  async function openMapPicker(p) {
+    let L;
+    try { L = await loadLeaflet(); } catch (e) { alert(t('geo_error')); return; }
+    const ov = el('<div class="map-picker"></div>');
+    const bar = el(`<div class="mp-bar">
+      <button class="mp-cancel" aria-label="close">✕</button>
+      <span class="mp-title">${esc(poolTitle(p))}</span>
+      <button class="btn primary mp-save">${esc(t('map_save'))}</button>
+    </div>`);
+    const mapDiv = el('<div class="mp-map"></div>');
+    ov.appendChild(bar); ov.appendChild(mapDiv);
+    document.body.appendChild(ov);
+
+    const start = poolCoords(p) || { lat: 45.0, lng: -1.175 };
+    const map = L.map(mapDiv).setView([start.lat, start.lng], poolCoords(p) ? 18 : 14);
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' });
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+    sat.addTo(map); // default satellite for house-level precision
+    L.control.layers({ ['🛰️ ' + t('layer_sat')]: sat, ['🗺️ ' + t('layer_map')]: osm }).addTo(map);
+    const icon = L.divIcon({ className: 'mp-pin', html: '📍', iconSize: [34, 34], iconAnchor: [17, 30] });
+    const marker = L.marker([start.lat, start.lng], { draggable: true, icon }).addTo(map);
+    map.on('click', (e) => marker.setLatLng(e.latlng));
+    setTimeout(() => map.invalidateSize(), 80);
+
+    bar.querySelector('.mp-cancel').addEventListener('click', () => ov.remove());
+    bar.querySelector('.mp-save').addEventListener('click', () => {
+      const ll = marker.getLatLng();
+      Store.updatePool(p.id, { lat: +ll.lat.toFixed(6), lng: +ll.lng.toFixed(6) });
+      ov.remove();
+      render();
+    });
+  }
+
   async function initLeaflet(container) {
     try {
       const L = await loadLeaflet();
@@ -526,6 +560,11 @@
         );
       });
       actions.appendChild(geoBtn);
+
+      // precise placement by eye on a satellite map
+      const pickBtn = el(`<button class="btn">${esc(t('pick_on_map'))}</button>`);
+      pickBtn.addEventListener('click', () => openMapPicker(p));
+      actions.appendChild(pickBtn);
 
       // mark-serviced toggle (adds/removes a service visit for today)
       const doneToday = servicedToday(p.id);

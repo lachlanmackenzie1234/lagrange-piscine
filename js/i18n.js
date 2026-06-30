@@ -87,8 +87,10 @@ const I18n = (() => {
       // day route
       nav_today: '🧭 Navigate today’s stops ({n})',
       // GPS location capture
-      set_location: '📍 Set GPS here',
+      set_location: '📍 GPS here',
       update_location: '📍 Update GPS',
+      pick_on_map: '🗺️ Place on map', map_save: 'Save here',
+      layer_sat: 'Satellite', layer_map: 'Map',
       geo_locating: 'Locating…',
       geo_error: 'Could not get your location. Allow location access and try again.',
       geo_unsupported: 'Geolocation isn’t available on this device/browser.',
@@ -219,8 +221,10 @@ const I18n = (() => {
       // itinéraire du jour
       nav_today: '🧭 Itinéraire des arrêts du jour ({n})',
       // capture de position GPS
-      set_location: '📍 Enregistrer position GPS',
+      set_location: '📍 GPS ici',
       update_location: '📍 Mettre à jour le GPS',
+      pick_on_map: '🗺️ Placer sur la carte', map_save: 'Enregistrer ici',
+      layer_sat: 'Satellite', layer_map: 'Plan',
       geo_locating: 'Localisation…',
       geo_error: 'Position introuvable. Autorisez la localisation puis réessayez.',
       geo_unsupported: 'Géolocalisation indisponible sur cet appareil/navigateur.',
