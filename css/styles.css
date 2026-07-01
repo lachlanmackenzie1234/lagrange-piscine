@@ -263,17 +263,19 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .thumb-del { position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; border: none;
   border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: .75rem; cursor: pointer; line-height: 1; }
 /* photo-as-context tiles — a labelled reference photo backs its section, with
-   the section's live state overlaid on a scrim (fuses photo + state, less scroll) */
+   the section's live state overlaid on a scrim. The photo is shown whole (full
+   vertical ratio, no landscape crop): a real <img> sets the height and the
+   overlays sit absolutely over its lower third. */
+.band-img { display: block; width: 100%; height: auto; }
+.hero-scrim { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.40) 20%, rgba(0,0,0,0) 44%); }
 .photo-hero { position: relative; border-radius: 14px; overflow: hidden; margin: 0 0 12px;
-  background-size: cover; background-position: center; background-color: var(--card);
-  min-height: 150px; display: flex; flex-direction: column; justify-content: flex-end; }
-.photo-hero.empty { border: 1px dashed var(--line); }
-.photo-hero .hero-scrim { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.32) 46%, rgba(0,0,0,0) 78%); }
-.photo-hero .hero-body { position: relative; padding: 12px 14px; color: #fff; }
+  background-color: var(--card); }
+.photo-hero.empty { min-height: 150px; border: 1px dashed var(--line); }
+.photo-hero .hero-body { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px; color: #fff; }
 .photo-hero.empty .hero-body { color: var(--ink); }
 .photo-hero .hero-body h1 { font-size: 1.5rem; margin: 2px 0; }
-.photo-hero .hero-body .sub { margin: 0; font-size: .95rem; color: rgba(255,255,255,.86); }
+.photo-hero .hero-body .sub { margin: 0; font-size: .95rem; color: rgba(255,255,255,.9); }
 .photo-hero.empty .hero-body .sub { color: var(--muted); }
 .photo-hero .hero-body .status-word, .photo-hero .hero-body .salt-word { color: #fff !important; }
 .photo-hero .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
@@ -283,14 +285,13 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
   background: rgba(255,255,255,.24); color: #fff; backdrop-filter: blur(2px); }
 .photo-hero.empty .hero-btn { background: var(--brand); color: #fff; }
 
-/* photo-backed section panels (piscine, local technique) — the reference photo
-   underlays the section header; content follows below in the panel body */
+/* photo-backed section panels (piscine, local technique) — the whole reference
+   photo underlays the section header; content follows below in the panel body */
 .photo-band { position: relative; border-radius: 14px; overflow: hidden; margin: var(--s3) 0 var(--s2);
-  min-height: 200px; background-size: cover; background-position: center; background-color: var(--card);
-  display: flex; flex-direction: column; justify-content: flex-end; }
-.photo-band .band-title { position: relative; padding: 10px 14px; color: #fff; }
+  background-color: var(--card); }
+.photo-band .band-title { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 14px; color: #fff; }
 .photo-band .band-title h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
-.photo-band .band-title p { margin: 1px 0 0; font-size: .82rem; color: rgba(255,255,255,.85); }
+.photo-band .band-title p { margin: 1px 0 0; font-size: .82rem; color: rgba(255,255,255,.9); }
 .section-title.band-flat { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .band-add { flex: 0 0 auto; background: rgba(255,255,255,.16); color: #fff; border-radius: 8px;
   padding: 5px 10px; font-size: .9rem; line-height: 1; cursor: pointer; }

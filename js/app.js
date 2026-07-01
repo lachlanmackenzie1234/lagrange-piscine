@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.45'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.46'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -418,7 +418,9 @@
     const hero = el(`<div class="photo-hero ${ph ? '' : 'empty'}"></div>`);
     if (minH) hero.style.minHeight = minH;
     if (ph) {
-      hero.style.backgroundImage = `url('${ph.dataUrl}')`;
+      const img = document.createElement('img');
+      img.className = 'band-img'; img.loading = 'lazy'; img.src = ph.dataUrl;
+      hero.appendChild(img);
       hero.appendChild(el('<div class="hero-scrim"></div>'));
     }
     const ctrls = el('<div class="hero-ctrls"></div>');
@@ -452,7 +454,9 @@
     const frag = document.createDocumentFragment();
     if (ph) {
       const band = el('<div class="photo-band"></div>');
-      band.style.backgroundImage = `url('${ph.dataUrl}')`;
+      const img = document.createElement('img');
+      img.className = 'band-img'; img.loading = 'lazy'; img.src = ph.dataUrl;
+      band.appendChild(img);
       band.appendChild(el('<div class="hero-scrim"></div>'));
       const ctrls = el('<div class="hero-ctrls"></div>');
       const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`);
