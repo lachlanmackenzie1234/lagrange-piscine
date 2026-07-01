@@ -76,14 +76,15 @@ a { color: var(--brand); text-decoration: none; }
 .advice ul { margin: 0; padding-left: 18px; }
 .advice li { margin: 3px 0; }
 /* chemistry panel (advisory) */
-.chem-panel { margin: 0 0 14px; }
-.chem-rows { display: flex; flex-direction: column; gap: 6px; }
+.chem-panel { margin: 0 0 12px; }
+.chem-panel .section-title { margin: 6px 0 8px; }
+.chem-rows { display: flex; flex-direction: column; gap: 4px; }
 .chem-row { display: grid; grid-template-columns: auto auto 1fr; align-items: baseline; gap: 10px;
   background: var(--card); border: 1px solid var(--line); border-left-width: 4px;
-  border-radius: 10px; padding: 8px 12px; }
+  border-radius: 9px; padding: 6px 11px; font-size: .92rem; }
 .chem-row .cr-k { font-weight: 600; }
 .chem-row .cr-v { font-weight: 700; font-variant-numeric: tabular-nums; }
-.chem-row .cr-h { color: var(--muted); font-size: .78rem; text-align: right; }
+.chem-row .cr-h { color: var(--muted); font-size: .76rem; text-align: right; }
 .chem-row.ok { border-left-color: var(--ok); }
 .chem-row.warn { border-left-color: var(--low); }
 .chem-row.bad { border-left-color: var(--high); }
@@ -265,9 +266,21 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .photo-hero .hero-body .sub { margin: 0; font-size: .95rem; color: rgba(255,255,255,.86); }
 .photo-hero.empty .hero-body .sub { color: var(--muted); }
 .photo-hero .hero-body .status-word, .photo-hero .hero-body .salt-word { color: #fff !important; }
-.photo-hero .hero-btn { width: auto; align-self: flex-start; margin-top: 10px;
+.photo-hero .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.photo-hero .hero-btn { width: auto; align-self: flex-start; margin: 0;
   background: rgba(255,255,255,.92); color: #12303f; border: none; font-weight: 700; }
+.photo-hero .hero-btn.hero-btn-sm { padding: 8px 12px; font-size: .85rem; font-weight: 600;
+  background: rgba(255,255,255,.24); color: #fff; backdrop-filter: blur(2px); }
 .photo-hero.empty .hero-btn { background: var(--brand); color: #fff; }
+
+/* "Saisir une mesure" — collapsible, sits with the chimie block */
+details.measure { margin: 0 0 14px; }
+details.measure > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center;
+  gap: 6px; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); font-weight: 700; color: var(--brand); font-size: .92rem; }
+details.measure > summary::-webkit-details-marker { display: none; }
+details.measure[open] > summary { margin-bottom: 10px; }
+details.measure .reading-form { margin: 0; }
 .hero-ctrls { position: absolute; top: 8px; right: 8px; z-index: 2; display: flex; gap: 6px; }
 .hero-cam { background: rgba(0,0,0,.45); color: #fff; border: none; border-radius: 8px;
   padding: 5px 9px; font-size: .85rem; line-height: 1; cursor: pointer; }

@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.41'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.42'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -807,62 +807,49 @@
     const res = Store.residence(p.res);
 
     const ps = poolStatus(p);
+    const pool = hasPool(p);
+    const coords = p.lat != null && p.lng != null;
     const stWord = ps.reason === 'treated' ? t('status_treated') : ps.reason === 'retest' ? t('status_retest') : t('status_' + ps.level);
-    const stBadge = hasPool(p) ? ` · <span class="status-word" style="color:${statusColor(ps.level)}">${esc(stWord)}</span>` : '';
+    const stBadge = pool ? ` · <span class="status-word" style="color:${statusColor(ps.level)}">${esc(stWord)}</span>` : '';
     const saltBadge = p.salt ? ` · <span class="salt-word">🧂 ${esc(t('salt_pool'))}</span>` : '';
+
+    // Itinéraire (external maps) + "placer sur la carte" (manual pin by eye).
+    // GPS auto-capture is gone — pins are placed/adjusted by hand. On a gate
+    // photo these ride the header overlay; otherwise they sit in the actions row.
+    const mkDirections = (cls) => el(`<a class="btn ${cls}" target="_blank" rel="noopener" href="${poolMapUrl(p)}">${esc(t('directions'))}</a>`);
+    const mkPick = (cls) => { const b = el(`<button class="btn ${cls}">${esc(t('pick_on_map'))}</button>`); b.addEventListener('click', () => openMapPicker(p)); return b; };
+
     // The landing header progressively enhances: once a "portail" (gate) photo
-    // exists it becomes the backdrop of the title/status with the itinéraire
-    // button overlaid — a visual cue for which gate you're arriving at. Until
-    // then it stays the plain slim header (add a gate photo from the strip below).
+    // exists it becomes the backdrop of the title/status with itinéraire +
+    // placer-sur-carte overlaid — a visual cue for which gate you're arriving
+    // at. Until then it stays the plain slim header (add a gate photo below).
     const gatePhoto = window.Photos ? Photos.poolRef(p.id, 'gate') : null;
     const subHtml = `${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}${saltBadge}`;
     if (gatePhoto) {
       wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
       const headBody = el(`<div class="hero-head">
-        <h1>${hasPool(p) ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
+        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
         <p class="sub">${subHtml}</p>
       </div>`);
-      headBody.appendChild(el(`<a class="btn hero-btn" target="_blank" rel="noopener"
-        href="${poolMapUrl(p)}">${esc(t('directions'))}</a>`));
-      wrap.appendChild(photoHero(p, 'gate', headBody, '164px'));
+      const hact = el('<div class="hero-actions"></div>');
+      hact.appendChild(mkDirections('hero-btn'));
+      if (pool) hact.appendChild(mkPick('hero-btn hero-btn-sm'));
+      headBody.appendChild(hact);
+      wrap.appendChild(photoHero(p, 'gate', headBody, '220px')); // taller for 9:16 portraits
     } else {
       wrap.appendChild(el(`<header class="page-head">
         <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
-        <h1>${hasPool(p) ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
+        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
         <p class="sub">${subHtml}</p>
       </header>`));
     }
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
 
-    const pool = hasPool(p);
-    const coords = p.lat != null && p.lng != null;
-
     const actions = el('<div class="actions"></div>');
-
+    if (!gatePhoto) actions.appendChild(mkDirections(''));
     if (pool) {
-      // capture GPS at the pool (builds precise pins over time)
-      const geoBtn = el(`<button class="btn">${esc(coords ? t('update_location') : t('set_location'))}</button>`);
-      geoBtn.addEventListener('click', () => {
-        if (!navigator.geolocation) { alert(t('geo_unsupported')); return; }
-        geoBtn.disabled = true;
-        geoBtn.textContent = t('geo_locating');
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            Store.updatePool(p.id, { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6) });
-            render();
-          },
-          () => { alert(t('geo_error')); geoBtn.disabled = false; geoBtn.textContent = coords ? t('update_location') : t('set_location'); },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      });
-      actions.appendChild(geoBtn);
-
-      // precise placement by eye on a satellite map
-      const pickBtn = el(`<button class="btn">${esc(t('pick_on_map'))}</button>`);
-      pickBtn.addEventListener('click', () => openMapPicker(p));
-      actions.appendChild(pickBtn);
-
+      if (!gatePhoto) actions.appendChild(mkPick(''));
       // mark-serviced toggle (adds/removes a service visit for today)
       const doneToday = servicedToday(p.id);
       const svcBtn = el(`<button class="btn ${doneToday ? 'done' : ''}">${esc(doneToday ? t('service_undo') : t('mark_serviced'))}</button>`);
@@ -877,11 +864,6 @@
         render();
       });
       actions.appendChild(svcBtn);
-
-      // salt-pool toggle (field-editable; changes the chem model + CYA band)
-      const saltBtn = el(`<button class="btn ${p.salt ? 'done' : ''}">${esc(p.salt ? t('salt_on') : t('salt_off'))}</button>`);
-      saltBtn.addEventListener('click', () => { Store.updatePool(p.id, { salt: !p.salt }); render(); });
-      actions.appendChild(saltBtn);
     }
     wrap.appendChild(actions);
 
@@ -913,6 +895,12 @@
       // advisory chemistry read-out (active chlorine, target FC, next check)
       const chem = chemPanel(p);
       if (chem) wrap.appendChild(chem);
+
+      // "Saisir une mesure" lives with chimie — compact & collapsible, not
+      // buried below the pump (gestion de pompe) & watering (remplissage) blocks.
+      const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
+      measure.appendChild(readingForm(p));
+      wrap.appendChild(measure);
     }
 
     // reference photos: front gate / pool / pump room
@@ -1019,9 +1007,6 @@
       pn.querySelector('textarea').addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
       pump.appendChild(pn);
       wrap.appendChild(pump);
-
-      wrap.appendChild(sectionTitle(t('log_reading')));
-      wrap.appendChild(readingForm(p));
 
       // products applied (dosing log)
       wrap.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
