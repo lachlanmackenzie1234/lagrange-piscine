@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.26'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.27'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
