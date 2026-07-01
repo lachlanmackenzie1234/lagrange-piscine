@@ -123,7 +123,7 @@ const I18n = (() => {
       estimated: 'estimate',
       f_salt: 'Salt (g/L)',
       target_salt: 'salt {min}–{max} g/L',
-      fc_over_test: '> test 2 · dilute 50/50',
+      fc_over_test: '> test 6 · dilute 50/50',
       cya_test_tip: 'CyA test: zero with the sample; if cloudy/green, filter it first (else reads high). Test chlorine at once, no swirling.',
 
       // products applied
@@ -327,7 +327,7 @@ const I18n = (() => {
       estimated: 'estimé',
       f_salt: 'Sel (g/L)',
       target_salt: 'sel {min}–{max} g/L',
-      fc_over_test: '> test 2 · diluer 50/50',
+      fc_over_test: '> test 6 · diluer 50/50',
       cya_test_tip: 'Test stab : zéro avec l’échantillon ; si trouble/verte, filtrer d’abord (sinon lit trop haut). Chlore : tester tout de suite, sans remuer.',
 
       // produits ajoutés

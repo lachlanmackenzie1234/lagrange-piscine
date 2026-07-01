@@ -4,10 +4,10 @@
   const { CHEM_RANGES, OCC_STATUS, PRODUCTS, CYA_SALT } = S;
   const productById = (id) => (PRODUCTS || []).find((x) => x.id === id) || null;
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
-  const FC_TEST_MAX = 2; // Lovibond DPD (M110) free-chlorine test reads to 2 mg/L (dilute 50/50 to read higher)
+  const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.32'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.33'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
