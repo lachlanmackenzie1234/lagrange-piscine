@@ -113,6 +113,10 @@ const I18n = (() => {
       vol_dmax: 'Deep (m)',
       vol_result: '≈ {v} m³',
       vol_hint: 'enter the dimensions',
+      vol_presets: 'Estimated size',
+      vol_measure: 'Measure',
+      size_small: 'Small', size_medium: 'Medium', size_large: 'Large',
+      estimated: 'estimate',
       f_salt: 'Salt (g/L)',
       target_salt: 'salt {min}–{max} g/L',
 
@@ -307,6 +311,10 @@ const I18n = (() => {
       vol_dmax: 'Grand bain (m)',
       vol_result: '≈ {v} m³',
       vol_hint: 'saisir les dimensions',
+      vol_presets: 'Taille estimée',
+      vol_measure: 'Mesurer',
+      size_small: 'Petite', size_medium: 'Moyenne', size_large: 'Large',
+      estimated: 'estimé',
       f_salt: 'Sel (g/L)',
       target_salt: 'sel {min}–{max} g/L',
 

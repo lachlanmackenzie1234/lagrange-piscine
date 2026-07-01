@@ -96,6 +96,8 @@ a { color: var(--brand); text-decoration: none; }
 .vfield input { font-size: 1rem; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
   background: var(--bg); color: var(--ink); }
 .vol-out { margin: 10px 0 0; font-weight: 700; font-size: 1.05rem; }
+.preset-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.preset-row .btn small { color: var(--muted); font-weight: 400; }
 /* products applied */
 .treat-qtywrap { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
 .treat-qty { width: 64px; font-size: 1rem; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px;

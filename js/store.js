@@ -25,6 +25,7 @@ const Store = (() => {
       electroNote: p.electroNote || '',
       dims: null,                 // { l, w, dmin, dmax } in metres
       volM3: null,                // pool volume (m³), from dims or entered
+      volEst: false,              // true = a size-preset estimate, not measured
       covered: !!p.covered,       // has a cover (slows chlorine loss)
       lat: p.lat ?? null,
       lng: p.lng ?? null,

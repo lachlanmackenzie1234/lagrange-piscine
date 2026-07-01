@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.28'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.29'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -597,7 +597,7 @@
     }
     // doses from this reading (correction + maintenance) — needs pool volume
     if (fc != null || ph != null) {
-      rows.appendChild(el(`<div class="chem-sub">${esc(t('dose_title'))}${p.volM3 ? ` · ${p.volM3} m³` : ''}</div>`));
+      rows.appendChild(el(`<div class="chem-sub">${esc(t('dose_title'))}${p.volM3 ? ` · ${p.volM3} m³${p.volEst ? ' (' + esc(t('estimated')) + ')' : ''}` : ''}</div>`));
       doseLines(p, r).forEach((d) => rows.appendChild(row(d.cls, d.k, d.v, d.h)));
     }
 
@@ -1055,17 +1055,41 @@
     return wrap;
   }
 
-  // Pool volume — collapsed to "Volume du bassin : inconnue · Définir" until set.
+  // Rough size classes to seed a volume before it's measured (m). Refined by
+  // measuring; flagged volEst=true until then.
+  const POOL_PRESETS = {
+    small:  { l: 8,  w: 4, dmin: 1.2, dmax: 1.5 },   // ≈ 43 m³
+    medium: { l: 10, w: 5, dmin: 1.2, dmax: 2.0 },   // ≈ 80 m³
+    large:  { l: 12, w: 6, dmin: 1.2, dmax: 2.2 },   // ≈ 122 m³
+  };
+  const presetVol = (d) => Math.round(d.l * d.w * ((d.dmin + d.dmax) / 2) * 10) / 10;
+
+  // Pool volume — "inconnue · Définir" until set; pick a size class to estimate
+  // now, or measure exactly. Estimates are tagged so you know to refine them.
   function volumeSection(p) {
     const card = el('<div class="card volume"></div>');
     card.appendChild(collapsible({
       label: t('vol_section'),
-      value: () => p.volM3 != null ? { text: t('vol_result', { v: p.volM3 }), empty: false } : { text: t('unknown'), empty: true },
+      value: () => p.volM3 != null
+        ? { text: t('vol_result', { v: p.volM3 }) + (p.volEst ? ' · ' + t('estimated') : ''), empty: false }
+        : { text: t('unknown'), empty: true },
       buildEditor: (box, done) => {
+        // quick size presets
+        box.appendChild(el(`<div class="os-head">${esc(t('vol_presets'))}</div>`));
+        const presets = el('<div class="preset-row"></div>');
+        ['small', 'medium', 'large'].forEach((k) => {
+          const d = POOL_PRESETS[k], v = presetVol(d);
+          const b = el(`<button class="btn sm">${esc(t('size_' + k))} <small>~${v}</small></button>`);
+          // full render so the dose block above picks up the new volume live
+          b.addEventListener('click', () => { Store.updatePool(p.id, { dims: { ...d }, volM3: v, volEst: true }); render(); });
+          presets.appendChild(b);
+        });
+        box.appendChild(presets);
+        // exact measurement
+        box.appendChild(el(`<div class="os-head">${esc(t('vol_measure'))} · ${esc(t('vol_sub'))}</div>`));
         const d = p.dims || {};
         const field = (key, label, val) =>
           `<label class="vfield"><span>${esc(label)}</span><input data-k="${key}" type="text" inputmode="decimal" maxlength="5" autocomplete="off" pattern="[0-9.,]*" value="${val != null ? esc(val) : ''}"></label>`;
-        box.appendChild(el(`<div class="os-head">${esc(t('vol_sub'))}</div>`));
         box.appendChild(el(`<div class="vgrid">${field('l', t('vol_len'), d.l)}${field('w', t('vol_wid'), d.w)}${field('dmin', t('vol_dmin'), d.dmin)}${field('dmax', t('vol_dmax'), d.dmax)}</div>`));
         const out = el(`<p class="vol-out">${p.volM3 != null ? esc(t('vol_result', { v: p.volM3 })) : esc(t('vol_hint'))}</p>`);
         const recompute = (persist) => {
@@ -1077,15 +1101,15 @@
             vol = Math.round(l * w * depth * 10) / 10;
           }
           out.textContent = vol != null ? t('vol_result', { v: vol }) : t('vol_hint');
-          if (persist) Store.updatePool(p.id, { dims: { l, w, dmin, dmax }, volM3: vol });
+          if (persist) Store.updatePool(p.id, { dims: { l, w, dmin, dmax }, volM3: vol, volEst: false }); // measured
         };
-        box.querySelectorAll('input').forEach((inp) => {
+        box.querySelectorAll('.vgrid input').forEach((inp) => {
           inp.addEventListener('input', () => recompute(false));
           inp.addEventListener('change', () => recompute(true));
         });
         const foot = el('<div class="one-shot-foot"></div>');
         const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
-        ok.addEventListener('click', () => { recompute(true); done(); });
+        ok.addEventListener('click', () => { recompute(true); render(); }); // render → dose block updates
         foot.appendChild(out); foot.appendChild(ok);
         box.appendChild(foot);
       },
