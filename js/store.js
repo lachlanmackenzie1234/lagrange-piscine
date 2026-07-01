@@ -113,7 +113,7 @@ const Store = (() => {
   const wateringPools = () => pools().filter((p) => p.watering && p.watering.startedAt);
 
   const readingsFor = (poolId) =>
-    load().readings.filter((r) => r.poolId === poolId).sort((a, b) => b.at.localeCompare(a.at));
+    load().readings.filter((r) => r.poolId === poolId && !r.deleted).sort((a, b) => b.at.localeCompare(a.at));
   const latestReading = (poolId) => readingsFor(poolId)[0] || null;
 
   const occupancyFor = (poolId) =>
@@ -144,10 +144,17 @@ const Store = (() => {
     mirror((s) => s.pushReading(rec));
     return rec;
   }
+  // Soft-delete (tombstone). We keep the record with deleted:true instead of
+  // removing it, and push that flag through sync like any other edit. A hard
+  // delete only sticks if it reaches the server; a tombstone survives cache
+  // clears and re-syncs down as a tombstone (not a resurrection). Read
+  // accessors filter deleted records out.
   function deleteReading(id) {
-    state.readings = load().readings.filter((r) => r.id !== id);
+    const r = load().readings.find((x) => x.id === id);
+    if (!r) return;
+    r.deleted = true; r.deletedAt = new Date().toISOString();
     save();
-    mirror((s) => s.removeReading(id));
+    mirror((s) => s.pushReading(r));
   }
 
   // ---- visits (service log) ----
@@ -165,15 +172,17 @@ const Store = (() => {
     return rec;
   }
   function visitsFor(poolId) {
-    return load().visits.filter((v) => v.poolId === poolId).sort((a, b) => b.at.localeCompare(a.at));
+    return load().visits.filter((v) => v.poolId === poolId && !v.deleted).sort((a, b) => b.at.localeCompare(a.at));
   }
   const lastVisit = (poolId) => visitsFor(poolId)[0] || null;
   const lastService = (poolId) => visitsFor(poolId).find((v) => (v.type || 'service') === 'service') || null;
   const lastBackwash = (poolId) => visitsFor(poolId).find((v) => v.type === 'backwash') || null;
   function deleteVisit(id) {
-    state.visits = load().visits.filter((v) => v.id !== id);
+    const v = load().visits.find((x) => x.id === id);
+    if (!v) return;
+    v.deleted = true; v.deletedAt = new Date().toISOString();
     save();
-    mirror((s) => s.removeVisit(id));
+    mirror((s) => s.pushVisit(v));
   }
   // Edit a visit/treatment in place (e.g. correct its time). Re-pushes the
   // whole record to sync.
@@ -207,7 +216,7 @@ const Store = (() => {
 
   // Was this pool serviced (not just backwashed) on a given local date?
   function servicedOn(poolId, dateISO) {
-    return load().visits.some((v) => v.poolId === poolId && (v.type || 'service') === 'service' && localDate(v.at) === dateISO);
+    return load().visits.some((v) => v.poolId === poolId && !v.deleted && (v.type || 'service') === 'service' && localDate(v.at) === dateISO);
   }
   function localDate(iso) {
     const d = new Date(iso);
@@ -230,7 +239,7 @@ const Store = (() => {
     mirror((s) => s.pushNote(rec));
     return rec;
   }
-  const notes = () => load().notes.slice().sort((a, b) => b.at.localeCompare(a.at));
+  const notes = () => load().notes.filter((n) => !n.deleted).sort((a, b) => b.at.localeCompare(a.at));
   const notesFor = (poolId) => notes().filter((n) => n.poolId === poolId);
   const openTodos = () => notes().filter((n) => n.todo && !n.done);
   function setNoteDone(id, done) {
@@ -245,9 +254,11 @@ const Store = (() => {
     return n;
   }
   function deleteNote(id) {
-    state.notes = load().notes.filter((n) => n.id !== id);
+    const n = load().notes.find((x) => x.id === id);
+    if (!n) return;
+    n.deleted = true; n.deletedAt = new Date().toISOString();
     save();
-    mirror((s) => s.removeNote(id));
+    mirror((s) => s.pushNote(n));
   }
   function applyRemoteNote(rec) {
     const i = load().notes.findIndex((n) => n.id === rec.id);

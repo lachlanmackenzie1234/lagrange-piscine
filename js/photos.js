@@ -113,10 +113,25 @@ const Photos = (() => {
     changed();
     return rec;
   }
+  // Soft-delete (tombstone). Like the store's notes/visits: we keep a light
+  // record with deleted:true (dropping the heavy dataUrl to reclaim space) and
+  // push that through sync, instead of a hard delete that only sticks if it
+  // reaches the server. Survives cache clears; view accessors filter it out.
   async function remove(id) {
-    cache.delete(id);
-    await delDb(id);
-    if (window.Sync && Sync.active) Sync.removePhoto(id);
+    const old = cache.get(id);
+    const tomb = {
+      id,
+      poolId: old ? old.poolId : '',
+      noteId: old ? old.noteId : '',
+      label: old ? old.label : '',
+      at: old ? old.at : new Date().toISOString(),
+      dataUrl: '',
+      deleted: true,
+      deletedAt: new Date().toISOString(),
+    };
+    cache.set(id, tomb);
+    await putDb(tomb);
+    if (window.Sync && Sync.active) Sync.pushPhoto(tomb);
     changed();
   }
   // from Team Sync (no re-mirror)
@@ -142,9 +157,10 @@ const Photos = (() => {
 
   const get = (id) => cache.get(id) || null;
   const all = () => [...cache.values()];
-  const byNote = (noteId) => all().filter((p) => p.noteId === noteId).sort((a, b) => a.at.localeCompare(b.at));
-  const refsForPool = (poolId) => all().filter((p) => p.poolId === poolId && !p.noteId);
-  const poolRef = (poolId, label) => all().find((p) => p.poolId === poolId && p.label === label && !p.noteId) || null;
+  // Views exclude tombstones; all() stays raw so export/sync keep the tombstones.
+  const byNote = (noteId) => all().filter((p) => p.noteId === noteId && !p.deleted).sort((a, b) => a.at.localeCompare(b.at));
+  const refsForPool = (poolId) => all().filter((p) => p.poolId === poolId && !p.noteId && !p.deleted);
+  const poolRef = (poolId, label) => all().find((p) => p.poolId === poolId && p.label === label && !p.noteId && !p.deleted) || null;
 
   return { init, add, remove, applyRemote, applyRemoteRemoved, importAll, get, all, byNote, refsForPool, poolRef, exifTime };
 })();
