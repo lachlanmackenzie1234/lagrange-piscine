@@ -1,11 +1,16 @@
 :root {
-  --bg: #f3f5f7;
+  /* Lagrange Vacances palette — pulled from the residence site (Atlantic Green,
+     Lacanau-Océan): deep navy headers/titles, azure interactive accent, white
+     ground, near-black small type. */
+  --bg: #ffffff;
   --card: #ffffff;
-  --ink: #14202b;
+  --ink: #22303c;            /* near-black body type, a touch of navy */
   --muted: #6b7a87;
-  --line: #e2e8ee;
-  --brand: #0277bd;
-  --brand-dark: #01579b;
+  --line: #dde5ec;
+  --navy: #123a5e;           /* deep navy — headers, titles, dark buttons */
+  --title: #123a5e;          /* headings render in navy */
+  --brand: #2b8fd0;          /* azure — links & interactive accent */
+  --brand-dark: #123a5e;     /* navy for primary buttons / emphasis */
   --ok: #1b9e4b;
   --ok-bg: #e6f6ec;
   --low: #d98b00;
@@ -15,6 +20,8 @@
   --na: #8a98a4;
   --na-bg: #eef2f5;
   --tab-h: 60px;
+  /* golden-ratio spacing scale (φ ≈ 1.618) — a Lagrange wink. Each step ~×φ. */
+  --s1: 8px; --s2: 13px; --s3: 21px; --s4: 34px; --s5: 55px;
   font-size: 16px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -34,14 +41,14 @@ body {
 }
 a { color: var(--brand); text-decoration: none; }
 
-/* headers */
-.page-head { margin: 4px 0 14px; }
-.page-head h1 { font-size: 1.55rem; margin: 2px 0; }
+/* headers — titles in Lagrange navy */
+.page-head { margin: var(--s1) 0 var(--s3); }
+.page-head h1 { font-size: 1.55rem; margin: 2px 0; color: var(--title); letter-spacing: -.01em; }
 .page-head .sub { color: var(--muted); margin: 0; font-size: .95rem; }
 .back { display: inline-block; font-size: .95rem; padding: 6px 10px 6px 0; margin-bottom: 2px; }
 
-.section-title { margin: 22px 0 8px; }
-.section-title h2 { font-size: 1.02rem; margin: 0; }
+.section-title { margin: var(--s3) 0 var(--s1); }
+.section-title h2 { font-size: 1.02rem; margin: 0; color: var(--title); }
 .section-title p { margin: 2px 0 0; color: var(--muted); font-size: .85rem; }
 
 /* cards */
@@ -170,7 +177,7 @@ a { color: var(--brand); text-decoration: none; }
 .btn { display: inline-block; background: var(--card); border: 1px solid var(--line);
   color: var(--ink); border-radius: 12px; padding: 11px 16px; font-size: .95rem;
   font-weight: 600; cursor: pointer; text-align: center; }
-.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; width: 100%; }
+.btn.primary { background: var(--brand-dark); border-color: var(--brand-dark); color: #fff; width: 100%; }
 .btn.danger { color: var(--high); border-color: #f3c9c9; }
 .btn:active { transform: translateY(1px); }
 
