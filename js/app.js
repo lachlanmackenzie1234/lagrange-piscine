@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.35'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.36'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -695,23 +695,44 @@
       wrap.appendChild(list);
     } else wrap.appendChild(emptyNote(t('midweek_empty')));
 
-    const stale = staleReadings();
-    wrap.appendChild(sectionTitle(t('chem_due_title', { n: stale.length }), t('chem_due_sub')));
-    if (stale.length) {
+    // "À revoir" — maintained pools not seen today, longest-not-seen first
+    // (blind spots on top). A memory-jog, not a route: just what's slipped.
+    const revisit = toRevisit();
+    wrap.appendChild(sectionTitle(t('revisit_title', { n: revisit.length }), t('revisit_sub')));
+    if (revisit.length) {
       const list = el('<div class="cards"></div>');
-      stale.forEach((p) => list.appendChild(poolMiniCard(p)));
+      revisit.forEach(({ p, last }) => list.appendChild(revisitCard(p, last)));
       wrap.appendChild(list);
-    } else wrap.appendChild(emptyNote(t('chem_due_empty')));
+    } else wrap.appendChild(emptyNote(t('revisit_empty')));
     return wrap;
   }
 
-  function staleReadings() {
-    const cutoff = Date.now() - 4 * 864e5;
-    return Store.pools().filter((p) => {
-      if (!hasPool(p)) return false; // skip management-only rentals
-      const r = Store.latestReading(p.id);
-      return !r || new Date(r.at).getTime() < cutoff;
-    });
+  // Most recent "passage" for a pool — any reading, visit (service/backwash/
+  // treatment) or note. Null if never logged.
+  function lastPassage(poolId) {
+    const times = [];
+    const r = Store.latestReading(poolId); if (r) times.push(r.at);
+    const v = Store.lastVisit(poolId); if (v) times.push(v.at);
+    const n = Store.notesFor(poolId); if (n.length) times.push(n[0].at);
+    return times.length ? times.reduce((a, b) => (a > b ? a : b)) : null;
+  }
+  // Maintained pools not seen today, ranked longest-not-seen first (never = top).
+  // The list shrinks through the day as each pool gets a passage logged.
+  function toRevisit() {
+    const today = todayISO();
+    return Store.pools().filter(hasPool)
+      .map((p) => ({ p, last: lastPassage(p.id) }))
+      .filter(({ last }) => !last || Store.localDate(last) !== today)
+      .sort((a, b) => (a.last === null ? -1 : b.last === null ? 1 : a.last.localeCompare(b.last)));
+  }
+  function revisitCard(p, last) {
+    const days = last ? Math.round((Date.now() - new Date(last).getTime()) / 864e5) : null;
+    const seen = last ? t('seen_ago', { d: days }) : t('seen_never');
+    const water = p.watering && p.watering.startedAt ? ' 💧' : '';
+    return el(`<a class="card${last ? '' : ' never-seen'}" href="#/pool/${p.id}">
+      <div class="card-row"><strong>${statusDot(p)}${esc(poolTitle(p))}${water}</strong><span class="chip ${last ? 'st-empty' : 'st-arriving'}">${esc(seen)}</span></div>
+      ${chemPills(Store.latestReading(p.id))}
+    </a>`);
   }
 
   function occCard(o) {

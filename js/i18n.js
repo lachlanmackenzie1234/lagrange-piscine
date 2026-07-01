@@ -20,6 +20,11 @@ const I18n = (() => {
       chem_due_title: 'Chemistry due ({n})',
       chem_due_sub: 'No reading logged in the last 4 days.',
       chem_due_empty: 'All pools have a recent reading. 🎉',
+      revisit_title: 'To revisit ({n})',
+      revisit_sub: 'Longest not seen first — blind spots on top.',
+      revisit_empty: 'Every pool seen today. 🎉',
+      seen_never: 'never seen',
+      seen_ago: 'seen {d}d ago',
       no_reading: 'no reading', last_date: 'last {date}', never: 'never',
 
       pools_title: 'Pools', pools_sub: '{n} pools across {m} residences',
@@ -226,6 +231,11 @@ const I18n = (() => {
       chem_due_title: 'Analyses à faire ({n})',
       chem_due_sub: 'Aucune mesure depuis 4 jours.',
       chem_due_empty: 'Toutes les piscines ont une mesure récente. 🎉',
+      revisit_title: 'À revoir ({n})',
+      revisit_sub: 'Pas vue depuis le plus longtemps en premier — angles morts en haut.',
+      revisit_empty: 'Toutes les piscines vues aujourd’hui. 🎉',
+      seen_never: 'jamais vue',
+      seen_ago: 'vue il y a {d} j',
       no_reading: 'aucune mesure', last_date: 'dernière {date}', never: 'jamais',
 
       pools_title: 'Piscines', pools_sub: '{n} piscines · {m} résidences',
