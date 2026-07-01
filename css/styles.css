@@ -267,12 +267,14 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
    vertical ratio, no landscape crop): a real <img> sets the height and the
    overlays sit absolutely over its lower third. */
 .band-img { display: block; width: 100%; height: auto; }
+/* content overlays start at the TOP of the photo; scrim darkens the top so the
+   pool name + chips read, leaving the lower image clear */
 .hero-scrim { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.40) 20%, rgba(0,0,0,0) 44%); }
+  background: linear-gradient(to bottom, rgba(0,0,0,.70) 0%, rgba(0,0,0,.30) 28%, rgba(0,0,0,0) 55%); }
 .photo-hero { position: relative; border-radius: 14px; overflow: hidden; margin: 0 0 12px;
   background-color: var(--card); }
 .photo-hero.empty { min-height: 150px; border: 1px dashed var(--line); }
-.photo-hero .hero-body { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px; color: #fff; }
+.photo-hero .hero-body { position: absolute; left: 0; right: 0; top: 0; padding: 12px; color: #fff; }
 .photo-hero.empty .hero-body { color: var(--ink); }
 .photo-hero .hero-body h1 { font-size: 1.5rem; margin: 2px 0; }
 .photo-hero .hero-body .sub { margin: 0; font-size: .95rem; color: rgba(255,255,255,.9); }
@@ -280,14 +282,42 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .photo-hero .hero-body .status-word, .photo-hero .hero-body .salt-word { color: #fff !important; }
 /* portail content slid up onto the gate photo — translucent so it reads over
    the image; occupation + action suggérée live here, notes stay below */
-.hero-portail { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 4px; }
-.hero-portail .section-title { background: rgba(0,0,0,.36); padding: 6px 12px; margin: 0; }
+/* reduced opacity so the photo shows through the panels */
+.hero-portail { display: flex; flex-direction: column; gap: 7px; margin: 8px 0 4px; }
+.hero-portail .section-title { background: rgba(0,0,0,.30); padding: 5px 11px; margin: 0; }
 .hero-portail .cards { gap: 6px; }
-.hero-portail .card { background: rgba(0,0,0,.44); border: none; color: #fff; box-shadow: none; }
-.hero-portail .card-sub { color: rgba(255,255,255,.82); }
-.hero-portail .advice { background: rgba(0,0,0,.44); border: none; color: #fff; margin: 0; }
+.hero-portail .card { background: rgba(0,0,0,.32); border: none; color: #fff; box-shadow: none;
+  backdrop-filter: blur(3px); }
+.hero-portail .card-sub { color: rgba(255,255,255,.85); }
+.hero-portail .advice { background: rgba(0,0,0,.32); border: none; color: #fff; margin: 0;
+  backdrop-filter: blur(3px); }
 .hero-portail .advice strong { color: #fff; }
-.hero-portail .advice li { color: rgba(255,255,255,.92); }
+.hero-portail .advice li { color: rgba(255,255,255,.94); }
+.over-line { font-size: .82rem; color: rgba(255,255,255,.92); margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.hero-portail .notes-prev { cursor: pointer; }
+.hero-portail .notes-prev .np-open { font-weight: 700; opacity: .85; }
+.ov-stack { display: flex; flex-direction: column; gap: 7px; }
+.chem-mini.tappable { cursor: pointer; }
+
+/* icon-like chips on a photo overlay → open a popup */
+.ov-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; }
+.ov-chip { background: rgba(0,0,0,.36); color: #fff; border: none; border-radius: 999px;
+  padding: 8px 13px; font-size: .85rem; font-weight: 600; cursor: pointer; backdrop-filter: blur(3px); }
+.ov-chip:active { transform: translateY(1px); }
+.ov-chip.wide { border-radius: 12px; }
+
+/* close-able popup panel (bottom sheet) */
+.panel-ov { position: fixed; inset: 0; z-index: 60; background: rgba(8,16,24,.55);
+  display: flex; align-items: flex-end; justify-content: center; }
+.panel-card { background: var(--bg); border-radius: 18px 18px 0 0; width: 100%; max-width: 620px;
+  max-height: 88vh; overflow: auto; padding: 0 14px calc(env(safe-area-inset-bottom) + 18px);
+  box-shadow: 0 -10px 34px rgba(0,0,0,.28); }
+.panel-head { position: sticky; top: 0; background: var(--bg); z-index: 1; display: flex;
+  align-items: center; justify-content: space-between; padding: 14px 2px 8px; }
+.panel-head h3 { margin: 0; color: var(--title); font-size: 1.12rem; }
+.panel-x { background: var(--na-bg); border: none; border-radius: 50%; width: 32px; height: 32px;
+  font-size: .85rem; cursor: pointer; color: var(--ink); flex: 0 0 auto; }
+.panel-body-ov .section-title:first-child { margin-top: 0; }
 .photo-hero .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .photo-hero .hero-btn { width: auto; align-self: flex-start; margin: 0;
   background: rgba(255,255,255,.92); color: #12303f; border: none; font-weight: 700; }
@@ -302,9 +332,9 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .photo-band .band-title { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 14px; color: #fff; }
 .photo-band .band-title h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
 .photo-band .band-title p { margin: 1px 0 0; font-size: .82rem; color: rgba(255,255,255,.9); }
-/* band foot: section content slid up into the photo space, above the title */
-.band-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 10px 2px; }
-.band-foot .band-title { position: static; padding: 4px 4px 8px; }
+/* band overlay: title at the top of the photo, chips/content below it */
+.band-foot { position: absolute; left: 0; right: 0; top: 0; padding: 10px; }
+.band-foot .band-title { position: static; padding: 2px 2px 8px; }
 .band-tint { position: absolute; inset: 0; pointer-events: none; }
 /* glanceable chimie: small vertical stat bars (Cl% · Cl · CyA · /jour) */
 .chem-mini { display: flex; gap: 6px; margin: 0 0 6px; }
