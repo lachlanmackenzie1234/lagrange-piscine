@@ -278,6 +278,16 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .photo-hero .hero-body .sub { margin: 0; font-size: .95rem; color: rgba(255,255,255,.9); }
 .photo-hero.empty .hero-body .sub { color: var(--muted); }
 .photo-hero .hero-body .status-word, .photo-hero .hero-body .salt-word { color: #fff !important; }
+/* portail content slid up onto the gate photo — translucent so it reads over
+   the image; occupation + action suggérée live here, notes stay below */
+.hero-portail { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 4px; }
+.hero-portail .section-title { background: rgba(0,0,0,.36); padding: 6px 12px; margin: 0; }
+.hero-portail .cards { gap: 6px; }
+.hero-portail .card { background: rgba(0,0,0,.44); border: none; color: #fff; box-shadow: none; }
+.hero-portail .card-sub { color: rgba(255,255,255,.82); }
+.hero-portail .advice { background: rgba(0,0,0,.44); border: none; color: #fff; margin: 0; }
+.hero-portail .advice strong { color: #fff; }
+.hero-portail .advice li { color: rgba(255,255,255,.92); }
 .photo-hero .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .photo-hero .hero-btn { width: auto; align-self: flex-start; margin: 0;
   background: rgba(255,255,255,.92); color: #12303f; border: none; font-weight: 700; }

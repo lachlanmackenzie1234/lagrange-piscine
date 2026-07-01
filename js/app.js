@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.47'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.48'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -572,6 +572,40 @@
     box.appendChild(btn);
     return box;
   }
+
+  // ---- portail blocks (occupation / action suggérée / notes) — reusable so
+  // they can ride the gate-photo overlay or render below it ----
+  function occupancyNode(p) {
+    const occ = Store.occupancyFor(p.id);
+    if (!occ.length) return null;
+    const frag = document.createElement('div');
+    frag.appendChild(sectionTitle(t('occupancy')));
+    const ol = el('<div class="cards"></div>');
+    occ.forEach((o) => ol.appendChild(el(`<div class="card">
+      <div class="card-row"><strong>${fmtDate(o.week)}</strong>${statusChip(o.status)}</div>
+      <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}${o.note ? ' · ' + esc(o.note) : ''}</div>
+    </div>`)));
+    frag.appendChild(ol);
+    return frag;
+  }
+  function adviceBlock(p) {
+    const advice = adviceFor(Store.latestReading(p.id));
+    if (!advice.length) return null;
+    return el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
+      <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`);
+  }
+  function notesBlock(p) {
+    const frag = document.createElement('div');
+    frag.appendChild(sectionTitle(t('notes_section')));
+    frag.appendChild(noteForm(p.id));
+    const pNotes = Store.notesFor(p.id);
+    if (pNotes.length) {
+      const nc = el('<div class="cards"></div>');
+      pNotes.forEach((n) => nc.appendChild(noteItem(n)));
+      frag.appendChild(nc);
+    }
+    return frag;
+  }
   function openPhoto(id) {
     const r = window.Photos && Photos.get(id);
     if (!r) return;
@@ -991,17 +1025,25 @@
     // at. Until then it stays the plain slim header (add a gate photo below).
     const gatePhoto = window.Photos ? Photos.poolRef(p.id, 'gate') : null;
     const subHtml = `${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}${saltBadge}`;
+    // occupation + action suggérée slide up into the gate photo (glanceable);
+    // built once, placed in the hero overlay or below depending on the photo.
+    const occNode = occupancyNode(p);
+    const adviceNode = pool ? adviceBlock(p) : null;
     if (gatePhoto) {
       wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
       const headBody = el(`<div class="hero-head">
         <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
         <p class="sub">${subHtml}</p>
       </div>`);
+      const over = el('<div class="hero-portail"></div>');
+      if (occNode) over.appendChild(occNode);
+      if (adviceNode) over.appendChild(adviceNode);
+      if (over.children.length) headBody.appendChild(over);
       const hact = el('<div class="hero-actions"></div>');
       hact.appendChild(mkDirections('hero-btn'));
       if (pool) hact.appendChild(mkPick('hero-btn hero-btn-sm'));
       headBody.appendChild(hact);
-      wrap.appendChild(photoHero(p, 'gate', headBody, '220px')); // taller for 9:16 portraits
+      wrap.appendChild(photoHero(p, 'gate', headBody, '220px'));
     } else {
       wrap.appendChild(el(`<header class="page-head">
         <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
@@ -1049,36 +1091,16 @@
       if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
     }
 
-    // ===== PORTAIL panel content: occupation, then notes (both up top) =====
-    const occ = Store.occupancyFor(p.id);
-    if (occ.length) {
-      wrap.appendChild(sectionTitle(t('occupancy')));
-      const ol = el('<div class="cards"></div>');
-      occ.forEach((o) => ol.appendChild(el(`<div class="card">
-        <div class="card-row"><strong>${fmtDate(o.week)}</strong>${statusChip(o.status)}</div>
-        <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}${o.note ? ' · ' + esc(o.note) : ''}</div>
-      </div>`)));
-      wrap.appendChild(ol);
+    // ===== PORTAIL — occupation + action suggérée ride the gate photo when it
+    // exists; otherwise they render here. Notes always close the portail block
+    // (a text field can't sit legibly on the photo). =====
+    if (!gatePhoto) {
+      if (occNode) wrap.appendChild(occNode);
+      if (adviceNode) wrap.appendChild(adviceNode);
     }
-
-    // notes / to-dos for this pool (available for every unit, incl. HO)
-    wrap.appendChild(sectionTitle(t('notes_section')));
-    wrap.appendChild(noteForm(p.id));
-    const pNotes = Store.notesFor(p.id);
-    if (pNotes.length) {
-      const nc = el('<div class="cards"></div>');
-      pNotes.forEach((n) => nc.appendChild(noteItem(n)));
-      wrap.appendChild(nc);
-    }
+    wrap.appendChild(notesBlock(p));
 
     if (pool) {
-      // action suggérée — the all-inclusive summary, last of the portail block
-      const advice = adviceFor(Store.latestReading(p.id));
-      if (advice.length) {
-        wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
-          <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
-      }
-
       // ===== PISCINE panel — the pool photo carries the glanceable chimie bars
       // (Cl% · Cl · CyA · /jour) with a status-colour corner tint; the full
       // read-out + doses fold away below, then remplissage closes the panel. =====
