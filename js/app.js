@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.40'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.41'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -407,6 +407,41 @@
     });
     return wrap;
   }
+  // Photo-as-context tile: a labelled reference photo (gate/pool/pit) becomes
+  // the backdrop of its own section, with the section's live state overlaid on
+  // a scrim. Fuses "photo" + "state" into one compact tile (less scroll) and
+  // lets the frame itself carry state between visits (e.g. valve positions in
+  // the pit shot). `body` is a DOM node overlaid at the bottom; falls back to a
+  // graceful empty tile with a "＋" affordance before any photo is added.
+  function photoHero(p, key, body, minH) {
+    const ph = window.Photos ? Photos.poolRef(p.id, key) : null;
+    const hero = el(`<div class="photo-hero ${ph ? '' : 'empty'}"></div>`);
+    if (minH) hero.style.minHeight = minH;
+    if (ph) {
+      hero.style.backgroundImage = `url('${ph.dataUrl}')`;
+      hero.appendChild(el('<div class="hero-scrim"></div>'));
+    }
+    const ctrls = el('<div class="hero-ctrls"></div>');
+    const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">${ph ? '📷' : '＋'}<input type="file" accept="image/*" hidden></label>`);
+    lab.querySelector('input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (ph) { try { await Photos.remove(ph.id); } catch (_) {} } // replace = drop old + add new
+      try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
+      render();
+    });
+    ctrls.appendChild(lab);
+    if (ph) {
+      const del = el('<button class="hero-cam hero-del" title="delete">✕</button>');
+      del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
+      ctrls.appendChild(del);
+    }
+    hero.appendChild(ctrls);
+    const bodyWrap = el('<div class="hero-body"></div>');
+    if (body) bodyWrap.appendChild(body);
+    hero.appendChild(bodyWrap);
+    return hero;
+  }
   function openPhoto(id) {
     const r = window.Photos && Photos.get(id);
     if (!r) return;
@@ -775,11 +810,28 @@
     const stWord = ps.reason === 'treated' ? t('status_treated') : ps.reason === 'retest' ? t('status_retest') : t('status_' + ps.level);
     const stBadge = hasPool(p) ? ` · <span class="status-word" style="color:${statusColor(ps.level)}">${esc(stWord)}</span>` : '';
     const saltBadge = p.salt ? ` · <span class="salt-word">🧂 ${esc(t('salt_pool'))}</span>` : '';
-    wrap.appendChild(el(`<header class="page-head">
-      <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
-      <h1>${hasPool(p) ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
-      <p class="sub">${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}${saltBadge}</p>
-    </header>`));
+    // The landing header progressively enhances: once a "portail" (gate) photo
+    // exists it becomes the backdrop of the title/status with the itinéraire
+    // button overlaid — a visual cue for which gate you're arriving at. Until
+    // then it stays the plain slim header (add a gate photo from the strip below).
+    const gatePhoto = window.Photos ? Photos.poolRef(p.id, 'gate') : null;
+    const subHtml = `${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}${saltBadge}`;
+    if (gatePhoto) {
+      wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
+      const headBody = el(`<div class="hero-head">
+        <h1>${hasPool(p) ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
+        <p class="sub">${subHtml}</p>
+      </div>`);
+      headBody.appendChild(el(`<a class="btn hero-btn" target="_blank" rel="noopener"
+        href="${poolMapUrl(p)}">${esc(t('directions'))}</a>`));
+      wrap.appendChild(photoHero(p, 'gate', headBody, '164px'));
+    } else {
+      wrap.appendChild(el(`<header class="page-head">
+        <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
+        <h1>${hasPool(p) ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
+        <p class="sub">${subHtml}</p>
+      </header>`));
+    }
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
 
@@ -787,8 +839,6 @@
     const coords = p.lat != null && p.lng != null;
 
     const actions = el('<div class="actions"></div>');
-    actions.appendChild(el(`<a class="btn" target="_blank" rel="noopener"
-      href="${poolMapUrl(p)}">${esc(t('directions'))}</a>`));
 
     if (pool) {
       // capture GPS at the pool (builds precise pins over time)
@@ -868,7 +918,7 @@
     // reference photos: front gate / pool / pump room
     wrap.appendChild(sectionTitle(t('ref_photos')));
     const refRow = el('<div class="ref-photos"></div>');
-    [['gate', t('ref_gate')], ['pool', t('ref_pool')], ['pit', t('ref_pit')]].forEach(([key, label]) => {
+    (gatePhoto ? [] : [['gate', t('ref_gate')]]).concat([['pool', t('ref_pool')], ['pit', t('ref_pit')]]).forEach(([key, label]) => {
       const slot = el(`<div class="ref-slot"><span class="ref-label">${esc(label)}</span></div>`);
       const existing = window.Photos ? Photos.poolRef(p.id, key) : null;
       if (existing) {
