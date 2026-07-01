@@ -283,6 +283,21 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
   background: rgba(255,255,255,.24); color: #fff; backdrop-filter: blur(2px); }
 .photo-hero.empty .hero-btn { background: var(--brand); color: #fff; }
 
+/* photo-backed section panels (piscine, local technique) — the reference photo
+   underlays the section header; content follows below in the panel body */
+.photo-band { position: relative; border-radius: 14px; overflow: hidden; margin: var(--s3) 0 var(--s2);
+  min-height: 200px; background-size: cover; background-position: center; background-color: var(--card);
+  display: flex; flex-direction: column; justify-content: flex-end; }
+.photo-band .band-title { position: relative; padding: 10px 14px; color: #fff; }
+.photo-band .band-title h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.photo-band .band-title p { margin: 1px 0 0; font-size: .82rem; color: rgba(255,255,255,.85); }
+.section-title.band-flat { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.band-add { flex: 0 0 auto; background: rgba(255,255,255,.16); color: #fff; border-radius: 8px;
+  padding: 5px 10px; font-size: .9rem; line-height: 1; cursor: pointer; }
+.panel-body { margin: 0 0 var(--s3); }
+.final-tick { margin: var(--s4) 0 var(--s2); }
+.btn.big-tick { padding: 15px; font-size: 1.05rem; }
+
 /* "Saisir une mesure" — collapsible, sits with the chimie block */
 details.measure { margin: 0 0 14px; }
 details.measure > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center;

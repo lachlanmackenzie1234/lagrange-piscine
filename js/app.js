@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.44'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.45'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -442,6 +442,125 @@
     hero.appendChild(bodyWrap);
     return hero;
   }
+
+  // A section whose reference photo underlays its header: the 9:16 photo (capped
+  // height) backs a scrim carrying the section-stripe title, with change/delete
+  // controls top-right; the section's content sits below in the panel body. No
+  // photo yet → a plain navy stripe with a small "add photo" control.
+  function photoSection(p, key, titleText, subText, contentNode) {
+    const ph = window.Photos ? Photos.poolRef(p.id, key) : null;
+    const frag = document.createDocumentFragment();
+    if (ph) {
+      const band = el('<div class="photo-band"></div>');
+      band.style.backgroundImage = `url('${ph.dataUrl}')`;
+      band.appendChild(el('<div class="hero-scrim"></div>'));
+      const ctrls = el('<div class="hero-ctrls"></div>');
+      const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`);
+      lab.querySelector('input').addEventListener('change', async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        try { await Photos.remove(ph.id); } catch (_) {} // replace = drop old + add
+        try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
+        render();
+      });
+      ctrls.appendChild(lab);
+      const del = el('<button class="hero-cam hero-del" title="delete">✕</button>');
+      del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
+      ctrls.appendChild(del);
+      band.appendChild(ctrls);
+      band.appendChild(el(`<div class="band-title"><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div>`));
+      frag.appendChild(band);
+    } else {
+      const bar = el(`<div class="section-title band-flat"><div><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div></div>`);
+      const add = el(`<label class="band-add" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`);
+      add.querySelector('input').addEventListener('change', async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
+        render();
+      });
+      bar.appendChild(add);
+      frag.appendChild(bar);
+    }
+    if (contentNode) frag.appendChild(contentNode);
+    return frag;
+  }
+
+  // filling / watering card — extracted so it can live inside the Piscine panel
+  function wateringCard(p) {
+    const wi = wateringInfo(p);
+    const wb = el(`<div class="card watering ${wi ? (wi.overdue ? 'overdue' : 'active') : ''}"></div>`);
+    if (wi) {
+      wb.appendChild(el(`<p class="water-line">${esc(t('watering_since', { time: fmtTime(p.watering.startedAt), mins: wi.mins }))}</p>`));
+      if (wi.reminderMin != null) wb.appendChild(el(`<p class="water-rem">${wi.overdue ? esc(t('reminder_overdue')) : esc(t('reminder_in', { mins: Math.max(0, wi.remainMin) }))}</p>`));
+      const stop = el(`<button class="btn danger">${esc(t('stop_watering'))}</button>`);
+      stop.addEventListener('click', () => { Store.updatePool(p.id, { watering: null }); render(); });
+      wb.appendChild(stop);
+    } else {
+      const sel = el(`<select class="water-sel">
+        <option value="">${esc(t('reminder_none'))}</option>
+        <option value="15">15 min</option><option value="30">30 min</option>
+        <option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select>`);
+      const row = el(`<label class="field"><span>${esc(t('reminder'))}</span></label>`);
+      row.appendChild(sel);
+      wb.appendChild(row);
+      const start = el(`<button class="btn primary">${esc(t('start_watering'))}</button>`);
+      start.addEventListener('click', () => {
+        Store.updatePool(p.id, { watering: { startedAt: new Date().toISOString(), reminderMin: sel.value ? +sel.value : null } });
+        render();
+      });
+      wb.appendChild(start);
+    }
+    return wb;
+  }
+
+  // pump & filter card — extracted so it can live inside the Local technique panel
+  function pumpCard(p) {
+    const pump = el('<div class="card pump"></div>');
+    const lb = Store.lastBackwash(p.id);
+    pump.appendChild(el(`<p class="pump-line">${esc(t('last_backwash', { date: lb ? fmtDateTime(lb.at) : t('never') }))}</p>`));
+    const bwBtn = el(`<button class="btn">${esc(t('log_backwash'))}</button>`);
+    bwBtn.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
+    pump.appendChild(bwBtn);
+    pump.appendChild(collapsible({
+      label: t('sand_date'),
+      value: () => p.sandDate ? { text: fmtDate(p.sandDate), empty: false } : { text: t('unknown'), empty: true },
+      buildEditor: (box, done) => {
+        const inp = el(`<input type="date" class="date-sm" value="${esc(p.sandDate || '')}">`);
+        inp.addEventListener('change', () => Store.updatePool(p.id, { sandDate: inp.value }));
+        const unk = el(`<button class="btn sm">${esc(t('unknown'))}</button>`);
+        unk.addEventListener('click', () => { Store.updatePool(p.id, { sandDate: '' }); done(); });
+        const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
+        ok.addEventListener('click', done);
+        const foot = el('<div class="one-shot-foot"></div>');
+        const btns = el('<div class="os-btns"></div>'); btns.appendChild(unk); btns.appendChild(ok);
+        foot.appendChild(inp); foot.appendChild(btns);
+        box.appendChild(foot);
+      },
+    }));
+    const pn = el(`<label class="field"><span>${esc(t('pump_notes'))}</span><textarea rows="2" placeholder="${esc(t('pump_notes_ph'))}"></textarea></label>`);
+    pn.querySelector('textarea').value = p.pumpNote || '';
+    pn.querySelector('textarea').addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
+    pump.appendChild(pn);
+    return pump;
+  }
+
+  // The closing "done" of the scroll — mark (or unmark) today's service visit.
+  function finalServiceTick(p) {
+    const doneToday = servicedToday(p.id);
+    const box = el('<div class="final-tick"></div>');
+    const btn = el(`<button class="btn primary big-tick ${doneToday ? 'done' : ''}">${doneToday ? '✓ ' : ''}${esc(doneToday ? t('service_undo') : t('mark_serviced'))}</button>`);
+    btn.addEventListener('click', () => {
+      if (doneToday) {
+        Store.visitsFor(p.id)
+          .filter((v) => (v.type || 'service') === 'service' && Store.localDate(v.at) === todayISO())
+          .forEach((v) => Store.deleteVisit(v.id));
+      } else {
+        Store.addVisit(p.id, { type: 'service' });
+      }
+      render();
+    });
+    box.appendChild(btn);
+    return box;
+  }
   function openPhoto(id) {
     const r = window.Photos && Photos.get(id);
     if (!r) return;
@@ -593,7 +712,7 @@
     return { cls: '', k: t('dose_maint'), v: `${Math.max(1, Math.round(p.volM3 / galet.coverM3))} galet · ${Math.max(1, Math.round(p.volM3 / stick.coverM3))} stick`, h: t('dose_maint_h', { gd: galet.days, sd: stick.days }) };
   }
 
-  function chemPanel(p) {
+  function chemPanel(p, withTitle = true) {
     const r = Store.latestReading(p.id);
     if (!r) return null;
     const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
@@ -656,7 +775,7 @@
     }
 
     const box = el('<div class="chem-panel"></div>');
-    box.appendChild(el(`<div class="section-title"><h2>🧪 ${esc(t('chem_title'))}</h2><p>${esc(t('chem_sub'))}</p></div>`));
+    if (withTitle) box.appendChild(el(`<div class="section-title"><h2>🧪 ${esc(t('chem_title'))}</h2><p>${esc(t('chem_sub'))}</p></div>`));
     box.appendChild(rows);
     if (p.salt && p.electroNote) box.appendChild(el(`<p class="chem-note">⚡ ${esc(p.electroNote)}</p>`));
     return box;
@@ -846,26 +965,23 @@
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
 
-    const actions = el('<div class="actions"></div>');
-    if (!gatePhoto) actions.appendChild(mkDirections(''));
-    if (pool) {
-      if (!gatePhoto) actions.appendChild(mkPick(''));
-      // mark-serviced toggle (adds/removes a service visit for today)
-      const doneToday = servicedToday(p.id);
-      const svcBtn = el(`<button class="btn ${doneToday ? 'done' : ''}">${esc(doneToday ? t('service_undo') : t('mark_serviced'))}</button>`);
-      svcBtn.addEventListener('click', () => {
-        if (doneToday) {
-          Store.visitsFor(p.id)
-            .filter((v) => (v.type || 'service') === 'service' && Store.localDate(v.at) === todayISO())
-            .forEach((v) => Store.deleteVisit(v.id));
-        } else {
-          Store.addVisit(p.id, { type: 'service' });
-        }
+    // portail add-photo affordance (only when there's no gate hero yet)
+    const mkPhotoAdd = (key) => {
+      const lab = el(`<label class="btn">📷 ${esc(t('add_photo'))}<input type="file" accept="image/*" hidden></label>`);
+      lab.querySelector('input').addEventListener('change', async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
         render();
       });
-      actions.appendChild(svcBtn);
+      return lab;
+    };
+    const actions = el('<div class="actions"></div>');
+    if (!gatePhoto) {
+      actions.appendChild(mkDirections(''));
+      if (pool) actions.appendChild(mkPick(''));
+      actions.appendChild(mkPhotoAdd('gate'));
     }
-    wrap.appendChild(actions);
+    if (actions.children.length) wrap.appendChild(actions);
 
     if (!pool) {
       wrap.appendChild(el(`<p class="empty-note">${esc(t('mgmt_note'))}</p>`));
@@ -884,47 +1000,9 @@
     if (pool) {
       const lastV = Store.lastService(p.id);
       if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
-
-      // suggested action based on the most recent reading
-      const advice = adviceFor(Store.latestReading(p.id));
-      if (advice.length) {
-        wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
-          <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
-      }
-
-      // advisory chemistry read-out (active chlorine, target FC, next check)
-      const chem = chemPanel(p);
-      if (chem) wrap.appendChild(chem);
-
-      // "Saisir une mesure" lives with chimie — compact & collapsible, not
-      // buried below the pump (gestion de pompe) & watering (remplissage) blocks.
-      const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
-      measure.appendChild(readingForm(p));
-      wrap.appendChild(measure);
     }
 
-    // reference photos: front gate / pool / pump room
-    wrap.appendChild(sectionTitle(t('ref_photos')));
-    const refRow = el('<div class="ref-photos"></div>');
-    (gatePhoto ? [] : [['gate', t('ref_gate')]]).concat([['pool', t('ref_pool')], ['pit', t('ref_pit')]]).forEach(([key, label]) => {
-      const slot = el(`<div class="ref-slot"><span class="ref-label">${esc(label)}</span></div>`);
-      const existing = window.Photos ? Photos.poolRef(p.id, key) : null;
-      if (existing) {
-        slot.appendChild(photoThumb(existing));
-      } else {
-        const lab = el(`<label class="ref-add">${esc(t('add_photo'))}<input type="file" accept="image/*" hidden></label>`);
-        lab.querySelector('input').addEventListener('change', async (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
-          render();
-        });
-        slot.appendChild(lab);
-      }
-      refRow.appendChild(slot);
-    });
-    wrap.appendChild(refRow);
-
+    // ===== PORTAIL panel content: occupation, then notes (both up top) =====
     const occ = Store.occupancyFor(p.id);
     if (occ.length) {
       wrap.appendChild(sectionTitle(t('occupancy')));
@@ -947,75 +1025,37 @@
     }
 
     if (pool) {
-      // filling / watering control
-      wrap.appendChild(sectionTitle(t('watering_section')));
-      const wi = wateringInfo(p);
-      const wb = el(`<div class="card watering ${wi ? (wi.overdue ? 'overdue' : 'active') : ''}"></div>`);
-      if (wi) {
-        wb.appendChild(el(`<p class="water-line">${esc(t('watering_since', { time: fmtTime(p.watering.startedAt), mins: wi.mins }))}</p>`));
-        if (wi.reminderMin != null) wb.appendChild(el(`<p class="water-rem">${wi.overdue ? esc(t('reminder_overdue')) : esc(t('reminder_in', { mins: Math.max(0, wi.remainMin) }))}</p>`));
-        const stop = el(`<button class="btn danger">${esc(t('stop_watering'))}</button>`);
-        stop.addEventListener('click', () => { Store.updatePool(p.id, { watering: null }); render(); });
-        wb.appendChild(stop);
-      } else {
-        const sel = el(`<select class="water-sel">
-          <option value="">${esc(t('reminder_none'))}</option>
-          <option value="15">15 min</option><option value="30">30 min</option>
-          <option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select>`);
-        const row = el(`<label class="field"><span>${esc(t('reminder'))}</span></label>`);
-        row.appendChild(sel);
-        wb.appendChild(row);
-        const start = el(`<button class="btn primary">${esc(t('start_watering'))}</button>`);
-        start.addEventListener('click', () => {
-          Store.updatePool(p.id, { watering: { startedAt: new Date().toISOString(), reminderMin: sel.value ? +sel.value : null } });
-          render();
-        });
-        wb.appendChild(start);
+      // action suggérée — the all-inclusive summary, last of the portail block
+      const advice = adviceFor(Store.latestReading(p.id));
+      if (advice.length) {
+        wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
+          <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
       }
-      wrap.appendChild(wb);
 
-      // pool volume (drives the dose helper) — compact one-shot, self-labelled
-      wrap.appendChild(volumeSection(p));
-
-      // pump & filter management
-      wrap.appendChild(sectionTitle(t('pump_section')));
-      const pump = el('<div class="card pump"></div>');
-      const lb = Store.lastBackwash(p.id);
-      pump.appendChild(el(`<p class="pump-line">${esc(t('last_backwash', { date: lb ? fmtDateTime(lb.at) : t('never') }))}</p>`));
-      const bwBtn = el(`<button class="btn">${esc(t('log_backwash'))}</button>`);
-      bwBtn.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
-      pump.appendChild(bwBtn);
-      // sand-change date — compact; "inconnue" by default (some pumps aren't annotated)
-      pump.appendChild(collapsible({
-        label: t('sand_date'),
-        value: () => p.sandDate ? { text: fmtDate(p.sandDate), empty: false } : { text: t('unknown'), empty: true },
-        buildEditor: (box, done) => {
-          const inp = el(`<input type="date" class="date-sm" value="${esc(p.sandDate || '')}">`);
-          inp.addEventListener('change', () => Store.updatePool(p.id, { sandDate: inp.value }));
-          const unk = el(`<button class="btn sm">${esc(t('unknown'))}</button>`);
-          unk.addEventListener('click', () => { Store.updatePool(p.id, { sandDate: '' }); done(); });
-          const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
-          ok.addEventListener('click', done);
-          const foot = el('<div class="one-shot-foot"></div>');
-          const btns = el('<div class="os-btns"></div>'); btns.appendChild(unk); btns.appendChild(ok);
-          foot.appendChild(inp); foot.appendChild(btns);
-          box.appendChild(foot);
-        },
-      }));
-      const pn = el(`<label class="field"><span>${esc(t('pump_notes'))}</span><textarea rows="2" placeholder="${esc(t('pump_notes_ph'))}"></textarea></label>`);
-      pn.querySelector('textarea').value = p.pumpNote || '';
-      pn.querySelector('textarea').addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
-      pump.appendChild(pn);
-      wrap.appendChild(pump);
-
-      // products applied (dosing log)
-      wrap.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
-      wrap.appendChild(treatmentSection(p));
-
+      // ===== PISCINE panel — the pool photo underlays chimie + saisir + produits
+      // + remplissage (+ volume, + collapsed history). =====
+      const piscineBody = el('<div class="panel-body"></div>');
+      const chem = chemPanel(p, false); // title supplied by the photo band
+      if (chem) piscineBody.appendChild(chem);
+      const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
+      measure.appendChild(readingForm(p));
+      piscineBody.appendChild(measure);
+      piscineBody.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
+      piscineBody.appendChild(treatmentSection(p));
+      piscineBody.appendChild(sectionTitle(t('watering_section')));
+      piscineBody.appendChild(wateringCard(p));
+      piscineBody.appendChild(volumeSection(p));
       const readings = Store.readingsFor(p.id);
-      wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
-      if (readings.length) wrap.appendChild(readingsTable(p, readings));
-      else wrap.appendChild(emptyNote(t('history_empty')));
+      const hist = el(`<details class="measure"><summary>🗒️ ${esc(t('history', { n: readings.length }))}</summary></details>`);
+      hist.appendChild(readings.length ? readingsTable(p, readings) : emptyNote(t('history_empty')));
+      piscineBody.appendChild(hist);
+      wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), t('chem_sub'), piscineBody));
+
+      // ===== LOCAL TECHNIQUE panel — the pit photo underlays gestion de pompe. =====
+      wrap.appendChild(photoSection(p, 'pit', t('pump_section'), '', pumpCard(p)));
+
+      // ===== Final tick — entretenue aujourd'hui, the closing "done". =====
+      wrap.appendChild(finalServiceTick(p));
     }
     return wrap;
   }
