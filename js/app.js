@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.27'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.28'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -512,6 +512,39 @@
   // is actually active (pH), the CYA-scaled target, and a forecast-driven
   // estimate of when the next check is due. Read-only for now (the green/orange
   // dots still come from poolStatus); we wire it into the dots once validated.
+  // Dose suggestions from the latest reading + pool volume. Correction uses the
+  // fast choc (70%) for chlorine and the label rate for pH (one step at a time,
+  // always "filter + retest" to avoid the over-shoot that crashed EPP-7).
+  // Sticks/galets are shown only as the slow-release maintenance feed.
+  function doseLines(p, r) {
+    const V = p.volM3;
+    if (!V) return [{ cls: 'warn', k: t('chem_dose'), v: t('chem_dose_novol'), h: t('chem_dose_novol_h') }];
+    const out = [];
+    const fc = r.chlorine, ph = r.ph, cya = r.stabilizer, R = CHEM_RANGES.ph;
+    // pH correction — one label-standard step at a time (never the full gap, to
+    // avoid the over-shoot that crashed EPP-7). Shows step size + rounds to target.
+    if (ph != null && ph > R.max) {
+      const pr = productById('hth-phminus');
+      const steps = Math.max(1, Math.ceil((ph - R.max) / (pr.dropPh || 0.2) - 1e-6));
+      out.push({ cls: 'warn', k: t('dose_phminus'), v: `~${Math.round(pr.dosePerM3 * V)} g`, h: t('dose_ph_h', { drop: pr.dropPh || 0.2, n: steps, target: R.max }) });
+    } else if (ph != null && ph < R.min) {
+      const pr = productById('mareva-phplus');
+      out.push({ cls: 'warn', k: t('dose_phplus'), v: `~${Math.round(pr.dosePerM3 * V)} g`, h: t('dose_step_h') });
+    }
+    // chlorine correction — fast choc, grams to reach the CYA-scaled target
+    if (fc != null) {
+      const delta = Chem.targetFC(cya) - fc;
+      if (delta > 0.2) {
+        const choc = productById('hypomen-pro');
+        out.push({ cls: fc < 0.5 ? 'bad' : '', k: t('dose_choc'), v: `~${Math.round((V * delta) / choc.active)} g`, h: t('dose_choc_h', { d: delta.toFixed(1) }) });
+      }
+    }
+    // slow-release maintenance feed (reference)
+    const galet = productById('hth-galet'), stick = productById('hth-stick');
+    out.push({ cls: '', k: t('dose_maint'), v: `${Math.max(1, Math.round(V / galet.coverM3))} galet · ${Math.max(1, Math.round(V / stick.coverM3))} stick`, h: t('dose_maint_h', { gd: galet.days, sd: stick.days }) });
+    return out;
+  }
+
   function chemPanel(p) {
     const r = Store.latestReading(p.id);
     if (!r) return null;
@@ -562,21 +595,10 @@
       else { cls = daysFromNow < 1.5 ? 'warn' : 'ok'; v = t('chem_due_in', { days: daysFromNow.toFixed(1), date: fmtDate(new Date(dueTime).toISOString().slice(0, 10)) }); }
       rows.appendChild(row(cls, t('chem_next'), v, t('chem_next_h', { floor })));
     }
-    // dose helper: products needed to reach the FC target (needs pool volume)
-    if (fc != null && cya != null) {
-      const delta = Chem.targetFC(cya) - fc;
-      if (delta > 0.1) {
-        if (p.volM3) {
-          const stick = productById('hth-stick'), galet = productById('hth-galet');
-          const nStick = Chem.gramsForFC(p.volM3, delta, stick.active) / stick.grammage;
-          const nGalet = Chem.gramsForFC(p.volM3, delta, galet.active) / galet.grammage;
-          rows.appendChild(row('', t('chem_dose'),
-            t('chem_dose_v', { stick: nStick.toFixed(1), galet: nGalet.toFixed(1) }),
-            t('chem_dose_h', { vol: p.volM3, delta: delta.toFixed(1) })));
-        } else {
-          rows.appendChild(row('warn', t('chem_dose'), t('chem_dose_novol'), t('chem_dose_novol_h')));
-        }
-      }
+    // doses from this reading (correction + maintenance) — needs pool volume
+    if (fc != null || ph != null) {
+      rows.appendChild(el(`<div class="chem-sub">${esc(t('dose_title'))}${p.volM3 ? ` · ${p.volM3} m³` : ''}</div>`));
+      doseLines(p, r).forEach((d) => rows.appendChild(row(d.cls, d.k, d.v, d.h)));
     }
 
     const box = el('<div class="chem-panel"></div>');

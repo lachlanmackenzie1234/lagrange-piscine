@@ -83,6 +83,8 @@ a { color: var(--brand); text-decoration: none; }
 .chem-row.ok { border-left-color: var(--ok); }
 .chem-row.warn { border-left-color: var(--low); }
 .chem-row.bad { border-left-color: var(--high); }
+.chem-sub { margin: 6px 0 -2px; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); font-weight: 700; }
 .chem-note { margin: 8px 0 0; padding: 8px 12px; font-size: .85rem; border-radius: 10px;
   background: var(--low-bg); color: var(--low); border: 1px solid #f0d9a8; }
 .salt-word { color: #0277bd; font-weight: 600; }

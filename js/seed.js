@@ -27,11 +27,14 @@ const CYA_SALT = { min: 60, max: 80, ideal: 70 };
 // manufacturers' product pages (HTH Stick cal-hypo ~65%, HTH Maxitab galet
 // trichlor ~90%). The dépôt also stocks liquid chlorine etc. (not listed here).
 const PRODUCTS = [
-  { id: 'hth-stick',   brand: 'HTH',     name: 'Stick',       kind: 'cl-unstab', unit: 'stick', grammage: 300, active: 0.65, addsCya: false, note: 'Hypochlorite de calcium · non stabilisé' },
-  { id: 'hth-galet',   brand: 'HTH',     name: 'Galet',       kind: 'cl-stab',   unit: 'galet', grammage: 200, active: 0.90, addsCya: true,  note: 'Trichlore · stabilisé (+CYA)' },
-  { id: 'hypomen-pro', brand: 'Choc', name: 'Cal-hypo',       kind: 'shock',     unit: 'g',     grammage: null, active: 0.70, addsCya: false, note: 'Hypochlorite de calcium · chlore choc non stabilisé · chlore actif 70 % (confirmé étiquette)' },
-  { id: 'hth-phminus', brand: 'HTH',     name: 'pH-',         kind: 'ph-minus',  unit: 'dose' },
-  { id: 'mareva-phplus', brand: 'Mareva', name: 'pH+',        kind: 'ph-plus',   unit: 'dose' },
+  // Slow-release maintenance feeds (skimmer): coverM3 = m³ served per unit,
+  // days = how long it lasts. NOT for fast correction — that's the choc.
+  { id: 'hth-stick',   brand: 'HTH',     name: 'Stick',       kind: 'cl-unstab', unit: 'stick', grammage: 300, active: 0.65, addsCya: false, coverM3: 20, days: 5, note: 'Hypochlorite de calcium · non stabilisé · 1×300 g / 20 m³ / ~5 j (skimmer)' },
+  { id: 'hth-galet',   brand: 'HTH',     name: 'Galet',       kind: 'cl-stab',   unit: 'galet', grammage: 200, active: 0.90, addsCya: true,  coverM3: 22, days: 7, targetCl: 2, note: 'Trichlore · stabilisé (+CYA) · 1×200 g / 20–25 m³ / 7–10 j' },
+  // Fast correction (dissolves quickly, dose by grams):
+  { id: 'hypomen-pro', brand: 'Choc', name: 'Cal-hypo',       kind: 'shock',     unit: 'g',     grammage: null, active: 0.70, addsCya: false, note: 'Hypochlorite de calcium · chlore choc non stabilisé · 70 % actif (confirmé étiquette)' },
+  { id: 'hth-phminus', brand: 'HTH',     name: 'pH-',         kind: 'ph-minus',  unit: 'g', dosePerM3: 15, dropPh: 0.2, note: '≈ 150 g / 10 m³ → −0,2 pH · filtrer + retester' },
+  { id: 'mareva-phplus', brand: 'Mareva', name: 'pH+',        kind: 'ph-plus',   unit: 'g', dosePerM3: 10, note: '≈ 10 g/m³ pour remonter vers 7,2–7,6' },
   { id: 'hth-borkler', brand: 'HTH',     name: 'Borkler gel', kind: 'algae',     unit: 'dose' },
   { id: 'acti-yellow', brand: 'Acti',    name: 'Yellow',      kind: 'algae',     unit: 'dose',  note: 'Algues moutardes' },
   { id: 'acti-floc',   brand: 'Acti',    name: 'Floc Bag',    kind: 'floc',      unit: 'sachet' },
