@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.30'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.31'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -102,15 +102,17 @@
       const c = cya == null ? CHEM_RANGES.stabilizer.ideal : cya;
       return 1 / (1 + c / 15);
     },
-    // Target free chlorine scales with CYA (~7.5% rule), with sane floors.
-    targetFC(cya) {
+    // Target free chlorine scales with CYA. Industry/TFP: target ≈ 10% of CYA
+    // (7% for salt pools, whose cell tops up continuously), with a sane floor.
+    targetFC(cya, salt) {
       const c = cya == null ? CHEM_RANGES.stabilizer.ideal : cya;
-      return Math.max(1, Math.round(0.075 * c * 10) / 10);
+      return Math.max(1.5, Math.round((salt ? 0.07 : 0.10) * c * 10) / 10);
     },
-    // Safe minimum FC; below it algae risk climbs (~5% of CYA, floor 0.5).
-    minFC(cya) {
+    // Safe minimum FC — below it algae risk climbs. TFP minimum ratio: 7.5% of
+    // CYA for manual pools, 5% for salt (SWG).
+    minFC(cya, salt) {
       const c = cya == null ? CHEM_RANGES.stabilizer.ideal : cya;
-      return Math.max(0.5, Math.round(0.05 * c * 10) / 10);
+      return Math.max(1, Math.round((salt ? 0.05 : 0.075) * c * 10) / 10);
     },
     // Predicted free-chlorine loss (ppm/day): sun (UV ÷ CYA buffer) + a
     // temperature-driven organic/bather term, mostly blocked by a cover.
@@ -537,21 +539,20 @@
     }
     // chlorine correction — fast choc (grams), with the slow stick equivalent
     if (fc != null) {
-      const delta = Chem.targetFC(cya) - fc;
+      const delta = Chem.targetFC(cya, p.salt) - fc;
       if (delta > 0.2) {
         const choc = productById('hypomen-pro'), stick = productById('hth-stick');
         const nStick = Math.max(1, Math.round((V * delta) / (stick.active * stick.grammage)));
         out.push({ cls: fc < 0.5 ? 'bad' : '', k: t('dose_choc'), v: `~${Math.round((V * delta) / choc.active)} g`, h: t('dose_choc_h', { d: delta.toFixed(1), n: nStick }) });
       }
     }
-    // stabiliser build — when CYA is under the band, grams to reach its floor
+    // stabiliser build — only when CYA is well under the band (in-season the
+    // galets top it up; the powder is the winter→spring / direct option).
     const band = Chem.cyaBand(!!p.salt);
-    if (cya != null && cya < band.min) {
+    if (cya != null && cya < band.min - 10) {
       const dCya = Math.round(band.min - cya);
-      if (dCya >= 1) {
-        const stab = productById('mareva-cya');
-        out.push({ cls: 'warn', k: t('dose_stab'), v: `~${Math.round(dCya * V * (stab.ratePerPpmM3 || 1))} g`, h: t('dose_stab_h', { d: dCya, target: band.min }) });
-      }
+      const stab = productById('mareva-cya');
+      out.push({ cls: 'warn', k: t('dose_stab'), v: `~${Math.round(dCya * V * (stab.ratePerPpmM3 || 1))} g`, h: t('dose_stab_h', { d: dCya, target: band.min }) });
     }
     out.push(maintenanceLine(p));
     return out;
@@ -586,7 +587,7 @@
     }
     // target FC from CYA
     if (cya != null) {
-      const tFC = Chem.targetFC(cya), mFC = Chem.minFC(cya);
+      const tFC = Chem.targetFC(cya, p.salt), mFC = Chem.minFC(cya, p.salt);
       const cls = fc == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad';
       rows.appendChild(row(cls, t('chem_target_fc'), tFC, t('chem_target_fc_h', { cya })));
       // stabiliser vs recommended band (higher for salt pools)
@@ -608,7 +609,7 @@
     if (treatedAt) {
       rows.appendChild(row('warn', t('chem_next'), t('status_treated'), t('chem_treated_h', { time: fmtDateTime(treatedAt) })));
     } else if (fc != null && loss > 0) {
-      const floor = Chem.minFC(cya);
+      const floor = Chem.minFC(cya, p.salt);
       const dueTime = new Date(r.at).getTime() + ((fc - floor) / loss) * 864e5;
       const daysFromNow = (dueTime - Date.now()) / 864e5;
       let cls, v;

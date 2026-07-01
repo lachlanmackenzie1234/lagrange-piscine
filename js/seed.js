@@ -37,7 +37,7 @@ const PRODUCTS = [
   { id: 'mareva-phplus', brand: 'Mareva', name: 'pH+',        kind: 'ph-plus',   unit: 'g', dosePerM3: 10, raisePh: 0.1, note: '≈ 10 g/m³ → +0,1 pH · filtrer + retester' },
   // stabiliser (cyanuric acid powder): ~1 g/m³ raises CYA ~1 ppm (assumes ~pure;
   // confirm from the Mareva label). Used to build CYA when a choc isn't needed.
-  { id: 'mareva-cya',  brand: 'Mareva', name: 'Stabilisant', kind: 'stabilizer', unit: 'g', ratePerPpmM3: 1, note: 'Acide cyanurique (poudre) · ≈ 1 g/m³ par +1 ppm (à confirmer étiquette)' },
+  { id: 'mareva-cya',  brand: 'Mareva', name: 'Stabilisant', kind: 'stabilizer', unit: 'g', ratePerPpmM3: 1, note: 'Acide cyanurique (poudre) · 300 g/10 m³ = +30 ppm (confirmé) · hors-saison; en saison les galets montent le stabilisant' },
   { id: 'hth-borkler', brand: 'HTH',     name: 'Borkler gel', kind: 'algae',     unit: 'dose' },
   { id: 'acti-yellow', brand: 'Acti',    name: 'Yellow',      kind: 'algae',     unit: 'dose',  note: 'Algues moutardes' },
   { id: 'acti-floc',   brand: 'Acti',    name: 'Floc Bag',    kind: 'floc',      unit: 'sachet' },
