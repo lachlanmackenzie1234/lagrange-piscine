@@ -113,6 +113,7 @@ const I18n = (() => {
       dose_stab_h: '+{d} ppm → {target} · powder',
       dose_maint_h: 'galet {gd}d · stick {sd}d',
       status_treated: 'treated — recheck',
+      status_retest: 'reconfirm (dosed, not re-tested)',
       salt_pool: 'Salt pool',
       salt_on: '🧂 Salt ✓', salt_off: '🧂 Salt pool?',
 
@@ -325,6 +326,7 @@ const I18n = (() => {
       dose_stab_h: '+{d} ppm → {target} · poudre',
       dose_maint_h: 'galet {gd}j · stick {sd}j',
       status_treated: 'traité — à revérifier',
+      status_retest: 'à reconfirmer (traité, pas retesté)',
       salt_pool: 'Piscine au sel',
       salt_on: '🧂 Au sel ✓', salt_off: '🧂 Au sel ?',
 

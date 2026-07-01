@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.37'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.38'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -241,6 +241,7 @@
   // open to-do flags. (Interval thresholds will become weather-driven later.)
   const CHECK_DUE_DAYS = 3;      // 🟠 attention if no reading for this long
   const CHECK_OVERDUE_DAYS = 6;  // 🔴 critical if this long
+  const TREAT_GRACE_H = 24;      // 🔵 "en cours" grace after a dose; then → 🟠 reconfirm
   // Words hinting a chlorine product was applied, for the free-text fallback.
   const CL_NOTE_RE = /\b(stick|galet|chlore|chlor|choc|hypomen|javel|pastille)\b/i;
   // Most recent moment this pool was treated after `sinceISO` (structured
@@ -269,9 +270,15 @@
     if (days > CHECK_OVERDUE_DAYS && sev < 2) { sev = 2; reason = 'overdue'; }
     else if (days > CHECK_DUE_DAYS && sev < 1) { sev = 1; reason = 'due'; }
     if (openTodo && sev < 1) { sev = 1; reason = 'todo'; }
-    // Dosed since the last test → its own "en cours" state (distinct colour), so
-    // pools you've already acted on don't read the same as ones needing action.
-    if (sev >= 1 && treatedSince(p, r.at)) return { level: 'treated', reason: 'treated' };
+    // Dosed since the last test → its own "en cours" state (distinct colour) —
+    // but only for a grace window, so it never sits blue forever. After that,
+    // with no re-test logged, it becomes a plain 🟠 "reconfirm" nudge (a re-test
+    // resolves it either way). A dose on an already-fine pool stays green.
+    const treatedAt = sev >= 1 ? treatedSince(p, r.at) : null;
+    if (treatedAt) {
+      if ((Date.now() - new Date(treatedAt).getTime()) / 36e5 < TREAT_GRACE_H) return { level: 'treated', reason: 'treated' };
+      return { level: 'orange', reason: 'retest' };
+    }
     return { level: sev === 2 ? 'red' : sev === 1 ? 'orange' : 'green', reason };
   }
   const STATUS_COLOR = { green: '#1b9e4b', orange: '#d98b00', red: '#d12f2f', treated: '#2f7ec4', grey: '#8a98a4', none: '#8a98a4' };
@@ -760,7 +767,7 @@
     const res = Store.residence(p.res);
 
     const ps = poolStatus(p);
-    const stWord = ps.reason === 'treated' ? t('status_treated') : t('status_' + ps.level);
+    const stWord = ps.reason === 'treated' ? t('status_treated') : ps.reason === 'retest' ? t('status_retest') : t('status_' + ps.level);
     const stBadge = hasPool(p) ? ` · <span class="status-word" style="color:${statusColor(ps.level)}">${esc(stWord)}</span>` : '';
     const saltBadge = p.salt ? ` · <span class="salt-word">🧂 ${esc(t('salt_pool'))}</span>` : '';
     wrap.appendChild(el(`<header class="page-head">
