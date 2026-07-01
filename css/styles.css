@@ -61,6 +61,9 @@ a { color: var(--brand); text-decoration: none; }
   margin-right: 8px; vertical-align: middle; }
 .status-word { font-weight: 700; }
 .card.never-seen { border-left: 4px solid var(--low); }
+.status-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 12px; font-size: .8rem; color: var(--muted); }
+.status-legend .leg-item { display: inline-flex; align-items: center; }
+.status-legend .status-dot { width: 9px; height: 9px; margin-right: 5px; }
 .pool-note { font-size: .85rem; color: var(--low); background: var(--low-bg);
   border-radius: 10px; padding: 9px 12px; margin: 0 0 10px; }
 .last-serviced { font-size: .82rem; color: var(--muted); margin: -2px 0 10px; }

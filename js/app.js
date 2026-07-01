@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.36'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.37'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -161,28 +161,6 @@
   }
 
   // Unique residence stops (Maps queries) for pools with work this week.
-  function todaysStops() {
-    const occ = Store.occupancyForWeek(currentWeek())
-      .filter((o) => ['arriving', 'occupied', 'owner'].includes(o.status));
-    const seen = new Set();
-    const stops = [];
-    occ.forEach((o) => {
-      const p = Store.pool(o.poolId);
-      if (!p || !hasPool(p)) return;
-      const res = Store.residence(p.res);
-      if (!res || seen.has(res.code)) return;
-      seen.add(res.code);
-      stops.push(res.lat != null && res.lng != null ? `${res.lat},${res.lng}` : res.mapsQuery);
-    });
-    return stops;
-  }
-  function routeUrl(stops) {
-    if (!stops.length) return null;
-    if (stops.length === 1) return mapsUrl(stops[0]);
-    const dest = encodeURIComponent(stops[stops.length - 1]);
-    const wp = stops.slice(0, -1).map(encodeURIComponent).join('|');
-    return `https://www.google.com/maps/dir/?api=1&destination=${dest}&waypoints=${wp}&travelmode=driving`;
-  }
   const servicedToday = (poolId) => Store.servicedOn(poolId, todayISO());
 
   // ---------- router ----------
@@ -280,19 +258,23 @@
     const openTodo = Store.notesFor(p.id).some((n) => n.todo && !n.done);
     if (!r) return openTodo ? { level: 'orange', reason: 'todo' } : { level: 'grey', reason: 'nodata' };
     let sev = 0, reason = 'ok';
+    // Acute status is driven by the sanitiser + pH only. CYA is a slow lever
+    // (its risk shows up via chlorine + the decay estimate), so being off the
+    // 30–50 band is advisory in the Chimie panel, not a fleet-wide alert — that
+    // was turning nearly every pool orange.
     const critical = (r.chlorine != null && r.chlorine < 0.5) || (r.ph != null && (r.ph < 6.6 || r.ph > 8.0));
-    const out = ['ph', 'chlorine', 'stabilizer'].some((k) => ['low', 'high'].includes(evalMetric(k, r[k]).state));
+    const out = ['ph', 'chlorine'].some((k) => ['low', 'high'].includes(evalMetric(k, r[k]).state));
     if (critical) { sev = 2; reason = 'critical'; } else if (out) { sev = 1; reason = 'out'; }
     const days = (Date.now() - new Date(r.at).getTime()) / 864e5;
     if (days > CHECK_OVERDUE_DAYS && sev < 2) { sev = 2; reason = 'overdue'; }
     else if (days > CHECK_DUE_DAYS && sev < 1) { sev = 1; reason = 'due'; }
     if (openTodo && sev < 1) { sev = 1; reason = 'todo'; }
-    // Predictive-preventive: a critical pool that's since been dosed drops to
-    // 🟠 "treated — recheck" rather than staying 🔴, until a new reading confirms.
-    if (sev === 2 && treatedSince(p, r.at)) { sev = 1; reason = 'treated'; }
+    // Dosed since the last test → its own "en cours" state (distinct colour), so
+    // pools you've already acted on don't read the same as ones needing action.
+    if (sev >= 1 && treatedSince(p, r.at)) return { level: 'treated', reason: 'treated' };
     return { level: sev === 2 ? 'red' : sev === 1 ? 'orange' : 'green', reason };
   }
-  const STATUS_COLOR = { green: '#1b9e4b', orange: '#d98b00', red: '#d12f2f', grey: '#8a98a4', none: '#8a98a4' };
+  const STATUS_COLOR = { green: '#1b9e4b', orange: '#d98b00', red: '#d12f2f', treated: '#2f7ec4', grey: '#8a98a4', none: '#8a98a4' };
   const statusColor = (lv) => STATUS_COLOR[lv] || STATUS_COLOR.grey;
   const statusDot = (p) => `<span class="status-dot" style="background:${statusColor(poolStatus(p).level)}"></span>`;
   // Points to plot: a pin per pool that has its own GPS; else one pin per
@@ -653,15 +635,6 @@
         c.appendChild(card);
       });
       wrap.appendChild(c);
-    }
-
-    // one-tap multi-stop route for the day's properties
-    const stops = todaysStops();
-    if (stops.length) {
-      const actions = el('<div class="actions"></div>');
-      actions.appendChild(el(`<a class="btn primary" target="_blank" rel="noopener"
-        href="${routeUrl(stops)}">${esc(t('nav_today', { n: stops.length }))}</a>`));
-      wrap.appendChild(actions);
     }
 
     // preventive layer: open to-dos + quick capture; full history under #/log
@@ -1328,9 +1301,18 @@
   }
 
   // ---------- view: MAP ----------
+  // Colour key for the status dots/pins.
+  function statusLegend() {
+    const items = [['green', t('status_green')], ['treated', t('leg_treated')], ['orange', t('status_orange')], ['red', t('status_red')], ['grey', t('leg_todo')]];
+    const leg = el('<div class="status-legend"></div>');
+    items.forEach(([lv, label]) => leg.appendChild(el(`<span class="leg-item"><span class="status-dot" style="background:${statusColor(lv)}"></span>${esc(label)}</span>`)));
+    return leg;
+  }
+
   function viewMap() {
     const wrap = document.createElement('div');
     wrap.appendChild(header(t('map_title'), t('map_sub')));
+    wrap.appendChild(statusLegend());
 
     // interactive map from stored coordinates (best-effort; list below is the fallback)
     if (mapPoints().length) {
