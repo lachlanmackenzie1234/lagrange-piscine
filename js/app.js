@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.38'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.39'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -241,7 +241,7 @@
   // open to-do flags. (Interval thresholds will become weather-driven later.)
   const CHECK_DUE_DAYS = 3;      // 🟠 attention if no reading for this long
   const CHECK_OVERDUE_DAYS = 6;  // 🔴 critical if this long
-  const TREAT_GRACE_H = 24;      // 🔵 "en cours" grace after a dose; then → 🟠 reconfirm
+  const TREAT_GRACE_H = 24;      // default 🔵 "en cours" grace (choc/pH: read next day); slow feeds derive from product days
   // Words hinting a chlorine product was applied, for the free-text fallback.
   const CL_NOTE_RE = /\b(stick|galet|chlore|chlor|choc|hypomen|javel|pastille)\b/i;
   // Most recent moment this pool was treated after `sinceISO` (structured
@@ -271,12 +271,17 @@
     else if (days > CHECK_DUE_DAYS && sev < 1) { sev = 1; reason = 'due'; }
     if (openTodo && sev < 1) { sev = 1; reason = 'todo'; }
     // Dosed since the last test → its own "en cours" state (distinct colour) —
-    // but only for a grace window, so it never sits blue forever. After that,
-    // with no re-test logged, it becomes a plain 🟠 "reconfirm" nudge (a re-test
-    // resolves it either way). A dose on an already-fine pool stays green.
+    // but only for a grace window keyed to the *product*: slow-release feeds
+    // (stick/galet) are meant to trickle, so grace ≈ half their action window;
+    // fast products (choc, pH) settle by the next day. After that, with no
+    // re-test, it becomes a plain 🟠 "reconfirm" nudge (a re-test resolves it
+    // either way). A dose on an already-fine pool stays green.
     const treatedAt = sev >= 1 ? treatedSince(p, r.at) : null;
     if (treatedAt) {
-      if ((Date.now() - new Date(treatedAt).getTime()) / 36e5 < TREAT_GRACE_H) return { level: 'treated', reason: 'treated' };
+      const lastTr = Store.lastTreatment(p.id);
+      const prod = lastTr ? productById(lastTr.productId) : null;
+      const graceH = prod && prod.days ? prod.days * 12 : TREAT_GRACE_H;
+      if ((Date.now() - new Date(treatedAt).getTime()) / 36e5 < graceH) return { level: 'treated', reason: 'treated' };
       return { level: 'orange', reason: 'retest' };
     }
     return { level: sev === 2 ? 'red' : sev === 1 ? 'orange' : 'green', reason };
