@@ -6,7 +6,7 @@
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.29'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.30'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -516,11 +516,14 @@
   // fast choc (70%) for chlorine and the label rate for pH (one step at a time,
   // always "filter + retest" to avoid the over-shoot that crashed EPP-7).
   // Sticks/galets are shown only as the slow-release maintenance feed.
-  function doseLines(p, r) {
+  function doseLines(p, r, treated) {
     const V = p.volM3;
     if (!V) return [{ cls: 'warn', k: t('chem_dose'), v: t('chem_dose_novol'), h: t('chem_dose_novol_h') }];
     const out = [];
     const fc = r.chlorine, ph = r.ph, cya = r.stabilizer, R = CHEM_RANGES.ph;
+    // after a dose, don't advise another correction — retest first (below shows
+    // only the maintenance feed). The next-check row flags "traité — à revérifier".
+    if (treated) { out.push(maintenanceLine(p)); return out; }
     // pH correction — one label-standard step at a time (never the full gap, to
     // avoid the over-shoot that crashed EPP-7). Shows step size + rounds to target.
     if (ph != null && ph > R.max) {
@@ -529,26 +532,41 @@
       out.push({ cls: 'warn', k: t('dose_phminus'), v: `~${Math.round(pr.dosePerM3 * V)} g`, h: t('dose_ph_h', { drop: pr.dropPh || 0.2, n: steps, target: R.max }) });
     } else if (ph != null && ph < R.min) {
       const pr = productById('mareva-phplus');
-      out.push({ cls: 'warn', k: t('dose_phplus'), v: `~${Math.round(pr.dosePerM3 * V)} g`, h: t('dose_step_h') });
+      const steps = Math.max(1, Math.ceil((R.min - ph) / (pr.raisePh || 0.1) - 1e-6));
+      out.push({ cls: 'warn', k: t('dose_phplus'), v: `~${Math.round(pr.dosePerM3 * V)} g`, h: t('dose_phplus_h', { rise: pr.raisePh || 0.1, n: steps, target: R.min }) });
     }
-    // chlorine correction — fast choc, grams to reach the CYA-scaled target
+    // chlorine correction — fast choc (grams), with the slow stick equivalent
     if (fc != null) {
       const delta = Chem.targetFC(cya) - fc;
       if (delta > 0.2) {
-        const choc = productById('hypomen-pro');
-        out.push({ cls: fc < 0.5 ? 'bad' : '', k: t('dose_choc'), v: `~${Math.round((V * delta) / choc.active)} g`, h: t('dose_choc_h', { d: delta.toFixed(1) }) });
+        const choc = productById('hypomen-pro'), stick = productById('hth-stick');
+        const nStick = Math.max(1, Math.round((V * delta) / (stick.active * stick.grammage)));
+        out.push({ cls: fc < 0.5 ? 'bad' : '', k: t('dose_choc'), v: `~${Math.round((V * delta) / choc.active)} g`, h: t('dose_choc_h', { d: delta.toFixed(1), n: nStick }) });
       }
     }
-    // slow-release maintenance feed (reference)
-    const galet = productById('hth-galet'), stick = productById('hth-stick');
-    out.push({ cls: '', k: t('dose_maint'), v: `${Math.max(1, Math.round(V / galet.coverM3))} galet · ${Math.max(1, Math.round(V / stick.coverM3))} stick`, h: t('dose_maint_h', { gd: galet.days, sd: stick.days }) });
+    // stabiliser build — when CYA is under the band, grams to reach its floor
+    const band = Chem.cyaBand(!!p.salt);
+    if (cya != null && cya < band.min) {
+      const dCya = Math.round(band.min - cya);
+      if (dCya >= 1) {
+        const stab = productById('mareva-cya');
+        out.push({ cls: 'warn', k: t('dose_stab'), v: `~${Math.round(dCya * V * (stab.ratePerPpmM3 || 1))} g`, h: t('dose_stab_h', { d: dCya, target: band.min }) });
+      }
+    }
+    out.push(maintenanceLine(p));
     return out;
+  }
+  // slow-release maintenance feed for a pool's volume (reference line)
+  function maintenanceLine(p) {
+    const galet = productById('hth-galet'), stick = productById('hth-stick');
+    return { cls: '', k: t('dose_maint'), v: `${Math.max(1, Math.round(p.volM3 / galet.coverM3))} galet · ${Math.max(1, Math.round(p.volM3 / stick.coverM3))} stick`, h: t('dose_maint_h', { gd: galet.days, sd: stick.days }) };
   }
 
   function chemPanel(p) {
     const r = Store.latestReading(p.id);
     if (!r) return null;
     const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
+    const treatedAt = treatedSince(p, r.at); // dosed since the last test → awaiting re-check
     const rows = el('<div class="chem-rows"></div>');
     const row = (cls, k, v, h) => el(`<div class="chem-row ${cls}">
       <span class="cr-k">${esc(k)}</span><span class="cr-v">${esc(v)}</span><span class="cr-h">${esc(h)}</span></div>`);
@@ -585,8 +603,11 @@
     const loss = obs != null ? (modelLoss + obs) / 2 : modelLoss;
     rows.appendChild(row('', t('chem_decay'), '~' + loss.toFixed(1),
       t('chem_decay_h') + (obs != null ? ' · ' + t('chem_calibrated') : '')));
-    // next check: when FC is predicted to reach the safe floor
-    if (fc != null && loss > 0) {
+    // next check — after a dose, the reading is stale: prompt a re-test instead
+    // of the predicted due date.
+    if (treatedAt) {
+      rows.appendChild(row('warn', t('chem_next'), t('status_treated'), t('chem_treated_h', { time: fmtDateTime(treatedAt) })));
+    } else if (fc != null && loss > 0) {
       const floor = Chem.minFC(cya);
       const dueTime = new Date(r.at).getTime() + ((fc - floor) / loss) * 864e5;
       const daysFromNow = (dueTime - Date.now()) / 864e5;
@@ -595,10 +616,10 @@
       else { cls = daysFromNow < 1.5 ? 'warn' : 'ok'; v = t('chem_due_in', { days: daysFromNow.toFixed(1), date: fmtDate(new Date(dueTime).toISOString().slice(0, 10)) }); }
       rows.appendChild(row(cls, t('chem_next'), v, t('chem_next_h', { floor })));
     }
-    // doses from this reading (correction + maintenance) — needs pool volume
+    // doses from this reading — suppressed after a treatment (retest first)
     if (fc != null || ph != null) {
       rows.appendChild(el(`<div class="chem-sub">${esc(t('dose_title'))}${p.volM3 ? ` · ${p.volM3} m³${p.volEst ? ' (' + esc(t('estimated')) + ')' : ''}` : ''}</div>`));
-      doseLines(p, r).forEach((d) => rows.appendChild(row(d.cls, d.k, d.v, d.h)));
+      doseLines(p, r, !!treatedAt).forEach((d) => rows.appendChild(row(d.cls, d.k, d.v, d.h)));
     }
 
     const box = el('<div class="chem-panel"></div>');
@@ -1032,6 +1053,7 @@
     if (!prod) return tr.note || '—';
     const q = tr.qty;
     if (prod.grammage) return `${q ? q + '× ' : ''}${productLabel(prod)} · ${prod.grammage} g`;
+    if (prod.unit === 'g') return `${q != null ? q + ' g · ' : ''}${productLabel(prod)}`; // gram-dosed (choc/pH): qty = grams, no plural
     const unit = prod.unit || 'dose';
     return `${q != null ? q + ' ' : ''}${unit}${q > 1 ? 's' : ''} · ${productLabel(prod)}`;
   }
@@ -1126,7 +1148,7 @@
     qtyWrap.appendChild(qty);
     box.appendChild(qtyWrap);
     const btns = el('<div class="treat-btns"></div>');
-    ['hth-stick', 'hth-galet', 'hypomen-pro', 'hth-phminus', 'mareva-phplus', 'acti-floc']
+    ['hth-stick', 'hth-galet', 'hypomen-pro', 'hth-phminus', 'mareva-phplus', 'mareva-cya', 'acti-floc']
       .map(productById).filter(Boolean).forEach((prod) => {
         const b = el(`<button class="btn treat-btn"><span>${esc(prod.name)}</span><small>${esc(prod.brand)}</small></button>`);
         b.addEventListener('click', () => {

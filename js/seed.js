@@ -34,7 +34,10 @@ const PRODUCTS = [
   // Fast correction (dissolves quickly, dose by grams):
   { id: 'hypomen-pro', brand: 'Choc', name: 'Cal-hypo',       kind: 'shock',     unit: 'g',     grammage: null, active: 0.70, addsCya: false, note: 'Hypochlorite de calcium · chlore choc non stabilisé · 70 % actif (confirmé étiquette)' },
   { id: 'hth-phminus', brand: 'HTH',     name: 'pH-',         kind: 'ph-minus',  unit: 'g', dosePerM3: 15, dropPh: 0.2, note: '≈ 150 g / 10 m³ → −0,2 pH · filtrer + retester' },
-  { id: 'mareva-phplus', brand: 'Mareva', name: 'pH+',        kind: 'ph-plus',   unit: 'g', dosePerM3: 10, note: '≈ 10 g/m³ pour remonter vers 7,2–7,6' },
+  { id: 'mareva-phplus', brand: 'Mareva', name: 'pH+',        kind: 'ph-plus',   unit: 'g', dosePerM3: 10, raisePh: 0.1, note: '≈ 10 g/m³ → +0,1 pH · filtrer + retester' },
+  // stabiliser (cyanuric acid powder): ~1 g/m³ raises CYA ~1 ppm (assumes ~pure;
+  // confirm from the Mareva label). Used to build CYA when a choc isn't needed.
+  { id: 'mareva-cya',  brand: 'Mareva', name: 'Stabilisant', kind: 'stabilizer', unit: 'g', ratePerPpmM3: 1, note: 'Acide cyanurique (poudre) · ≈ 1 g/m³ par +1 ppm (à confirmer étiquette)' },
   { id: 'hth-borkler', brand: 'HTH',     name: 'Borkler gel', kind: 'algae',     unit: 'dose' },
   { id: 'acti-yellow', brand: 'Acti',    name: 'Yellow',      kind: 'algae',     unit: 'dose',  note: 'Algues moutardes' },
   { id: 'acti-floc',   brand: 'Acti',    name: 'Floc Bag',    kind: 'floc',      unit: 'sachet' },
