@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.49'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.45'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -418,9 +418,7 @@
     const hero = el(`<div class="photo-hero ${ph ? '' : 'empty'}"></div>`);
     if (minH) hero.style.minHeight = minH;
     if (ph) {
-      const img = document.createElement('img');
-      img.className = 'band-img'; img.loading = 'lazy'; img.src = ph.dataUrl;
-      hero.appendChild(img);
+      hero.style.backgroundImage = `url('${ph.dataUrl}')`;
       hero.appendChild(el('<div class="hero-scrim"></div>'));
     }
     const ctrls = el('<div class="hero-ctrls"></div>');
@@ -449,16 +447,13 @@
   // height) backs a scrim carrying the section-stripe title, with change/delete
   // controls top-right; the section's content sits below in the panel body. No
   // photo yet → a plain navy stripe with a small "add photo" control.
-  function photoSection(p, key, titleText, subText, contentNode, opts = {}) {
+  function photoSection(p, key, titleText, subText, contentNode) {
     const ph = window.Photos ? Photos.poolRef(p.id, key) : null;
     const frag = document.createDocumentFragment();
     if (ph) {
       const band = el('<div class="photo-band"></div>');
-      const img = document.createElement('img');
-      img.className = 'band-img'; img.loading = 'lazy'; img.src = ph.dataUrl;
-      band.appendChild(img);
+      band.style.backgroundImage = `url('${ph.dataUrl}')`;
       band.appendChild(el('<div class="hero-scrim"></div>'));
-      if (opts.tint) { const tn = el('<div class="band-tint"></div>'); tn.style.background = `radial-gradient(circle at top right, ${opts.tint}, transparent 60%)`; band.appendChild(tn); }
       const ctrls = el('<div class="hero-ctrls"></div>');
       const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`);
       lab.querySelector('input').addEventListener('change', async (e) => {
@@ -472,11 +467,7 @@
       del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
       ctrls.appendChild(del);
       band.appendChild(ctrls);
-      // overlay content starts at the top: the section title, then its chips
-      const foot = el('<div class="band-foot"></div>');
-      foot.appendChild(el(`<div class="band-title"><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div>`));
-      if (opts.overlay) foot.appendChild(opts.overlay);
-      band.appendChild(foot);
+      band.appendChild(el(`<div class="band-title"><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div>`));
       frag.appendChild(band);
     } else {
       const bar = el(`<div class="section-title band-flat"><div><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div></div>`);
@@ -488,7 +479,6 @@
       });
       bar.appendChild(add);
       frag.appendChild(bar);
-      if (opts.overlay) frag.appendChild(opts.overlay); // no photo → mini-bars sit below the stripe
     }
     if (contentNode) frag.appendChild(contentNode);
     return frag;
@@ -571,40 +561,6 @@
     box.appendChild(btn);
     return box;
   }
-
-  // ---- portail blocks (occupation / action suggérée / notes) — reusable so
-  // they can ride the gate-photo overlay or render below it ----
-  function occupancyNode(p) {
-    const occ = Store.occupancyFor(p.id);
-    if (!occ.length) return null;
-    const frag = document.createElement('div');
-    frag.appendChild(sectionTitle(t('occupancy')));
-    const ol = el('<div class="cards"></div>');
-    occ.forEach((o) => ol.appendChild(el(`<div class="card">
-      <div class="card-row"><strong>${fmtDate(o.week)}</strong>${statusChip(o.status)}</div>
-      <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}${o.note ? ' · ' + esc(o.note) : ''}</div>
-    </div>`)));
-    frag.appendChild(ol);
-    return frag;
-  }
-  function adviceBlock(p) {
-    const advice = adviceFor(Store.latestReading(p.id));
-    if (!advice.length) return null;
-    return el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
-      <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`);
-  }
-  function notesBlock(p) {
-    const frag = document.createElement('div');
-    frag.appendChild(sectionTitle(t('notes_section')));
-    frag.appendChild(noteForm(p.id));
-    const pNotes = Store.notesFor(p.id);
-    if (pNotes.length) {
-      const nc = el('<div class="cards"></div>');
-      pNotes.forEach((n) => nc.appendChild(noteItem(n)));
-      frag.appendChild(nc);
-    }
-    return frag;
-  }
   function openPhoto(id) {
     const r = window.Photos && Photos.get(id);
     if (!r) return;
@@ -614,96 +570,6 @@
     ov.appendChild(img);
     ov.addEventListener('click', () => ov.remove());
     document.body.appendChild(ov);
-  }
-
-  // A small close-able popup panel (bottom sheet). The "icon-like" chips on the
-  // photo overlays open these — keeps heavy content (doses, forms) off the image.
-  function openPanel(titleText, contentNode) {
-    const ov = el('<div class="panel-ov"></div>');
-    const card = el('<div class="panel-card"></div>');
-    const head = el(`<div class="panel-head"><h3>${esc(titleText)}</h3><button class="panel-x" aria-label="close">✕</button></div>`);
-    const body = el('<div class="panel-body-ov"></div>');
-    if (contentNode) body.appendChild(contentNode);
-    card.appendChild(head); card.appendChild(body);
-    ov.appendChild(card);
-    const close = () => ov.remove();
-    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
-    head.querySelector('.panel-x').addEventListener('click', close);
-    document.body.appendChild(ov);
-  }
-  // An icon-like chip that sits on a photo overlay and opens a popup on tap.
-  function overlayChip(label, onClick, cls) {
-    const b = el(`<button class="ov-chip ${cls || ''}">${label}</button>`);
-    b.addEventListener('click', onClick);
-    return b;
-  }
-
-  // ---- popup contents ----
-  function chimiePopup(p) {
-    const box = document.createElement('div');
-    const chem = chemPanel(p, true);
-    if (chem) box.appendChild(chem);
-    box.appendChild(sectionTitle(t('log_reading')));
-    box.appendChild(readingForm(p));
-    return box;
-  }
-  function sandEditor(p) {
-    const box = el('<div class="pop-field"></div>');
-    const inp = el(`<input type="date" class="date-sm" value="${esc(p.sandDate || '')}">`);
-    inp.addEventListener('change', () => Store.updatePool(p.id, { sandDate: inp.value }));
-    const unk = el(`<button class="btn sm">${esc(t('unknown'))}</button>`);
-    unk.addEventListener('click', () => { Store.updatePool(p.id, { sandDate: '' }); inp.value = ''; });
-    box.appendChild(inp); box.appendChild(unk);
-    return box;
-  }
-  function pumpNotesEditor(p) {
-    const l = el(`<label class="field"><span>${esc(t('pump_notes'))}</span><textarea rows="4" placeholder="${esc(t('pump_notes_ph'))}"></textarea></label>`);
-    const ta = l.querySelector('textarea');
-    ta.value = p.pumpNote || '';
-    ta.addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
-    return l;
-  }
-
-  // ---- compact photo-overlay content (chips + popups) ----
-  function notesPreview(p) {
-    const pNotes = Store.notesFor(p.id);
-    const card = el('<div class="card notes-prev"></div>');
-    const label = pNotes.length ? `🗒️ ${t('notes_section')} (${pNotes.length})` : `🗒️ ${t('notes_section')}`;
-    card.appendChild(el(`<div class="card-row"><strong>${esc(label)}</strong><span class="np-open">＋</span></div>`));
-    if (pNotes.length) card.appendChild(el(`<div class="card-sub">${esc((pNotes[0].text || '').slice(0, 64))}</div>`));
-    card.addEventListener('click', () => openPanel(t('notes_section'), notesBlock(p)));
-    return card;
-  }
-  function piscineOverlay(p) {
-    const box = el('<div class="ov-stack"></div>');
-    const mini = chemMini(p);
-    if (mini) {
-      mini.classList.add('tappable');
-      mini.addEventListener('click', () => openPanel(t('chem_title'), chimiePopup(p)));
-      box.appendChild(mini);
-    } else {
-      box.appendChild(overlayChip('➕ ' + t('log_reading'), () => openPanel(t('log_reading'), readingForm(p)), 'wide'));
-    }
-    const chips = el('<div class="ov-chips"></div>');
-    const wi = wateringInfo(p);
-    chips.appendChild(overlayChip(wi ? `💧 ${wi.mins}′` : `💧 ${t('watering_section')}`,
-      () => openPanel(t('watering_section'), wateringCard(p))));
-    chips.appendChild(overlayChip(p.volM3 ? `🪣 ${p.volM3} m³` : `🪣 ${t('vol_measure')}`,
-      () => openPanel(t('vol_measure'), volumeSection(p))));
-    box.appendChild(chips);
-    return box;
-  }
-  function localTechOverlay(p) {
-    const box = el('<div class="ov-stack"></div>');
-    const lb = Store.lastBackwash(p.id);
-    box.appendChild(el(`<p class="over-line">${esc(t('last_backwash', { date: lb ? fmtDateTime(lb.at) : t('never') }))}</p>`));
-    const chips = el('<div class="ov-chips"></div>');
-    chips.appendChild(overlayChip('♻️ ' + t('log_backwash'), () => { Store.addVisit(p.id, { type: 'backwash' }); render(); }));
-    chips.appendChild(overlayChip(p.sandDate ? `🪣 ${fmtDate(p.sandDate)}` : `🪣 ${t('sand_date')}`,
-      () => openPanel(t('sand_date'), sandEditor(p))));
-    chips.appendChild(overlayChip('🗒️ ' + t('pump_notes'), () => openPanel(t('pump_notes'), pumpNotesEditor(p))));
-    box.appendChild(chips);
-    return box;
   }
 
   // ----- notes / to-dos -----
@@ -915,42 +781,6 @@
     return box;
   }
 
-  // Glanceable chimie: four small vertical stat bars (Cl% · Cl · CyA · /jour),
-  // each colour-coded by status. Meant to overlay the piscine photo — compact,
-  // read-at-a-glance, the detail/doses one tap away in the panel body.
-  function chemMini(p) {
-    const r = Store.latestReading(p.id);
-    if (!r) return null;
-    const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
-    const cells = [];
-    const frac = Chem.hoclFraction(ph);
-    if (frac != null) {
-      const pct = Math.round(frac * 100);
-      cells.push({ k: 'Cl%', v: pct + '%', cls: pct >= 50 ? 'ok' : pct >= 30 ? 'warn' : 'bad' });
-    }
-    if (fc != null) {
-      const tFC = cya != null ? Chem.targetFC(cya, p.salt) : null;
-      const mFC = cya != null ? Chem.minFC(cya, p.salt) : null;
-      const cls = tFC == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad';
-      cells.push({ k: 'Cl', v: fc, cls });
-    }
-    if (cya != null) {
-      const band = Chem.cyaBand(!!p.salt);
-      const cls = cya > 100 ? 'bad' : (cya < band.min || cya > band.max) ? 'warn' : 'ok';
-      cells.push({ k: 'CyA', v: cya, cls });
-    }
-    const fd = forecastDrivers();
-    const uv = fd ? fd.uv : (r.weather && r.weather.uv);
-    const temp = fd ? fd.temp : (r.weather && r.weather.temp);
-    const modelLoss = Chem.dailyLoss(cya, uv, temp, !!p.covered);
-    const obs = observedLoss(p);
-    const loss = obs != null ? (modelLoss + obs) / 2 : modelLoss;
-    cells.push({ k: '/jour', v: '~' + loss.toFixed(1), cls: '' });
-    const row = el('<div class="chem-mini"></div>');
-    cells.forEach((c) => row.appendChild(el(`<div class="cm-cell ${c.cls}"><span class="cm-v">${esc(String(c.v))}</span><span class="cm-k">${esc(c.k)}</span></div>`)));
-    return row;
-  }
-
   // ---------- view: TODAY ----------
   function viewToday() {
     const wrap = document.createElement('div');
@@ -1114,8 +944,28 @@
     // at. Until then it stays the plain slim header (add a gate photo below).
     const gatePhoto = window.Photos ? Photos.poolRef(p.id, 'gate') : null;
     const subHtml = `${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}${saltBadge}`;
-    const occNode = occupancyNode(p);
-    const adviceNode = pool ? adviceBlock(p) : null;
+    if (gatePhoto) {
+      wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
+      const headBody = el(`<div class="hero-head">
+        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
+        <p class="sub">${subHtml}</p>
+      </div>`);
+      const hact = el('<div class="hero-actions"></div>');
+      hact.appendChild(mkDirections('hero-btn'));
+      if (pool) hact.appendChild(mkPick('hero-btn hero-btn-sm'));
+      headBody.appendChild(hact);
+      wrap.appendChild(photoHero(p, 'gate', headBody, '220px')); // taller for 9:16 portraits
+    } else {
+      wrap.appendChild(el(`<header class="page-head">
+        <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
+        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
+        <p class="sub">${subHtml}</p>
+      </header>`));
+    }
+
+    if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
+
+    // portail add-photo affordance (only when there's no gate hero yet)
     const mkPhotoAdd = (key) => {
       const lab = el(`<label class="btn">📷 ${esc(t('add_photo'))}<input type="file" accept="image/*" hidden></label>`);
       lab.querySelector('input').addEventListener('change', async (e) => {
@@ -1125,85 +975,87 @@
       });
       return lab;
     };
-
-    if (gatePhoto) {
-      // ===== PORTAIL — pool name at the top of the photo, then coords + dernier
-      // entretien, occupation, action suggérée and notes (last), slid up onto
-      // the image as reduced-opacity panels; itinéraire/placer as chips. =====
-      wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
-      const headBody = el(`<div class="hero-head">
-        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
-        <p class="sub">${subHtml}</p>
-      </div>`);
-      const over = el('<div class="hero-portail"></div>');
-      const info = [];
-      if (coords) info.push('📍 ' + p.lat.toFixed(4) + ', ' + p.lng.toFixed(4));
-      const lastV = pool ? Store.lastService(p.id) : null;
-      if (lastV) info.push(t('last_serviced', { date: fmtDateTime(lastV.at) }));
-      if (info.length) over.appendChild(el(`<p class="over-line">${esc(info.join(' · '))}</p>`));
-      if (occNode) over.appendChild(occNode);
-      if (adviceNode) over.appendChild(adviceNode);
-      over.appendChild(notesPreview(p));
-      headBody.appendChild(over);
-      const hact = el('<div class="hero-actions"></div>');
-      hact.appendChild(mkDirections('hero-btn'));
-      if (pool) hact.appendChild(mkPick('hero-btn hero-btn-sm'));
-      headBody.appendChild(hact);
-      wrap.appendChild(photoHero(p, 'gate', headBody, '220px'));
-      if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
-    } else {
-      wrap.appendChild(el(`<header class="page-head">
-        <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
-        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
-        <p class="sub">${subHtml}</p>
-      </header>`));
-      if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
-      const actions = el('<div class="actions"></div>');
+    const actions = el('<div class="actions"></div>');
+    if (!gatePhoto) {
       actions.appendChild(mkDirections(''));
       if (pool) actions.appendChild(mkPick(''));
       actions.appendChild(mkPhotoAdd('gate'));
-      wrap.appendChild(actions);
-      if (!pool) wrap.appendChild(el(`<p class="empty-note">${esc(t('mgmt_note'))}</p>`));
-      if (pool && coords) {
-        const row = el(`<p class="coords-row"><span>${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</span>
-          <button class="link-clear">${esc(t('clear_location'))}</button></p>`);
-        row.querySelector('.link-clear').addEventListener('click', () => {
-          Store.updatePool(p.id, { lat: null, lng: null });
-          render();
-        });
-        wrap.appendChild(row);
-      }
-      if (pool) {
-        const lastV = Store.lastService(p.id);
-        if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
-      }
-      if (occNode) wrap.appendChild(occNode);
-      if (adviceNode) wrap.appendChild(adviceNode);
-      wrap.appendChild(notesBlock(p));
+    }
+    if (actions.children.length) wrap.appendChild(actions);
+
+    if (!pool) {
+      wrap.appendChild(el(`<p class="empty-note">${esc(t('mgmt_note'))}</p>`));
+    }
+
+    if (pool && coords) {
+      const row = el(`<p class="coords-row"><span>${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</span>
+        <button class="link-clear">${esc(t('clear_location'))}</button></p>`);
+      row.querySelector('.link-clear').addEventListener('click', () => {
+        Store.updatePool(p.id, { lat: null, lng: null });
+        render();
+      });
+      wrap.appendChild(row);
     }
 
     if (pool) {
-      // ===== PISCINE — name top; glanceable chimie bars (tap → doses + saisir
-      // popup); remplissage + volume as chips. =====
-      wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), '', null,
-        { overlay: piscineOverlay(p), tint: statusColor(ps.level) + 'cc' }));
+      const lastV = Store.lastService(p.id);
+      if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
+    }
 
-      // ===== LOCAL TECHNIQUE — enregistrer un lavage · sable · notes pompe as
-      // chips on the pit photo. =====
-      wrap.appendChild(photoSection(p, 'pit', t('pump_section'), '', null,
-        { overlay: localTechOverlay(p) }));
+    // ===== PORTAIL panel content: occupation, then notes (both up top) =====
+    const occ = Store.occupancyFor(p.id);
+    if (occ.length) {
+      wrap.appendChild(sectionTitle(t('occupancy')));
+      const ol = el('<div class="cards"></div>');
+      occ.forEach((o) => ol.appendChild(el(`<div class="card">
+        <div class="card-row"><strong>${fmtDate(o.week)}</strong>${statusChip(o.status)}</div>
+        <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}${o.note ? ' · ' + esc(o.note) : ''}</div>
+      </div>`)));
+      wrap.appendChild(ol);
+    }
 
-      // ===== Fourth section — Produits ajoutés. =====
-      wrap.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
-      wrap.appendChild(treatmentSection(p));
+    // notes / to-dos for this pool (available for every unit, incl. HO)
+    wrap.appendChild(sectionTitle(t('notes_section')));
+    wrap.appendChild(noteForm(p.id));
+    const pNotes = Store.notesFor(p.id);
+    if (pNotes.length) {
+      const nc = el('<div class="cards"></div>');
+      pNotes.forEach((n) => nc.appendChild(noteItem(n)));
+      wrap.appendChild(nc);
+    }
 
-      // entretien du jour tick — bumped above historique
-      wrap.appendChild(finalServiceTick(p));
+    if (pool) {
+      // action suggérée — the all-inclusive summary, last of the portail block
+      const advice = adviceFor(Store.latestReading(p.id));
+      if (advice.length) {
+        wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
+          <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
+      }
 
-      // historique — appends last
+      // ===== PISCINE panel — the pool photo underlays chimie + saisir + produits
+      // + remplissage (+ volume, + collapsed history). =====
+      const piscineBody = el('<div class="panel-body"></div>');
+      const chem = chemPanel(p, false); // title supplied by the photo band
+      if (chem) piscineBody.appendChild(chem);
+      const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
+      measure.appendChild(readingForm(p));
+      piscineBody.appendChild(measure);
+      piscineBody.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
+      piscineBody.appendChild(treatmentSection(p));
+      piscineBody.appendChild(sectionTitle(t('watering_section')));
+      piscineBody.appendChild(wateringCard(p));
+      piscineBody.appendChild(volumeSection(p));
       const readings = Store.readingsFor(p.id);
-      wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
-      wrap.appendChild(readings.length ? readingsTable(p, readings) : emptyNote(t('history_empty')));
+      const hist = el(`<details class="measure"><summary>🗒️ ${esc(t('history', { n: readings.length }))}</summary></details>`);
+      hist.appendChild(readings.length ? readingsTable(p, readings) : emptyNote(t('history_empty')));
+      piscineBody.appendChild(hist);
+      wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), t('chem_sub'), piscineBody));
+
+      // ===== LOCAL TECHNIQUE panel — the pit photo underlays gestion de pompe. =====
+      wrap.appendChild(photoSection(p, 'pit', t('pump_section'), '', pumpCard(p)));
+
+      // ===== Final tick — entretenue aujourd'hui, the closing "done". =====
+      wrap.appendChild(finalServiceTick(p));
     }
     return wrap;
   }
