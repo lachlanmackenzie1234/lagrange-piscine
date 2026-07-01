@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.45'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.46'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -781,6 +781,58 @@
     return box;
   }
 
+  // Compact chimie: four small stat bars (Cl% · Cl · CyA · /jour), colour-coded,
+  // plus a one-line next-check caption. Shrinks the tall read-out to a glance;
+  // the canon doses live in chemDoses() just below.
+  function chemMini(p) {
+    const r = Store.latestReading(p.id);
+    if (!r) return null;
+    const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
+    const treatedAt = treatedSince(p, r.at);
+    const cells = [];
+    const frac = Chem.hoclFraction(ph);
+    if (frac != null) { const pct = Math.round(frac * 100); cells.push({ k: 'Cl%', v: pct + '%', cls: pct >= 50 ? 'ok' : pct >= 30 ? 'warn' : 'bad' }); }
+    if (fc != null) {
+      const tFC = cya != null ? Chem.targetFC(cya, p.salt) : null;
+      const mFC = cya != null ? Chem.minFC(cya, p.salt) : null;
+      cells.push({ k: 'Cl', v: fc, cls: tFC == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad' });
+    }
+    if (cya != null) { const band = Chem.cyaBand(!!p.salt); cells.push({ k: 'CyA', v: cya, cls: cya > 100 ? 'bad' : (cya < band.min || cya > band.max) ? 'warn' : 'ok' }); }
+    const fd = forecastDrivers();
+    const uv = fd ? fd.uv : (r.weather && r.weather.uv);
+    const temp = fd ? fd.temp : (r.weather && r.weather.temp);
+    const modelLoss = Chem.dailyLoss(cya, uv, temp, !!p.covered);
+    const obs = observedLoss(p);
+    const loss = obs != null ? (modelLoss + obs) / 2 : modelLoss;
+    cells.push({ k: '/jour', v: '~' + loss.toFixed(1), cls: '' });
+    const box = el('<div class="chem-mini-wrap"></div>');
+    const rowEl = el('<div class="chem-mini"></div>');
+    cells.forEach((c) => rowEl.appendChild(el(`<div class="cm-cell ${c.cls}"><span class="cm-v">${esc(String(c.v))}</span><span class="cm-k">${esc(c.k)}</span></div>`)));
+    box.appendChild(rowEl);
+    let nc = null;
+    if (treatedAt) nc = { cls: 'warn', text: '⏳ ' + t('status_treated') };
+    else if (fc != null && loss > 0) {
+      const floor = Chem.minFC(cya, p.salt);
+      const dueTime = new Date(r.at).getTime() + ((fc - floor) / loss) * 864e5;
+      const days = (dueTime - Date.now()) / 864e5;
+      if (days <= 0) nc = { cls: 'bad', text: t('chem_next') + ' · ' + t('chem_due_now') };
+      else nc = { cls: days < 1.5 ? 'warn' : 'ok', text: t('chem_next') + ' · ' + t('chem_due_in', { days: days.toFixed(1), date: fmtDate(new Date(dueTime).toISOString().slice(0, 10)) }) };
+    }
+    if (nc) box.appendChild(el(`<p class="chem-mini-next ${nc.cls}">${esc(nc.text)}</p>`));
+    return box;
+  }
+  // The canon doses for the latest reading (the actionable part of chimie).
+  function chemDoses(p) {
+    const r = Store.latestReading(p.id);
+    if (!r || (r.chlorine == null && r.ph == null)) return null;
+    const treatedAt = treatedSince(p, r.at);
+    const rows = el('<div class="chem-rows"></div>');
+    rows.appendChild(el(`<div class="chem-sub">${esc(t('dose_title'))}${p.volM3 ? ` · ${p.volM3} m³${p.volEst ? ' (' + esc(t('estimated')) + ')' : ''}` : ''}</div>`));
+    doseLines(p, r, !!treatedAt).forEach((d) => rows.appendChild(el(`<div class="chem-row ${d.cls}">
+      <span class="cr-k">${esc(d.k)}</span><span class="cr-v">${esc(d.v)}</span><span class="cr-h">${esc(d.h)}</span></div>`)));
+    return rows;
+  }
+
   // ---------- view: TODAY ----------
   function viewToday() {
     const wrap = document.createElement('div');
@@ -1035,8 +1087,11 @@
       // ===== PISCINE panel — the pool photo underlays chimie + saisir + produits
       // + remplissage (+ volume, + collapsed history). =====
       const piscineBody = el('<div class="panel-body"></div>');
-      const chem = chemPanel(p, false); // title supplied by the photo band
-      if (chem) piscineBody.appendChild(chem);
+      // compact chimie (glance bars + next-check); canon doses + Saisir below
+      const mini = chemMini(p);
+      if (mini) piscineBody.appendChild(mini);
+      const doses = chemDoses(p);
+      if (doses) piscineBody.appendChild(doses);
       const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
       measure.appendChild(readingForm(p));
       piscineBody.appendChild(measure);
@@ -1045,10 +1100,21 @@
       piscineBody.appendChild(sectionTitle(t('watering_section')));
       piscineBody.appendChild(wateringCard(p));
       piscineBody.appendChild(volumeSection(p));
+      // history — show 3 recent for context; "+N de plus" appends the rest
       const readings = Store.readingsFor(p.id);
-      const hist = el(`<details class="measure"><summary>🗒️ ${esc(t('history', { n: readings.length }))}</summary></details>`);
-      hist.appendChild(readings.length ? readingsTable(p, readings) : emptyNote(t('history_empty')));
-      piscineBody.appendChild(hist);
+      piscineBody.appendChild(sectionTitle(t('history', { n: readings.length })));
+      if (!readings.length) {
+        piscineBody.appendChild(emptyNote(t('history_empty')));
+      } else {
+        const histWrap = el('<div class="hist-wrap"></div>');
+        histWrap.appendChild(readingsTable(p, readings.slice(0, 3)));
+        if (readings.length > 3) {
+          const more = el(`<button class="btn sm hist-more">${esc(t('hist_more', { n: readings.length - 3 }))}</button>`);
+          more.addEventListener('click', () => { histWrap.innerHTML = ''; histWrap.appendChild(readingsTable(p, readings)); });
+          histWrap.appendChild(more);
+        }
+        piscineBody.appendChild(histWrap);
+      }
       wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), t('chem_sub'), piscineBody));
 
       // ===== LOCAL TECHNIQUE panel — the pit photo underlays gestion de pompe. =====

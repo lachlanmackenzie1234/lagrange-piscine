@@ -103,6 +103,22 @@ a { color: var(--brand); text-decoration: none; }
 .chem-note { margin: 8px 0 0; padding: 8px 12px; font-size: .85rem; border-radius: 10px;
   background: var(--low-bg); color: var(--low); border: 1px solid #f0d9a8; }
 .salt-word { color: #0277bd; font-weight: 600; }
+/* compact chimie bars (glanceable) */
+.chem-mini-wrap { margin: 0 0 12px; }
+.chem-mini { display: flex; gap: 6px; }
+.cm-cell { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  background: var(--card); border: 1px solid var(--line); border-bottom-width: 3px;
+  border-radius: 9px; padding: 8px 4px 6px; }
+.cm-cell .cm-v { font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; line-height: 1.1; color: var(--ink); }
+.cm-cell .cm-k { font-size: .64rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.cm-cell.ok { border-bottom-color: var(--ok); }
+.cm-cell.warn { border-bottom-color: var(--low); }
+.cm-cell.bad { border-bottom-color: var(--high); }
+.chem-mini-next { margin: 7px 0 0; font-size: .82rem; font-weight: 600; }
+.chem-mini-next.ok { color: var(--ok); }
+.chem-mini-next.warn { color: var(--low); }
+.chem-mini-next.bad { color: var(--high); }
+.hist-more { margin-top: 8px; }
 .st-depot { background: #d7f2ee; color: #00796b; }
 /* pool volume calculator */
 .card.volume { display: block; }

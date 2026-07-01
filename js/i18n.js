@@ -40,6 +40,7 @@ const I18n = (() => {
       targets: 'Targets — pH {phmin}–{phmax} · Cl {clmin}–{clmax}ppm · CYA {cyamin}–{cyamax}ppm',
       save_reading: 'Save reading',
       history: 'History ({n})', history_empty: 'No readings yet. Log the first one above.',
+      hist_more: '+{n} more',
       th_when: 'When', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', th_temp: '°C',
       confirm_del: 'Delete this reading?', pool_not_found: 'Pool not found',
 
@@ -253,6 +254,7 @@ const I18n = (() => {
       targets: 'Cibles — pH {phmin}–{phmax} · Cl {clmin}–{clmax}ppm · CYA {cyamin}–{cyamax}ppm',
       save_reading: 'Enregistrer',
       history: 'Historique ({n})', history_empty: 'Aucune mesure pour l’instant. Saisissez la première ci-dessus.',
+      hist_more: '+{n} de plus',
       th_when: 'Quand', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', th_temp: '°C',
       confirm_del: 'Supprimer cette mesure ?', pool_not_found: 'Piscine introuvable',
 
