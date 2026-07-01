@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.34'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.35'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -85,7 +85,7 @@
     if (st('chlorine') === 'high') out.push(t('action_cl_high'));
     if (st('chlorine') === 'low') out.push(r.chlorine !== null && r.chlorine < 0.5 ? t('action_cl_vlow') : t('action_cl_low'));
     if (st('stabilizer') === 'low') out.push(t('action_cya_low'));
-    if (st('stabilizer') === 'high') out.push(t('action_cya_high'));
+    else if (st('stabilizer') === 'high') out.push(r.stabilizer >= 80 ? t('action_cya_vhigh') : t('action_cya_high'));
     return out;
   }
 

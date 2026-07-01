@@ -66,8 +66,9 @@ const I18n = (() => {
       action_cl_high: 'Chlorine high → pause dosing; let it drop before guests use the pool.',
       action_cl_low: 'Chlorine low → add tablets/galets (check the feeder/skimmer).',
       action_cl_vlow: 'Chlorine very low → shock treat; recheck before reopening.',
-      action_cya_low: 'Stabiliser low → add cyanuric acid (stabilisant).',
-      action_cya_high: 'Stabiliser high → partial drain & refill to dilute.',
+      action_cya_low: 'Stabiliser low → let the galets build it (or add stabiliser).',
+      action_cya_high: 'Stabiliser high → stop galets, switch to unstabilised (stick/shock); let evaporation + top-up dilute it.',
+      action_cya_vhigh: 'Stabiliser very high → unstabilised only; dilute actively (heavy top-up or partial drain).',
 
       // chemistry panel (advisory)
       chem_title: 'Chemistry',
@@ -271,8 +272,9 @@ const I18n = (() => {
       action_cl_high: 'Chlore élevé → suspendre le dosage ; laisser baisser avant la baignade.',
       action_cl_low: 'Chlore bas → ajouter des galets (vérifier le diffuseur/skimmer).',
       action_cl_vlow: 'Chlore très bas → traitement choc ; recontrôler avant réouverture.',
-      action_cya_low: 'Stabilisant bas → ajouter du stabilisant (acide cyanurique).',
-      action_cya_high: 'Stabilisant élevé → vidange partielle puis remise à niveau pour diluer.',
+      action_cya_low: 'Stabilisant bas → laisser les galets le monter (ou ajouter du stabilisant).',
+      action_cya_high: 'Stabilisant élevé → arrêter les galets, passer au non stabilisé (stick/choc) ; laisser l’évaporation + remise à niveau diluer.',
+      action_cya_vhigh: 'Stabilisant très élevé → non stabilisé uniquement ; diluer activement (remise à niveau forte ou vidange partielle).',
 
       // panneau chimie (indicatif)
       chem_title: 'Chimie',
