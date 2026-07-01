@@ -292,6 +292,20 @@ table.readings { width: 100%; border-collapse: collapse; background: var(--card)
 .photo-band .band-title { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 14px; color: #fff; }
 .photo-band .band-title h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
 .photo-band .band-title p { margin: 1px 0 0; font-size: .82rem; color: rgba(255,255,255,.9); }
+/* band foot: section content slid up into the photo space, above the title */
+.band-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 10px 2px; }
+.band-foot .band-title { position: static; padding: 4px 4px 8px; }
+.band-tint { position: absolute; inset: 0; pointer-events: none; }
+/* glanceable chimie: small vertical stat bars (Cl% · Cl · CyA · /jour) */
+.chem-mini { display: flex; gap: 6px; margin: 0 0 6px; }
+.cm-cell { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  background: rgba(0,0,0,.44); border-radius: 9px; padding: 8px 4px 6px; color: #fff;
+  border-bottom: 3px solid rgba(255,255,255,.35); }
+.cm-cell .cm-v { font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.cm-cell .cm-k { font-size: .64rem; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
+.cm-cell.ok { border-bottom-color: var(--ok); }
+.cm-cell.warn { border-bottom-color: var(--low); }
+.cm-cell.bad { border-bottom-color: var(--high); }
 .section-title.band-flat { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .band-add { flex: 0 0 auto; background: rgba(255,255,255,.16); color: #fff; border-radius: 8px;
   padding: 5px 10px; font-size: .9rem; line-height: 1; cursor: pointer; }

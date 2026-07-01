@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.46'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.47'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -449,7 +449,7 @@
   // height) backs a scrim carrying the section-stripe title, with change/delete
   // controls top-right; the section's content sits below in the panel body. No
   // photo yet → a plain navy stripe with a small "add photo" control.
-  function photoSection(p, key, titleText, subText, contentNode) {
+  function photoSection(p, key, titleText, subText, contentNode, opts = {}) {
     const ph = window.Photos ? Photos.poolRef(p.id, key) : null;
     const frag = document.createDocumentFragment();
     if (ph) {
@@ -458,6 +458,7 @@
       img.className = 'band-img'; img.loading = 'lazy'; img.src = ph.dataUrl;
       band.appendChild(img);
       band.appendChild(el('<div class="hero-scrim"></div>'));
+      if (opts.tint) { const tn = el('<div class="band-tint"></div>'); tn.style.background = `radial-gradient(circle at top right, ${opts.tint}, transparent 60%)`; band.appendChild(tn); }
       const ctrls = el('<div class="hero-ctrls"></div>');
       const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`);
       lab.querySelector('input').addEventListener('change', async (e) => {
@@ -471,7 +472,12 @@
       del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
       ctrls.appendChild(del);
       band.appendChild(ctrls);
-      band.appendChild(el(`<div class="band-title"><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div>`));
+      // the section content that "slides up" into the photo space (e.g. the
+      // chimie mini-bars) sits in the foot, above the title, on the scrim
+      const foot = el('<div class="band-foot"></div>');
+      if (opts.overlay) foot.appendChild(opts.overlay);
+      foot.appendChild(el(`<div class="band-title"><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div>`));
+      band.appendChild(foot);
       frag.appendChild(band);
     } else {
       const bar = el(`<div class="section-title band-flat"><div><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div></div>`);
@@ -483,6 +489,7 @@
       });
       bar.appendChild(add);
       frag.appendChild(bar);
+      if (opts.overlay) frag.appendChild(opts.overlay); // no photo → mini-bars sit below the stripe
     }
     if (contentNode) frag.appendChild(contentNode);
     return frag;
@@ -785,6 +792,42 @@
     return box;
   }
 
+  // Glanceable chimie: four small vertical stat bars (Cl% · Cl · CyA · /jour),
+  // each colour-coded by status. Meant to overlay the piscine photo — compact,
+  // read-at-a-glance, the detail/doses one tap away in the panel body.
+  function chemMini(p) {
+    const r = Store.latestReading(p.id);
+    if (!r) return null;
+    const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
+    const cells = [];
+    const frac = Chem.hoclFraction(ph);
+    if (frac != null) {
+      const pct = Math.round(frac * 100);
+      cells.push({ k: 'Cl%', v: pct + '%', cls: pct >= 50 ? 'ok' : pct >= 30 ? 'warn' : 'bad' });
+    }
+    if (fc != null) {
+      const tFC = cya != null ? Chem.targetFC(cya, p.salt) : null;
+      const mFC = cya != null ? Chem.minFC(cya, p.salt) : null;
+      const cls = tFC == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad';
+      cells.push({ k: 'Cl', v: fc, cls });
+    }
+    if (cya != null) {
+      const band = Chem.cyaBand(!!p.salt);
+      const cls = cya > 100 ? 'bad' : (cya < band.min || cya > band.max) ? 'warn' : 'ok';
+      cells.push({ k: 'CyA', v: cya, cls });
+    }
+    const fd = forecastDrivers();
+    const uv = fd ? fd.uv : (r.weather && r.weather.uv);
+    const temp = fd ? fd.temp : (r.weather && r.weather.temp);
+    const modelLoss = Chem.dailyLoss(cya, uv, temp, !!p.covered);
+    const obs = observedLoss(p);
+    const loss = obs != null ? (modelLoss + obs) / 2 : modelLoss;
+    cells.push({ k: '/jour', v: '~' + loss.toFixed(1), cls: '' });
+    const row = el('<div class="chem-mini"></div>');
+    cells.forEach((c) => row.appendChild(el(`<div class="cm-cell ${c.cls}"><span class="cm-v">${esc(String(c.v))}</span><span class="cm-k">${esc(c.k)}</span></div>`)));
+    return row;
+  }
+
   // ---------- view: TODAY ----------
   function viewToday() {
     const wrap = document.createElement('div');
@@ -1036,27 +1079,35 @@
           <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
       }
 
-      // ===== PISCINE panel — the pool photo underlays chimie + saisir + produits
-      // + remplissage (+ volume, + collapsed history). =====
+      // ===== PISCINE panel — the pool photo carries the glanceable chimie bars
+      // (Cl% · Cl · CyA · /jour) with a status-colour corner tint; the full
+      // read-out + doses fold away below, then remplissage closes the panel. =====
       const piscineBody = el('<div class="panel-body"></div>');
-      const chem = chemPanel(p, false); // title supplied by the photo band
-      if (chem) piscineBody.appendChild(chem);
+      const chem = chemPanel(p, false);
+      if (chem) {
+        const det = el(`<details class="measure"><summary>🧪 ${esc(t('dose_title'))} · ${esc(t('chem_title'))}</summary></details>`);
+        det.appendChild(chem);
+        piscineBody.appendChild(det);
+      }
       const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
       measure.appendChild(readingForm(p));
       piscineBody.appendChild(measure);
-      piscineBody.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
-      piscineBody.appendChild(treatmentSection(p));
+      // remplissage — last in the piscine panel
       piscineBody.appendChild(sectionTitle(t('watering_section')));
       piscineBody.appendChild(wateringCard(p));
       piscineBody.appendChild(volumeSection(p));
-      const readings = Store.readingsFor(p.id);
-      const hist = el(`<details class="measure"><summary>🗒️ ${esc(t('history', { n: readings.length }))}</summary></details>`);
-      hist.appendChild(readings.length ? readingsTable(p, readings) : emptyNote(t('history_empty')));
-      piscineBody.appendChild(hist);
-      wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), t('chem_sub'), piscineBody));
+      wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), t('chem_sub'), piscineBody,
+        { overlay: chemMini(p), tint: statusColor(ps.level) + 'cc' }));
 
       // ===== LOCAL TECHNIQUE panel — the pit photo underlays gestion de pompe. =====
       wrap.appendChild(photoSection(p, 'pit', t('pump_section'), '', pumpCard(p)));
+
+      // ===== Produits ajoutés + Historique — in full at the foot (not collapsed). =====
+      wrap.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
+      wrap.appendChild(treatmentSection(p));
+      const readings = Store.readingsFor(p.id);
+      wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
+      wrap.appendChild(readings.length ? readingsTable(p, readings) : emptyNote(t('history_empty')));
 
       // ===== Final tick — entretenue aujourd'hui, the closing "done". =====
       wrap.appendChild(finalServiceTick(p));
