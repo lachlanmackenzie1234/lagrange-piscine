@@ -45,7 +45,7 @@ const I18n = (() => {
       map_tip: 'Residence pins marked “~” are approximate — capture GPS at a pool to drop an exact pin.',
 
       settings_title: 'Settings & backup',
-      export_btn: '⬇︎ Backup (.json)', import_btn: '⬆︎ Import backup',
+      export_btn: '⬇︎ Backup (.json)', export_data_btn: '⬇︎ Data only (no photos)', import_btn: '⬆︎ Import backup',
       export_csv_readings: '⬇︎ Readings (.csv)', export_csv_notes: '⬇︎ Notes (.csv)',
       reset_btn: '↺ Reset to seed data', about: 'About',
       about_text: 'Data is stored only on this device. Export regularly to back up.',
@@ -107,6 +107,7 @@ const I18n = (() => {
       dose_maint_h: 'galet {gd}d · stick {sd}d',
       status_treated: 'treated — recheck',
       salt_pool: 'Salt pool',
+      salt_on: '🧂 Salt ✓', salt_off: '🧂 Salt pool?',
 
       // pool volume
       vol_section: 'Pool volume',
@@ -249,7 +250,7 @@ const I18n = (() => {
       map_tip: 'Les repères « ~ » sont approximatifs — enregistrez le GPS à une piscine pour un repère exact.',
 
       settings_title: 'Réglages & sauvegarde',
-      export_btn: '⬇︎ Sauvegarde (.json)', import_btn: '⬆︎ Importer une sauvegarde',
+      export_btn: '⬇︎ Sauvegarde (.json)', export_data_btn: '⬇︎ Données seules (sans photos)', import_btn: '⬆︎ Importer une sauvegarde',
       export_csv_readings: '⬇︎ Mesures (.csv)', export_csv_notes: '⬇︎ Notes (.csv)',
       reset_btn: '↺ Réinitialiser aux données d’origine', about: 'À propos',
       about_text: 'Les données sont stockées uniquement sur cet appareil. Exportez régulièrement pour sauvegarder.',
@@ -311,6 +312,7 @@ const I18n = (() => {
       dose_maint_h: 'galet {gd}j · stick {sd}j',
       status_treated: 'traité — à revérifier',
       salt_pool: 'Piscine au sel',
+      salt_on: '🧂 Au sel ✓', salt_off: '🧂 Au sel ?',
 
       // volume du bassin
       vol_section: 'Volume du bassin',

@@ -120,7 +120,7 @@ const POOLS = [
   // Eden Parc (unit + plot)
   { res: 'EP', unit: '6B/75' },
   { res: 'EP', unit: '19B/90' },
-  { res: 'EP', unit: '30B/63' },
+  { res: 'EP', unit: '30B/63', salt: true, note: 'Piscine au sel · électrolyse' },
   { res: 'EP', unit: '5P', note: 'No pool (rental only)', nonPool: true },
   { res: 'EP', unit: '27B/94', salt: true, note: 'Piscine au sel · électrolyse' },
   { res: 'EP', unit: '40B/52' },

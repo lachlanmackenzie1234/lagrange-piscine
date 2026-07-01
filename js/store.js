@@ -55,12 +55,12 @@ const Store = (() => {
 
   // Bump when seed coordinates / classifications change; migrate() reconciles
   // existing installs.
-  const COORDS_SEED = 5;
+  const COORDS_SEED = 6;
 
   // Back-fill seed coordinates (only where the user hasn't set their own — never
-  // overwrites a captured GPS) and sync the seed classifications (nonPool, salt)
-  // which are authoritative / not user-editable. Adds any new seed residences
-  // (e.g. the dépôt) to existing installs.
+  // overwrites a captured GPS) and sync the nonPool classification from seed.
+  // Salt is now user-toggleable, so migrate only *adds* newly-flagged seed salt
+  // pools — it never clears a field-set salt flag. Adds new seed residences too.
   function migrate() {
     if ((state.coordsSeedVersion || 0) >= COORDS_SEED) return;
     const S = window.SEED;
@@ -69,7 +69,7 @@ const Store = (() => {
       if (!p) return;
       if (sp.lat != null && p.lat == null) { p.lat = sp.lat; p.lng = sp.lng; }
       p.nonPool = !!sp.nonPool;
-      p.salt = !!sp.salt;
+      if (sp.salt) p.salt = true; // additive — don't clobber a user's toggle
       if (p.salt && !p.electroNote && sp.electroNote) p.electroNote = sp.electroNote;
     });
     S.RESIDENCES.forEach((sr) => {
@@ -309,8 +309,9 @@ const Store = (() => {
   // Full backup: the whole local state PLUS the photos (which live in IndexedDB,
   // not the localStorage blob) as base64. So a single file captures everything —
   // pools, coordinates, readings, visits/treatments, notes, and images.
-  function exportJSON() {
-    const data = { ...load(), photos: (window.Photos ? Photos.all() : []) };
+  function exportJSON(withPhotos = true) {
+    const data = { ...load() };
+    if (withPhotos && window.Photos) data.photos = Photos.all();
     return JSON.stringify(data, null, 2);
   }
   function importJSON(text) {

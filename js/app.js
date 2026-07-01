@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.33'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.34'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -821,6 +821,11 @@
         render();
       });
       actions.appendChild(svcBtn);
+
+      // salt-pool toggle (field-editable; changes the chem model + CYA band)
+      const saltBtn = el(`<button class="btn ${p.salt ? 'done' : ''}">${esc(p.salt ? t('salt_on') : t('salt_off'))}</button>`);
+      saltBtn.addEventListener('click', () => { Store.updatePool(p.id, { salt: !p.salt }); render(); });
+      actions.appendChild(saltBtn);
     }
     wrap.appendChild(actions);
 
@@ -1401,6 +1406,11 @@
     exportBtn.addEventListener('click', () =>
       downloadFile(`lagrange-piscine-backup-${fileStamp()}.json`, Store.exportJSON(), 'application/json'));
 
+    // data-only backup (no photos) — small enough to share/inspect quickly
+    const exportDataBtn = el(`<button class="btn">${esc(t('export_data_btn'))}</button>`);
+    exportDataBtn.addEventListener('click', () =>
+      downloadFile(`lagrange-piscine-data-${fileStamp()}.json`, Store.exportJSON(false), 'application/json'));
+
     const csvReadBtn = el(`<button class="btn">${esc(t('export_csv_readings'))}</button>`);
     csvReadBtn.addEventListener('click', () =>
       downloadFile(`lagrange-piscine-readings-${fileStamp()}.csv`, readingsCsv(), 'text/csv'));
@@ -1439,7 +1449,7 @@
     updateBtn.addEventListener('click', () => { updateBtn.disabled = true; updateBtn.textContent = t('updating'); forceUpdate(); });
 
     const box = el('<div class="settings"></div>');
-    [logBtn, updateBtn, langRow, exportBtn, csvReadBtn, csvNoteBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
+    [logBtn, updateBtn, langRow, exportBtn, exportDataBtn, csvReadBtn, csvNoteBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
     wrap.appendChild(box);
 
     wrap.appendChild(sectionTitle(t('about')));
