@@ -199,6 +199,7 @@ a { color: var(--brand); text-decoration: none; }
   border-radius: 10px; background: #fff; color: var(--ink); width: 100%; }
 .field input:focus { outline: 2px solid var(--brand); border-color: var(--brand); }
 .target-hint { font-size: .78rem; color: var(--muted); margin: 12px 0; }
+.target-hint.tip { margin-top: -6px; font-style: italic; }
 .reading-form .btn.primary { margin-top: 4px; }
 
 /* readings table */

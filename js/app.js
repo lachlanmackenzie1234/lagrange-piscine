@@ -4,9 +4,10 @@
   const { CHEM_RANGES, OCC_STATUS, PRODUCTS, CYA_SALT } = S;
   const productById = (id) => (PRODUCTS || []).find((x) => x.id === id) || null;
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
+  const FC_TEST_MAX = 2; // Lovibond DPD (M110) free-chlorine test reads to 2 mg/L (dilute 50/50 to read higher)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.31'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.32'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -589,7 +590,9 @@
     if (cya != null) {
       const tFC = Chem.targetFC(cya, p.salt), mFC = Chem.minFC(cya, p.salt);
       const cls = fc == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad';
-      rows.appendChild(row(cls, t('chem_target_fc'), tFC, t('chem_target_fc_h', { cya })));
+      // flag when the target is beyond the DPD test's 2 mg/L ceiling (dilute to read)
+      const cibleHint = t('chem_target_fc_h', { cya }) + (tFC > FC_TEST_MAX ? ' · ' + t('fc_over_test') : '');
+      rows.appendChild(row(cls, t('chem_target_fc'), tFC, cibleHint));
       // stabiliser vs recommended band (higher for salt pools)
       const band = Chem.cyaBand(!!p.salt);
       const ccls = cya > 100 ? 'bad' : (cya < band.min || cya > band.max) ? 'warn' : 'ok';
@@ -987,6 +990,7 @@
       <label class="field"><span>${esc(t('f_note'))}</span><input name="note" type="text" placeholder="${esc(t('note_ph'))}"></label>
       <label class="field"><span>${esc(t('f_when'))}</span><input name="at" type="datetime-local"></label>
       <div class="target-hint">${esc(t('targets', tgt))}${p.salt ? ' · ' + esc(t('target_salt', { min: CHEM_RANGES.salt.min, max: CHEM_RANGES.salt.max })) : ''}</div>
+      <div class="target-hint tip">${esc(t('cya_test_tip'))}</div>
       <button class="btn primary" type="submit">${esc(t('save_reading'))}</button>
     </form>`);
     f.addEventListener('submit', (e) => {
