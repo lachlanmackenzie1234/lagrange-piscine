@@ -49,6 +49,7 @@ const Store = (() => {
       visits: [],   // maintenance visits / checks
       notes: [],    // chronological notes / to-dos (the "preventive layer")
       coordsSeedVersion: COORDS_SEED,
+      occSeedVersion: OCC_SEED,
       createdAt: new Date().toISOString(),
     };
   }
@@ -56,14 +57,37 @@ const Store = (() => {
   // Bump when seed coordinates / classifications change; migrate() reconciles
   // existing installs.
   const COORDS_SEED = 6;
+  // Bump when the OCCUPANCY seed changes (prolongations, new reservations, …).
+  // Occupancy is static reference data with no in-app editor, so migrate just
+  // rebuilds it from the seed — the seed is the single source of truth.
+  const OCC_SEED = 2;
+
+  function occRecords() {
+    return window.SEED.OCCUPANCY.map((o, i) => ({
+      id: `occ-${i}`,
+      poolId: poolId(o.res, o.unit),
+      week: o.week,
+      name: o.name || '',
+      arrival: o.arrival || '',
+      departure: o.departure || '',
+      status: o.status || 'empty',
+      note: o.note || '',
+    }));
+  }
 
   // Back-fill seed coordinates (only where the user hasn't set their own — never
   // overwrites a captured GPS) and sync the nonPool classification from seed.
   // Salt is now user-toggleable, so migrate only *adds* newly-flagged seed salt
   // pools — it never clears a field-set salt flag. Adds new seed residences too.
   function migrate() {
-    if ((state.coordsSeedVersion || 0) >= COORDS_SEED) return;
     const S = window.SEED;
+    // occupancy: rebuild from seed on version bump (reflects the paper list)
+    if ((state.occSeedVersion || 0) < OCC_SEED) {
+      state.occupancy = occRecords();
+      state.occSeedVersion = OCC_SEED;
+      save();
+    }
+    if ((state.coordsSeedVersion || 0) >= COORDS_SEED) return;
     S.POOLS.forEach((sp) => {
       const p = state.pools.find((x) => x.id === poolId(sp.res, sp.unit));
       if (!p) return;

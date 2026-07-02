@@ -187,6 +187,8 @@ const OCCUPANCY = [
   { res: 'EP', unit: '19B/90', week: SAT.jul04, status: 'backup' },
   { res: 'EP', unit: '27B/94', week: SAT.jul04, name: 'BRAY',   arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving' },
   { res: 'EP', unit: '40B/52', week: SAT.jul04, name: 'LECERF', departure: '2026-07-11', status: 'occupied' },
+  { res: 'EP', unit: '31B/96', week: SAT.jul04, name: 'TOMAS',  departure: '2026-07-08', status: 'occupied', note: 'prolongation' },
+  { res: 'EP', unit: '52B/46', week: SAT.jul04, name: 'VIEIRA', arrival: '2026-07-06', departure: '2026-07-13', status: 'arriving', note: 'nouvelle résa (lun.)' },
   { res: 'EP', unit: '6E/99',  week: SAT.jul04, name: 'ACX',    departure: '2026-07-11', status: 'occupied' },
   { res: 'EPP', unit: '3',  week: SAT.jul04, name: 'CHEVREL',   arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving', note: 'CE LINÉAIRE' },
   { res: 'EPP', unit: '11', week: SAT.jul04, name: 'FERMÉE',    departure: '2026-07-11', status: 'closed' },
