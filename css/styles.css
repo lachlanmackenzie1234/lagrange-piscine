@@ -328,6 +328,26 @@ details.measure .reading-form { margin: 0; }
 .photo-hero.empty .hero-cam { background: var(--muted); }
 .back-slim { display: inline-block; margin: 0 0 8px; }
 
+/* planning edit — tappable rows + add + modal */
+.sched-row.edit { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 8px;
+  background: none; border: none; border-top: 1px solid var(--line); padding: 9px 2px; cursor: pointer;
+  text-align: left; font: inherit; color: var(--ink); }
+.sched-row.edit:active { background: var(--na-bg); }
+.sched-add { width: 100%; background: none; border: 1px dashed var(--line); border-radius: 8px;
+  padding: 8px; margin-top: 8px; color: var(--brand); font-weight: 600; cursor: pointer; }
+.occ-modal-ov { position: fixed; inset: 0; z-index: 60; background: rgba(8,16,24,.5);
+  display: flex; align-items: center; justify-content: center; padding: 16px; }
+.occ-modal { background: var(--bg); border-radius: 16px; width: 100%; max-width: 440px; max-height: 88vh;
+  overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.occ-modal-head { display: flex; align-items: center; justify-content: space-between; }
+.occ-modal-head strong { color: var(--title); font-size: 1.1rem; }
+.occ-x { background: var(--na-bg); border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; color: var(--ink); flex: 0 0 auto; }
+.occ-unit-label { margin: 0; font-weight: 700; color: var(--title); }
+.occ-modal .field input, .occ-modal .field select { font-size: 1rem; padding: 9px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); width: 100%; }
+.occ-modal .btn.primary { margin-top: 4px; }
+.occ-modal .btn.danger { background: none; }
+
 /* planning-sheet photos (schedule view) — two taller slots side by side */
 .plan-photos { display: flex; gap: 10px; margin: 0 0 var(--s2); }
 .plan-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }

@@ -46,6 +46,9 @@ const I18n = (() => {
 
       schedule_title: 'Schedule', schedule_sub: 'Saturday turnover cycle',
       plan_photos: 'Planning sheets', plan_wk1: 'This week', plan_wk2: 'Next week',
+      occ_add: 'add', occ_new: 'New entry', occ_edit: 'Edit entry', occ_unit: 'Unit',
+      occ_name: 'Name', occ_arrival: 'Arrival', occ_departure: 'Departure', occ_status: 'Status',
+      occ_note: 'Remark', occ_save: 'Save', occ_delete: 'Delete', occ_del_confirm: 'Delete this entry?',
       this_week: 'this week', sched_counts: '{n} active · {m} arriving',
 
       map_title: 'Map', map_sub: 'Open residences in Google Maps',
@@ -263,6 +266,9 @@ const I18n = (() => {
 
       schedule_title: 'Planning', schedule_sub: 'Cycle de rotation du samedi',
       plan_photos: 'Feuilles de planning', plan_wk1: 'Cette semaine', plan_wk2: 'Semaine suivante',
+      occ_add: 'ajouter', occ_new: 'Nouvelle entrée', occ_edit: 'Modifier l’entrée', occ_unit: 'Logement',
+      occ_name: 'Nom', occ_arrival: 'Arrivée', occ_departure: 'Départ', occ_status: 'État',
+      occ_note: 'Remarque', occ_save: 'Enregistrer', occ_delete: 'Supprimer', occ_del_confirm: 'Supprimer cette entrée ?',
       this_week: 'cette semaine', sched_counts: '{n} actives · {m} arrivées',
 
       map_title: 'Carte', map_sub: 'Ouvrir les résidences dans Google Maps',

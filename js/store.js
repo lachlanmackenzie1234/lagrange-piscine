@@ -30,16 +30,7 @@ const Store = (() => {
       lat: p.lat ?? null,
       lng: p.lng ?? null,
     }));
-    const occupancy = S.OCCUPANCY.map((o, i) => ({
-      id: `occ-${i}`,
-      poolId: poolId(o.res, o.unit),
-      week: o.week,
-      name: o.name || '',
-      arrival: o.arrival || '',
-      departure: o.departure || '',
-      status: o.status || 'empty',
-      note: o.note || '',
-    }));
+    const occupancy = occRecords();
     return {
       schema: SCHEMA,
       residences: S.RESIDENCES.map((r) => ({ ...r })),
@@ -58,8 +49,8 @@ const Store = (() => {
   // existing installs.
   const COORDS_SEED = 6;
   // Bump when the OCCUPANCY seed changes (prolongations, new reservations, …).
-  // Occupancy is static reference data with no in-app editor, so migrate just
-  // rebuilds it from the seed — the seed is the single source of truth.
+  // migrate() refreshes the seed rows but PRESERVES any the operator has edited
+  // or added (source:'user') so a seed update never clobbers a hand edit.
   const OCC_SEED = 2;
 
   function occRecords() {
@@ -72,6 +63,7 @@ const Store = (() => {
       departure: o.departure || '',
       status: o.status || 'empty',
       note: o.note || '',
+      source: 'seed',
     }));
   }
 
@@ -81,9 +73,12 @@ const Store = (() => {
   // pools — it never clears a field-set salt flag. Adds new seed residences too.
   function migrate() {
     const S = window.SEED;
-    // occupancy: rebuild from seed on version bump (reflects the paper list)
+    // occupancy: refresh the seed rows on version bump, but keep the operator's
+    // own edits/additions (source:'user'), which override the matching cell.
     if ((state.occSeedVersion || 0) < OCC_SEED) {
-      state.occupancy = occRecords();
+      const userRows = (state.occupancy || []).filter((o) => o.source === 'user');
+      const userKeys = new Set(userRows.map((o) => `${o.poolId}|${o.week}`));
+      state.occupancy = occRecords().filter((o) => !userKeys.has(`${o.poolId}|${o.week}`)).concat(userRows);
       state.occSeedVersion = OCC_SEED;
       save();
     }
@@ -141,11 +136,11 @@ const Store = (() => {
   const latestReading = (poolId) => readingsFor(poolId)[0] || null;
 
   const occupancyFor = (poolId) =>
-    load().occupancy.filter((o) => o.poolId === poolId).sort((a, b) => a.week.localeCompare(b.week));
-  const occupancyForWeek = (week) => load().occupancy.filter((o) => o.week === week);
+    load().occupancy.filter((o) => o.poolId === poolId && !o.deleted).sort((a, b) => a.week.localeCompare(b.week));
+  const occupancyForWeek = (week) => load().occupancy.filter((o) => o.week === week && !o.deleted);
 
   function weeks() {
-    const set = new Set(load().occupancy.map((o) => o.week));
+    const set = new Set(load().occupancy.filter((o) => !o.deleted).map((o) => o.week));
     return [...set].sort();
   }
 
@@ -323,6 +318,43 @@ const Store = (() => {
     if (p) { Object.assign(p, fields); save(); }
   }
 
+  // ---- occupancy edits (operator-maintained planning) ----
+  // Any edit/add/delete tags the row source:'user' so migrate() preserves it.
+  function updateOccupancy(id, patch) {
+    const o = load().occupancy.find((x) => x.id === id);
+    if (o) { Object.assign(o, patch, { source: 'user' }); save(); mirror((s) => s.pushOccupancy(o)); }
+    return o;
+  }
+  function addOccupancy(entry) {
+    const rec = {
+      id: `occ-u-${Date.now()}-${Math.floor(performance.now())}`,
+      poolId: entry.poolId, week: entry.week,
+      name: entry.name || '', arrival: entry.arrival || '', departure: entry.departure || '',
+      status: entry.status || 'occupied', note: entry.note || '', source: 'user',
+    };
+    load().occupancy.push(rec);
+    save();
+    mirror((s) => s.pushOccupancy(rec));
+    return rec;
+  }
+  function deleteOccupancy(id) {
+    const o = load().occupancy.find((x) => x.id === id);
+    if (!o) return;
+    // soft-delete (tombstone) + source:'user' so the removal survives a re-seed
+    o.deleted = true; o.deletedAt = new Date().toISOString(); o.source = 'user';
+    save();
+    mirror((s) => s.pushOccupancy(o));
+  }
+  function applyRemoteOccupancy(rec) {
+    const i = load().occupancy.findIndex((o) => o.id === rec.id);
+    if (i >= 0) state.occupancy[i] = rec; else state.occupancy.push(rec);
+    save();
+  }
+  function applyRemoteOccupancyRemoved(id) {
+    state.occupancy = load().occupancy.filter((o) => o.id !== id);
+    save();
+  }
+
   function updatePool(id, patch) {
     const p = pool(id);
     if (p) { Object.assign(p, patch); save(); mirror((s) => s.pushPool(id, patch)); }
@@ -373,9 +405,11 @@ const Store = (() => {
     addTreatment, treatmentsFor, lastTreatment,
     addNote, notes, notesFor, openTodos, setNoteDone, updateNote, deleteNote,
     updatePool, updateResidence,
+    updateOccupancy, addOccupancy, deleteOccupancy,
     applyRemoteReading, applyRemoteReadingRemoved,
     applyRemoteVisit, applyRemoteVisitRemoved, applyRemotePool,
     applyRemoteNote, applyRemoteNoteRemoved,
+    applyRemoteOccupancy, applyRemoteOccupancyRemoved,
     exportJSON, importJSON, resetToSeed,
   };
 })();

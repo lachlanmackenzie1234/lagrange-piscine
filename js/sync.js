@@ -60,6 +60,8 @@ const Sync = (() => {
       () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('notes'), (s) => applyLog(s, 'note'),
       () => setStatus('error')));
+    unsubs.push(fsM.onSnapshot(col('occupancy'), (s) => applyLog(s, 'occupancy'),
+      () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('pools'), applyPools, () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('photos'), applyPhotos, () => setStatus('error')));
   }
@@ -76,6 +78,7 @@ const Sync = (() => {
     reading: { put: (r) => Store.applyRemoteReading(r), del: (id) => Store.applyRemoteReadingRemoved(id) },
     visit: { put: (r) => Store.applyRemoteVisit(r), del: (id) => Store.applyRemoteVisitRemoved(id) },
     note: { put: (r) => Store.applyRemoteNote(r), del: (id) => Store.applyRemoteNoteRemoved(id) },
+    occupancy: { put: (r) => Store.applyRemoteOccupancy(r), del: (id) => Store.applyRemoteOccupancyRemoved(id) },
   };
   function applyLog(snap, kind) {
     const a = APPLY[kind];
@@ -102,6 +105,10 @@ const Sync = (() => {
     st.readings.forEach((r) => jobs.push(fsM.setDoc(ref('readings', r.id), stripId(r), { merge: true })));
     st.visits.forEach((v) => jobs.push(fsM.setDoc(ref('visits', v.id), stripId(v), { merge: true })));
     (st.notes || []).forEach((n) => jobs.push(fsM.setDoc(ref('notes', n.id), stripId(n), { merge: true })));
+    // only the operator's own occupancy edits sync — seed rows are identical on
+    // both devices, so there's no need to ship all 39 of them
+    (st.occupancy || []).filter((o) => o.source === 'user').forEach((o) =>
+      jobs.push(fsM.setDoc(ref('occupancy', o.id), stripId(o), { merge: true })));
     st.pools.filter((p) => p.lat != null).forEach((p) =>
       jobs.push(fsM.setDoc(ref('pools', p.id), { lat: p.lat, lng: p.lng, note: p.note || '' }, { merge: true })));
     await Promise.all(jobs);
@@ -178,6 +185,7 @@ const Sync = (() => {
   const removeNote = (id) => active && fb && fb.fsM.deleteDoc(ref('notes', id)).catch(() => {});
   const pushPhoto = (rec) => active && fb && fb.fsM.setDoc(ref('photos', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removePhoto = (id) => active && fb && fb.fsM.deleteDoc(ref('photos', id)).catch(() => {});
+  const pushOccupancy = (rec) => active && fb && fb.fsM.setDoc(ref('occupancy', rec.id), stripId(rec), { merge: true }).catch(() => {});
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
@@ -193,7 +201,7 @@ const Sync = (() => {
 
   return {
     enable, disable, maybeAutoStart,
-    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool,
+    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushOccupancy,
     get active() { return active; },
     get status() { return status; },
     get team() { return team; },

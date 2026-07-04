@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.50'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.51'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1357,6 +1357,55 @@
   }
 
   // ---------- view: SCHEDULE ----------
+  // Edit / add a planning entry for a week. o = existing occupancy row (edit)
+  // or null (add, ctx.res = residence code). Clobber-safe + synced via the store.
+  function openOccModal(o, ctx) {
+    const isNew = !o;
+    const week = ctx.week;
+    const ov = el('<div class="occ-modal-ov"></div>');
+    const card = el('<div class="occ-modal"></div>');
+    card.appendChild(el(`<div class="occ-modal-head"><strong>${esc(isNew ? t('occ_new') : t('occ_edit'))}</strong><button class="occ-x" aria-label="close">✕</button></div>`));
+    let poolSel = null;
+    if (isNew) {
+      const opts = Store.poolsByRes(ctx.res).map((p) => `<option value="${p.id}">${esc(p.unit)}</option>`).join('');
+      poolSel = el(`<label class="field"><span>${esc(t('occ_unit'))}</span><select>${opts}</select></label>`);
+      card.appendChild(poolSel);
+    } else {
+      const p = Store.pool(o.poolId);
+      card.appendChild(el(`<p class="occ-unit-label">${esc(p ? poolTitle(p) : o.poolId)} · ${esc(fmtDate(week))}</p>`));
+    }
+    const fName = el(`<label class="field"><span>${esc(t('occ_name'))}</span><input type="text" value="${o ? esc(o.name) : ''}"></label>`);
+    const fArr = el(`<label class="field"><span>${esc(t('occ_arrival'))}</span><input type="date" value="${o ? esc(o.arrival) : ''}"></label>`);
+    const fDep = el(`<label class="field"><span>${esc(t('occ_departure'))}</span><input type="date" value="${o ? esc(o.departure) : ''}"></label>`);
+    const statusOpts = Object.keys(OCC_STATUS).map((k) => `<option value="${k}"${o && o.status === k ? ' selected' : ''}>${esc(t('st_' + k))}</option>`).join('');
+    const fStatus = el(`<label class="field"><span>${esc(t('occ_status'))}</span><select>${statusOpts}</select></label>`);
+    const fNote = el(`<label class="field"><span>${esc(t('occ_note'))}</span><input type="text" value="${o ? esc(o.note) : ''}"></label>`);
+    [fName, fArr, fDep, fStatus, fNote].forEach((f) => card.appendChild(f));
+    const saveBtn = el(`<button class="btn primary">${esc(t('occ_save'))}</button>`);
+    saveBtn.addEventListener('click', () => {
+      const patch = {
+        name: fName.querySelector('input').value.trim(),
+        arrival: fArr.querySelector('input').value,
+        departure: fDep.querySelector('input').value,
+        status: fStatus.querySelector('select').value,
+        note: fNote.querySelector('input').value.trim(),
+      };
+      if (isNew) { if (poolSel.querySelector('select').value) Store.addOccupancy({ poolId: poolSel.querySelector('select').value, week, ...patch }); }
+      else Store.updateOccupancy(o.id, patch);
+      ov.remove(); render();
+    });
+    card.appendChild(saveBtn);
+    if (!isNew) {
+      const del = el(`<button class="btn danger">${esc(t('occ_delete'))}</button>`);
+      del.addEventListener('click', () => { if (confirm(t('occ_del_confirm'))) { Store.deleteOccupancy(o.id); ov.remove(); render(); } });
+      card.appendChild(del);
+    }
+    ov.appendChild(card);
+    ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+    card.querySelector('.occ-x').addEventListener('click', () => ov.remove());
+    document.body.appendChild(ov);
+  }
+
   // The two planning-sheet photos (this week + next), pinned at the top so the
   // current paper roster lives in the app and syncs to Dorian. Tap to view full.
   function planningPhotos() {
@@ -1395,13 +1444,19 @@
       const cards = el('<div class="cards"></div>');
       Store.residences().forEach((res) => {
         const items = occ.filter((o) => Store.pool(o.poolId)?.res === res.code);
-        if (!items.length) return;
-        const rows = items.map((o) => {
+        if (!items.length && !Store.poolsByRes(res.code).length) return;
+        const card = el(`<div class="card"><div class="card-row"><strong>${esc(res.name)}</strong></div></div>`);
+        items.forEach((o) => {
           const p = Store.pool(o.poolId);
-          return `<div class="sched-row"><span>${esc(p ? p.unit : o.poolId)} ${statusChip(o.status)}</span>
-            <span class="muted">${o.name ? esc(o.name) : ''}</span></div>`;
-        }).join('');
-        cards.appendChild(el(`<div class="card"><div class="card-row"><strong>${esc(res.name)}</strong></div>${rows}</div>`));
+          const row = el(`<button class="sched-row edit"><span>${esc(p ? p.unit : o.poolId)} ${statusChip(o.status)}</span>
+            <span class="muted">${o.name ? esc(o.name) : ''}${o.departure ? ' · → ' + esc(fmtDate(o.departure)) : ''}${o.note ? ' · ' + esc(o.note) : ''}</span></button>`);
+          row.addEventListener('click', () => openOccModal(o, { poolId: o.poolId, week }));
+          card.appendChild(row);
+        });
+        const add = el(`<button class="sched-add">＋ ${esc(t('occ_add'))}</button>`);
+        add.addEventListener('click', () => openOccModal(null, { res: res.code, week }));
+        card.appendChild(add);
+        cards.appendChild(card);
       });
       wrap.appendChild(cards);
     });
