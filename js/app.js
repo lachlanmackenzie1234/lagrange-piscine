@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.47'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.48'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -674,7 +674,7 @@
     const fc = r.chlorine, ph = r.ph, cya = r.stabilizer, R = CHEM_RANGES.ph;
     // after a dose, don't advise another correction — retest first (below shows
     // only the maintenance feed). The next-check row flags "traité — à revérifier".
-    if (treated) { out.push(maintenanceLine(p)); return out; }
+    if (treated) { out.push(maintenanceLine(p, cya)); return out; }
     // pH correction — one label-standard step at a time (never the full gap, to
     // avoid the over-shoot that crashed EPP-7). Shows step size + rounds to target.
     if (ph != null && ph > R.max) {
@@ -686,30 +686,37 @@
       const steps = Math.max(1, Math.ceil((R.min - ph) / (pr.raisePh || 0.1) - 1e-6));
       out.push({ cls: 'warn', k: t('dose_phplus'), v: `~${Math.round(pr.dosePerM3 * V)} g`, h: t('dose_phplus_h', { rise: pr.raisePh || 0.1, n: steps, target: R.min }) });
     }
-    // chlorine correction — fast choc (grams), with the slow stick equivalent
+    // chlorine correction — the fast, non-stabilised choc (reacts before the
+    // galets trickle, so choc + slow-release is fine). No stick equivalent here:
+    // the maintenance line already carries the one slow-release feed.
     if (fc != null) {
       const delta = Chem.targetFC(cya, p.salt) - fc;
       if (delta > 0.2) {
-        const choc = productById('hypomen-pro'), stick = productById('hth-stick');
-        const nStick = Math.max(1, Math.round((V * delta) / (stick.active * stick.grammage)));
-        out.push({ cls: fc < 0.5 ? 'bad' : '', k: t('dose_choc'), v: `~${Math.round((V * delta) / choc.active)} g`, h: t('dose_choc_h', { d: delta.toFixed(1), n: nStick }) });
+        const choc = productById('hypomen-pro');
+        out.push({ cls: fc < 0.5 ? 'bad' : '', k: t('dose_choc'), v: `~${Math.round((V * delta) / choc.active)} g`, h: t('dose_choc_h', { d: delta.toFixed(1) }) });
       }
     }
-    // stabiliser build — only when CYA is well under the band (in-season the
-    // galets top it up; the powder is the winter→spring / direct option).
-    const band = Chem.cyaBand(!!p.salt);
-    if (cya != null && cya < band.min - 10) {
-      const dCya = Math.round(band.min - cya);
-      const stab = productById('mareva-cya');
-      out.push({ cls: 'warn', k: t('dose_stab'), v: `~${Math.round(dCya * V * (stab.ratePerPpmM3 || 1))} g`, h: t('dose_stab_h', { d: dCya, target: band.min }) });
-    }
-    out.push(maintenanceLine(p));
+    // No standalone stabiliser-powder dump: in-season the galets trickle CYA up
+    // (see maintenanceLine), so we don't stack 1+ kg of powder on top. The mini
+    // bars still flag low CYA; the powder stays the operator's winter→spring call.
+    out.push(maintenanceLine(p, cya));
     return out;
   }
-  // slow-release maintenance feed for a pool's volume (reference line)
-  function maintenanceLine(p) {
+  // The single slow-release maintenance feed for a pool, chosen by CYA so the two
+  // are never recommended together: galets when CYA is under band (they trickle
+  // CYA up while chlorinating), sticks when CYA is already in band (chlorine with
+  // no added CYA).
+  function maintenanceLine(p, cya) {
+    const band = Chem.cyaBand(!!p.salt);
     const galet = productById('hth-galet'), stick = productById('hth-stick');
-    return { cls: '', k: t('dose_maint'), v: `${Math.max(1, Math.round(p.volM3 / galet.coverM3))} galet · ${Math.max(1, Math.round(p.volM3 / stick.coverM3))} stick`, h: t('dose_maint_h', { gd: galet.days, sd: stick.days }) };
+    const useGalet = cya == null || cya < band.min;
+    const prod = useGalet ? galet : stick;
+    const n = Math.max(1, Math.round(p.volM3 / prod.coverM3));
+    const unit = useGalet ? 'galet' : 'stick';
+    return {
+      cls: '', k: t('dose_maint'), v: `~${n} ${unit}${n > 1 ? 's' : ''}`,
+      h: useGalet ? t('dose_maint_galet_h', { d: galet.days }) : t('dose_maint_stick_h', { d: stick.days }),
+    };
   }
 
   function chemPanel(p, withTitle = true) {
