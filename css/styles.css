@@ -328,6 +328,13 @@ details.measure .reading-form { margin: 0; }
 .photo-hero.empty .hero-cam { background: var(--muted); }
 .back-slim { display: inline-block; margin: 0 0 8px; }
 
+/* planning-sheet photos (schedule view) — two taller slots side by side */
+.plan-photos { display: flex; gap: 10px; margin: 0 0 var(--s2); }
+.plan-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.plan-slot .thumb { width: 100%; height: 200px; }
+.plan-slot .thumb img { object-fit: cover; }
+.plan-slot .ref-add { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center;
+  border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 1.2rem; cursor: pointer; background: var(--card); }
 .ref-photos { display: flex; gap: 10px; }
 .ref-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .ref-label { font-size: .72rem; color: var(--muted); }

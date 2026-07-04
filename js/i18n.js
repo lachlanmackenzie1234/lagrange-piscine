@@ -45,6 +45,7 @@ const I18n = (() => {
       confirm_del: 'Delete this reading?', pool_not_found: 'Pool not found',
 
       schedule_title: 'Schedule', schedule_sub: 'Saturday turnover cycle',
+      plan_photos: 'Planning sheets', plan_wk1: 'This week', plan_wk2: 'Next week',
       this_week: 'this week', sched_counts: '{n} active · {m} arriving',
 
       map_title: 'Map', map_sub: 'Open residences in Google Maps',
@@ -261,6 +262,7 @@ const I18n = (() => {
       confirm_del: 'Supprimer cette mesure ?', pool_not_found: 'Piscine introuvable',
 
       schedule_title: 'Planning', schedule_sub: 'Cycle de rotation du samedi',
+      plan_photos: 'Feuilles de planning', plan_wk1: 'Cette semaine', plan_wk2: 'Semaine suivante',
       this_week: 'cette semaine', sched_counts: '{n} actives · {m} arrivées',
 
       map_title: 'Carte', map_sub: 'Ouvrir les résidences dans Google Maps',

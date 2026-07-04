@@ -98,7 +98,11 @@ const Photos = (() => {
 
   async function add(meta, file) {
     if (!db) await init();
-    const [dataUrl, exif] = await Promise.all([compress(file), exifTime(file)]);
+    // planning sheets need higher resolution so the small handwriting stays
+    // legible when zoomed; still well under Firestore's 1 MB doc limit.
+    const maxEdge = meta.hires ? 1800 : 1024;
+    const quality = meta.hires ? 0.6 : 0.5;
+    const [dataUrl, exif] = await Promise.all([compress(file, maxEdge, quality), exifTime(file)]);
     const rec = {
       id: `ph-${Date.now()}-${Math.floor(performance.now())}`,
       poolId: meta.poolId || '',

@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.49'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.50'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1243,10 +1243,11 @@
 
   // Rough size classes to seed a volume before it's measured (m). Refined by
   // measuring; flagged volEst=true until then.
+  // Re-measured in the field (2026): depth runs shallow→deep 0.8→1.6/1.7 m.
   const POOL_PRESETS = {
-    small:  { l: 8,  w: 4, dmin: 1.2, dmax: 1.5 },   // ≈ 43 m³
-    medium: { l: 10, w: 5, dmin: 1.2, dmax: 2.0 },   // ≈ 80 m³
-    large:  { l: 12, w: 6, dmin: 1.2, dmax: 2.2 },   // ≈ 122 m³
+    small:  { l: 8,  w: 4, dmin: 0.8, dmax: 1.6 },   // 4×8×1.2  ≈ 38 m³
+    medium: { l: 10, w: 5, dmin: 0.8, dmax: 1.7 },   // 5×10×1.25 ≈ 63 m³
+    large:  { l: 12, w: 6, dmin: 0.8, dmax: 1.7 },   // 6×12×1.25 ≈ 90 m³
   };
   const presetVol = (d) => Math.round(d.l * d.w * ((d.dmin + d.dmax) / 2) * 10) / 10;
 
@@ -1356,9 +1357,34 @@
   }
 
   // ---------- view: SCHEDULE ----------
+  // The two planning-sheet photos (this week + next), pinned at the top so the
+  // current paper roster lives in the app and syncs to Dorian. Tap to view full.
+  function planningPhotos() {
+    const wrap = el('<div class="plan-photos"></div>');
+    [['wk1', t('plan_wk1')], ['wk2', t('plan_wk2')]].forEach(([key, label]) => {
+      const slot = el(`<div class="plan-slot"><span class="ref-label">${esc(label)}</span></div>`);
+      const existing = window.Photos ? Photos.poolRef('_planning', key) : null;
+      if (existing) {
+        slot.appendChild(photoThumb(existing));
+      } else {
+        const lab = el(`<label class="ref-add">${esc(t('add_photo'))}<input type="file" accept="image/*" hidden></label>`);
+        lab.querySelector('input').addEventListener('change', async (e) => {
+          const file = e.target.files[0]; if (!file) return;
+          try { await Photos.add({ poolId: '_planning', label: key, hires: true }, file); } catch (_) {}
+          render();
+        });
+        slot.appendChild(lab);
+      }
+      wrap.appendChild(slot);
+    });
+    return wrap;
+  }
+
   function viewSchedule() {
     const wrap = document.createElement('div');
     wrap.appendChild(header(t('schedule_title'), t('schedule_sub')));
+    wrap.appendChild(sectionTitle(t('plan_photos')));
+    wrap.appendChild(planningPhotos());
     const cw = currentWeek();
     Store.weeks().forEach((week) => {
       const occ = Store.occupancyForWeek(week);
