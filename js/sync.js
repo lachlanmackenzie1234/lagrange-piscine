@@ -27,6 +27,7 @@ const Sync = (() => {
   const SDK = '10.12.5';
   const LS_TEAM = 'lagrange-piscine.team';
   const LS_ON = 'lagrange-piscine.sync';
+  const LS_PHOTOS = 'lagrange-piscine.photosPushed.'; // + team → '1' once fully pushed
 
   let fb = null;          // loaded SDK + instances
   let active = false;
@@ -92,17 +93,35 @@ const Sync = (() => {
     window.dispatchEvent(new CustomEvent('lp-data-changed'));
   }
 
-  async function pushAllLocal() {
+  // Small data — cheap to re-push every enable (catches up anything created
+  // while sync was off). Idempotent via merge; keyed by id → conflict-free.
+  async function pushData() {
     const { fsM } = fb;
     const st = Store.load();
     const jobs = [];
     st.readings.forEach((r) => jobs.push(fsM.setDoc(ref('readings', r.id), stripId(r), { merge: true })));
     st.visits.forEach((v) => jobs.push(fsM.setDoc(ref('visits', v.id), stripId(v), { merge: true })));
     (st.notes || []).forEach((n) => jobs.push(fsM.setDoc(ref('notes', n.id), stripId(n), { merge: true })));
-    (window.Photos ? Photos.all() : []).forEach((ph) => jobs.push(fsM.setDoc(ref('photos', ph.id), stripId(ph), { merge: true })));
     st.pools.filter((p) => p.lat != null).forEach((p) =>
       jobs.push(fsM.setDoc(ref('pools', p.id), { lat: p.lat, lng: p.lng, note: p.note || '' }, { merge: true })));
     await Promise.all(jobs);
+  }
+
+  // Photos are the heavy part (base64 ~50–150 KB each). Re-uploading the whole
+  // set every session saturated the connection and lagged the live data sync.
+  // So the full-weight push runs ONCE per team per device; after that only the
+  // light delete-tombstones (dataUrl dropped) re-push so deletions still
+  // propagate. New photos ride the live pushPhoto hook. Runs in the background
+  // (not awaited) so it never blocks the data sync or the "online" status.
+  async function pushPhotos() {
+    if (!window.Photos) return;
+    const done = localStorage.getItem(LS_PHOTOS + team) === '1';
+    const jobs = [];
+    Photos.all().forEach((ph) => {
+      if (!done || ph.deleted) jobs.push(fb.fsM.setDoc(ref('photos', ph.id), stripId(ph), { merge: true }).catch(() => {}));
+    });
+    await Promise.all(jobs);
+    if (!done) localStorage.setItem(LS_PHOTOS + team, '1');
   }
 
   function trackConnectivity() {
@@ -130,9 +149,10 @@ const Sync = (() => {
         trackConnectivity();
       }
       attach();
-      await pushAllLocal();
+      await pushData();            // small + fast — report online once data is up
       active = true;
       setStatus(navigator.onLine ? 'online' : 'offline');
+      pushPhotos();                // heavy, once per device, in the background
     } catch (e) {
       console.warn('Team Sync failed to start:', e);
       active = false;
