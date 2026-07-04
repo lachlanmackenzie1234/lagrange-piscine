@@ -201,6 +201,24 @@ const OCCUPANCY = [
   { res: 'HO', unit: '28',  week: SAT.jul04, name: 'FORGAC',  arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving' },
   { res: 'HO', unit: '40',  week: SAT.jul04, name: 'DURAND',  arrival: '2026-07-04', departure: '2026-07-18', status: 'arriving' },
   { res: 'HO', unit: '187', week: SAT.jul04, name: 'SHARAPOVA', departure: '2026-07-05', status: 'occupied' },
+
+  // ---- Week of Sat 11-Jul (sheet 3) — jul-04 turnover done; extensions kept ----
+  { res: 'EC', unit: '22', week: SAT.jul11, name: 'AVIS',   arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
+  { res: 'AG', unit: '7',  week: SAT.jul11, name: 'MEYLAN', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
+  { res: 'EP', unit: '6B/75',  week: SAT.jul11, name: 'THABUY',   departure: '2026-07-18', status: 'occupied' },
+  { res: 'EP', unit: '19B/90', week: SAT.jul11, name: 'TORDJMAN', arrival: '2026-07-11', departure: '2026-07-25', status: 'arriving' },
+  { res: 'EP', unit: '30B/63', week: SAT.jul11, name: 'GEORGES',  arrival: '2026-07-11', departure: '2026-08-01', status: 'arriving', note: 'prolongation → 01-août' },
+  { res: 'EP', unit: '52B/46', week: SAT.jul11, name: 'VIEIRA',   departure: '2026-07-13', status: 'occupied' },
+  { res: 'EPP', unit: '3',  week: SAT.jul11, name: 'TOURE',  arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving', note: 'CE LINÉAIRE' },
+  { res: 'EPP', unit: '7',  week: SAT.jul11, name: 'WONG',   arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving', note: 'CE LINÉAIRE' },
+  { res: 'EPP', unit: '11', week: SAT.jul11, name: 'JEAMET', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
+  { res: 'GP', unit: '18', week: SAT.jul11, name: 'GUERIN', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
+  { res: 'HO', unit: '31',  week: SAT.jul11, arrival: '2026-07-11', status: 'arriving' },
+  { res: 'HO', unit: '28',  week: SAT.jul11, name: 'DURAND', departure: '2026-07-18', status: 'occupied' },
+  { res: 'HO', unit: '40',  week: SAT.jul11, name: 'ASLAN',  arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
+  { res: 'HO', unit: '187', week: SAT.jul11, name: 'SCHWEIZER',  arrival: '2026-07-11', departure: '2026-07-25', status: 'arriving' },
+  { res: 'HO', unit: '222', week: SAT.jul11, name: 'REGNAUD',    arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving', note: 'arrive le 12/07' },
+  { res: 'HO', unit: '229', week: SAT.jul11, name: 'DJORDJEVIC', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
 ];
 
 window.SEED = { CHEM_RANGES, CYA_SALT, PRODUCTS, OCC_STATUS, RESIDENCES, POOLS, OCCUPANCY, SAT };

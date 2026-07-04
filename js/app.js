@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.51'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.52'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1435,7 +1435,14 @@
     wrap.appendChild(sectionTitle(t('plan_photos')));
     wrap.appendChild(planningPhotos());
     const cw = currentWeek();
-    Store.weeks().forEach((week) => {
+    // Shift the view forward: drop weeks whose turnover cycle has fully ended
+    // (last day < today), so the schedule stays on the active + upcoming weeks.
+    const today = todayISO();
+    const activeWeeks = Store.weeks().filter((week) => {
+      const end = new Date(week + 'T00:00:00'); end.setDate(end.getDate() + 6);
+      return end.toISOString().slice(0, 10) >= today;
+    });
+    (activeWeeks.length ? activeWeeks : Store.weeks().slice(-1)).forEach((week) => {
       const occ = Store.occupancyForWeek(week);
       const arr = occ.filter((o) => o.status === 'arriving').length;
       wrap.appendChild(el(`<div class="section-title">

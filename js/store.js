@@ -51,7 +51,7 @@ const Store = (() => {
   // Bump when the OCCUPANCY seed changes (prolongations, new reservations, …).
   // migrate() refreshes the seed rows but PRESERVES any the operator has edited
   // or added (source:'user') so a seed update never clobbers a hand edit.
-  const OCC_SEED = 2;
+  const OCC_SEED = 3;
 
   function occRecords() {
     return window.SEED.OCCUPANCY.map((o, i) => ({
