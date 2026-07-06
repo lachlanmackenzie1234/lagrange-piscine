@@ -26,6 +26,10 @@
   </nav>
 
   <script src="js/i18n.js"></script>
+  <!-- Private renter roster (gitignored, not deployed). Absent on the public
+       site → seed.js falls back to an empty roster; a benign 404 here is
+       expected. The live roster persists in localStorage + Team Sync. -->
+  <script src="js/seed.private.js"></script>
   <script src="js/seed.js"></script>
   <script src="js/store.js"></script>
   <script src="js/photos.js"></script>

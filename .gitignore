@@ -8,3 +8,5 @@ service-account*.json
 node_modules
 .DS_Store
 saves
+# Renter roster (names = PII) — never commit; the public site would serve it
+js/seed.private.js

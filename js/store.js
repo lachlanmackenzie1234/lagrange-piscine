@@ -41,6 +41,7 @@ const Store = (() => {
       notes: [],    // chronological notes / to-dos (the "preventive layer")
       coordsSeedVersion: COORDS_SEED,
       occSeedVersion: OCC_SEED,
+      occAdopted: true,
       createdAt: new Date().toISOString(),
     };
   }
@@ -73,6 +74,15 @@ const Store = (() => {
   // pools — it never clears a field-set salt flag. Adds new seed residences too.
   function migrate() {
     const S = window.SEED;
+    // One-time: renter names moved out of the public seed into the gitignored
+    // seed.private.js (PII off GitHub). Adopt the existing local roster as
+    // operator-owned so it persists across future seed refreshes AND syncs to
+    // the other phone — the empty public seed can't wipe it.
+    if (!state.occAdopted) {
+      (state.occupancy || []).forEach((o) => { o.source = 'user'; });
+      state.occAdopted = true;
+      save();
+    }
     // occupancy: refresh the seed rows on version bump, but keep the operator's
     // own edits/additions (source:'user'), which override the matching cell.
     if ((state.occSeedVersion || 0) < OCC_SEED) {

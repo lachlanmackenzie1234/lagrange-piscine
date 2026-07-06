@@ -156,69 +156,12 @@ const POOLS = [
 // ISO Saturdays for the 2026 season turnover.
 const SAT = { jun27: '2026-06-27', jul04: '2026-07-04', jul11: '2026-07-11', jul18: '2026-07-18' };
 
-// Occupancy from the two sheets. Each entry ties a pool to a turnover week.
-// poolId is CODE + '-' + unit slug (built in store.js); here we use res+unit.
-const OCCUPANCY = [
-  // ---- Week of Sat 27-Jun (sheet 1) ----
-  { res: 'EC', unit: '12', week: SAT.jun27, name: 'BRIDIER',  arrival: '2026-06-27', departure: '2026-07-11', status: 'arriving' },
-  { res: 'EC', unit: '18', week: SAT.jun27, name: 'FIEVET',   departure: '2026-07-11', status: 'owner' },
-  { res: 'EC', unit: '22', week: SAT.jun27, name: 'AVAUX',    arrival: '2026-06-27', departure: '2026-07-04', status: 'owner' },
-  { res: 'AG', unit: '9',  week: SAT.jun27, name: 'BARBIER',  arrival: '2026-06-27', departure: '2026-06-29', status: 'arriving' },
-  { res: 'AG', unit: '21', week: SAT.jun27, name: 'RENOUARD', arrival: '2026-06-27', departure: '2026-07-04', status: 'owner' },
-  { res: 'EP', unit: '19B/90', week: SAT.jun27, name: 'LEGRAND',   departure: '2026-07-04', status: 'occupied' },
-  { res: 'EP', unit: '30B/63', week: SAT.jun27, name: 'LECOUF',    departure: '2026-07-04', status: 'occupied' },
-  { res: 'EP', unit: '5P',     week: SAT.jun27, name: 'LOHMANN',   departure: '2026-07-04', status: 'occupied' },
-  { res: 'EP', unit: '27B/94', week: SAT.jun27, name: 'MATHIESON', arrival: '2026-06-25', departure: '2026-07-02', status: 'occupied' },
-  { res: 'EP', unit: '40B/52', week: SAT.jun27, name: 'LECERF',    arrival: '2026-06-27', departure: '2026-07-11', status: 'arriving' },
-  { res: 'EP', unit: '31B/96', week: SAT.jun27, name: 'TOMAS',     departure: '2026-07-04', status: 'occupied' },
-  { res: 'EP', unit: '6E/99',  week: SAT.jun27, name: 'ACX',       arrival: '2026-06-27', departure: '2026-07-11', status: 'arriving' },
-  { res: 'EPP', unit: '11', week: SAT.jun27, name: 'RIBET',  arrival: '2026-06-27', departure: '2026-07-04', status: 'arriving' },
-  { res: 'GP', unit: '18', week: SAT.jun27, name: 'BRUNEL',  arrival: '2026-06-27', departure: '2026-07-11', status: 'arriving' },
-  { res: 'GP', unit: '39', week: SAT.jun27, name: 'PFOTSCH', departure: '2026-07-04', status: 'occupied' },
-  { res: 'HO', unit: '31',  week: SAT.jun27, name: 'RAMOS',     arrival: '2026-06-28', departure: '2026-07-05', status: 'arriving' },
-  { res: 'HO', unit: '49',  week: SAT.jun27, name: 'COPPOLA',   arrival: '2026-06-27', departure: '2026-07-11', status: 'arriving' },
-  { res: 'HO', unit: '187', week: SAT.jun27, name: 'SHARAPOVA', arrival: '2026-06-28', departure: '2026-07-05', status: 'arriving' },
-
-  // ---- Week of Sat 04-Jul (sheet 2) ----
-  { res: 'EC', unit: '12', week: SAT.jul04, name: 'CADIERGUES', arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving' },
-  { res: 'EC', unit: '18', week: SAT.jul04, name: 'FIEVET',     departure: '2026-07-11', status: 'owner' },
-  { res: 'EC', unit: '22', week: SAT.jul04, name: 'AVAUX',      departure: '2026-07-11', status: 'owner' },
-  { res: 'EP', unit: '6B/75',  week: SAT.jul04, name: 'THABUY', arrival: '2026-07-04', departure: '2026-07-18', status: 'arriving' },
-  { res: 'EP', unit: '19B/90', week: SAT.jul04, status: 'backup' },
-  { res: 'EP', unit: '27B/94', week: SAT.jul04, name: 'BRAY',   arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving' },
-  { res: 'EP', unit: '40B/52', week: SAT.jul04, name: 'LECERF', departure: '2026-07-11', status: 'occupied' },
-  { res: 'EP', unit: '31B/96', week: SAT.jul04, name: 'TOMAS',  departure: '2026-07-08', status: 'occupied', note: 'prolongation' },
-  { res: 'EP', unit: '52B/46', week: SAT.jul04, name: 'VIEIRA', arrival: '2026-07-06', departure: '2026-07-13', status: 'arriving', note: 'nouvelle résa (lun.)' },
-  { res: 'EP', unit: '6E/99',  week: SAT.jul04, name: 'ACX',    departure: '2026-07-11', status: 'occupied' },
-  { res: 'EPP', unit: '3',  week: SAT.jul04, name: 'CHEVREL',   arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving', note: 'CE LINÉAIRE' },
-  { res: 'EPP', unit: '11', week: SAT.jul04, name: 'FERMÉE',    departure: '2026-07-11', status: 'closed' },
-  { res: 'EPP', unit: '12', week: SAT.jul04, name: 'LEMAISTRE', arrival: '2026-07-04', departure: '2026-07-11', status: 'owner' },
-  { res: 'GP', unit: '18', week: SAT.jul04, name: 'BRUNEL',    departure: '2026-07-11', status: 'occupied' },
-  { res: 'GP', unit: '39', week: SAT.jul04, name: 'MASSINGER', arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving' },
-  { res: 'HO', unit: '31',  week: SAT.jul04, name: 'RAMOS',   departure: '2026-07-05', status: 'occupied' },
-  { res: 'HO', unit: '49',  week: SAT.jul04, name: 'COPPOLA', departure: '2026-07-11', status: 'occupied' },
-  { res: 'HO', unit: '166', week: SAT.jul04, name: 'SEMAY',   arrival: '2026-07-02', departure: '2026-07-11', status: 'arriving' },
-  { res: 'HO', unit: '28',  week: SAT.jul04, name: 'FORGAC',  arrival: '2026-07-04', departure: '2026-07-11', status: 'arriving' },
-  { res: 'HO', unit: '40',  week: SAT.jul04, name: 'DURAND',  arrival: '2026-07-04', departure: '2026-07-18', status: 'arriving' },
-  { res: 'HO', unit: '187', week: SAT.jul04, name: 'SHARAPOVA', departure: '2026-07-05', status: 'occupied' },
-
-  // ---- Week of Sat 11-Jul (sheet 3) — jul-04 turnover done; extensions kept ----
-  { res: 'EC', unit: '22', week: SAT.jul11, name: 'AVIS',   arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
-  { res: 'AG', unit: '7',  week: SAT.jul11, name: 'MEYLAN', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
-  { res: 'EP', unit: '6B/75',  week: SAT.jul11, name: 'THABUY',   departure: '2026-07-18', status: 'occupied' },
-  { res: 'EP', unit: '19B/90', week: SAT.jul11, name: 'TORDJMAN', arrival: '2026-07-11', departure: '2026-07-25', status: 'arriving' },
-  { res: 'EP', unit: '30B/63', week: SAT.jul11, name: 'GEORGES',  arrival: '2026-07-11', departure: '2026-08-01', status: 'arriving', note: 'prolongation → 01-août' },
-  { res: 'EP', unit: '52B/46', week: SAT.jul11, name: 'VIEIRA',   departure: '2026-07-13', status: 'occupied' },
-  { res: 'EPP', unit: '3',  week: SAT.jul11, name: 'TOURE',  arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving', note: 'CE LINÉAIRE' },
-  { res: 'EPP', unit: '7',  week: SAT.jul11, name: 'WONG',   arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving', note: 'CE LINÉAIRE' },
-  { res: 'EPP', unit: '11', week: SAT.jul11, name: 'JEAMET', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
-  { res: 'GP', unit: '18', week: SAT.jul11, name: 'GUERIN', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
-  { res: 'HO', unit: '31',  week: SAT.jul11, arrival: '2026-07-11', status: 'arriving' },
-  { res: 'HO', unit: '28',  week: SAT.jul11, name: 'DURAND', departure: '2026-07-18', status: 'occupied' },
-  { res: 'HO', unit: '40',  week: SAT.jul11, name: 'ASLAN',  arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
-  { res: 'HO', unit: '187', week: SAT.jul11, name: 'SCHWEIZER',  arrival: '2026-07-11', departure: '2026-07-25', status: 'arriving' },
-  { res: 'HO', unit: '222', week: SAT.jul11, name: 'REGNAUD',    arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving', note: 'arrive le 12/07' },
-  { res: 'HO', unit: '229', week: SAT.jul11, name: 'DJORDJEVIC', arrival: '2026-07-11', departure: '2026-07-18', status: 'arriving' },
-];
+// Occupancy roster (renter NAMES) is PII — it must not live in the committed,
+// publicly-served code. It's kept in the gitignored js/seed.private.js
+// (window.SEED_PRIVATE), loaded before this file when present. On the public
+// deploy that file is absent, so the roster is empty here; the operator's live
+// roster persists in localStorage + Team Sync (adopted as source:'user') and is
+// maintained via the in-app planning editor.
+const OCCUPANCY = (window.SEED_PRIVATE && window.SEED_PRIVATE.OCCUPANCY) || [];
 
 window.SEED = { CHEM_RANGES, CYA_SALT, PRODUCTS, OCC_STATUS, RESIDENCES, POOLS, OCCUPANCY, SAT };
