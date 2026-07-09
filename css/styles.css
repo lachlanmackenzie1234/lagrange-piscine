@@ -347,6 +347,11 @@ details.measure .reading-form { margin: 0; }
   border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); width: 100%; }
 .occ-modal .btn.primary { margin-top: 4px; }
 .occ-modal .btn.danger { background: none; }
+.plan-import-open { margin: 0 0 var(--s2); }
+.plan-import-hint { margin: 0; font-size: .85rem; color: var(--muted); }
+.plan-import-ta { width: 100%; font: .85rem ui-monospace, Menlo, monospace; padding: 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+.plan-import-status { margin: 0; font-size: .85rem; font-weight: 600; color: var(--ok); min-height: 1em; }
 
 /* planning-sheet photos (schedule view) — two taller slots side by side */
 .plan-photos { display: flex; gap: 10px; margin: 0 0 var(--s2); }

@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.53'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.54'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1406,6 +1406,43 @@
     document.body.appendChild(ov);
   }
 
+  // Paste-merge a roster (JSON array). Names are PII so they're not in the
+  // public seed; this is how a parsed sheet reaches the app — it upserts rows
+  // by (poolId, week) as source:'user', which then sync to the other phone.
+  function openPlanImport() {
+    const ov = el('<div class="occ-modal-ov"></div>');
+    const card = el('<div class="occ-modal"></div>');
+    card.appendChild(el(`<div class="occ-modal-head"><strong>${esc(t('plan_import'))}</strong><button class="occ-x" aria-label="close">✕</button></div>`));
+    card.appendChild(el(`<p class="plan-import-hint">${esc(t('plan_import_hint'))}</p>`));
+    const ta = el('<textarea class="plan-import-ta" rows="8" placeholder="[ { &quot;res&quot;: &quot;EP&quot;, &quot;unit&quot;: &quot;30B/63&quot;, &quot;week&quot;: &quot;2026-07-11&quot;, &quot;name&quot;: &quot;…&quot;, &quot;departure&quot;: &quot;2026-08-01&quot;, &quot;status&quot;: &quot;arriving&quot; } ]"></textarea>');
+    card.appendChild(ta);
+    const status = el('<p class="plan-import-status"></p>');
+    card.appendChild(status);
+    const btn = el(`<button class="btn primary">${esc(t('plan_import_btn'))}</button>`);
+    btn.addEventListener('click', () => {
+      let rows;
+      try { rows = JSON.parse(ta.value); } catch (_) { status.textContent = t('plan_import_bad'); return; }
+      if (!Array.isArray(rows)) { status.textContent = t('plan_import_bad'); return; }
+      let n = 0;
+      rows.forEach((r) => {
+        const poolId = r.poolId || (r.res && r.unit ? Store.poolId(r.res, r.unit) : null);
+        if (!poolId || !r.week) return;
+        const patch = { name: r.name || '', arrival: r.arrival || '', departure: r.departure || '', status: r.status || 'occupied', note: r.note || '' };
+        const existing = Store.load().occupancy.find((o) => o.poolId === poolId && o.week === r.week && !o.deleted);
+        if (existing) Store.updateOccupancy(existing.id, patch);
+        else Store.addOccupancy({ poolId, week: r.week, ...patch });
+        n++;
+      });
+      status.textContent = t('plan_import_ok', { n });
+      setTimeout(() => { ov.remove(); render(); }, 700);
+    });
+    card.appendChild(btn);
+    ov.appendChild(card);
+    ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+    card.querySelector('.occ-x').addEventListener('click', () => ov.remove());
+    document.body.appendChild(ov);
+  }
+
   // The two planning-sheet photos (this week + next), pinned at the top so the
   // current paper roster lives in the app and syncs to Dorian. Tap to view full.
   function planningPhotos() {
@@ -1434,6 +1471,9 @@
     wrap.appendChild(header(t('schedule_title'), t('schedule_sub')));
     wrap.appendChild(sectionTitle(t('plan_photos')));
     wrap.appendChild(planningPhotos());
+    const impBtn = el(`<button class="btn sm plan-import-open">⇪ ${esc(t('plan_import'))}</button>`);
+    impBtn.addEventListener('click', openPlanImport);
+    wrap.appendChild(impBtn);
     const cw = currentWeek();
     // Shift the view forward: drop weeks whose turnover cycle has fully ended
     // (last day < today), so the schedule stays on the active + upcoming weeks.
