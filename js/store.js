@@ -291,7 +291,7 @@ const Store = (() => {
   }
   function applyRemoteNote(rec) {
     const i = load().notes.findIndex((n) => n.id === rec.id);
-    if (i >= 0) state.notes[i] = rec; else state.notes.push(rec);
+    if (i >= 0) state.notes[i] = keepDeleted(state.notes[i], rec); else state.notes.push(rec);
     save();
   }
   function applyRemoteNoteRemoved(id) {
@@ -307,7 +307,7 @@ const Store = (() => {
   // Remote changes coming back from Team Sync — apply WITHOUT re-mirroring.
   function applyRemoteReading(rec) {
     const i = load().readings.findIndex((r) => r.id === rec.id);
-    if (i >= 0) state.readings[i] = rec; else state.readings.push(rec);
+    if (i >= 0) state.readings[i] = keepDeleted(state.readings[i], rec); else state.readings.push(rec);
     save();
   }
   function applyRemoteReadingRemoved(id) {
@@ -316,7 +316,7 @@ const Store = (() => {
   }
   function applyRemoteVisit(rec) {
     const i = load().visits.findIndex((v) => v.id === rec.id);
-    if (i >= 0) state.visits[i] = rec; else state.visits.push(rec);
+    if (i >= 0) state.visits[i] = keepDeleted(state.visits[i], rec); else state.visits.push(rec);
     save();
   }
   function applyRemoteVisitRemoved(id) {
@@ -326,6 +326,14 @@ const Store = (() => {
   function applyRemotePool(poolId, fields) {
     const p = pool(poolId);
     if (p) { Object.assign(p, fields); save(); }
+  }
+
+  // Once a record is deleted locally, a stale non-deleted copy arriving from
+  // sync must NOT resurrect it — otherwise deletes (and post-delete imports)
+  // silently come back. Re-adds always use a fresh id, so nothing legit breaks.
+  function keepDeleted(existing, rec) {
+    if (existing && existing.deleted && !rec.deleted) return { ...rec, deleted: true, deletedAt: existing.deletedAt };
+    return rec;
   }
 
   // ---- occupancy edits (operator-maintained planning) ----
@@ -357,7 +365,7 @@ const Store = (() => {
   }
   function applyRemoteOccupancy(rec) {
     const i = load().occupancy.findIndex((o) => o.id === rec.id);
-    if (i >= 0) state.occupancy[i] = rec; else state.occupancy.push(rec);
+    if (i >= 0) state.occupancy[i] = keepDeleted(state.occupancy[i], rec); else state.occupancy.push(rec);
     save();
   }
   function applyRemoteOccupancyRemoved(id) {
