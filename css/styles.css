@@ -347,6 +347,10 @@ details.measure .reading-form { margin: 0; }
   border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); width: 100%; }
 .occ-modal .btn.primary { margin-top: 4px; }
 .occ-modal .btn.danger { background: none; }
+.section-title.wk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.wk-clear { flex: 0 0 auto; background: rgba(255,255,255,.16); color: #fff; border: none; border-radius: 8px;
+  padding: 6px 11px; font-size: .8rem; font-weight: 600; cursor: pointer; }
+.wk-clear:active { transform: translateY(1px); }
 .plan-import-open { margin: 0 0 var(--s2); }
 .plan-import-hint { margin: 0; font-size: .85rem; color: var(--muted); }
 .plan-import-ta { width: 100%; font: .85rem ui-monospace, Menlo, monospace; padding: 10px;

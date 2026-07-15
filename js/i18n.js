@@ -51,6 +51,7 @@ const I18n = (() => {
       occ_note: 'Remark', occ_save: 'Save', occ_delete: 'Delete', occ_del_confirm: 'Delete this entry?',
       plan_import: 'Import roster', plan_import_hint: 'Paste the roster JSON — replaces the pasted weeks cleanly (no duplicates), syncs to the team.',
       plan_import_btn: 'Import', plan_import_bad: 'Invalid JSON.', plan_import_ok: '{n} rows imported ✓',
+      wk_clear: 'Clear', wk_clear_confirm: 'Clear the week of {date}? ({n} entries will be removed — then paste the fresh roster.)',
       this_week: 'this week', sched_counts: '{n} active · {m} arriving',
 
       map_title: 'Map', map_sub: 'Open residences in Google Maps',
@@ -273,6 +274,7 @@ const I18n = (() => {
       occ_note: 'Remarque', occ_save: 'Enregistrer', occ_delete: 'Supprimer', occ_del_confirm: 'Supprimer cette entrée ?',
       plan_import: 'Importer le planning', plan_import_hint: 'Collez le JSON du planning — remplace proprement les semaines collées (sans doublons), synchronisé.',
       plan_import_btn: 'Importer', plan_import_bad: 'JSON invalide.', plan_import_ok: '{n} lignes importées ✓',
+      wk_clear: 'Vider', wk_clear_confirm: 'Vider la semaine du {date} ? ({n} entrées seront supprimées — puis collez le planning à jour.)',
       this_week: 'cette semaine', sched_counts: '{n} actives · {m} arrivées',
 
       map_title: 'Carte', map_sub: 'Ouvrir les résidences dans Google Maps',

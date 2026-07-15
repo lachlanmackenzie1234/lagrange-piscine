@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.55'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.56'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1491,9 +1491,18 @@
     (activeWeeks.length ? activeWeeks : Store.weeks().slice(-1)).forEach((week) => {
       const occ = Store.occupancyForWeek(week);
       const arr = occ.filter((o) => o.status === 'arriving').length;
-      wrap.appendChild(el(`<div class="section-title">
-        <h2>${fmtDate(week)} ${week === cw ? `<span class="chip st-arriving">${esc(t('this_week'))}</span>` : ''}</h2>
-        <p>${esc(t('sched_counts', { n: occ.length, m: arr }))}</p></div>`));
+      const head = el(`<div class="section-title wk-head">
+        <div><h2>${fmtDate(week)} ${week === cw ? `<span class="chip st-arriving">${esc(t('this_week'))}</span>` : ''}</h2>
+        <p>${esc(t('sched_counts', { n: occ.length, m: arr }))}</p></div></div>`);
+      const clearBtn = el(`<button class="wk-clear">🗑 ${esc(t('wk_clear'))}</button>`);
+      clearBtn.addEventListener('click', () => {
+        if (confirm(t('wk_clear_confirm', { date: fmtDate(week), n: occ.length }))) {
+          Store.occupancyForWeek(week).forEach((o) => Store.deleteOccupancy(o.id));
+          render();
+        }
+      });
+      head.appendChild(clearBtn);
+      wrap.appendChild(head);
       const cards = el('<div class="cards"></div>');
       Store.residences().forEach((res) => {
         const items = occ.filter((o) => Store.pool(o.poolId)?.res === res.code);
