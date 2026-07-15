@@ -49,7 +49,7 @@ const I18n = (() => {
       occ_add: 'add', occ_new: 'New entry', occ_edit: 'Edit entry', occ_unit: 'Unit',
       occ_name: 'Name', occ_arrival: 'Arrival', occ_departure: 'Departure', occ_status: 'Status',
       occ_note: 'Remark', occ_save: 'Save', occ_delete: 'Delete', occ_del_confirm: 'Delete this entry?',
-      plan_import: 'Import roster', plan_import_hint: 'Paste the roster JSON (merges by unit + week, syncs to the team).',
+      plan_import: 'Import roster', plan_import_hint: 'Paste the roster JSON — replaces the pasted weeks cleanly (no duplicates), syncs to the team.',
       plan_import_btn: 'Import', plan_import_bad: 'Invalid JSON.', plan_import_ok: '{n} rows imported ✓',
       this_week: 'this week', sched_counts: '{n} active · {m} arriving',
 
@@ -271,7 +271,7 @@ const I18n = (() => {
       occ_add: 'ajouter', occ_new: 'Nouvelle entrée', occ_edit: 'Modifier l’entrée', occ_unit: 'Logement',
       occ_name: 'Nom', occ_arrival: 'Arrivée', occ_departure: 'Départ', occ_status: 'État',
       occ_note: 'Remarque', occ_save: 'Enregistrer', occ_delete: 'Supprimer', occ_del_confirm: 'Supprimer cette entrée ?',
-      plan_import: 'Importer le planning', plan_import_hint: 'Collez le JSON du planning (fusion par logement + semaine, synchronisé).',
+      plan_import: 'Importer le planning', plan_import_hint: 'Collez le JSON du planning — remplace proprement les semaines collées (sans doublons), synchronisé.',
       plan_import_btn: 'Importer', plan_import_bad: 'JSON invalide.', plan_import_ok: '{n} lignes importées ✓',
       this_week: 'cette semaine', sched_counts: '{n} actives · {m} arrivées',
 

@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.54'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.55'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1423,18 +1423,24 @@
       let rows;
       try { rows = JSON.parse(ta.value); } catch (_) { status.textContent = t('plan_import_bad'); return; }
       if (!Array.isArray(rows)) { status.textContent = t('plan_import_bad'); return; }
-      let n = 0;
-      rows.forEach((r) => {
-        const poolId = r.poolId || (r.res && r.unit ? Store.poolId(r.res, r.unit) : null);
-        if (!poolId || !r.week) return;
-        const patch = { name: r.name || '', arrival: r.arrival || '', departure: r.departure || '', status: r.status || 'occupied', note: r.note || '' };
-        const existing = Store.load().occupancy.find((o) => o.poolId === poolId && o.week === r.week && !o.deleted);
-        if (existing) Store.updateOccupancy(existing.id, patch);
-        else Store.addOccupancy({ poolId, week: r.week, ...patch });
-        n++;
-      });
-      status.textContent = t('plan_import_ok', { n });
-      setTimeout(() => { ov.remove(); render(); }, 700);
+      // normalise + resolve poolId
+      const norm = rows.map((r) => ({
+        poolId: r.poolId || (r.res && r.unit ? Store.poolId(r.res, r.unit) : null),
+        week: r.week,
+        name: r.name || '', arrival: r.arrival || '', departure: r.departure || '',
+        status: r.status || 'occupied', note: r.note || '',
+      })).filter((r) => r.poolId && r.week);
+      if (!norm.length) { status.textContent = t('plan_import_bad'); return; }
+      // Clean per-week REPLACE (like the old seed rebuild): drop every existing
+      // row for the weeks present in the paste, then add the paste fresh. This
+      // is idempotent and can't create duplicates, whatever was there before.
+      const weeks = new Set(norm.map((r) => r.week));
+      Store.load().occupancy.filter((o) => weeks.has(o.week) && !o.deleted).forEach((o) => Store.deleteOccupancy(o.id));
+      norm.forEach((r) => Store.addOccupancy(r));
+      const per = {};
+      norm.forEach((r) => { per[r.week] = (per[r.week] || 0) + 1; });
+      status.textContent = Object.keys(per).sort().map((w) => `${fmtDate(w)}: ${per[w]}`).join(' · ') + ' ✓';
+      setTimeout(() => { ov.remove(); render(); }, 1400);
     });
     card.appendChild(btn);
     ov.appendChild(card);
