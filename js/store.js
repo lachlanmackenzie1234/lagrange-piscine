@@ -160,7 +160,7 @@ const Store = (() => {
       id: `rd-${Date.now()}-${Math.floor(performance.now())}`,
       poolId: r.poolId,
       at: r.at || new Date().toISOString(),
-      ph: numOrNull(r.ph),
+      ph: phNorm(r.ph),
       chlorine: numOrNull(r.chlorine),
       stabilizer: numOrNull(r.stabilizer),
       salt: numOrNull(r.salt),    // salt pools (g/L)
@@ -388,6 +388,15 @@ const Store = (() => {
     if (v === '' || v === null || v === undefined) return null;
     const n = Number(String(v).replace(',', '.').trim()); // accept comma decimals
     return Number.isFinite(n) ? n : null;
+  }
+  // pH is physically 0–14. A wet-finger entry like "72" or "83" (comma missed)
+  // is an unambiguous dropped decimal — fold it back (72→7.2) and clamp the
+  // result to the real scale so one typo can't wreck a pool's history.
+  function phNorm(v) {
+    let n = numOrNull(v);
+    if (n === null) return null;
+    while (n > 14) n /= 10;
+    return Math.max(0, Math.min(14, n));
   }
 
   // ---- backup ----
