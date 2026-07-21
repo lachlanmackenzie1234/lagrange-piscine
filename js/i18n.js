@@ -29,6 +29,14 @@ const I18n = (() => {
 
       pools_title: 'Pools', pools_sub: '{n} pools across {m} residences',
       to_confirm: '⚠︎ details to confirm',
+      pools_word: 'pools', zone_due: '{n} to see', vu_on: 'seen {date}', per_week: '/wk',
+      weekday_letters: 'SMTWTFS',
+      leg_stable: 'stable zone', leg_product: 'product',
+      rythme_title: 'Passage rhythm', rythme_total: '{n} passages total',
+      rythme_passages: 'passages', rythme_7d: 'last 7 days', rythme_worked: '{n} days worked',
+      rythme_perday: 'pools/day', rythme_mean: 'average', rythme_perworked: 'per day worked',
+      rythme_prev: 'prev. week',
+      prod_title: 'Products added', prod_count: '{n} products', prod_since: 'since {date}',
 
       back_pools: '‹ Pools', directions: '📍 Directions', occupancy: 'Occupancy',
       log_reading: 'Log a reading',
@@ -260,6 +268,14 @@ const I18n = (() => {
 
       pools_title: 'Piscines', pools_sub: '{n} piscines · {m} résidences',
       to_confirm: '⚠︎ détails à confirmer',
+      pools_word: 'piscines', zone_due: '{n} à voir', vu_on: 'vu {date}', per_week: '/sem',
+      weekday_letters: 'DLMMJVS',
+      leg_stable: 'zone stable', leg_product: 'produit',
+      rythme_title: 'Rythme de passage', rythme_total: '{n} passages en tout',
+      rythme_passages: 'passages', rythme_7d: '7 derniers jours', rythme_worked: '{n} jours travaillés',
+      rythme_perday: 'piscines/jour', rythme_mean: 'moyenne', rythme_perworked: 'par jour travaillé',
+      rythme_prev: 'semaine −1',
+      prod_title: 'Produits ajoutés', prod_count: '{n} produits', prod_since: 'depuis {date}',
 
       back_pools: '‹ Piscines', directions: '📍 Itinéraire', occupancy: 'Occupation',
       log_reading: 'Saisir une mesure',

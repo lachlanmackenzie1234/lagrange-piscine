@@ -141,16 +141,17 @@ const POOLS = [
   { res: 'GP', unit: '18' },
   { res: 'GP', unit: '39' },
 
-  // HO
-  { res: 'HO', unit: '31' },
-  { res: 'HO', unit: '49' },
-  { res: 'HO', unit: '166' },
-  { res: 'HO', unit: '28' },
-  { res: 'HO', unit: '40' },
-  { res: 'HO', unit: '62' },
-  { res: 'HO', unit: '187' },
-  { res: 'HO', unit: '222' },
-  { res: 'HO', unit: '229' },
+  // HO — rentals with no pool to service (still tracked in the schedule for the
+  // team, just not in the pool-servicing list). nonPool keeps them out of Pools.
+  { res: 'HO', unit: '31', nonPool: true },
+  { res: 'HO', unit: '49', nonPool: true },
+  { res: 'HO', unit: '166', nonPool: true },
+  { res: 'HO', unit: '28', nonPool: true },
+  { res: 'HO', unit: '40', nonPool: true },
+  { res: 'HO', unit: '62', nonPool: true },
+  { res: 'HO', unit: '187', nonPool: true },
+  { res: 'HO', unit: '222', nonPool: true },
+  { res: 'HO', unit: '229', nonPool: true },
 ];
 
 // ISO Saturdays for the 2026 season turnover.

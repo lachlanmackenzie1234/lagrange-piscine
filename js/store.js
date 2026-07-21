@@ -48,7 +48,7 @@ const Store = (() => {
 
   // Bump when seed coordinates / classifications change; migrate() reconciles
   // existing installs.
-  const COORDS_SEED = 6;
+  const COORDS_SEED = 7; // v7: HO units flagged nonPool (rentals, no pool to service)
   // Bump when the OCCUPANCY seed changes (prolongations, new reservations, …).
   // migrate() refreshes the seed rows but PRESERVES any the operator has edited
   // or added (source:'user') so a seed update never clobbers a hand edit.

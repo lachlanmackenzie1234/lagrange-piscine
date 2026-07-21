@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.60'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.61'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -959,21 +959,201 @@
     </a>`);
   }
 
-  // ---------- view: POOLS ----------
-  // Pool residences only — management-only rentals (e.g. HO) live in Schedule.
+  // ---------- view: POOLS (home) ----------
+  // Activity metrics — a "passage" = one pool on one calendar day (any category:
+  // measure, treatment, backwash or a "serviced today" mark). Validated in the
+  // HTML beta before porting; counting event rows would double-count.
+  const Metrics = (() => {
+    const day = (iso) => Store.localDate(iso);
+    const liveVisits = () => Store.load().visits.filter((v) => !v.deleted && v.poolId);
+    const liveReadings = () => Store.load().readings.filter((r) => !r.deleted);
+    function passagesByDay(visits) {
+      const seen = new Set(), m = {};
+      for (const v of visits) { const d = day(v.at); const k = v.poolId + '|' + d; if (!seen.has(k)) { seen.add(k); m[d] = (m[d] || 0) + 1; } }
+      return m;
+    }
+    function windowPassages(byDay, refISO, days) {
+      const refT = new Date(refISO + 'T00:00:00').getTime(); let sum = 0, worked = 0;
+      for (const [d, n] of Object.entries(byDay)) { const age = (refT - new Date(d + 'T00:00:00').getTime()) / 864e5; if (age >= 0 && age < days) { sum += n; worked++; } }
+      return { sum, worked };
+    }
+    function visitsPerWeek(visits, poolId, spanDays) {
+      const seen = new Set(); let n = 0;
+      for (const v of visits) if (v.poolId === poolId) { const k = day(v.at); if (!seen.has(k)) { seen.add(k); n++; } }
+      return n / Math.max(1, spanDays / 7);
+    }
+    function productTotals(visits) {
+      const m = {}; for (const v of visits) if (v.productId && v.qty != null) m[v.productId] = (m[v.productId] || 0) + Number(v.qty); return m;
+    }
+    function fcSeries(readings, poolId) {
+      return readings.filter((r) => r.poolId === poolId && r.chlorine != null).sort((a, b) => a.at.localeCompare(b.at)).map((r) => ({ at: r.at, fc: r.chlorine }));
+    }
+    return { day, liveVisits, liveReadings, passagesByDay, windowPassages, visitsPerWeek, productTotals, fcSeries };
+  })();
+  const round1 = (q) => Math.round(q * 10) / 10;
+  const dmShort = (iso) => (iso || '').slice(8, 10) + '/' + (iso || '').slice(5, 7);
+
+  // remembered collapsed zones — persisted like the per-route scroll position
+  const ZKEY = 'lagrange-piscine.zones-closed';
+  const zoneClosed = () => { try { return new Set(JSON.parse(localStorage.getItem(ZKEY) || '[]')); } catch (_) { return new Set(); } };
+  const toggleZone = (z) => { const s = zoneClosed(); s.has(z) ? s.delete(z) : s.add(z); try { localStorage.setItem(ZKEY, JSON.stringify([...s])); } catch (_) {} };
+
+  // FC trend on a shared time axis (last ~6 weeks): stable band, dot colour by
+  // chlorine state, a blue cap on any reading taken on a treated day, and dashed
+  // ticks marking each product application. Mirrors the map's 4-state colours.
+  function fcSpark(p, range) {
+    const w = 118, h = 30, pad = 3;
+    const series = Metrics.fcSeries(Metrics.liveReadings(), p.id);
+    const treats = Store.treatmentsFor(p.id).map((v) => v.at);
+    const t0 = range[0], t1 = range[1];
+    const X = (at) => pad + ((new Date(at).getTime() - t0) / (t1 - t0)) * (w - 2 * pad);
+    const cmin = CHEM_RANGES.chlorine.min, cmax = CHEM_RANGES.chlorine.max;
+    const maxFc = Math.max(cmax + 0.5, ...series.map((s) => s.fc));
+    const y = (fc) => h - pad - (fc / maxFc) * (h - 2 * pad);
+    const band = `<rect x="0" y="${y(cmax).toFixed(1)}" width="${w}" height="${Math.max(0, y(cmin) - y(cmax)).toFixed(1)}" fill="var(--ok-bg)"/>`;
+    const ticks = treats.map((at) => `<line x1="${X(at).toFixed(1)}" y1="0" x2="${X(at).toFixed(1)}" y2="${h}" stroke="var(--na)" stroke-width="1" stroke-dasharray="1.5 1.5" opacity=".55"/>`).join('');
+    if (!series.length) return `<svg class="lp-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${band}${ticks}</svg>`;
+    const treatDays = new Set(treats.map((at) => Store.localDate(at)));
+    const col = (fc) => { const st = evalMetric('chlorine', fc).state; return st === 'low' ? 'var(--low)' : st === 'high' ? 'var(--high)' : 'var(--ok)'; };
+    const pts = series.map((s) => `${X(s.at).toFixed(1)},${y(s.fc).toFixed(1)}`).join(' ');
+    const dots = series.map((s, i) => {
+      const cx = X(s.at), cy = y(s.fc);
+      const treated = treatDays.has(Store.localDate(s.at)) ? `<circle cx="${cx.toFixed(1)}" cy="${Math.max(2, cy - 5).toFixed(1)}" r="1.7" fill="var(--treated)"/>` : '';
+      return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${i === series.length - 1 ? 3 : 1.8}" fill="${col(s.fc)}"/>${treated}`;
+    }).join('');
+    const line = series.length > 1 ? `<polyline points="${pts}" fill="none" stroke="var(--brand)" stroke-width="1.5"/>` : '';
+    return `<svg class="lp-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${band}${ticks}${line}${dots}</svg>`;
+  }
+
+  function poolRow(p, ctx) {
+    const lv = Store.lastVisit(p.id), lr = Store.latestReading(p.id);
+    const ageD = lv ? Math.round((ctx.todayT - new Date(Store.localDate(lv.at) + 'T00:00:00').getTime()) / 864e5) : null;
+    const stale = ageD == null || ageD > 6;
+    const seen = lv ? t('vu_on', { date: fmtDate(lv.at) }) : t('seen_never');
+    const vpw = Metrics.visitsPerWeek(ctx.V, p.id, ctx.spanDays);
+    const num = (x) => x != null ? x : '—';
+    let meas;
+    if (lr) meas = `<span class="lp-meas">${statusDot(p)}Cl <b>${num(lr.chlorine)}</b> · pH <b>${num(lr.ph)}</b> · CyA <b>${num(lr.stabilizer)}</b></span>`;
+    else meas = `<span class="lp-meas none">${statusDot(p)}${esc(t('no_reading'))}</span>`;
+    return el(`<a class="card lp-pool${stale ? ' stale' : ''}" href="#/pool/${p.id}">
+      <div class="lp-head"><strong>${esc(poolTitle(p))}</strong><span class="lp-seen${stale ? ' warn' : ''}">${esc(seen)}</span></div>
+      <div class="lp-btm">${meas}<span class="lp-right"><span class="lp-cad">${vpw >= 0.1 ? vpw.toFixed(1) + t('per_week') : '—'}</span>${fcSpark(p, ctx.range)}</span></div>
+    </a>`);
+  }
+
+  const lpTile = (n, u, l, k) => `<div class="lp-tile"><div class="n">${n}</div><div class="u">${esc(u)}</div><div class="l">${esc(l)}</div><div class="k">${esc(k)}</div></div>`;
+
+  function passageGraph(byDay, todayT) {
+    const WD = t('weekday_letters');
+    const days = [];
+    for (let i = 20; i >= 0; i--) days.push(new Date(todayT - i * 864e5).toISOString().slice(0, 10));
+    const max = Math.max(1, ...days.map((d) => byDay[d] || 0));
+    const bars = days.map((d) => {
+      const n = byDay[d] || 0; const dow = new Date(d + 'T12:00:00').getDay();
+      const cls = [n === 0 ? 'zero' : '', dow === 0 ? 'sun' : ''].join(' ');
+      return `<span class="lp-bar ${cls}"><b>${n || ''}</b><i style="height:${n ? Math.max(Math.round(n / max * 100), 8) : 3}%"></i></span>`;
+    }).join('');
+    const axis = days.map((d, i) => { const dow = new Date(d + 'T12:00:00').getDay(); return `<span class="${dow === 0 ? 'sun' : ''}">${WD[dow]}<em>${i % 3 === 0 ? dmShort(d) : ''}</em></span>`; }).join('');
+    return el(`<div class="lp-graph"><div class="lp-bars">${bars}</div><div class="lp-axis">${axis}</div></div>`);
+  }
+
+  // Pool home: collapsible residence zones (pool + last visit + last measure +
+  // cadence + FC trend), then passage rhythm, then products added. Rentals with
+  // no pool to service (HO, EP 5P, EPP 11/12) are nonPool and stay in Schedule.
   function viewPools() {
     const wrap = document.createElement('div');
     const poolRes = Store.residences().filter((r) => !r.nonPool);
     const nPools = Store.pools().filter((p) => hasPool(p)).length;
     wrap.appendChild(header(t('pools_title'), t('pools_sub', { n: nPools, m: poolRes.length })));
+
+    const V = Metrics.liveVisits();
+    const today = todayISO();
+    const todayT = new Date(today + 'T00:00:00').getTime();
+    const allDays = Array.from(new Set(V.map((v) => Store.localDate(v.at)))).sort();
+    const firstT = allDays.length ? new Date(allDays[0] + 'T00:00:00').getTime() : todayT;
+    const range = [Math.max(firstT, todayT - 41 * 864e5), todayT + 864e5];
+    const spanDays = Math.max(1, (todayT - firstT) / 864e5);
+    const ctx = { V, range, spanDays, todayT };
+    const isStale = (p) => { const lv = Store.lastVisit(p.id); return !lv || (todayT - new Date(Store.localDate(lv.at) + 'T00:00:00').getTime()) / 864e5 > 6; };
+    const closed = zoneClosed();
+
+    wrap.appendChild(el(`<div class="lp-legend">
+      <span><i class="sw band"></i>${esc(t('leg_stable'))}</span>
+      <span><i class="sw dot ok"></i>${esc(t('status_green'))}</span>
+      <span><i class="sw dot low"></i>${esc(t('status_orange'))}</span>
+      <span><i class="sw dot high"></i>${esc(t('status_red'))}</span>
+      <span><i class="sw dot treated"></i>${esc(t('leg_treated'))}</span>
+      <span><i class="sw tick"></i>${esc(t('leg_product'))}</span></div>`));
+
     poolRes.forEach((res) => {
-      const list = Store.poolsByRes(res.code).filter(hasPool); // hide nonPool units
+      const list = Store.poolsByRes(res.code).filter(hasPool).sort((a, b) => {
+        const la = Store.lastVisit(a.id), lb = Store.lastVisit(b.id);
+        return (la ? la.at : '').localeCompare(lb ? lb.at : '');
+      });
       if (!list.length) return;
-      wrap.appendChild(sectionTitle(`${res.code} · ${res.name} (${list.length})`, res.verify ? t('to_confirm') : ''));
-      const cards = el('<div class="cards"></div>');
-      list.forEach((p) => cards.appendChild(poolMiniCard(p)));
-      wrap.appendChild(cards);
+      const due = list.filter(isStale).length;
+      const isClosed = closed.has(res.code);
+      const meta = `${list.length} ${esc(t('pools_word'))}${due ? ` · <span class="zone-due">${esc(t('zone_due', { n: due }))}</span>` : ''}`;
+      const zone = el(`<div class="zone${isClosed ? ' closed' : ''}" data-zone="${res.code}">
+        <button class="zone-head" type="button">
+          <span class="zh-name">${esc(res.code)}</span><span class="zh-sub">${esc(res.name)}</span>
+          <span class="zh-meta">${meta}</span><span class="zh-caret">▾</span>
+        </button><div class="zone-body"></div></div>`);
+      const body = zone.querySelector('.zone-body');
+      list.forEach((p) => body.appendChild(poolRow(p, ctx)));
+      zone.querySelector('.zone-head').addEventListener('click', () => { toggleZone(res.code); zone.classList.toggle('closed'); });
+      wrap.appendChild(zone);
     });
+
+    // rythme de passage
+    const byDay = Metrics.passagesByDay(V);
+    const total = Object.values(byDay).reduce((a, b) => a + b, 0);
+    wrap.appendChild(sectionTitle(t('rythme_title'), t('rythme_total', { n: total })));
+    const w7 = Metrics.windowPassages(byDay, today, 7);
+    const wPrev = Metrics.windowPassages(byDay, new Date(todayT - 7 * 864e5).toISOString().slice(0, 10), 7);
+    const mean = w7.worked ? w7.sum / w7.worked : 0;
+    const trend = wPrev.sum ? Math.round(((w7.sum - wPrev.sum) / wPrev.sum) * 100) : null;
+    const tiles = el('<div class="lp-tiles"></div>');
+    tiles.innerHTML = [
+      lpTile(w7.sum, t('rythme_passages'), t('rythme_7d'), t('rythme_worked', { n: w7.worked })),
+      lpTile(mean.toFixed(1), t('rythme_perday'), t('rythme_mean'), t('rythme_perworked')),
+      lpTile(wPrev.sum, t('rythme_passages'), t('rythme_prev'), trend == null ? '—' : (trend >= 0 ? '▲ +' : '▼ ') + trend + '%'),
+    ].join('');
+    wrap.appendChild(tiles);
+    wrap.appendChild(passageGraph(byDay, todayT));
+
+    // produits ajoutés — normalised to grams of actual product where possible
+    // (a stick is 300 g, a galet 200 g) so the bars reflect real chemical usage,
+    // not a mix of grams and unit counts. Dose/sachet products with no gram basis
+    // (floc, algae) stay as counts, listed after.
+    const totals = Metrics.productTotals(V);
+    const firstOf = (id) => { let m = null; for (const v of V) if (v.productId === id && (!m || v.at < m)) m = v.at; return m; };
+    const prod = (id) => window.SEED.PRODUCTS.find((x) => x.id === id) || { name: id, unit: '' };
+    const gramsOf = (id, q) => { const pr = prod(id); if (pr.unit === 'g') return q; if (pr.grammage) return q * pr.grammage; return null; };
+    const fmtMass = (g) => g >= 1000 ? round1(g / 1000) + ' kg' : Math.round(g) + ' g';
+    const items = Object.entries(totals).map(([id, q]) => ({ id, q, g: gramsOf(id, q) }));
+    const gramItems = items.filter((x) => x.g != null).sort((a, b) => b.g - a.g);
+    const countItems = items.filter((x) => x.g == null).sort((a, b) => b.q - a.q);
+    if (items.length) {
+      wrap.appendChild(sectionTitle(t('prod_title'), t('prod_count', { n: items.length })));
+      const gmax = Math.max(1, ...gramItems.map((x) => x.g));
+      const box = el('<div class="lp-prod"></div>');
+      const since = (id) => esc(t('prod_since', { date: fmtDate(firstOf(id)) }));
+      const gramRow = (x) => {
+        const pr = prod(x.id);
+        const cnt = pr.unit !== 'g' ? ` · ${round1(x.q)} ${esc(pr.unit)}` : '';
+        return `<div class="lp-prow"><div class="lp-pn"><b>${esc(pr.name)}</b><small>${since(x.id)}${cnt}</small></div>
+          <div class="lp-pq">${fmtMass(x.g)}</div>
+          <div class="lp-track"><i style="width:${Math.round(x.g / gmax * 100)}%"></i></div></div>`;
+      };
+      const countRow = (x) => {
+        const pr = prod(x.id);
+        return `<div class="lp-prow"><div class="lp-pn"><b>${esc(pr.name)}</b><small>${since(x.id)}</small></div>
+          <div class="lp-pq">${round1(x.q)} <small>${esc(pr.unit)}</small></div></div>`;
+      };
+      box.innerHTML = gramItems.map(gramRow).join('') + countItems.map(countRow).join('');
+      wrap.appendChild(box);
+    }
     return wrap;
   }
 
