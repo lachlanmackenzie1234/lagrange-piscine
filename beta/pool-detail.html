@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AG 7 — beta détail</title>
+<style>
+:root{
+  --bg:#ffffff; --card:#ffffff; --ink:#22303c; --muted:#6b7a87; --line:#dde5ec;
+  --navy:#123a5e; --title:#123a5e; --brand:#2b8fd0; --ok:#1b9e4b; --ok-bg:#e6f6ec;
+  --low:#d98b00; --low-bg:#fdf3e0; --high:#d12f2f; --high-bg:#fdeaea;
+  --na:#8a98a4; --na-bg:#eef2f5; --treated:#2f7ec4;
+  --s1:8px; --s2:13px; --s3:21px; --s4:34px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0e1620; --card:#16212d; --ink:#e7eef4; --muted:#8ea0ae; --line:#243343;
+  --na-bg:#1d2935; --na:#8094a3; --ok-bg:#14301f; --low-bg:#32260f; --high-bg:#3a1a1a; --title:#cfe4f5; }}
+:root[data-theme="dark"]{
+  --bg:#0e1620; --card:#16212d; --ink:#e7eef4; --muted:#8ea0ae; --line:#243343;
+  --na-bg:#1d2935; --na:#8094a3; --ok-bg:#14301f; --low-bg:#32260f; --high-bg:#3a1a1a; --title:#cfe4f5; }
+:root[data-theme="light"]{
+  --bg:#ffffff; --card:#ffffff; --ink:#22303c; --muted:#6b7a87; --line:#dde5ec; --title:#123a5e;
+  --na-bg:#eef2f5; --na:#8a98a4; --ok-bg:#e6f6ec; --low-bg:#fdf3e0; --high-bg:#fdeaea; }
+
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.4; }
+.wrap{ max-width:560px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 8px) var(--s2) var(--s4); }
+.tnum{ font-variant-numeric:tabular-nums; }
+.back{ display:inline-block; color:var(--brand); font-size:.95rem; padding:6px 0; text-decoration:none; }
+.beta{ font-size:.6rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; background:var(--brand);
+  color:#fff; border-radius:4px; padding:2px 6px; margin-left:6px; vertical-align:middle; }
+.theme{ float:right; font:inherit; font-size:.78rem; color:var(--muted); background:var(--na-bg);
+  border:1px solid var(--line); border-radius:8px; padding:4px 9px; cursor:pointer; }
+
+/* photo section — the vertical photo IS the boundary; controls overlay it */
+.psec{ position:relative; border-radius:16px; overflow:hidden; margin:var(--s2) 0;
+  min-height:300px; display:flex; flex-direction:column; color:#fff; }
+.psec.portail{ background:linear-gradient(160deg,#7fa8c9,#3d5a74 55%,#243b52); aspect-ratio:5/4; }
+.psec.piscine{ background:linear-gradient(150deg,#4aa3c9,#2b6f97 60%,#123a5e); aspect-ratio:5/4; }
+.psec.pompe{ background:linear-gradient(150deg,#4b7d63,#2f5a48 55%,#1c3a30); aspect-ratio:5/4; }
+.psec .ph-hint{ position:absolute; top:8px; left:10px; font-size:.62rem; letter-spacing:.03em;
+  color:rgba(255,255,255,.6); background:rgba(0,0,0,.22); padding:2px 7px; border-radius:6px; }
+.psec .cam{ position:absolute; top:8px; right:10px; width:30px; height:30px; border-radius:8px;
+  background:rgba(0,0,0,.28); display:flex; align-items:center; justify-content:center; font-size:.9rem; }
+.scrim-b{ position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.55),transparent 42%,transparent 62%,rgba(0,0,0,.35)); }
+.ov{ position:relative; z-index:1; display:flex; flex-direction:column; height:100%; padding:var(--s3) var(--s2) var(--s2); }
+.ov .grow{ flex:1; }
+
+/* portail overlay bits */
+.p-title{ font-size:1.5rem; font-weight:700; display:flex; align-items:center; gap:8px; }
+.p-title .dot{ width:11px; height:11px; border-radius:50%; }
+.p-sub{ font-size:.82rem; color:rgba(255,255,255,.9); margin-top:2px; }
+.occ{ background:rgba(0,0,0,.32); backdrop-filter:blur(3px); border:1px solid rgba(255,255,255,.14);
+  border-radius:12px; padding:9px 12px; }
+.occ .r1{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:600; }
+.occ .r2{ font-size:.8rem; color:rgba(255,255,255,.85); margin-top:2px; }
+.chip{ font-size:.66rem; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+.chip.arr{ background:#e7f0fe; color:#1558d6; }
+.icons{ display:flex; gap:8px; margin-top:var(--s2); }
+.icobtn{ display:inline-flex; align-items:center; gap:6px; font-size:.8rem; font-weight:600; color:#fff;
+  background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.2); border-radius:10px; padding:7px 11px; text-decoration:none; }
+
+/* corner icon pills (piscine) */
+.corner{ position:absolute; top:46px; right:10px; z-index:2; display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+.pill-ico{ display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:600; color:#fff;
+  background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.2); border-radius:999px; padding:5px 10px; }
+
+/* chem trend panel overlaid at the bottom of the piscine photo */
+.trend{ background:rgba(0,0,0,.34); backdrop-filter:blur(3px); border:1px solid rgba(255,255,255,.14);
+  border-radius:12px; padding:9px 11px; display:flex; flex-direction:column; gap:6px; }
+.trend .tr-row{ display:grid; grid-template-columns:34px 1fr auto; align-items:center; gap:8px; }
+.trend .tr-k{ font-size:.7rem; font-weight:700; color:rgba(255,255,255,.85); }
+.trend .tr-v{ font-size:.8rem; font-weight:700; font-variant-numeric:tabular-nums; }
+.trend svg{ width:100%; height:20px; display:block; }
+
+/* body cards under a photo */
+.body{ margin:0 0 var(--s3); }
+.coords{ display:flex; align-items:center; justify-content:space-between; font-size:.78rem; color:var(--muted); margin:2px 2px var(--s1); }
+.coords .clr{ color:var(--high); background:none; border:none; font:inherit; font-size:.76rem; cursor:pointer; }
+.last{ font-size:.78rem; color:var(--muted); margin:0 2px var(--s2); }
+
+.field{ width:100%; font:inherit; font-size:.92rem; padding:11px 13px; border:1px solid var(--line);
+  border-radius:12px; background:var(--card); color:var(--ink); }
+.note-tag{ display:inline-block; font-size:.66rem; font-weight:600; color:var(--brand); background:var(--na-bg);
+  border-radius:6px; padding:2px 7px; margin:6px 2px 0; }
+.row{ display:flex; gap:8px; align-items:center; }
+.btn{ font:inherit; font-weight:600; border-radius:11px; padding:11px 14px; border:1px solid var(--line);
+  background:var(--card); color:var(--ink); cursor:pointer; }
+.btn.primary{ background:var(--navy); color:#fff; border-color:var(--navy); width:100%; }
+.btn.wide{ width:100%; }
+.btn.sm{ padding:8px 11px; font-size:.85rem; }
+.notecard{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 13px; margin-top:8px; }
+.notecard .meta{ font-size:.74rem; color:var(--muted); display:flex; gap:8px; align-items:center; }
+
+/* chem mini bars */
+.chem-mini{ display:flex; gap:6px; margin:var(--s2) 0 8px; }
+.cm{ flex:1; background:var(--card); border:1px solid var(--line); border-bottom-width:3px; border-radius:9px;
+  padding:8px 4px 6px; text-align:center; }
+.cm .v{ font-weight:800; font-size:1.05rem; font-variant-numeric:tabular-nums; }
+.cm .k{ font-size:.62rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+.cm.ok{ border-bottom-color:var(--ok); } .cm.warn{ border-bottom-color:var(--low); } .cm.bad{ border-bottom-color:var(--high); }
+.treated-line{ font-size:.8rem; color:var(--low); font-weight:600; margin:0 2px 10px; }
+.doses{ background:var(--card); border:1px solid var(--line); border-radius:11px; padding:10px 13px; margin-top:8px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.doses .d-k{ font-weight:700; } .doses .d-h{ font-size:.74rem; color:var(--muted); text-align:right; }
+
+/* products */
+.qrow{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.qrow label{ font-size:.82rem; color:var(--muted); }
+.qty{ width:60px; text-align:center; font:inherit; padding:7px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+.prods{ display:flex; flex-wrap:wrap; gap:7px; }
+.prodbtn{ font:inherit; font-size:.82rem; background:var(--card); border:1px solid var(--line); border-radius:10px;
+  padding:8px 11px; cursor:pointer; color:var(--ink); }
+.prodbtn small{ color:var(--muted); }
+.added{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.arow{ display:grid; grid-template-columns:1fr auto; gap:8px; font-size:.85rem; background:var(--card);
+  border:1px solid var(--line); border-radius:9px; padding:7px 11px; }
+.arow .a-t{ color:var(--muted); font-size:.74rem; }
+
+/* pump */
+.pumpline{ font-size:.82rem; color:rgba(255,255,255,.9); margin-top:2px; }
+.pumprow{ display:flex; gap:8px; margin-top:var(--s2); flex-wrap:wrap; }
+
+/* history full */
+table{ width:100%; border-collapse:collapse; font-size:.86rem; }
+th,td{ text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+th{ font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:700; }
+td.ok{ color:var(--ok); font-weight:600; } td.warn{ color:var(--low); font-weight:600; } td.bad{ color:var(--high); font-weight:600; }
+h2.sec{ font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--title); margin:var(--s3) 2px var(--s1); }
+.foot{ margin-top:var(--s4); padding-top:var(--s3); border-top:1px solid var(--line); font-size:.72rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div><a class="back" href="#">‹ Piscines</a><span class="beta">Détail beta</span>
+    <button class="theme" id="theme" type="button">◐ Thème</button></div>
+
+  <!-- 1 · PORTAIL -->
+  <section class="psec portail">
+    <span class="ph-hint">photo portail (placeholder)</span><span class="cam">📷</span>
+    <div class="scrim-b"></div>
+    <div class="ov">
+      <div>
+        <div class="p-title"><span class="dot" style="background:var(--low)"></span>AG 7</div>
+        <div class="p-sub">Atlantic Green · à reconfirmer (traité, pas retesté)</div>
+      </div>
+      <div class="grow"></div>
+      <div class="occ">
+        <div class="r1"><span>sam. 25 juil. — VAN AVERMAETE</span><span class="chip arr">Arrivée</span></div>
+        <div class="r2">arr. sam. 25 juil. → dép. mar. 25 août</div>
+      </div>
+      <div class="icons">
+        <a class="icobtn" href="#">📍 Itinéraire</a>
+        <a class="icobtn" href="#">🗺 Carte</a>
+      </div>
+    </div>
+  </section>
+  <div class="coords"><span>📍 44.9926, −1.1625</span><button class="clr">Effacer le GPS</button></div>
+  <div class="last">Dernier entretien 20 juil., 12:04</div>
+
+  <!-- NOTES (no title, auto-tagged) -->
+  <input class="field" placeholder="note rapide…">
+  <span class="note-tag">＃ AG 7 (auto)</span>
+  <div class="notecard">
+    <div class="meta">15 juil., 12:18 · 🌤 30° · 47%</div>
+    <div style="margin-top:3px">Carreau a replacé</div>
+  </div>
+
+  <!-- 2 · PISCINE / CHIMIE -->
+  <section class="psec piscine">
+    <span class="ph-hint">photo piscine (placeholder)</span><span class="cam">📷</span>
+    <div class="corner">
+      <span class="pill-ico">💧 arrosage</span>
+      <span class="pill-ico">🪣 ~62 m³</span>
+    </div>
+    <div class="scrim-b"></div>
+    <div class="ov">
+      <div class="grow"></div>
+      <div class="trend" id="trend"></div>
+    </div>
+  </section>
+  <div class="chem-mini" id="mini"></div>
+  <div class="treated-line">⏳ traité — à revérifier</div>
+  <button class="btn primary">＋ Saisir une mesure</button>
+  <div class="doses"><span class="d-k">Entretien · ~3 sticks</span><span class="d-h">CYA en zone, sans CYA · 5 j · ou galets</span></div>
+
+  <!-- PRODUITS (no title) -->
+  <h2 class="sec">Produits ajoutés</h2>
+  <div class="qrow"><label>Qté</label><input class="qty" value="1"><span style="font-size:.78rem;color:var(--muted)">puis choisir&nbsp;:</span></div>
+  <div class="prods">
+    <button class="prodbtn">Stick <small>HTH</small></button>
+    <button class="prodbtn">Galet <small>HTH</small></button>
+    <button class="prodbtn">Cal-hypo <small>Choc</small></button>
+    <button class="prodbtn">pH- <small>HTH</small></button>
+    <button class="prodbtn">pH+ <small>Mareva</small></button>
+  </div>
+  <div class="added" id="added"></div>
+
+  <!-- 3 · LOCAL TECHNIQUE / POMPE -->
+  <section class="psec pompe">
+    <span class="ph-hint">photo local technique (placeholder)</span><span class="cam">📷</span>
+    <div class="scrim-b"></div>
+    <div class="ov">
+      <div class="grow"></div>
+      <div style="font-size:1.15rem;font-weight:700">Gestion de pompe</div>
+      <div class="pumpline">Dernier lavage : 15 juil., 12:17 · Sable : inconnu</div>
+      <div class="pumprow">
+        <button class="btn sm" style="background:rgba(0,0,0,.34);color:#fff;border-color:rgba(255,255,255,.2)">↺ Enregistrer un lavage</button>
+        <button class="btn sm" style="background:rgba(0,0,0,.34);color:#fff;border-color:rgba(255,255,255,.2)">Sable : définir</button>
+      </div>
+    </div>
+  </section>
+  <textarea class="field" rows="2" placeholder="notes de pompe…"></textarea>
+  <button class="btn primary" style="margin-top:8px">✔ Marquer entretenue aujourd'hui</button>
+
+  <!-- HISTORIQUE full -->
+  <h2 class="sec">Historique</h2>
+  <table id="hist"><thead><tr><th>Quand</th><th>pH</th><th>Cl</th><th>CYA</th></tr></thead><tbody></tbody></table>
+
+  <div class="foot">Prototype beta — AG 7, données réelles (instantané 21 juil.). Photos = zones de repère
+  (les vraies photos verticales viennent de l'app). Rien n'est interactif ici : c'est la disposition qu'on valide.</div>
+</div>
+
+<script>
+// AG 7 — real snapshot data
+const READINGS = [
+  { at:'2026-06-30T14:19', ph:7.28, cl:0.05, cya:66 },
+  { at:'2026-07-02T13:44', ph:7.35, cl:2.5,  cya:70 },
+  { at:'2026-07-06T09:22', ph:7.33, cl:2.48, cya:66 },
+  { at:'2026-07-13T14:18', ph:7.4,  cl:1.1,  cya:63 },
+  { at:'2026-07-15T10:17', ph:7.53, cl:0.62, cya:61 },
+  { at:'2026-07-20T09:56', ph:7.76, cl:5.03, cya:59 },
+];
+const TREATS = new Set(['2026-06-30','2026-07-02','2026-07-06','2026-07-11','2026-07-15','2026-07-20']);
+const ADDED = [
+  { t:'20 juil., 09:53', s:'2× Stick · 300 g' },
+  { t:'20 juil., 09:53', s:'500 g · Cal-hypo (choc)' },
+  { t:'20 juil., 10:04', s:'800 g · pH-' },
+  { t:'15 juil., 10:17', s:'2× Stick · 300 g' },
+  { t:'11 juil., 10:53', s:'3× Stick · 300 g' },
+  { t:'06 juil., 09:22', s:'2× Stick · 300 g' },
+  { t:'02 juil., 13:45', s:'3× Stick · 300 g' },
+  { t:'30 juin, 14:19', s:'3× Stick · 300 g · 1× Cal-hypo' },
+];
+const BANDS = { ph:[7.0,7.6], cl:[1,3], cya:[30,50] };
+const day = (iso)=>iso.slice(0,10);
+const state = (k,v)=>{ const b=BANDS[k]; return v==null?'na':v<b[0]?'low':v>b[1]?'warn2':'ok'; };
+const cls = (k,v)=>{ const s=state(k,v); return s==='ok'?'ok':s==='low'?'warn':'bad'; };
+const col = (k,v)=>{ const s=state(k,v); return s==='ok'?'var(--ok)':s==='low'?'var(--low)':s==='warn2'?'var(--high)':'var(--na)'; };
+
+// micro sparkline (over photo) for one metric
+function micro(k){
+  const w=150,h=20,pad=2;
+  const t0=new Date(READINGS[0].at).getTime(), t1=new Date(READINGS[READINGS.length-1].at).getTime();
+  const X=(iso)=> t1===t0? w/2 : pad+((new Date(iso).getTime()-t0)/(t1-t0))*(w-2*pad);
+  const vals=READINGS.map(r=>r[k]); const mx=Math.max(...vals,BANDS[k][1]*1.1), mn=Math.min(...vals,BANDS[k][0]*0.9);
+  const Y=(v)=> h-pad-((v-mn)/(mx-mn||1))*(h-2*pad);
+  const band=`<rect x="0" y="${Y(BANDS[k][1]).toFixed(1)}" width="${w}" height="${Math.max(0,Y(BANDS[k][0])-Y(BANDS[k][1])).toFixed(1)}" fill="rgba(255,255,255,.16)"/>`;
+  const ticks=READINGS.filter(r=>TREATS.has(day(r.at))).map(r=>`<line x1="${X(r.at).toFixed(1)}" y1="0" x2="${X(r.at).toFixed(1)}" y2="${h}" stroke="rgba(255,255,255,.35)" stroke-dasharray="1.5 1.5"/>`).join('');
+  const pts=READINGS.map(r=>`${X(r.at).toFixed(1)},${Y(r[k]).toFixed(1)}`).join(' ');
+  const dots=READINGS.map((r,i)=>`<circle cx="${X(r.at).toFixed(1)}" cy="${Y(r[k]).toFixed(1)}" r="${i===READINGS.length-1?2.6:1.5}" fill="${col(k,r[k])}"/>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${band}${ticks}<polyline points="${pts}" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="1.3"/>${dots}</svg>`;
+}
+const last = READINGS[READINGS.length-1];
+document.getElementById('trend').innerHTML = ['ph','cl','cya'].map(k=>
+  `<div class="tr-row"><span class="tr-k">${k==='ph'?'pH':k==='cl'?'Cl':'CyA'}</span>${micro(k)}<span class="tr-v" style="color:${col(k,last[k])}">${last[k]}</span></div>`).join('');
+
+// mini bars
+const clPct = 38; // active-chlorine % (from app)
+document.getElementById('mini').innerHTML =
+  `<div class="cm bad"><div class="v">${clPct}%</div><div class="k">Cl actif</div></div>`+
+  `<div class="cm ${cls('cl',last.cl)}"><div class="v">${last.cl}</div><div class="k">Cl</div></div>`+
+  `<div class="cm ${cls('cya',last.cya)}"><div class="v">${last.cya}</div><div class="k">CyA</div></div>`+
+  `<div class="cm warn"><div class="v">~1.5</div><div class="k">/jour</div></div>`;
+
+document.getElementById('added').innerHTML = ADDED.map(a=>
+  `<div class="arow"><span>${a.s}</span><span class="a-t">${a.t}</span></div>`).join('');
+
+document.querySelector('#hist tbody').innerHTML = [...READINGS].reverse().map(r=>
+  `<tr><td>${r.at.slice(8,10)}/${r.at.slice(5,7)} ${r.at.slice(11,16)}</td>`+
+  `<td class="${cls('ph',r.ph)}">${r.ph}</td><td class="${cls('cl',r.cl)}">${r.cl}</td><td class="${cls('cya',r.cya)}">${r.cya}</td></tr>`).join('');
+
+document.getElementById('theme').addEventListener('click',()=>{
+  const r=document.documentElement, cur=r.getAttribute('data-theme');
+  const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  r.setAttribute('data-theme',dark?'light':'dark');
+});
+</script>
+</body>
+</html>
