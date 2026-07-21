@@ -166,6 +166,7 @@ const Store = (() => {
       salt: numOrNull(r.salt),    // salt pools (g/L)
       temp: numOrNull(r.temp),
       note: r.note || '',
+      by: r.by != null ? r.by : operator(),
       weather: r.weather || null,
     };
     load().readings.push(rec);
@@ -194,6 +195,7 @@ const Store = (() => {
       at: opts.at || new Date().toISOString(),
       type: opts.type || 'service',
       note: opts.note || '',
+      by: opts.by != null ? opts.by : operator(),
     };
     load().visits.push(rec);
     save();
@@ -233,6 +235,7 @@ const Store = (() => {
       productId: opts.productId || '',
       qty: numOrNull(opts.qty),
       note: opts.note || '',
+      by: opts.by != null ? opts.by : operator(),
       weather: opts.weather || null,
     };
     load().visits.push(rec);
@@ -261,6 +264,7 @@ const Store = (() => {
       poolId: n.poolId || '',
       todo: !!n.todo,
       done: false,
+      by: n.by != null ? n.by : operator(),
       weather: n.weather || null,
     };
     load().notes.push(rec);
@@ -422,6 +426,23 @@ const Store = (() => {
     save();
   }
 
+  // ---- operator identity (who is logging) ----
+  // Device-local on purpose: this phone belongs to one person, so it does NOT
+  // live in the synced blob — my phone stays "Loki", Dodo's stays "Dodo". Every
+  // new log is stamped `by`; records made before this existed have no `by` and
+  // read as blank (no backfilling, no guessing who did what).
+  const OP_KEY = 'lagrange-piscine.operator';
+  function operator() { try { return localStorage.getItem(OP_KEY) || ''; } catch (_) { return ''; } }
+  function setOperator(name) { try { localStorage.setItem(OP_KEY, (name || '').trim()); } catch (_) {} }
+  // Names for the picker = every `by` seen in the data (arrives from either
+  // phone via sync) plus this device's own operator. Add-new = just type one.
+  function knownOperators() {
+    const set = new Set(); const s = load();
+    ['readings', 'visits', 'notes'].forEach((k) => (s[k] || []).forEach((r) => { if (r.by) set.add(r.by); }));
+    const me = operator(); if (me) set.add(me);
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
   return {
     KEY, slug, poolId,
     load, save,
@@ -431,6 +452,7 @@ const Store = (() => {
     addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, updateVisit, servicedOn, localDate,
     addTreatment, treatmentsFor, lastTreatment,
     addNote, notes, notesFor, openTodos, setNoteDone, updateNote, deleteNote,
+    operator, setOperator, knownOperators,
     updatePool, updateResidence,
     updateOccupancy, addOccupancy, deleteOccupancy,
     applyRemoteReading, applyRemoteReadingRemoved,

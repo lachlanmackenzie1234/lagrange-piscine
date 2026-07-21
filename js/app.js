@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.58'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.59'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -613,7 +613,7 @@
     const tag = p ? `<a class="chip st-empty" href="#/pool/${p.id}">${esc(p.res + ' ' + p.unit)}</a>` : '';
     const todoChip = n.todo ? `<span class="chip ${n.done ? 'st-done' : 'st-arriving'}">${n.done ? esc(t('done_badge')) : '☐'}</span>` : '';
     const card = el(`<div class="card note${n.done ? ' note-done' : ''}">
-      <div class="card-row"><span class="note-meta">${fmtDateTime(n.at)} ${tag} ${wxChip(n.weather)}</span>${todoChip}</div>
+      <div class="card-row"><span class="note-meta">${fmtDateTime(n.at)} ${tag} ${wxChip(n.weather)}${byTag(n)}</span>${todoChip}</div>
       <div class="note-text">${esc(n.text)}</div>
       <div class="note-actions"></div>
     </div>`);
@@ -1184,7 +1184,7 @@
     const tb = tbl.querySelector('tbody');
     readings.forEach((r) => {
       const tr = el(`<tr>
-        <td>${fmtDateTime(r.at)}${r.weather ? ' ' + wxChip(r.weather) : ''}${r.note ? `<div class="cell-note">${esc(r.note)}</div>` : ''}</td>
+        <td>${fmtDateTime(r.at)}${r.weather ? ' ' + wxChip(r.weather) : ''}${byTag(r)}${r.note ? `<div class="cell-note">${esc(r.note)}</div>` : ''}</td>
         <td class="${evalMetric('ph', r.ph).state}">${r.ph ?? '—'}</td>
         <td class="${evalMetric('chlorine', r.chlorine).state}">${r.chlorine ?? '—'}</td>
         <td class="${evalMetric('stabilizer', r.stabilizer).state}">${r.stabilizer ?? '—'}</td>
@@ -1346,6 +1346,7 @@
         });
         meta.appendChild(timeBtn);
         if (tr.weather) meta.appendChild(el(`<span>${wxChip(tr.weather)}</span>`));
+        if (tr.by) meta.appendChild(el(`<span>${byTag(tr)}</span>`));
         const del = el('<button class="link-del">✕</button>');
         del.addEventListener('click', () => { Store.deleteVisit(tr.id); render(); });
         meta.appendChild(del);
@@ -1566,6 +1567,10 @@
     if (!w || w.temp == null) return '';
     return `<span class="wx-chip">${wmo(w.code).e} ${Math.round(w.temp)}°${w.hum != null ? ' · ' + Math.round(w.hum) + '%' : ''}</span>`;
   }
+  // small "who logged this" tag; blank for records made before operators existed
+  function byTag(rec) {
+    return rec && rec.by ? `<span class="by-tag">${esc(rec.by)}</span>` : '';
+  }
 
   function viewWeather() {
     const wrap = document.createElement('div');
@@ -1700,10 +1705,39 @@
     return box;
   }
 
+  // Who is logging on this phone. Device-local (not synced): each phone is one
+  // person. New logs get stamped; the name rides to the other phone via records.
+  function operatorSection() {
+    const box = el('<div class="sync-box"></div>');
+    box.appendChild(el(`<div class="section-title"><h2>${esc(t('op_title'))}</h2><p>${esc(t('op_desc'))}</p></div>`));
+    const cur = Store.operator();
+    box.appendChild(el(`<p class="sync-status s-online">${cur ? esc(t('op_current', { name: cur })) : esc(t('op_none'))}</p>`));
+    const input = el(`<input class="sync-input" type="text" inputmode="text" autocomplete="off" placeholder="${esc(t('op_ph'))}" value="${esc(cur)}">`);
+    const field = el(`<label class="field"><span>${esc(t('op_name'))}</span></label>`);
+    field.appendChild(input);
+    box.appendChild(field);
+    const known = Store.knownOperators().filter((n) => n && n !== cur);
+    if (known.length) {
+      const chips = el('<div class="op-chips"></div>');
+      known.forEach((n) => {
+        const c = el(`<button class="chip st-empty">${esc(n)}</button>`);
+        c.addEventListener('click', () => { Store.setOperator(n); render(); });
+        chips.appendChild(c);
+      });
+      box.appendChild(chips);
+    }
+    const btn = el(`<button class="btn primary">${esc(t('op_save'))}</button>`);
+    btn.addEventListener('click', () => { Store.setOperator(input.value); render(); });
+    box.appendChild(btn);
+    box.appendChild(el(`<p class="sync-hint">${esc(t('op_hint'))}</p>`));
+    return box;
+  }
+
   // ---------- view: SETTINGS ----------
   function viewSettings() {
     const wrap = document.createElement('div');
     wrap.appendChild(header(t('settings_title')));
+    wrap.appendChild(operatorSection());
     wrap.appendChild(syncSection());
 
     // date + time in the filename so successive saves sort cleanly and don't
