@@ -552,8 +552,10 @@ details.measure .reading-form { margin: 0; }
 .ov-sub { color: rgba(255,255,255,.9); font-size: .84rem; }
 .ov-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 /* on a photo, the trend + buttons go translucent-dark so they read over the image */
-.ov-content .pool-trend { background: rgba(0,0,0,.4); border-color: rgba(255,255,255,.16); }
+.ov-content .pool-trend { background: rgba(0,0,0,.4); border-color: rgba(255,255,255,.16);
+  --ok-bg: rgba(150,230,170,.20); } /* soften the stable-band over the photo */
 .ov-content .pool-trend .pt-k { color: rgba(255,255,255,.82); }
+.ov-content .pool-trend .pt-v { color: #fff; }
 .ov-content .ov-saisir { background: rgba(18,58,94,.86); border-color: rgba(255,255,255,.26); }
 .ov-content .ov-btn { width: auto; background: rgba(0,0,0,.4); color: #fff; border: 1px solid rgba(255,255,255,.26); }
 .flow-icons { display: flex; gap: 8px; margin: 8px 0; }
