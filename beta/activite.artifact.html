@@ -262,7 +262,7 @@ const LP = (() => {
 
 /* ================= view (beta-only; the live app renders these its own way) */
 const PRODUCTS = {
-  'hth-stick': { name: 'Stick', unit: 'stick' }, 'hth-galet': { name: 'Galet', unit: 'galet' },
+  'hth-stick': { name: 'Stick', unit: 'stick', grammage: 300 }, 'hth-galet': { name: 'Galet', unit: 'galet', grammage: 200 },
   'hypomen-pro': { name: 'Cal-hypo (choc)', unit: 'g' }, 'hth-phminus': { name: 'pH−', unit: 'g' },
   'mareva-phplus': { name: 'pH+', unit: 'g' }, 'mareva-cya': { name: 'Stabilisant', unit: 'g' },
   'hth-borkler': { name: 'Borkler (algues)', unit: 'dose' }, 'acti-yellow': { name: 'Yellow (algues)', unit: 'dose' },
@@ -376,19 +376,28 @@ function render() {
   document.getElementById('pools-hint').textContent =
     realPools.length + ' piscines · ' + fmtDay(allDays[0]) + '→' + fmtDay(ref);
 
-  // products — reorder signal, at the foot of the page. Each total is annotated
-  // with the date counting began for that product ("depuis jj/mm/aa").
+  // products — normalised to grams of actual product where possible (stick 300 g,
+  // galet 200 g) so the bars reflect real chemical usage, not mixed units. Dose/
+  // sachet products with no gram basis stay as counts, listed after.
   const totals = LP.productTotals(V);
-  const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-  const pmax = Math.max(1, ...rows.map(([, q]) => q));
   const firstOf = (id) => { let m = null; for (const v of V) if (v.productId === id && (!m || v.at < m)) m = v.at; return m; };
-  document.getElementById('prod').innerHTML = rows.map(([id, q]) => {
-    const p = PRODUCTS[id] || { name: id, unit: '' };
-    return `<div class="prow"><div><div class="pn">${p.name}</div><div class="pk">depuis ${fmtDMY(firstOf(id))}</div></div>
-      <div class="pq">${round(q)} <small>${p.unit}</small></div>
-      <div class="track"><i style="width:${Math.round((q / pmax) * 100)}%"></i></div></div>`;
-  }).join('');
-  document.getElementById('prod-hint').textContent = rows.length + ' produits · depuis ' + fmtDMY(allDays[0]);
+  const gramsOf = (id, q) => { const p = PRODUCTS[id] || {}; if (p.unit === 'g') return q; if (p.grammage) return q * p.grammage; return null; };
+  const fmtMass = (g) => g >= 1000 ? (Math.round(g / 100) / 10) + ' kg' : Math.round(g) + ' g';
+  const items = Object.entries(totals).map(([id, q]) => ({ id, q, g: gramsOf(id, q) }));
+  const gramItems = items.filter((x) => x.g != null).sort((a, b) => b.g - a.g);
+  const countItems = items.filter((x) => x.g == null).sort((a, b) => b.q - a.q);
+  const gmax = Math.max(1, ...gramItems.map((x) => x.g));
+  const prodRow = (x, withBar) => {
+    const p = PRODUCTS[x.id] || { name: x.id, unit: '' };
+    const cnt = withBar && p.unit !== 'g' ? ` · ${round(x.q)} ${p.unit}` : '';
+    const val = withBar ? fmtMass(x.g) : `${round(x.q)} <small>${p.unit}</small>`;
+    const bar = withBar ? `<div class="track"><i style="width:${Math.round((x.g / gmax) * 100)}%"></i></div>` : '';
+    return `<div class="prow"><div><div class="pn">${p.name}</div><div class="pk">depuis ${fmtDMY(firstOf(x.id))}${cnt}</div></div>
+      <div class="pq">${val}</div>${bar}</div>`;
+  };
+  document.getElementById('prod').innerHTML =
+    gramItems.map((x) => prodRow(x, true)).join('') + countItems.map((x) => prodRow(x, false)).join('');
+  document.getElementById('prod-hint').textContent = items.length + ' produits · depuis ' + fmtDMY(allDays[0]);
 
   document.getElementById('foot').innerHTML =
     'Beta lecture seule — données figées d’un export (aucun nom locataire). ' +
