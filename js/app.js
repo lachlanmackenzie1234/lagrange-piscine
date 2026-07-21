@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.59'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.60'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1709,13 +1709,16 @@
   // person. New logs get stamped; the name rides to the other phone via records.
   function operatorSection() {
     const box = el('<div class="sync-box"></div>');
-    box.appendChild(el(`<div class="section-title"><h2>${esc(t('op_title'))}</h2><p>${esc(t('op_desc'))}</p></div>`));
+    box.appendChild(el(`<div class="section-title"><h2>${esc(t('op_title'))}</h2></div>`));
     const cur = Store.operator();
-    box.appendChild(el(`<p class="sync-status s-online">${cur ? esc(t('op_current', { name: cur })) : esc(t('op_none'))}</p>`));
+    const row = el('<div class="inline-set"></div>');
     const input = el(`<input class="sync-input" type="text" inputmode="text" autocomplete="off" placeholder="${esc(t('op_ph'))}" value="${esc(cur)}">`);
-    const field = el(`<label class="field"><span>${esc(t('op_name'))}</span></label>`);
-    field.appendChild(input);
-    box.appendChild(field);
+    const ok = el(`<button class="icon-check" title="${esc(t('op_save'))}" aria-label="${esc(t('op_save'))}">✓</button>`);
+    const commit = () => { Store.setOperator(input.value); render(); };
+    ok.addEventListener('click', commit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } });
+    row.appendChild(input); row.appendChild(ok);
+    box.appendChild(row);
     const known = Store.knownOperators().filter((n) => n && n !== cur);
     if (known.length) {
       const chips = el('<div class="op-chips"></div>');
@@ -1726,10 +1729,6 @@
       });
       box.appendChild(chips);
     }
-    const btn = el(`<button class="btn primary">${esc(t('op_save'))}</button>`);
-    btn.addEventListener('click', () => { Store.setOperator(input.value); render(); });
-    box.appendChild(btn);
-    box.appendChild(el(`<p class="sync-hint">${esc(t('op_hint'))}</p>`));
     return box;
   }
 

@@ -426,8 +426,14 @@ details.measure .reading-form { margin: 0; }
 .by-tag { font-size: .68rem; font-weight: 600; letter-spacing: .02em; padding: 1px 7px;
   border-radius: 999px; background: var(--na-bg); color: var(--muted); white-space: nowrap; }
 .by-tag::before { content: '\1F464\00A0'; opacity: .6; } /* 👤 */
-.op-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.op-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
 .op-chips .chip { cursor: pointer; }
+/* inline field + a compact validation check (replaces a full-width Save button) */
+.inline-set { display: flex; gap: 8px; align-items: stretch; }
+.inline-set .sync-input { flex: 1; }
+.icon-check { flex: 0 0 auto; width: 44px; border: 1px solid var(--ok); border-radius: 8px;
+  background: var(--ok-bg); color: var(--ok); font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+.icon-check:active { transform: scale(.96); }
 
 /* tab bar */
 .tabbar {
