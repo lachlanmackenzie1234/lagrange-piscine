@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Activité — beta</title>
+<style>
+:root{
+  --bg:#ffffff; --card:#ffffff; --ink:#22303c; --muted:#6b7a87; --line:#dde5ec;
+  --navy:#123a5e; --title:#123a5e; --brand:#2b8fd0; --brand-dark:#123a5e;
+  --ok:#1b9e4b; --ok-bg:#e6f6ec; --low:#d98b00; --low-bg:#fdf3e0;
+  --high:#d12f2f; --high-bg:#fdeaea; --na:#8a98a4; --na-bg:#eef2f5;
+  --s1:8px; --s2:13px; --s3:21px; --s4:34px; --s5:55px;
+}
+/* dark: --navy stays fixed (header bar & stripes read white-on-navy in both
+   themes, as in the live app). Only --title lightens, for figures set on dark cards. */
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0e1620; --card:#16212d; --ink:#e7eef4; --muted:#8ea0ae; --line:#243343;
+    --na-bg:#1d2935; --na:#8094a3; --ok-bg:#14301f; --low-bg:#32260f; --high-bg:#3a1a1a;
+    --title:#cfe4f5; }
+}
+:root[data-theme="dark"]{ --bg:#0e1620; --card:#16212d; --ink:#e7eef4; --muted:#8ea0ae; --line:#243343;
+  --na-bg:#1d2935; --na:#8094a3; --ok-bg:#14301f; --low-bg:#32260f; --high-bg:#3a1a1a;
+  --title:#cfe4f5; }
+:root[data-theme="light"]{ --bg:#ffffff; --card:#ffffff; --ink:#22303c; --muted:#6b7a87; --line:#dde5ec;
+  --navy:#123a5e; --title:#123a5e; --na-bg:#eef2f5; --na:#8a98a4;
+  --ok-bg:#e6f6ec; --low-bg:#fdf3e0; --high-bg:#fdeaea; }
+
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px; line-height:1.4; -webkit-font-smoothing:antialiased; }
+.wrap{ max-width:560px; margin:0 auto; padding:0 var(--s2) calc(var(--s5) + env(safe-area-inset-bottom)); }
+.tnum{ font-variant-numeric:tabular-nums; }
+
+/* header */
+header.top{ position:sticky; top:0; z-index:5; background:var(--navy);
+  padding:calc(var(--s2) + env(safe-area-inset-top)) var(--s2) var(--s2);
+  margin:0 calc(-1 * var(--s2)) var(--s3); }
+header.top h1{ margin:0; font-size:1.35rem; color:#fff; letter-spacing:.2px; }
+header.top .sub{ margin:2px 0 0; color:#bcd6ea; font-size:.82rem; }
+.beta{ display:inline-block; font-size:.62rem; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; background:var(--brand); color:#fff; border-radius:4px;
+  padding:2px 6px; vertical-align:middle; margin-left:8px; }
+.tools{ display:flex; gap:var(--s1); margin-top:var(--s2); }
+.tools label,.tools button{ font:inherit; font-size:.78rem; color:#dfeefb; background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22); border-radius:8px; padding:6px 10px; cursor:pointer; }
+.tools input[type=file]{ display:none; }
+
+/* eyebrow section label — mirrors the app's navy section stripe */
+.eyebrow{ display:flex; align-items:baseline; gap:8px; margin:var(--s4) 0 var(--s2); }
+.eyebrow h2{ margin:0; font-size:.72rem; font-weight:700; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--title); }
+.eyebrow .hint{ font-size:.72rem; color:var(--muted); }
+
+/* stat tiles */
+.tiles{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--s1); }
+.tile{ background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:var(--s2) var(--s2) var(--s2); text-align:left; }
+.tile .n{ font-size:1.9rem; font-weight:700; color:var(--title); line-height:1;
+  font-variant-numeric:tabular-nums; }
+.tile .u{ font-size:.72rem; color:var(--muted); }
+.tile .l{ margin-top:6px; font-size:.72rem; color:var(--ink); font-weight:600; }
+.tile .k{ font-size:.66rem; color:var(--muted); }
+
+/* passage bar strip */
+.bars{ display:flex; align-items:flex-end; gap:3px; height:88px; margin-top:var(--s2);
+  padding:var(--s2) 0 0; border-bottom:1px solid var(--line); }
+.bar{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+.bar i{ width:100%; max-width:16px; background:var(--brand); border-radius:3px 3px 0 0; display:block; }
+.bar.today i{ background:var(--title); }
+.bar.zero i{ background:var(--line); }
+.bar b{ font-size:.62rem; color:var(--title); font-weight:700; font-variant-numeric:tabular-nums; }
+.axis{ display:flex; gap:3px; margin-top:4px; }
+.axis span{ flex:1; text-align:center; font-size:.56rem; color:var(--muted); min-width:0;
+  overflow:hidden; white-space:nowrap; }
+
+/* product totals */
+.prod{ display:flex; flex-direction:column; gap:6px; }
+.prow{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--line); border-radius:10px; padding:9px var(--s2); }
+.prow .pn{ font-weight:600; font-size:.9rem; }
+.prow .pk{ font-size:.7rem; color:var(--muted); }
+.prow .pq{ font-weight:700; color:var(--title); font-variant-numeric:tabular-nums; }
+.prow .pq small{ font-weight:500; color:var(--muted); }
+.prow .track{ grid-column:1 / -1; height:5px; border-radius:3px; background:var(--na-bg); overflow:hidden; }
+.prow .track i{ display:block; height:100%; background:var(--brand); border-radius:3px; }
+
+/* per-pool rows */
+.pool{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:10px var(--s2); margin-bottom:6px; }
+.pool .id{ font-weight:700; color:var(--title); font-size:.9rem; min-width:64px; }
+.pool .id small{ display:block; font-weight:500; color:var(--muted); font-size:.66rem; }
+.pool .spark{ width:100%; height:34px; }
+.pool .cnt{ text-align:right; }
+.pool .cnt b{ font-size:1.15rem; color:var(--title); font-variant-numeric:tabular-nums; }
+.pool .cnt small{ display:block; font-size:.64rem; color:var(--muted); }
+.dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+.dot.ok{ background:var(--ok); } .dot.low{ background:var(--low); }
+.dot.high{ background:var(--high); } .dot.na{ background:var(--na); }
+.note{ font-size:.74rem; color:var(--muted); margin:var(--s1) 0 0; }
+.foot{ margin-top:var(--s5); padding-top:var(--s3); border-top:1px solid var(--line);
+  font-size:.72rem; color:var(--muted); }
+.foot code{ background:var(--na-bg); padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Activité<span class="beta">Beta</span></h1>
+    <p class="sub" id="range">—</p>
+    <div class="tools">
+      <label for="file">↥ Charger une sauvegarde</label>
+      <input type="file" id="file" accept=".json,application/json">
+      <button id="theme" type="button">◐ Thème</button>
+    </div>
+  </header>
+
+  <section class="eyebrow"><h2>Rythme de passage</h2><span class="hint" id="rhythm-hint"></span></section>
+  <div class="tiles" id="tiles"></div>
+  <div class="bars" id="bars"></div>
+  <div class="axis" id="axis"></div>
+  <p class="note" id="passage-note"></p>
+
+  <section class="eyebrow"><h2>Produits ajoutés</h2><span class="hint" id="prod-hint"></span></section>
+  <div class="prod" id="prod"></div>
+
+  <section class="eyebrow"><h2>Mesures par piscine</h2><span class="hint">chlore libre · dernières mesures</span></section>
+  <div id="pools"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script id="lp-data" type="application/json">{"pools":[{"id":"EC-2","res":"EC","unit":"2","nonPool":false},{"id":"EC-5","res":"EC","unit":"5","nonPool":false},{"id":"EC-12","res":"EC","unit":"12","nonPool":false},{"id":"EC-18","res":"EC","unit":"18","nonPool":false},{"id":"EC-22","res":"EC","unit":"22","nonPool":false},{"id":"AG-7","res":"AG","unit":"7","nonPool":false},{"id":"AG-8","res":"AG","unit":"8","nonPool":false},{"id":"AG-9","res":"AG","unit":"9","nonPool":false},{"id":"AG-21","res":"AG","unit":"21","nonPool":false},{"id":"AG-32","res":"AG","unit":"32","nonPool":false},{"id":"EP-6B-75","res":"EP","unit":"6B/75","nonPool":false},{"id":"EP-19B-90","res":"EP","unit":"19B/90","nonPool":false},{"id":"EP-30B-63","res":"EP","unit":"30B/63","nonPool":false},{"id":"EP-5P","res":"EP","unit":"5P","nonPool":true},{"id":"EP-27B-94","res":"EP","unit":"27B/94","nonPool":false},{"id":"EP-40B-52","res":"EP","unit":"40B/52","nonPool":false},{"id":"EP-31B-96","res":"EP","unit":"31B/96","nonPool":false},{"id":"EP-52B-46","res":"EP","unit":"52B/46","nonPool":false},{"id":"EP-6E-99","res":"EP","unit":"6E/99","nonPool":false},{"id":"EPP-3","res":"EPP","unit":"3","nonPool":false},{"id":"EPP-4","res":"EPP","unit":"4","nonPool":false},{"id":"EPP-7","res":"EPP","unit":"7","nonPool":false},{"id":"EPP-11","res":"EPP","unit":"11","nonPool":true},{"id":"EPP-12","res":"EPP","unit":"12","nonPool":true},{"id":"GP-18","res":"GP","unit":"18","nonPool":false},{"id":"GP-39","res":"GP","unit":"39","nonPool":false},{"id":"HO-31","res":"HO","unit":"31","nonPool":false},{"id":"HO-49","res":"HO","unit":"49","nonPool":false},{"id":"HO-166","res":"HO","unit":"166","nonPool":false},{"id":"HO-28","res":"HO","unit":"28","nonPool":false},{"id":"HO-40","res":"HO","unit":"40","nonPool":false},{"id":"HO-62","res":"HO","unit":"62","nonPool":false},{"id":"HO-187","res":"HO","unit":"187","nonPool":false},{"id":"HO-222","res":"HO","unit":"222","nonPool":false},{"id":"HO-229","res":"HO","unit":"229","nonPool":false}],"visits":[{"poolId":"AG-7","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-06-30T14:19:00.000Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-galet","qty":4,"at":"2026-06-30T08:54:00.000Z"},{"poolId":"AG-8","type":"treatment","productId":"acti-floc","qty":1,"at":"2026-06-30T08:54:00.000Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-06-30T14:46:00.000Z"},{"poolId":"AG-9","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-06-30T14:41:00.000Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-06-30T10:35:00.000Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hth-galet","qty":4,"at":"2026-06-30T09:43:00.000Z"},{"poolId":"EPP-3","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-06-30T13:34:00.000Z"},{"poolId":"EPP-7","type":"treatment","productId":"hth-phminus","qty":1,"at":"2026-06-30T13:11:00.000Z"},{"poolId":"EPP-7","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-06-30T13:11:00.000Z"},{"poolId":"EPP-7","type":"treatment","productId":"acti-floc","qty":1,"at":"2026-06-30T13:11:00.000Z"},{"poolId":"EPP-7","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-06-30T13:11:00.000Z"},{"poolId":"GP-39","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-06-30T12:27:00.000Z"},{"poolId":"GP-39","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-06-30T12:27:00.000Z"},{"poolId":"GP-39","type":"treatment","productId":"hth-phminus","qty":1,"at":"2026-06-30T12:27:00.000Z"},{"poolId":"AG-7","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-06-30T14:22:00.000Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hth-galet","qty":1,"at":"2026-06-30T10:35:00.000Z"},{"poolId":"GP-18","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-01T07:52:32.948Z"},{"poolId":"EC-18","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-01T08:56:00.950Z"},{"poolId":"EC-18","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-07-01T08:56:12.048Z"},{"poolId":"EC-5","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-01T08:58:02.593Z"},{"poolId":"EC-5","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-07-01T08:58:07.138Z"},{"poolId":"EPP-7","type":"treatment","productId":"mareva-phplus","qty":1,"at":"2026-07-01T09:14:32.189Z"},{"poolId":"GP-39","type":"treatment","productId":"hth-phminus","qty":1,"at":"2026-07-01T09:30:29.054Z"},{"poolId":"GP-39","type":"treatment","productId":"acti-floc","qty":1,"at":"2026-07-01T09:38:33.396Z"},{"poolId":"EC-22","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-01T10:44:52.334Z"},{"poolId":"EP-40B-52","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-01T13:31:58.716Z"},{"poolId":"EP-30B-63","type":"treatment","productId":"hth-phminus","qty":500,"at":"2026-07-01T13:53:11.902Z"},{"poolId":"EP-6B-75","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-01T14:13:46.619Z"},{"poolId":"EPP-3","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-02T08:43:54.474Z"},{"poolId":"EC-2","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-02T09:51:21.123Z"},{"poolId":"EC-2","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-07-02T09:51:24.802Z"},{"poolId":"EC-2","type":"treatment","productId":"hypomen-pro","qty":200,"at":"2026-07-02T09:51:36.925Z"},{"poolId":"EC-12","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-02T10:18:49.703Z"},{"poolId":"AG-7","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-02T13:45:09.317Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-02T13:49:38.403Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":0,"at":"2026-07-02T13:49:58.638Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-02T13:59:14.934Z"},{"poolId":"EPP-7","type":"treatment","productId":"mareva-phplus","qty":700,"at":"2026-07-03T09:00:39.852Z"},{"poolId":"EPP-7","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-03T09:00:47.936Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-03T09:32:46.211Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hypomen-pro","qty":75,"at":"2026-07-03T09:32:56.142Z"},{"poolId":"EP-6E-99","type":"treatment","productId":"hypomen-pro","qty":200,"at":"2026-07-03T09:54:49.462Z"},{"poolId":"EP-6E-99","type":"treatment","productId":"mareva-phplus","qty":400,"at":"2026-07-03T09:55:15.167Z"},{"poolId":"EP-6E-99","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-03T10:11:54.187Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-02T10:50:00.000Z"},{"poolId":"EP-27B-94","type":"treatment","productId":"hth-phminus","qty":1,"at":"2026-07-03T12:57:37.589Z"},{"poolId":"EP-27B-94","type":"treatment","productId":"hth-phminus","qty":901,"at":"2026-07-03T13:02:39.694Z"},{"poolId":"EP-6B-75","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-03T13:12:02.460Z"},{"poolId":"GP-39","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-04T07:41:27.041Z"},{"poolId":"EPP-3","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-04T08:12:40.040Z"},{"poolId":"EP-27B-94","type":"treatment","productId":"hth-galet","qty":4,"at":"2026-07-04T08:56:51.142Z"},{"poolId":"EP-19B-90","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-04T09:03:53.840Z"},{"poolId":"EP-19B-90","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-06-30T09:03:00.000Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-04T12:32:04.079Z"},{"poolId":"AG-8","type":"treatment","productId":"hypomen-pro","qty":500,"at":"2026-07-04T12:32:09.321Z"},{"poolId":"AG-32","type":"treatment","productId":"hypomen-pro","qty":500,"at":"2026-07-04T13:27:14.927Z"},{"poolId":"AG-32","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-04T13:27:24.576Z"},{"poolId":"AG-32","type":"treatment","productId":"mareva-phplus","qty":500,"at":"2026-07-04T13:27:31.602Z"},{"poolId":"AG-21","type":"treatment","productId":"mareva-phplus","qty":300,"at":"2026-07-06T08:07:42.648Z"},{"poolId":"AG-21","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-06T08:08:16.136Z"},{"poolId":"AG-21","type":"treatment","productId":"hypomen-pro","qty":150,"at":"2026-07-06T08:10:01.419Z"},{"poolId":"AG-7","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-06T09:22:28.534Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-06T09:32:23.015Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hth-galet","qty":3,"at":"2026-07-06T10:46:06.227Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hypomen-pro","qty":200,"at":"2026-07-06T10:47:29.438Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-06T13:56:14.983Z"},{"poolId":"EP-19B-90","type":"treatment","productId":"hypomen-pro","qty":300,"at":"2026-07-06T14:37:41.378Z"},{"poolId":"EC-18","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-07T08:54:22.722Z"},{"poolId":"EC-5","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-07T09:38:09.401Z"},{"poolId":"EC-5","type":"treatment","productId":"hth-phminus","qty":250,"at":"2026-07-07T09:38:21.012Z"},{"poolId":"EPP-3","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-07T13:20:05.909Z"},{"poolId":"EC-12","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-08T09:41:46.397Z"},{"poolId":"EC-2","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-08T10:30:55.607Z"},{"poolId":"EC-12","type":"treatment","productId":"hth-phminus","qty":900,"at":"2026-07-08T10:31:23.513Z"},{"poolId":"EC-22","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-08T13:43:00.005Z"},{"poolId":"EP-6E-99","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-09T09:40:31.609Z"},{"poolId":"GP-18","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-09T09:40:59.198Z"},{"poolId":"EP-40B-52","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-09T10:21:26.703Z"},{"poolId":"EP-40B-52","type":"treatment","productId":"hypomen-pro","qty":250,"at":"2026-07-09T10:21:31.486Z"},{"poolId":"AG-32","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-09T12:40:46.999Z"},{"poolId":"EPP-7","type":"treatment","productId":"hypomen-pro","qty":250,"at":"2026-07-09T13:22:06.873Z"},{"poolId":"GP-39","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-09T14:04:52.496Z"},{"poolId":"EP-6B-75","type":"treatment","productId":"hth-galet","qty":3,"at":"2026-07-10T08:15:43.567Z"},{"poolId":"EP-6B-75","type":"treatment","productId":"hypomen-pro","qty":200,"at":"2026-07-10T08:15:47.092Z"},{"poolId":"EP-19B-90","type":"treatment","productId":"hth-galet","qty":1,"at":"2026-07-10T09:41:55.072Z"},{"poolId":"EP-19B-90","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-10T09:41:56.673Z"},{"poolId":"EP-19B-90","type":"treatment","productId":"hypomen-pro","qty":150,"at":"2026-07-10T09:42:01.924Z"},{"poolId":"EP-30B-63","type":"treatment","productId":"hth-phminus","qty":600,"at":"2026-07-10T10:00:27.241Z"},{"poolId":"EP-30B-63","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-10T10:00:33.993Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-10T10:42:41.422Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hypomen-pro","qty":150,"at":"2026-07-10T10:42:51.656Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-10T11:09:20.224Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hypomen-pro","qty":150,"at":"2026-07-10T11:10:16.510Z"},{"poolId":"EC-5","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-10T13:02:19.540Z"},{"poolId":"EC-12","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-11T07:01:47.611Z"},{"poolId":"EPP-4","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-11T08:14:16.964Z"},{"poolId":"EPP-3","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-11T08:14:55.524Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-11T10:52:49.651Z"},{"poolId":"AG-7","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-11T10:53:11.519Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-11T10:53:31.388Z"},{"poolId":"EPP-7","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-11T11:37:22.550Z"},{"poolId":"GP-18","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-11T11:37:40.807Z"},{"poolId":"EP-6E-99","type":"treatment","productId":"hth-phminus","qty":600,"at":"2026-07-11T15:00:52.323Z"},{"poolId":"AG-21","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-13T09:03:15.350Z"},{"poolId":"AG-21","type":"treatment","productId":"hypomen-pro","qty":250,"at":"2026-07-13T09:03:19.173Z"},{"poolId":"EPP-4","type":"treatment","productId":"hth-galet","qty":3,"at":"2026-07-13T10:31:47.861Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-13T10:32:18.942Z"},{"poolId":"EP-40B-52","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-13T12:32:02.164Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-13T13:15:53.256Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-15T08:48:26.222Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-15T09:36:41.583Z"},{"poolId":"AG-7","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-15T10:12:16.653Z"},{"poolId":"AG-7","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-15T10:17:36.007Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-15T10:32:54.209Z"},{"poolId":"AG-32","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-15T10:59:59.350Z"},{"poolId":"AG-21","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-15T11:17:38.707Z"},{"poolId":"EC-2","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-15T12:27:35.094Z"},{"poolId":"EC-2","type":"treatment","productId":"hypomen-pro","qty":450,"at":"2026-07-15T12:27:39.244Z"},{"poolId":"EC-5","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-15T13:06:10.743Z"},{"poolId":"EC-18","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-15T13:15:47.488Z"},{"poolId":"EP-6B-75","type":"treatment","productId":"hth-stick","qty":3,"at":"2026-07-16T08:44:49.132Z"},{"poolId":"EP-6B-75","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-07-16T08:44:58.175Z"},{"poolId":"GP-18","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-17T09:18:07.343Z"},{"poolId":"EPP-7","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-17T09:47:55.810Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hypomen-pro","qty":1,"at":"2026-07-17T10:30:04.750Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hypomen-pro","qty":500,"at":"2026-07-17T10:30:10.741Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hth-stick","qty":4,"at":"2026-07-17T10:30:14.112Z"},{"poolId":"EP-40B-52","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-17T12:45:53.235Z"},{"poolId":"EP-52B-46","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-17T13:39:52.348Z"},{"poolId":"EC-22","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-18T10:57:57.736Z"},{"poolId":"EC-18","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-18T10:58:19.864Z"},{"poolId":"EC-5","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-18T10:58:30.609Z"},{"poolId":"EC-12","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-18T11:48:08.667Z"},{"poolId":"EC-12","type":"treatment","productId":"acti-floc","qty":1,"at":"2026-07-18T11:48:09.784Z"},{"poolId":"EC-12","type":"treatment","productId":"hypomen-pro","qty":1000,"at":"2026-07-18T11:48:24.549Z"},{"poolId":"EP-6B-75","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-18T13:37:07.855Z"},{"poolId":"GP-39","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-18T13:38:03.174Z"},{"poolId":"GP-18","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-18T13:38:22.132Z"},{"poolId":"EPP-7","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-18T13:38:33.401Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-18T13:40:57.377Z"},{"poolId":"EP-19B-90","type":"treatment","productId":"hth-stick","qty":4,"at":"2026-07-18T13:49:37.560Z"},{"poolId":"AG-8","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-20T08:53:13.073Z"},{"poolId":"AG-7","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-20T09:53:13.110Z"},{"poolId":"AG-7","type":"treatment","productId":"hypomen-pro","qty":500,"at":"2026-07-20T09:53:17.435Z"},{"poolId":"AG-7","type":"treatment","productId":"hth-phminus","qty":800,"at":"2026-07-20T10:04:06.285Z"},{"poolId":"AG-9","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-20T10:05:10.522Z"},{"poolId":"AG-21","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-20T10:26:35.953Z"},{"poolId":"AG-32","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-20T11:00:11.595Z"},{"poolId":"AG-32","type":"treatment","productId":"hypomen-pro","qty":400,"at":"2026-07-20T11:00:19.684Z"},{"poolId":"AG-32","type":"treatment","productId":"hypomen-pro","qty":400,"at":"2026-07-20T11:28:43.321Z"},{"poolId":"AG-21","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-20T11:29:49.158Z"},{"poolId":"EC-2","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-20T13:42:55.202Z"},{"poolId":"EC-12","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-20T14:02:53.695Z"},{"poolId":"EP-6E-99","type":"treatment","productId":"hypomen-pro","qty":300,"at":"2026-07-21T09:17:11.181Z"},{"poolId":"EP-6E-99","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-21T09:17:13.780Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hth-stick","qty":2,"at":"2026-07-21T10:01:53.693Z"},{"poolId":"EP-31B-96","type":"treatment","productId":"hypomen-pro","qty":300,"at":"2026-07-21T10:01:57.209Z"},{"poolId":"EPP-4","type":"treatment","productId":"hth-phminus","qty":950,"at":"2026-07-21T13:52:42.458Z"},{"poolId":"EPP-4","type":"treatment","productId":"hth-stick","qty":1,"at":"2026-07-21T13:52:48.857Z"},{"poolId":"EPP-4","type":"treatment","productId":"hth-galet","qty":2,"at":"2026-07-21T13:52:51.697Z"},{"poolId":"EPP-4","type":"treatment","productId":"hypomen-pro","qty":600,"at":"2026-07-21T13:52:59.301Z"},{"poolId":"AG-8","type":"backwash","productId":null,"qty":null,"at":"2026-06-29T21:42:47.302Z"},{"poolId":"EP-52B-46","type":"backwash","productId":null,"qty":null,"at":"2026-06-30T09:17:01.179Z"},{"poolId":"EP-52B-46","type":"service","productId":null,"qty":null,"at":"2026-06-30T09:51:16.029Z"},{"poolId":"AG-8","type":"service","productId":null,"qty":null,"at":"2026-06-30T09:51:24.555Z"},{"poolId":"EP-31B-96","type":"service","productId":null,"qty":null,"at":"2026-06-30T10:23:03.844Z"},{"poolId":"GP-39","type":"service","productId":null,"qty":null,"at":"2026-06-30T12:35:21.037Z"},{"poolId":"EPP-7","type":"service","productId":null,"qty":null,"at":"2026-06-30T12:53:26.779Z"},{"poolId":"EPP-7","type":"backwash","productId":null,"qty":null,"at":"2026-06-30T12:53:30.373Z"},{"poolId":"EPP-4","type":"service","productId":null,"qty":null,"at":"2026-06-30T13:31:21.455Z"},{"poolId":"EPP-3","type":"service","productId":null,"qty":null,"at":"2026-06-30T14:01:40.026Z"},{"poolId":"AG-9","type":"service","productId":null,"qty":null,"at":"2026-06-30T14:29:06.635Z"},{"poolId":"EC-5","type":"service","productId":null,"qty":null,"at":"2026-07-01T08:07:46.535Z"},{"poolId":"EC-18","type":"service","productId":null,"qty":null,"at":"2026-07-01T08:23:11.680Z"},{"poolId":"EC-5","type":"backwash","productId":null,"qty":null,"at":"2026-07-01T08:56:51.872Z"},{"poolId":"EPP-7","type":"service","productId":null,"qty":null,"at":"2026-07-01T09:17:16.238Z"},{"poolId":"EC-22","type":"service","productId":null,"qty":null,"at":"2026-07-01T10:45:13.579Z"},{"poolId":"EP-30B-63","type":"service","productId":null,"qty":null,"at":"2026-07-01T13:01:21.616Z"},{"poolId":"EP-40B-52","type":"service","productId":null,"qty":null,"at":"2026-07-01T13:08:17.371Z"},{"poolId":"EP-6B-75","type":"service","productId":null,"qty":null,"at":"2026-07-01T14:16:00.422Z"},{"poolId":"EP-40B-52","type":"service","productId":null,"qty":null,"at":"2026-07-01T15:01:27.434Z"},{"poolId":"EPP-3","type":"backwash","productId":null,"qty":null,"at":"2026-07-02T08:14:26.182Z"},{"poolId":"EPP-3","type":"service","productId":null,"qty":null,"at":"2026-07-02T08:44:13.317Z"},{"poolId":"EPP-7","type":"backwash","productId":null,"qty":null,"at":"2026-07-02T09:22:57.732Z"},{"poolId":"EPP-7","type":"service","productId":null,"qty":null,"at":"2026-07-02T09:23:01.221Z"},{"poolId":"EC-12","type":"service","productId":null,"qty":null,"at":"2026-07-02T10:19:01.613Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-02T13:45:31.155Z"},{"poolId":"AG-9","type":"service","productId":null,"qty":null,"at":"2026-07-02T13:45:42.883Z"},{"poolId":"AG-9","type":"backwash","productId":null,"qty":null,"at":"2026-07-02T13:50:40.676Z"},{"poolId":"AG-8","type":"service","productId":null,"qty":null,"at":"2026-07-02T13:59:27.833Z"},{"poolId":"EP-31B-96","type":"service","productId":null,"qty":null,"at":"2026-07-03T09:33:36.407Z"},{"poolId":"EP-6E-99","type":"backwash","productId":null,"qty":null,"at":"2026-07-03T09:45:32.598Z"},{"poolId":"EP-6E-99","type":"service","productId":null,"qty":null,"at":"2026-07-03T10:11:03.222Z"},{"poolId":"EP-6E-99","type":"backwash","productId":null,"qty":null,"at":"2026-07-03T10:11:17.059Z"},{"poolId":"EC-2","type":"service","productId":null,"qty":null,"at":"2026-07-03T10:49:19.045Z"},{"poolId":"EP-27B-94","type":"service","productId":null,"qty":null,"at":"2026-07-03T12:59:00.537Z"},{"poolId":"EP-27B-94","type":"service","productId":null,"qty":null,"at":"2026-07-03T12:59:03.306Z"},{"poolId":"EP-6B-75","type":"service","productId":null,"qty":null,"at":"2026-07-03T13:11:42.712Z"},{"poolId":"GP-39","type":"backwash","productId":null,"qty":null,"at":"2026-07-04T07:53:36.758Z"},{"poolId":"GP-39","type":"service","productId":null,"qty":null,"at":"2026-07-04T07:53:40.543Z"},{"poolId":"EP-19B-90","type":"service","productId":null,"qty":null,"at":"2026-07-04T11:14:26.026Z"},{"poolId":"EC-12","type":"service","productId":null,"qty":null,"at":"2026-07-04T11:25:59.928Z"},{"poolId":"EC-18","type":"service","productId":null,"qty":null,"at":"2026-07-04T11:28:37.038Z"},{"poolId":"AG-8","type":"backwash","productId":null,"qty":null,"at":"2026-07-04T12:27:31.633Z"},{"poolId":"AG-32","type":"service","productId":null,"qty":null,"at":"2026-07-04T13:27:04.161Z"},{"poolId":"AG-21","type":"service","productId":null,"qty":null,"at":"2026-07-06T07:55:07.307Z"},{"poolId":"AG-32","type":"service","productId":null,"qty":null,"at":"2026-07-06T09:03:29.203Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-06T09:37:42.815Z"},{"poolId":"AG-8","type":"service","productId":null,"qty":null,"at":"2026-07-06T09:37:49.600Z"},{"poolId":"AG-9","type":"service","productId":null,"qty":null,"at":"2026-07-06T09:38:18.619Z"},{"poolId":"AG-21","type":"service","productId":null,"qty":null,"at":"2026-07-06T09:38:29.458Z"},{"poolId":"EP-52B-46","type":"backwash","productId":null,"qty":null,"at":"2026-07-06T10:46:11.781Z"},{"poolId":"EP-52B-46","type":"backwash","productId":null,"qty":null,"at":"2026-07-06T10:46:12.496Z"},{"poolId":"EP-52B-46","type":"service","productId":null,"qty":null,"at":"2026-07-06T10:47:11.087Z"},{"poolId":"EP-52B-46","type":"backwash","productId":null,"qty":null,"at":"2026-07-06T10:47:14.111Z"},{"poolId":"EP-52B-46","type":"backwash","productId":null,"qty":null,"at":"2026-07-06T10:47:14.962Z"},{"poolId":"EP-52B-46","type":"backwash","productId":null,"qty":null,"at":"2026-07-06T10:47:15.495Z"},{"poolId":"EP-31B-96","type":"service","productId":null,"qty":null,"at":"2026-07-06T14:02:33.619Z"},{"poolId":"EP-19B-90","type":"service","productId":null,"qty":null,"at":"2026-07-06T14:37:51.432Z"},{"poolId":"EC-18","type":"service","productId":null,"qty":null,"at":"2026-07-07T08:55:38.174Z"},{"poolId":"EC-5","type":"service","productId":null,"qty":null,"at":"2026-07-07T09:38:03.151Z"},{"poolId":"AG-8","type":"service","productId":null,"qty":null,"at":"2026-07-07T10:26:42.302Z"},{"poolId":"EPP-3","type":"service","productId":null,"qty":null,"at":"2026-07-07T13:19:56.226Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-08T09:17:42.684Z"},{"poolId":"EP-6E-99","type":"service","productId":null,"qty":null,"at":"2026-07-09T09:40:35.504Z"},{"poolId":"GP-18","type":"service","productId":null,"qty":null,"at":"2026-07-09T09:58:12.097Z"},{"poolId":"EPP-4","type":"service","productId":null,"qty":null,"at":"2026-07-09T09:58:39.727Z"},{"poolId":"EPP-7","type":"service","productId":null,"qty":null,"at":"2026-07-09T13:22:10.739Z"},{"poolId":"EP-6B-75","type":"backwash","productId":null,"qty":null,"at":"2026-07-10T08:24:53.716Z"},{"poolId":"EP-6B-75","type":"service","productId":null,"qty":null,"at":"2026-07-10T08:24:55.832Z"},{"poolId":"EP-19B-90","type":"backwash","productId":null,"qty":null,"at":"2026-07-10T09:41:35.610Z"},{"poolId":"EP-30B-63","type":"service","productId":null,"qty":null,"at":"2026-07-10T10:12:29.908Z"},{"poolId":"EP-19B-90","type":"service","productId":null,"qty":null,"at":"2026-07-10T10:16:14.915Z"},{"poolId":"EP-27B-94","type":"service","productId":null,"qty":null,"at":"2026-07-10T10:25:20.808Z"},{"poolId":"EP-31B-96","type":"backwash","productId":null,"qty":null,"at":"2026-07-10T10:31:54.302Z"},{"poolId":"EP-31B-96","type":"service","productId":null,"qty":null,"at":"2026-07-10T10:31:58.044Z"},{"poolId":"EP-52B-46","type":"service","productId":null,"qty":null,"at":"2026-07-10T11:57:20.336Z"},{"poolId":"EP-52B-46","type":"backwash","productId":null,"qty":null,"at":"2026-07-10T11:57:22.604Z"},{"poolId":"EC-5","type":"service","productId":null,"qty":null,"at":"2026-07-10T13:02:23.203Z"},{"poolId":"GP-39","type":"service","productId":null,"qty":null,"at":"2026-07-11T10:52:03.110Z"},{"poolId":"GP-39","type":"backwash","productId":null,"qty":null,"at":"2026-07-11T10:52:03.891Z"},{"poolId":"EPP-7","type":"service","productId":null,"qty":null,"at":"2026-07-11T11:37:07.330Z"},{"poolId":"GP-18","type":"service","productId":null,"qty":null,"at":"2026-07-11T11:37:47.134Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-11T11:38:59.526Z"},{"poolId":"AG-8","type":"service","productId":null,"qty":null,"at":"2026-07-11T11:39:05.546Z"},{"poolId":"AG-9","type":"service","productId":null,"qty":null,"at":"2026-07-11T11:39:10.356Z"},{"poolId":"EP-19B-90","type":"service","productId":null,"qty":null,"at":"2026-07-11T11:39:23.072Z"},{"poolId":"EP-30B-63","type":"service","productId":null,"qty":null,"at":"2026-07-11T11:39:40.666Z"},{"poolId":"EP-6E-99","type":"service","productId":null,"qty":null,"at":"2026-07-11T15:03:18.510Z"},{"poolId":"EPP-3","type":"service","productId":null,"qty":null,"at":"2026-07-11T15:06:11.947Z"},{"poolId":"AG-21","type":"service","productId":null,"qty":null,"at":"2026-07-13T09:03:23.409Z"},{"poolId":"AG-32","type":"service","productId":null,"qty":null,"at":"2026-07-13T09:03:39.763Z"},{"poolId":"AG-8","type":"service","productId":null,"qty":null,"at":"2026-07-13T13:16:11.001Z"},{"poolId":"AG-9","type":"backwash","productId":null,"qty":null,"at":"2026-07-13T13:43:14.354Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-13T14:18:39.730Z"},{"poolId":"AG-9","type":"service","productId":null,"qty":null,"at":"2026-07-13T14:18:55.863Z"},{"poolId":"AG-7","type":"backwash","productId":null,"qty":null,"at":"2026-07-15T10:12:04.128Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-15T10:12:08.513Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-15T10:17:21.109Z"},{"poolId":"AG-7","type":"backwash","productId":null,"qty":null,"at":"2026-07-15T10:17:26.542Z"},{"poolId":"AG-9","type":"service","productId":null,"qty":null,"at":"2026-07-15T10:32:42.414Z"},{"poolId":"AG-32","type":"service","productId":null,"qty":null,"at":"2026-07-15T11:09:40.535Z"},{"poolId":"AG-21","type":"service","productId":null,"qty":null,"at":"2026-07-15T11:17:50.825Z"},{"poolId":"EC-2","type":"backwash","productId":null,"qty":null,"at":"2026-07-15T12:28:30.900Z"},{"poolId":"EC-2","type":"service","productId":null,"qty":null,"at":"2026-07-15T12:28:32.775Z"},{"poolId":"EC-5","type":"backwash","productId":null,"qty":null,"at":"2026-07-15T13:06:26.088Z"},{"poolId":"EC-5","type":"service","productId":null,"qty":null,"at":"2026-07-15T13:06:27.586Z"},{"poolId":"EP-6B-75","type":"service","productId":null,"qty":null,"at":"2026-07-16T08:45:04.902Z"},{"poolId":"EP-27B-94","type":"service","productId":null,"qty":null,"at":"2026-07-16T15:23:25.848Z"},{"poolId":"GP-18","type":"service","productId":null,"qty":null,"at":"2026-07-17T09:18:11.533Z"},{"poolId":"EPP-7","type":"service","productId":null,"qty":null,"at":"2026-07-17T09:48:04.139Z"},{"poolId":"EP-6E-99","type":"backwash","productId":null,"qty":null,"at":"2026-07-17T10:40:58.382Z"},{"poolId":"EP-6E-99","type":"service","productId":null,"qty":null,"at":"2026-07-17T10:41:05.432Z"},{"poolId":"EP-40B-52","type":"service","productId":null,"qty":null,"at":"2026-07-17T12:46:05.570Z"},{"poolId":"EP-52B-46","type":"service","productId":null,"qty":null,"at":"2026-07-17T13:41:33.607Z"},{"poolId":"EC-22","type":"service","productId":null,"qty":null,"at":"2026-07-18T10:57:59.791Z"},{"poolId":"EC-18","type":"service","productId":null,"qty":null,"at":"2026-07-18T10:58:14.448Z"},{"poolId":"EC-5","type":"service","productId":null,"qty":null,"at":"2026-07-18T10:58:28.324Z"},{"poolId":"EC-12","type":"service","productId":null,"qty":null,"at":"2026-07-18T10:58:39.033Z"},{"poolId":"EPP-3","type":"service","productId":null,"qty":null,"at":"2026-07-18T12:48:22.223Z"},{"poolId":"AG-7","type":"service","productId":null,"qty":null,"at":"2026-07-20T10:04:25.617Z"},{"poolId":"AG-9","type":"service","productId":null,"qty":null,"at":"2026-07-20T10:05:15.990Z"},{"poolId":"AG-8","type":"service","productId":null,"qty":null,"at":"2026-07-20T10:05:22.444Z"},{"poolId":"AG-32","type":"service","productId":null,"qty":null,"at":"2026-07-20T11:28:52.143Z"},{"poolId":"EC-12","type":"service","productId":null,"qty":null,"at":"2026-07-20T14:02:57.324Z"},{"poolId":"EC-2","type":"service","productId":null,"qty":null,"at":"2026-07-20T14:03:06.193Z"},{"poolId":"EC-12","type":"service","productId":null,"qty":null,"at":"2026-07-20T14:03:20.085Z"},{"poolId":"EPP-4","type":"service","productId":null,"qty":null,"at":"2026-07-21T13:53:37.940Z"}],"readings":[{"poolId":"AG-8","ph":8.3,"chlorine":0,"stabilizer":5,"at":"2026-06-29T12:38:00.000Z"},{"poolId":"AG-8","ph":7.4,"chlorine":1.1,"stabilizer":13,"at":"2026-06-29T15:17:00.000Z"},{"poolId":"AG-8","ph":7.4,"chlorine":2.1,"stabilizer":6,"at":"2026-06-30T08:54:41.071Z"},{"poolId":"EP-52B-46","ph":7.6,"chlorine":0,"stabilizer":14,"at":"2026-06-30T09:30:12.686Z"},{"poolId":"EP-31B-96","ph":null,"chlorine":null,"stabilizer":26,"at":"2026-06-30T10:20:48.509Z"},{"poolId":"EP-31B-96","ph":7.03,"chlorine":0.95,"stabilizer":26,"at":"2026-06-30T10:26:12.508Z"},{"poolId":"GP-39","ph":7.5,"chlorine":0,"stabilizer":46,"at":"2026-06-30T12:24:34.032Z"},{"poolId":"EPP-7","ph":8.4,"chlorine":0,"stabilizer":14,"at":"2026-06-30T13:05:47.012Z"},{"poolId":"EPP-7","ph":6.61,"chlorine":null,"stabilizer":null,"at":"2026-06-30T13:11:33.150Z"},{"poolId":"EPP-3","ph":7.17,"chlorine":0.25,"stabilizer":30,"at":"2026-06-30T13:28:30.893Z"},{"poolId":"AG-7","ph":7.28,"chlorine":0.05,"stabilizer":66,"at":"2026-06-30T14:19:02.285Z"},{"poolId":"AG-9","ph":7.39,"chlorine":0.05,"stabilizer":53,"at":"2026-06-30T14:28:45.792Z"},{"poolId":"GP-18","ph":7.37,"chlorine":3.47,"stabilizer":95,"at":"2026-07-01T07:48:21.292Z"},{"poolId":"EC-5","ph":7.21,"chlorine":0.29,"stabilizer":29,"at":"2026-07-01T08:07:24.316Z"},{"poolId":"EC-18","ph":7.27,"chlorine":0.01,"stabilizer":41,"at":"2026-07-01T08:36:00.000Z"},{"poolId":"GP-39","ph":7.83,"chlorine":3.75,"stabilizer":38,"at":"2026-07-01T09:30:24.712Z"},{"poolId":"GP-39","ph":7.32,"chlorine":3.75,"stabilizer":38,"at":"2026-07-01T09:39:00.000Z"},{"poolId":"EC-22","ph":7.58,"chlorine":2.78,"stabilizer":84,"at":"2026-07-01T10:44:43.350Z"},{"poolId":"EP-30B-63","ph":null,"chlorine":2,"stabilizer":null,"at":"2026-07-01T13:02:00.000Z"},{"poolId":"EP-40B-52","ph":7,"chlorine":0.05,"stabilizer":52,"at":"2026-07-01T13:31:47.719Z"},{"poolId":"EP-30B-63","ph":8.1,"chlorine":null,"stabilizer":null,"at":"2026-07-01T13:52:48.610Z"},{"poolId":"EP-6B-75","ph":7.17,"chlorine":0.18,"stabilizer":44,"at":"2026-07-01T14:13:40.143Z"},{"poolId":"EPP-3","ph":7.28,"chlorine":3.9,"stabilizer":48,"at":"2026-07-02T08:45:38.969Z"},{"poolId":"EC-2","ph":7.21,"chlorine":0.01,"stabilizer":15,"at":"2026-07-02T09:51:13.235Z"},{"poolId":"EC-12","ph":7.6,"chlorine":0.05,"stabilizer":43,"at":"2026-07-02T10:18:43.570Z"},{"poolId":"AG-7","ph":7.35,"chlorine":2.5,"stabilizer":70,"at":"2026-07-02T13:44:00.000Z"},{"poolId":"AG-9","ph":7.43,"chlorine":0.66,"stabilizer":52,"at":"2026-07-02T13:49:35.771Z"},{"poolId":"AG-8","ph":7.23,"chlorine":1.5,"stabilizer":32,"at":"2026-07-02T13:59:07.065Z"},{"poolId":"EPP-7","ph":6.5,"chlorine":0.13,"stabilizer":41,"at":"2026-07-03T08:53:07.345Z"},{"poolId":"EP-6E-99","ph":6.92,"chlorine":0,"stabilizer":30,"at":"2026-07-03T09:45:02.599Z"},{"poolId":"EP-27B-94","ph":7.79,"chlorine":null,"stabilizer":35,"at":"2026-07-03T12:57:29.216Z"},{"poolId":"EP-6B-75","ph":7.3,"chlorine":0.8,"stabilizer":41,"at":"2026-07-03T13:11:31.816Z"},{"poolId":"GP-39","ph":7.15,"chlorine":0.41,"stabilizer":43,"at":"2026-07-04T07:35:49.640Z"},{"poolId":"EPP-3","ph":7.48,"chlorine":1.45,"stabilizer":49,"at":"2026-07-04T08:09:21.837Z"},{"poolId":"EP-19B-90","ph":7.1,"chlorine":0.08,"stabilizer":10,"at":"2026-07-04T09:04:38.082Z"},{"poolId":"AG-8","ph":7.18,"chlorine":0.3,"stabilizer":51,"at":"2026-07-04T12:30:09.816Z"},{"poolId":"AG-32","ph":6.98,"chlorine":0.49,"stabilizer":74,"at":"2026-07-04T12:43:35.767Z"},{"poolId":"AG-21","ph":6.7,"chlorine":0.16,"stabilizer":9,"at":"2026-07-06T07:52:56.468Z"},{"poolId":"AG-32","ph":7.31,"chlorine":3.25,"stabilizer":72,"at":"2026-07-06T09:03:10.663Z"},{"poolId":"AG-7","ph":7.33,"chlorine":2.48,"stabilizer":66,"at":"2026-07-06T09:22:18.252Z"},{"poolId":"AG-9","ph":7.31,"chlorine":0.14,"stabilizer":50,"at":"2026-07-06T09:32:18.005Z"},{"poolId":"EP-52B-46","ph":7,"chlorine":0,"stabilizer":11,"at":"2026-07-06T09:59:41.451Z"},{"poolId":"EP-31B-96","ph":7.2,"chlorine":0.84,"stabilizer":44,"at":"2026-07-06T13:56:56.153Z"},{"poolId":"EP-19B-90","ph":7.22,"chlorine":0.41,"stabilizer":39,"at":"2026-07-06T14:25:18.482Z"},{"poolId":"EC-18","ph":7.37,"chlorine":2,"stabilizer":42,"at":"2026-07-07T08:54:11.464Z"},{"poolId":"EC-5","ph":7.47,"chlorine":1.7,"stabilizer":33,"at":"2026-07-07T09:37:54.941Z"},{"poolId":"AG-8","ph":7.21,"chlorine":1,"stabilizer":50,"at":"2026-07-07T10:27:14.868Z"},{"poolId":"EPP-3","ph":7.3,"chlorine":3.71,"stabilizer":53,"at":"2026-07-07T13:19:32.895Z"},{"poolId":"EC-12","ph":7.9,"chlorine":0.09,"stabilizer":43,"at":"2026-07-08T09:50:50.754Z"},{"poolId":"EC-2","ph":7.33,"chlorine":0,"stabilizer":27,"at":"2026-07-08T10:30:47.553Z"},{"poolId":"EC-22","ph":7.08,"chlorine":0.65,"stabilizer":62,"at":"2026-07-08T13:42:53.549Z"},{"poolId":"EPP-4","ph":7.6,"chlorine":null,"stabilizer":null,"at":"2026-07-09T08:49:24.995Z"},{"poolId":"GP-18","ph":7.35,"chlorine":0.14,"stabilizer":84,"at":"2026-07-09T09:07:28.922Z"},{"poolId":"EP-6E-99","ph":7.26,"chlorine":0.21,"stabilizer":56,"at":"2026-07-09T09:38:11.122Z"},{"poolId":"EP-40B-52","ph":7.32,"chlorine":0.1,"stabilizer":null,"at":"2026-07-09T10:18:53.022Z"},{"poolId":"EPP-7","ph":7.25,"chlorine":0.5,"stabilizer":31,"at":"2026-07-09T12:53:56.726Z"},{"poolId":"GP-39","ph":7.36,"chlorine":0.12,"stabilizer":39,"at":"2026-07-09T14:04:39.928Z"},{"poolId":"EP-6B-75","ph":7.24,"chlorine":0.18,"stabilizer":20,"at":"2026-07-10T08:15:15.574Z"},{"poolId":"EP-19B-90","ph":7.15,"chlorine":1.63,"stabilizer":23,"at":"2026-07-10T09:23:08.435Z"},{"poolId":"EP-30B-63","ph":7.93,"chlorine":0.72,"stabilizer":10,"at":"2026-07-10T09:55:04.530Z"},{"poolId":"EP-31B-96","ph":7.4,"chlorine":0.18,"stabilizer":43,"at":"2026-07-10T10:39:46.012Z"},{"poolId":"EP-52B-46","ph":7.17,"chlorine":0.14,"stabilizer":46,"at":"2026-07-10T11:04:50.487Z"},{"poolId":"EC-5","ph":7.03,"chlorine":0.6,"stabilizer":20,"at":"2026-07-10T12:57:10.484Z"},{"poolId":"EC-12","ph":7.58,"chlorine":0.02,"stabilizer":44,"at":"2026-07-11T06:52:48.178Z"},{"poolId":"GP-39","ph":7.47,"chlorine":1.43,"stabilizer":38,"at":"2026-07-11T10:42:05.676Z"},{"poolId":"EP-6E-99","ph":7.89,"chlorine":0.57,"stabilizer":72,"at":"2026-07-11T13:45:17.740Z"},{"poolId":"AG-21","ph":7.46,"chlorine":0,"stabilizer":5,"at":"2026-07-13T08:30:22.673Z"},{"poolId":"EPP-4","ph":7.36,"chlorine":0.38,"stabilizer":15,"at":"2026-07-13T09:43:08.623Z"},{"poolId":"AG-8","ph":7.24,"chlorine":0.11,"stabilizer":41,"at":"2026-07-13T13:15:47.935Z"},{"poolId":"AG-8","ph":7.7,"chlorine":0,"stabilizer":47,"at":"2026-07-15T08:48:13.446Z"},{"poolId":"AG-7","ph":7.53,"chlorine":0.62,"stabilizer":61,"at":"2026-07-15T10:17:07.708Z"},{"poolId":"AG-9","ph":7.48,"chlorine":1.27,"stabilizer":37,"at":"2026-07-15T10:32:31.541Z"},{"poolId":"AG-32","ph":7.71,"chlorine":1.38,"stabilizer":66,"at":"2026-07-15T10:59:44.976Z"},{"poolId":"AG-21","ph":7.2,"chlorine":0,"stabilizer":17,"at":"2026-07-15T11:17:30.534Z"},{"poolId":"EC-2","ph":7.47,"chlorine":0,"stabilizer":37,"at":"2026-07-15T12:14:40.012Z"},{"poolId":"EC-5","ph":7.33,"chlorine":0.8,"stabilizer":36,"at":"2026-07-15T13:06:01.689Z"},{"poolId":"EC-18","ph":7.52,"chlorine":0.11,"stabilizer":34,"at":"2026-07-15T13:15:31.899Z"},{"poolId":"EP-6B-75","ph":7.17,"chlorine":0,"stabilizer":49,"at":"2026-07-16T08:44:24.910Z"},{"poolId":"EP-6B-75","ph":7.17,"chlorine":0,"stabilizer":49,"at":"2026-07-16T08:44:42.903Z"},{"poolId":"EP-27B-94","ph":7.51,"chlorine":null,"stabilizer":null,"at":"2026-07-16T15:20:46.957Z"},{"poolId":"GP-18","ph":7.23,"chlorine":0.2,"stabilizer":66,"at":"2026-07-17T09:18:00.791Z"},{"poolId":"EPP-7","ph":7.52,"chlorine":1.5,"stabilizer":28,"at":"2026-07-17T09:47:51.502Z"},{"poolId":"EP-40B-52","ph":7.3,"chlorine":0.75,"stabilizer":34,"at":"2026-07-17T12:45:28.218Z"},{"poolId":"EP-52B-46","ph":7.5,"chlorine":0.54,"stabilizer":30,"at":"2026-07-17T13:39:45.101Z"},{"poolId":"EC-22","ph":7.3,"chlorine":0,"stabilizer":56,"at":"2026-07-18T10:57:50.204Z"},{"poolId":"EPP-3","ph":null,"chlorine":null,"stabilizer":28,"at":"2026-07-18T12:47:43.608Z"},{"poolId":"AG-8","ph":7.6,"chlorine":0.1,"stabilizer":44,"at":"2026-07-20T08:24:05.522Z"},{"poolId":"AG-7","ph":7.76,"chlorine":5.03,"stabilizer":59,"at":"2026-07-20T09:56:16.659Z"},{"poolId":"AG-21","ph":7.24,"chlorine":0,"stabilizer":35,"at":"2026-07-20T10:26:06.001Z"},{"poolId":"AG-32","ph":7.48,"chlorine":0,"stabilizer":50,"at":"2026-07-20T10:59:59.685Z"},{"poolId":"EC-2","ph":7.25,"chlorine":0.74,"stabilizer":25,"at":"2026-07-20T13:40:50.690Z"},{"poolId":"EP-6E-99","ph":7.25,"chlorine":0,"stabilizer":50,"at":"2026-07-21T09:16:31.271Z"},{"poolId":"EP-31B-96","ph":7.5,"chlorine":2.3,"stabilizer":50,"at":"2026-07-21T10:01:49.975Z"},{"poolId":"EPP-4","ph":7.76,"chlorine":2.1,"stabilizer":50,"at":"2026-07-21T13:38:17.517Z"}]}</script>
+<script>
+/* ================= LP.metrics — PORTABLE. These pure functions lift verbatim
+   into the live app (store.js / app.js). A "passage" = one pool on one calendar
+   day, however many products/readings were logged in that stop. Counting event
+   rows (visits[].length) double-counts; counting distinct (poolId, day) does not. */
+const LP = (() => {
+  const day = (iso) => (iso || '').slice(0, 10);
+  const uniq = (a) => Array.from(new Set(a));
+
+  // distinct passages: [{poolId, day}]
+  function passages(visits) {
+    const seen = new Set(); const out = [];
+    for (const v of visits) {
+      const k = v.poolId + '|' + day(v.at);
+      if (v.poolId && day(v.at) && !seen.has(k)) { seen.add(k); out.push({ poolId: v.poolId, day: day(v.at) }); }
+    }
+    return out;
+  }
+  // {day: passageCount}
+  function passagesByDay(visits) {
+    const m = {};
+    for (const p of passages(visits)) m[p.day] = (m[p.day] || 0) + 1;
+    return m;
+  }
+  // minutes/pool for one day: span between first & last passage start / (n-1).
+  // Only meaningful with enough stops — returns null under `minStops`.
+  function minPerPool(visits, d, minStops = 4) {
+    const starts = {};
+    for (const v of visits) {
+      if (day(v.at) !== d) continue;
+      const t = new Date(v.at).getTime();
+      if (starts[v.poolId] == null || t < starts[v.poolId]) starts[v.poolId] = t;
+    }
+    const ts = Object.values(starts).sort((a, b) => a - b);
+    if (ts.length < minStops) return null;
+    const span = (ts[ts.length - 1] - ts[0]) / 60000;
+    return span / (ts.length - 1);
+  }
+  const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+
+  // product totals across treatment visits: {productId: qty}
+  function productTotals(visits) {
+    const m = {};
+    for (const v of visits) if (v.productId && v.qty != null) m[v.productId] = (m[v.productId] || 0) + Number(v.qty);
+    return m;
+  }
+  // per-pool passage counts, desc
+  function poolPassages(visits) {
+    const m = {};
+    for (const p of passages(visits)) m[p.poolId] = (m[p.poolId] || 0) + 1;
+    return m;
+  }
+  // FC series for a pool, chronological [{at, fc}]
+  function fcSeries(readings, poolId) {
+    return readings.filter((r) => r.poolId === poolId && r.chlorine != null)
+      .sort((a, b) => a.at.localeCompare(b.at)).map((r) => ({ at: r.at, fc: r.chlorine }));
+  }
+  return { day, uniq, passages, passagesByDay, minPerPool, median, productTotals, poolPassages, fcSeries };
+})();
+
+/* ================= view (beta-only; the live app renders these its own way) */
+const PRODUCTS = {
+  'hth-stick': { name: 'Stick', unit: 'stick' }, 'hth-galet': { name: 'Galet', unit: 'galet' },
+  'hypomen-pro': { name: 'Cal-hypo (choc)', unit: 'g' }, 'hth-phminus': { name: 'pH−', unit: 'g' },
+  'mareva-phplus': { name: 'pH+', unit: 'g' }, 'mareva-cya': { name: 'Stabilisant', unit: 'g' },
+  'hth-borkler': { name: 'Borkler (algues)', unit: 'dose' }, 'acti-yellow': { name: 'Yellow (algues)', unit: 'dose' },
+  'acti-floc': { name: 'Floculant', unit: 'sachet' },
+};
+const CL = { min: 1, max: 3 }; // FC band for the status dot
+const fmtDay = (d) => { const p = d.split('-'); return p[2] + '/' + p[1]; };
+const clState = (fc) => fc == null ? 'na' : fc < CL.min ? 'low' : fc > CL.max ? 'high' : 'ok';
+
+let DATA = null;
+
+function poolLabel(id) {
+  const p = (DATA.pools || []).find((x) => x.id === id);
+  return p ? { res: p.res, unit: p.unit, nonPool: p.nonPool } : { res: id, unit: '', nonPool: false };
+}
+
+function render() {
+  const V = DATA.visits || [], R = DATA.readings || [];
+  const allDays = LP.uniq(V.map((v) => LP.day(v.at)).filter(Boolean)).sort();
+  const ref = allDays[allDays.length - 1] || '2026-07-21';
+  document.getElementById('range').textContent =
+    'du ' + fmtDay(allDays[0] || ref) + ' au ' + fmtDay(ref) + ' · instantané';
+
+  const byDay = LP.passagesByDay(V);
+  const activeDays = Object.keys(byDay);
+  const totalPassages = Object.values(byDay).reduce((a, b) => a + b, 0);
+
+  // "this week" = last 7 calendar days up to ref
+  const refT = new Date(ref + 'T00:00:00').getTime();
+  const wk = Object.entries(byDay).filter(([d]) => (refT - new Date(d + 'T00:00:00').getTime()) / 864e5 < 7);
+  const wkPassages = wk.reduce((a, [, n]) => a + n, 0);
+  const poolsPerDay = activeDays.length ? totalPassages / activeDays.length : 0;
+  const mpp = LP.median(activeDays.map((d) => LP.minPerPool(V, d)).filter((x) => x != null));
+
+  // tiles
+  document.getElementById('tiles').innerHTML = [
+    tile(wkPassages, 'passages', '7 derniers jours', 'sur ' + wk.length + ' jours travaillés'),
+    tile(poolsPerDay.toFixed(1), 'piscines/jour', 'moyenne', 'jours actifs : ' + activeDays.length),
+    tile(mpp != null ? Math.round(mpp) : '—', 'min/piscine', 'médiane', 'jours ≥ 4 passages'),
+  ].join('');
+  document.getElementById('rhythm-hint').textContent = totalPassages + ' passages en tout';
+
+  // bar strip — last 14 days
+  const last14 = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(refT - i * 864e5).toISOString().slice(0, 10); last14.push(d); }
+  const max = Math.max(1, ...last14.map((d) => byDay[d] || 0));
+  document.getElementById('bars').innerHTML = last14.map((d) => {
+    const n = byDay[d] || 0; const h = Math.round((n / max) * 100);
+    const cls = n === 0 ? 'zero' : (d === ref ? 'today' : '');
+    return `<span class="bar ${cls}"><b>${n || ''}</b><i style="height:${n ? Math.max(h, 8) : 3}%"></i></span>`;
+  }).join('');
+  document.getElementById('axis').innerHTML = last14.map((d, i) =>
+    `<span>${i % 2 === 0 ? fmtDay(d) : ''}</span>`).join('');
+  document.getElementById('passage-note').textContent =
+    'Un passage = une piscine, un jour. Les jours à moins de 4 passages n’alimentent pas la médiane min/piscine (une seule piscine matin + soir fausserait le calcul).';
+
+  // products
+  const totals = LP.productTotals(V);
+  const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  const pmax = Math.max(1, ...rows.map(([, q]) => q));
+  document.getElementById('prod').innerHTML = rows.map(([id, q]) => {
+    const p = PRODUCTS[id] || { name: id, unit: '' };
+    return `<div class="prow"><div><div class="pn">${p.name}</div><div class="pk">${id}</div></div>
+      <div class="pq">${round(q)} <small>${p.unit}</small></div>
+      <div class="track"><i style="width:${Math.round((q / pmax) * 100)}%"></i></div></div>`;
+  }).join('');
+  document.getElementById('prod-hint').textContent = rows.length + ' produits · signal de réappro';
+
+  // per-pool
+  const pp = LP.poolPassages(V);
+  const pools = Object.entries(pp).sort((a, b) => b[1] - a[1]);
+  document.getElementById('pools').innerHTML = pools.map(([id, n]) => {
+    const lab = poolLabel(id); const s = LP.fcSeries(R, id);
+    const last = s.length ? s[s.length - 1].fc : null;
+    return `<div class="pool">
+      <div class="id">${lab.res} ${lab.unit}${lab.nonPool ? '<small>sans bassin</small>' : `<small><span class="dot ${clState(last)}"></span> Cl ${last != null ? last : '—'}</small>`}</div>
+      <div>${spark(s)}</div>
+      <div class="cnt"><b>${n}</b><small>passages</small></div></div>`;
+  }).join('');
+
+  document.getElementById('foot').innerHTML =
+    'Beta lecture seule — données figées d’un export (aucun nom locataire). ' +
+    'La logique <code>LP.metrics</code> se transpose telle quelle dans l’app. ' +
+    'Chargez une sauvegarde récente pour voir vos chiffres du jour.';
+}
+
+function tile(n, u, l, k) {
+  return `<div class="tile"><div class="n">${n}</div><div class="u">${u}</div>
+    <div class="l">${l}</div><div class="k">${k}</div></div>`;
+}
+const round = (q) => Math.round(q * 10) / 10;
+
+// tiny FC sparkline as inline SVG, band shaded
+function spark(series) {
+  const w = 150, h = 34, pad = 3;
+  if (!series.length) return `<svg class="spark" viewBox="0 0 ${w} ${h}"></svg>`;
+  const xs = series.map((_, i) => series.length === 1 ? w / 2 : pad + (i / (series.length - 1)) * (w - 2 * pad));
+  const maxFc = Math.max(3.5, ...series.map((p) => p.fc));
+  const y = (fc) => h - pad - (fc / maxFc) * (h - 2 * pad);
+  const band = `<rect x="0" y="${y(CL.max)}" width="${w}" height="${Math.max(0, y(CL.min) - y(CL.max))}" fill="var(--ok-bg)"/>`;
+  const pts = series.map((p, i) => `${xs[i].toFixed(1)},${y(p.fc).toFixed(1)}`).join(' ');
+  const dots = series.map((p, i) => {
+    const st = clState(p.fc); const c = st === 'ok' ? 'var(--ok)' : st === 'low' ? 'var(--low)' : 'var(--high)';
+    const r = i === series.length - 1 ? 3 : 2;
+    return `<circle cx="${xs[i].toFixed(1)}" cy="${y(p.fc).toFixed(1)}" r="${r}" fill="${c}"/>`;
+  }).join('');
+  const line = series.length > 1 ? `<polyline points="${pts}" fill="none" stroke="var(--brand)" stroke-width="1.5"/>` : '';
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${band}${line}${dots}</svg>`;
+}
+
+// theme toggle
+document.getElementById('theme').addEventListener('click', () => {
+  const r = document.documentElement;
+  const cur = r.getAttribute('data-theme');
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+  r.setAttribute('data-theme', dark ? 'light' : 'dark');
+});
+
+// load a fresh backup (visits/readings/pools only; names never read)
+document.getElementById('file').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const j = JSON.parse(rd.result);
+      DATA = {
+        pools: (j.pools || []).map((p) => ({ id: p.id, res: p.res, unit: p.unit, nonPool: p.nonPool })),
+        visits: (j.visits || []).map((v) => ({ poolId: v.poolId, type: v.type, productId: v.productId, qty: v.qty, at: v.at })),
+        readings: (j.readings || []).filter((r) => r.deleted !== true).map((r) => ({ poolId: r.poolId, ph: r.ph, chlorine: r.chlorine, stabilizer: r.stabilizer, at: r.at })),
+      };
+      render();
+    } catch (_) { alert('Fichier illisible — choisissez un export de sauvegarde .json'); }
+  };
+  rd.readAsText(f);
+});
+
+// boot
+try { DATA = JSON.parse(document.getElementById('lp-data').textContent); render(); }
+catch (err) { document.getElementById('range').textContent = 'données non chargées'; }
+</script>
+</body>
+</html>
