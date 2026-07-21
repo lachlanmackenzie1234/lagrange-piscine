@@ -58,8 +58,20 @@ body{ margin:0; background:var(--bg); color:var(--ink);
 .chip{ font-size:.66rem; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap; }
 .chip.arr{ background:#e7f0fe; color:#1558d6; }
 .icons{ display:flex; gap:8px; margin-top:var(--s2); }
-.icobtn{ display:inline-flex; align-items:center; gap:6px; font-size:.8rem; font-weight:600; color:#fff;
-  background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.2); border-radius:10px; padding:7px 11px; text-decoration:none; }
+.ico-only{ width:40px; height:40px; border-radius:50%; font-size:1.05rem; display:inline-flex; align-items:center;
+  justify-content:center; background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.24); color:#fff; cursor:pointer; }
+
+/* action popup (sheet) — itinéraire / carte / effacer GPS live here */
+.pop-back{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-end;
+  justify-content:center; z-index:30; }
+.pop-back.open{ display:flex; }
+.pop{ background:var(--card); color:var(--ink); width:100%; max-width:560px; border-radius:18px 18px 0 0;
+  padding:var(--s3) var(--s2) calc(var(--s4) + env(safe-area-inset-bottom)); }
+.pop h3{ margin:0 0 var(--s2); font-size:1.05rem; color:var(--title); }
+.pop-item{ display:block; width:100%; text-align:left; font:inherit; font-weight:600; padding:13px;
+  border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); margin-bottom:8px; cursor:pointer; }
+.pop-item.danger{ color:var(--high); border-color:var(--high-bg); }
+.pop-coords{ font-size:.82rem; color:var(--muted); font-variant-numeric:tabular-nums; margin:0 2px 10px; }
 
 /* corner icon pills (piscine) */
 .corner{ position:absolute; top:46px; right:10px; z-index:2; display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
@@ -88,6 +100,8 @@ body{ margin:0; background:var(--bg); color:var(--ink);
 .btn{ font:inherit; font-weight:600; border-radius:11px; padding:11px 14px; border:1px solid var(--line);
   background:var(--card); color:var(--ink); cursor:pointer; }
 .btn.primary{ background:var(--navy); color:#fff; border-color:var(--navy); width:100%; }
+.ov-saisir{ margin-top:var(--s2); background:rgba(18,58,94,.85); border-color:rgba(255,255,255,.25);
+  backdrop-filter:blur(2px); }
 .btn.wide{ width:100%; }
 .btn.sm{ padding:8px 11px; font-size:.85rem; }
 .notecard{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 13px; margin-top:8px; }
@@ -151,17 +165,15 @@ h2.sec{ font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:
         <div class="r2">arr. sam. 25 juil. → dép. mar. 25 août</div>
       </div>
       <div class="icons">
-        <a class="icobtn" href="#">📍 Itinéraire</a>
-        <a class="icobtn" href="#">🗺 Carte</a>
+        <button class="ico-only" data-pop="itin" title="Itinéraire">📍</button>
+        <button class="ico-only" data-pop="carte" title="Carte / GPS">🗺</button>
       </div>
     </div>
   </section>
-  <div class="coords"><span>📍 44.9926, −1.1625</span><button class="clr">Effacer le GPS</button></div>
   <div class="last">Dernier entretien 20 juil., 12:04</div>
 
-  <!-- NOTES (no title, auto-tagged) -->
+  <!-- NOTES (no title, pool auto-tagged silently in code) -->
   <input class="field" placeholder="note rapide…">
-  <span class="note-tag">＃ AG 7 (auto)</span>
   <div class="notecard">
     <div class="meta">15 juil., 12:18 · 🌤 30° · 47%</div>
     <div style="margin-top:3px">Carreau a replacé</div>
@@ -178,11 +190,10 @@ h2.sec{ font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:
     <div class="ov">
       <div class="grow"></div>
       <div class="trend" id="trend"></div>
+      <button class="btn primary ov-saisir">＋ Saisir une mesure</button>
     </div>
   </section>
-  <div class="chem-mini" id="mini"></div>
   <div class="treated-line">⏳ traité — à revérifier</div>
-  <button class="btn primary">＋ Saisir une mesure</button>
   <div class="doses"><span class="d-k">Entretien · ~3 sticks</span><span class="d-h">CYA en zone, sans CYA · 5 j · ou galets</span></div>
 
   <!-- PRODUITS (no title) -->
@@ -219,7 +230,11 @@ h2.sec{ font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:
   <table id="hist"><thead><tr><th>Quand</th><th>pH</th><th>Cl</th><th>CYA</th></tr></thead><tbody></tbody></table>
 
   <div class="foot">Prototype beta — AG 7, données réelles (instantané 21 juil.). Photos = zones de repère
-  (les vraies photos verticales viennent de l'app). Rien n'est interactif ici : c'est la disposition qu'on valide.</div>
+  (les vraies photos verticales viennent de l'app). Seuls les pop-ups des icônes sont interactifs ici.</div>
+</div>
+
+<div class="pop-back" id="popback">
+  <div class="pop" id="pop"></div>
 </div>
 
 <script>
@@ -266,20 +281,28 @@ const last = READINGS[READINGS.length-1];
 document.getElementById('trend').innerHTML = ['ph','cl','cya'].map(k=>
   `<div class="tr-row"><span class="tr-k">${k==='ph'?'pH':k==='cl'?'Cl':'CyA'}</span>${micro(k)}<span class="tr-v" style="color:${col(k,last[k])}">${last[k]}</span></div>`).join('');
 
-// mini bars
-const clPct = 38; // active-chlorine % (from app)
-document.getElementById('mini').innerHTML =
-  `<div class="cm bad"><div class="v">${clPct}%</div><div class="k">Cl actif</div></div>`+
-  `<div class="cm ${cls('cl',last.cl)}"><div class="v">${last.cl}</div><div class="k">Cl</div></div>`+
-  `<div class="cm ${cls('cya',last.cya)}"><div class="v">${last.cya}</div><div class="k">CyA</div></div>`+
-  `<div class="cm warn"><div class="v">~1.5</div><div class="k">/jour</div></div>`;
-
 document.getElementById('added').innerHTML = ADDED.map(a=>
   `<div class="arow"><span>${a.s}</span><span class="a-t">${a.t}</span></div>`).join('');
 
 document.querySelector('#hist tbody').innerHTML = [...READINGS].reverse().map(r=>
   `<tr><td>${r.at.slice(8,10)}/${r.at.slice(5,7)} ${r.at.slice(11,16)}</td>`+
   `<td class="${cls('ph',r.ph)}">${r.ph}</td><td class="${cls('cl',r.cl)}">${r.cl}</td><td class="${cls('cya',r.cya)}">${r.cya}</td></tr>`).join('');
+
+// icon popups — itinéraire opens maps; carte holds map-pin + GPS actions
+const POPS = {
+  itin: `<h3>AG 7 · Itinéraire</h3>
+    <button class="pop-item">📍 Ouvrir dans Google Maps</button>`,
+  carte: `<h3>AG 7 · Carte</h3>
+    <div class="pop-coords">📍 44.9926, −1.1625</div>
+    <button class="pop-item">🗺 Placer sur la carte</button>
+    <button class="pop-item danger">✕ Effacer le GPS</button>`,
+};
+const popback = document.getElementById('popback');
+document.querySelectorAll('.ico-only').forEach(b=>b.addEventListener('click',()=>{
+  document.getElementById('pop').innerHTML = POPS[b.dataset.pop] || '';
+  popback.classList.add('open');
+}));
+popback.addEventListener('click',(e)=>{ if(e.target===popback) popback.classList.remove('open'); });
 
 document.getElementById('theme').addEventListener('click',()=>{
   const r=document.documentElement, cur=r.getAttribute('data-theme');
