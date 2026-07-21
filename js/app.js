@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.61'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.62'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1031,9 +1031,12 @@
     const stale = ageD == null || ageD > 6;
     const seen = lv ? t('vu_on', { date: fmtDate(lv.at) }) : t('seen_never');
     const vpw = Metrics.visitsPerWeek(ctx.V, p.id, ctx.spanDays);
-    const num = (x) => x != null ? x : '—';
+    // glance precision: Cl/pH to one decimal, CyA integer — keeps the columns
+    // aligned across rows (a 2-decimal value like 0.00 would push them out).
+    const d1 = (x) => x != null ? Number(x).toFixed(1) : '—';
+    const d0 = (x) => x != null ? String(Math.round(x)) : '—';
     let meas;
-    if (lr) meas = `<span class="lp-meas">${statusDot(p)}Cl <b>${num(lr.chlorine)}</b> · pH <b>${num(lr.ph)}</b> · CyA <b>${num(lr.stabilizer)}</b></span>`;
+    if (lr) meas = `<span class="lp-meas">${statusDot(p)}<span class="m">Cl <b>${d1(lr.chlorine)}</b></span><span class="m">pH <b>${d1(lr.ph)}</b></span><span class="m">CyA <b>${d0(lr.stabilizer)}</b></span></span>`;
     else meas = `<span class="lp-meas none">${statusDot(p)}${esc(t('no_reading'))}</span>`;
     return el(`<a class="card lp-pool${stale ? ' stale' : ''}" href="#/pool/${p.id}">
       <div class="lp-head"><strong>${esc(poolTitle(p))}</strong><span class="lp-seen${stale ? ' warn' : ''}">${esc(seen)}</span></div>

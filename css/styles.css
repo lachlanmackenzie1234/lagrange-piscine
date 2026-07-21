@@ -466,8 +466,9 @@ details.measure .reading-form { margin: 0; }
 .lp-seen { font-size: .74rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .lp-seen.warn { color: var(--low); font-weight: 600; }
 .lp-btm { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 5px; }
-.lp-meas { display: inline-flex; align-items: center; gap: 4px; font-size: .82rem; color: var(--muted);
-  font-variant-numeric: tabular-nums; }
+.lp-meas { display: inline-flex; align-items: center; gap: 9px; font-size: .82rem; color: var(--muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lp-meas .m { display: inline-block; }
 .lp-meas b { color: var(--ink); font-weight: 600; }
 .lp-meas.none { font-style: italic; }
 .lp-meas .status-dot { width: 8px; height: 8px; margin-right: 4px; }
