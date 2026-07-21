@@ -52,11 +52,18 @@ body{ margin:0; background:var(--bg); color:var(--ink);
 .p-title .dot{ width:11px; height:11px; border-radius:50%; }
 .p-sub{ font-size:.82rem; color:rgba(255,255,255,.9); margin-top:2px; }
 .occ{ background:rgba(0,0,0,.32); backdrop-filter:blur(3px); border:1px solid rgba(255,255,255,.14);
-  border-radius:12px; padding:9px 12px; }
-.occ .r1{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:600; }
-.occ .r2{ font-size:.8rem; color:rgba(255,255,255,.85); margin-top:2px; }
-.chip{ font-size:.66rem; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap; }
-.chip.arr{ background:#e7f0fe; color:#1558d6; }
+  border-radius:12px; padding:4px 12px; display:flex; flex-direction:column; }
+.occ-wk{ padding:7px 0; }
+.occ-wk + .occ-wk{ border-top:1px solid rgba(255,255,255,.14); }
+.occ .wk{ font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.6); }
+.occ .r1{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:600; margin-top:1px; }
+.occ .r2{ font-size:.78rem; color:rgba(255,255,255,.82); margin-top:1px; }
+.occ-wk.free .r1{ color:rgba(255,255,255,.7); font-weight:500; }
+.chip{ font-size:.64rem; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+.chip.arriving{ background:#e7f0fe; color:#1558d6; }
+.chip.occupied{ background:#eef2f5; color:#3d4d59; }
+.chip.owner{ background:#fff3da; color:#9a6700; }
+.chip.free{ background:rgba(255,255,255,.16); color:rgba(255,255,255,.85); }
 .icons{ display:flex; gap:8px; margin-top:var(--s2); }
 .ico-only{ width:40px; height:40px; border-radius:50%; font-size:1.05rem; display:inline-flex; align-items:center;
   justify-content:center; background:rgba(0,0,0,.36); border:1px solid rgba(255,255,255,.24); color:#fff; cursor:pointer; }
@@ -160,10 +167,7 @@ h2.sec{ font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:
         <div class="p-sub">Atlantic Green · à reconfirmer (traité, pas retesté)</div>
       </div>
       <div class="grow"></div>
-      <div class="occ">
-        <div class="r1"><span>sam. 25 juil. — VAN AVERMAETE</span><span class="chip arr">Arrivée</span></div>
-        <div class="r2">arr. sam. 25 juil. → dép. mar. 25 août</div>
-      </div>
+      <div class="occ" id="occ"></div>
       <div class="icons">
         <button class="ico-only" data-pop="itin" title="Itinéraire">📍</button>
         <button class="ico-only" data-pop="carte" title="Carte / GPS">🗺</button>
@@ -258,6 +262,24 @@ const ADDED = [
   { t:'02 juil., 13:45', s:'3× Stick · 300 g' },
   { t:'30 juin, 14:19', s:'3× Stick · 300 g · 1× Cal-hypo' },
 ];
+// occupation — both active weeks, from the planning (occupancy) data for AG 7.
+// jul-18 week: free; jul-25 week: VAN AVERMAETE arriving → 25 août.
+const ACTIVE_WEEKS = ['2026-07-18', '2026-07-25'];
+const OCC = {
+  '2026-07-18': null,
+  '2026-07-25': { name: 'VAN AVERMAETE', status: 'arriving', arr: '2026-07-25', dep: '2026-08-25' },
+};
+const LABELS = { arriving: 'Arrivée', occupied: 'Occupé', owner: 'Propriétaire', departing: 'Départ' };
+const wkLabel = (iso) => { const p = iso.split('-'); return p[2] + '/' + p[1]; };
+document.getElementById('occ').innerHTML = ACTIVE_WEEKS.map((wk) => {
+  const o = OCC[wk];
+  if (!o) return `<div class="occ-wk free"><div class="wk">sem. ${wkLabel(wk)}</div>
+    <div class="r1"><span>Libre</span><span class="chip free">—</span></div></div>`;
+  return `<div class="occ-wk"><div class="wk">sem. ${wkLabel(wk)}</div>
+    <div class="r1"><span>${o.name}</span><span class="chip ${o.status}">${LABELS[o.status] || o.status}</span></div>
+    <div class="r2">${o.arr ? 'arr. ' + wkLabel(o.arr) : ''}${o.dep ? ' → dép. ' + wkLabel(o.dep) : ''}</div></div>`;
+}).join('');
+
 const BANDS = { ph:[7.0,7.6], cl:[1,3], cya:[30,50] };
 const day = (iso)=>iso.slice(0,10);
 const state = (k,v)=>{ const b=BANDS[k]; return v==null?'na':v<b[0]?'low':v>b[1]?'warn2':'ok'; };
