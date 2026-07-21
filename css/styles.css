@@ -542,6 +542,26 @@ details.measure .reading-form { margin: 0; }
 .sheet-item.danger { color: var(--high); }
 .sheet-coords { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; margin: 0 2px 10px; }
 
+/* photo panel with a bottom overlay (pool / pump) */
+.photo-hero.overlay-bottom { display: flex; flex-direction: column; justify-content: flex-end; margin: var(--s3) 0 var(--s2); }
+.photo-hero.overlay-bottom .hero-scrim { background: linear-gradient(to top, rgba(0,0,0,.62), rgba(0,0,0,.05) 55%, rgba(0,0,0,.3)); }
+.hero-corner { position: absolute; top: 46px; right: 8px; z-index: 2; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.ov-content { display: flex; flex-direction: column; }
+.ov-title { font-weight: 700; font-size: 1.1rem; color: #fff; margin-bottom: 8px; }
+.ov-stack { display: flex; flex-direction: column; gap: 8px; }
+.ov-sub { color: rgba(255,255,255,.9); font-size: .84rem; }
+.ov-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+/* on a photo, the trend + buttons go translucent-dark so they read over the image */
+.ov-content .pool-trend { background: rgba(0,0,0,.4); border-color: rgba(255,255,255,.16); }
+.ov-content .pool-trend .pt-k { color: rgba(255,255,255,.82); }
+.ov-content .ov-saisir { background: rgba(18,58,94,.86); border-color: rgba(255,255,255,.26); }
+.ov-content .ov-btn { width: auto; background: rgba(0,0,0,.4); color: #fff; border: 1px solid rgba(255,255,255,.26); }
+.flow-icons { display: flex; gap: 8px; margin: 8px 0; }
+.measure.hide-summary > summary { display: none; }
+.pump-notes { margin-top: 8px; width: 100%; }
+/* no-photo flat panels keep normal styling; buttons stay standard */
+.band-flat + .flow-icons .hero-ico { background: var(--navy); border-color: transparent; }
+
 /* tab bar */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--tab-h) + env(safe-area-inset-bottom));

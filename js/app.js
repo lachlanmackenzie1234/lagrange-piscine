@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.63'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.64'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1214,26 +1214,76 @@
     return box;
   }
 
-  // Maps / GPS bottom-sheet — itinéraire, placer sur la carte, coords + effacer.
-  function openPoolMapPopup(p) {
+  // Generic bottom-sheet: title + a list of nodes. Tapping the scrim closes it.
+  function openSheet(title, nodes) {
     const back = el('<div class="sheet-back"></div>');
     const sheet = el('<div class="sheet"></div>');
-    sheet.appendChild(el(`<h3>${esc(poolTitle(p))}</h3>`));
-    sheet.appendChild(el(`<a class="sheet-item" target="_blank" rel="noopener" href="${poolMapUrl(p)}">${esc(t('open_maps'))}</a>`));
-    if (hasPool(p)) {
-      const pick = el(`<button class="sheet-item">${esc(t('pick_on_map'))}</button>`);
-      pick.addEventListener('click', () => { back.remove(); openMapPicker(p); });
-      sheet.appendChild(pick);
-    }
-    if (p.lat != null && p.lng != null) {
-      sheet.appendChild(el(`<div class="sheet-coords">${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</div>`));
-      const clr = el(`<button class="sheet-item danger">✕ ${esc(t('clear_location'))}</button>`);
-      clr.addEventListener('click', () => { Store.updatePool(p.id, { lat: null, lng: null }); back.remove(); render(); });
-      sheet.appendChild(clr);
-    }
+    sheet.appendChild(el(`<h3>${esc(title)}</h3>`));
+    nodes.filter(Boolean).forEach((n) => sheet.appendChild(n));
     back.appendChild(sheet);
     back.addEventListener('click', (e) => { if (e.target === back) back.remove(); });
     document.body.appendChild(back);
+    return back;
+  }
+  // Itinéraire sheet — open in maps.
+  function openItinSheet(p) {
+    openSheet(poolTitle(p), [el(`<a class="sheet-item" target="_blank" rel="noopener" href="${poolMapUrl(p)}">${esc(t('open_maps'))}</a>`)]);
+  }
+  // Carte sheet — place the pin, plus coords + effacer.
+  function openCarteSheet(p) {
+    const nodes = [];
+    if (hasPool(p)) { const pick = el(`<button class="sheet-item">${esc(t('pick_on_map'))}</button>`); pick.addEventListener('click', () => { back.remove(); openMapPicker(p); }); nodes.push(pick); }
+    if (p.lat != null && p.lng != null) {
+      nodes.push(el(`<div class="sheet-coords">${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</div>`));
+      const clr = el(`<button class="sheet-item danger">✕ ${esc(t('clear_location'))}</button>`);
+      clr.addEventListener('click', () => { Store.updatePool(p.id, { lat: null, lng: null }); back.remove(); render(); });
+      nodes.push(clr);
+    }
+    const back = openSheet(poolTitle(p) + ' · ' + t('map_title'), nodes);
+  }
+  const openWaterSheet = (p) => openSheet('💧 ' + t('watering_section'), [wateringCard(p)]);
+  const openVolumeSheet = (p) => openSheet('🪣 ' + t('vol_section'), [volumeSection(p)]);
+  function openSandSheet(p) {
+    const inp = el(`<input type="date" class="field" value="${esc(p.sandDate || '')}">`);
+    inp.addEventListener('change', () => { Store.updatePool(p.id, { sandDate: inp.value }); });
+    const unk = el(`<button class="sheet-item">${esc(t('unknown'))}</button>`);
+    unk.addEventListener('click', () => { Store.updatePool(p.id, { sandDate: '' }); back.remove(); render(); });
+    const back = openSheet(t('sand_date'), [inp, unk]);
+  }
+  const icoBtn = (emoji, title, onClick) => { const b = el(`<button class="hero-ico" title="${esc(title)}">${emoji}</button>`); b.addEventListener('click', onClick); return b; };
+
+  // A photo panel: the reference photo backs an overlay pinned to the bottom,
+  // with optional corner icons. No photo → a flat title stripe + add-photo, and
+  // the overlay content flows below as normal cards (so nothing stays hidden).
+  function photoPanel(p, key, opts) {
+    const ph = window.Photos ? Photos.poolRef(p.id, key) : null;
+    const frag = document.createDocumentFragment();
+    const camInput = (onFile) => { const l = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`); l.querySelector('input').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) onFile(f); }); return l; };
+    if (ph) {
+      const hero = el('<div class="photo-hero overlay-bottom"></div>');
+      hero.style.minHeight = opts.minH || '340px';
+      hero.style.backgroundImage = `url('${ph.dataUrl}')`;
+      hero.appendChild(el('<div class="hero-scrim"></div>'));
+      const ctrls = el('<div class="hero-ctrls"></div>');
+      ctrls.appendChild(camInput(async (f) => { try { await Photos.remove(ph.id); } catch (_) {} try { await Photos.add({ poolId: p.id, label: key }, f); } catch (_) {} render(); }));
+      const del = el('<button class="hero-cam hero-del">✕</button>');
+      del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
+      ctrls.appendChild(del);
+      hero.appendChild(ctrls);
+      if (opts.corners && opts.corners.length) { const c = el('<div class="hero-corner"></div>'); opts.corners.forEach((n) => c.appendChild(n)); hero.appendChild(c); }
+      const body = el('<div class="hero-body ov-content"></div>');
+      if (opts.title) body.appendChild(el(`<div class="ov-title">${esc(opts.title)}</div>`));
+      if (opts.overlay) body.appendChild(opts.overlay);
+      hero.appendChild(body);
+      frag.appendChild(hero);
+    } else {
+      const bar = el(`<div class="section-title band-flat"><div><h2>${esc(opts.title || '')}</h2></div></div>`);
+      bar.appendChild(camInput(async (f) => { try { await Photos.add({ poolId: p.id, label: key }, f); } catch (_) {} render(); }));
+      frag.appendChild(bar);
+      if (opts.corners && opts.corners.length) { const c = el('<div class="flow-icons"></div>'); opts.corners.forEach((n) => c.appendChild(n)); frag.appendChild(c); }
+      if (opts.overlay) frag.appendChild(opts.overlay);
+    }
+    return frag;
   }
 
   // ---------- view: POOL DETAIL ----------
@@ -1254,9 +1304,14 @@
     const headBody = el(`<div class="hero-head"><h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1><p class="sub">${subHtml}</p></div>`);
     if (pool) { const occOv = poolOccOverlay(p); if (occOv) headBody.appendChild(occOv); }
     const iconRow = el('<div class="hero-icons"></div>');
-    const mapBtn = el(`<button class="hero-ico" title="${esc(t('directions'))}">📍</button>`);
-    mapBtn.addEventListener('click', () => openPoolMapPopup(p));
-    iconRow.appendChild(mapBtn);
+    const itinBtn = el(`<button class="hero-ico" title="${esc(t('directions'))}">📍</button>`);
+    itinBtn.addEventListener('click', () => openItinSheet(p));
+    iconRow.appendChild(itinBtn);
+    if (pool) {
+      const carteBtn = el(`<button class="hero-ico" title="${esc(t('map_title'))}">🗺️</button>`);
+      carteBtn.addEventListener('click', () => openCarteSheet(p));
+      iconRow.appendChild(carteBtn);
+    }
     headBody.appendChild(iconRow);
     wrap.appendChild(photoHero(p, 'gate', headBody, '240px'));
 
@@ -1277,32 +1332,49 @@
     }
 
     if (pool) {
-      // ===== PISCINE — pool photo + chem trend (replaces mini-bars + advice),
-      // doses, Saisir, produits, remplissage, volume, then full history. =====
-      const piscineBody = el('<div class="panel-body"></div>');
-      const trend = poolTrend(p);
-      if (trend) piscineBody.appendChild(trend);
-      const doses = chemDoses(p);
-      if (doses) piscineBody.appendChild(doses);
-      const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
+      // ===== PISCINE — pool photo carries the chem trend + Saisir on its overlay,
+      // water & volume as corner icons; doses / produits / history sit below. =====
+      const measure = el(`<details class="measure hide-summary"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
       measure.appendChild(readingForm(p));
-      piscineBody.appendChild(measure);
-      piscineBody.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
-      piscineBody.appendChild(treatmentSection(p));
-      piscineBody.appendChild(sectionTitle(t('watering_section')));
-      piscineBody.appendChild(wateringCard(p));
-      piscineBody.appendChild(volumeSection(p));
-      // full history — grows at the foot of the panel, no truncation
+      const overlay = el('<div class="ov-stack"></div>');
+      const trend = poolTrend(p);
+      if (trend) overlay.appendChild(trend);
+      const saisir = el(`<button class="btn primary ov-saisir">➕ ${esc(t('log_reading'))}</button>`);
+      saisir.addEventListener('click', () => { measure.open = true; measure.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+      overlay.appendChild(saisir);
+      const corners = [
+        icoBtn('💧', t('watering_section'), () => openWaterSheet(p)),
+        icoBtn('🪣', t('vol_section'), () => openVolumeSheet(p)),
+      ];
+      wrap.appendChild(photoPanel(p, 'pool', { title: '🧪 ' + t('chem_title'), overlay, corners, minH: '360px' }));
+      const doses = chemDoses(p);
+      if (doses) wrap.appendChild(doses);
+      wrap.appendChild(measure);
+      wrap.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
+      wrap.appendChild(treatmentSection(p));
       const readings = Store.readingsFor(p.id);
-      piscineBody.appendChild(sectionTitle(t('history', { n: readings.length })));
-      if (!readings.length) piscineBody.appendChild(emptyNote(t('history_empty')));
-      else piscineBody.appendChild(readingsTable(p, readings));
-      wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), t('chem_sub'), piscineBody));
+      wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
+      if (!readings.length) wrap.appendChild(emptyNote(t('history_empty')));
+      else wrap.appendChild(readingsTable(p, readings));
 
-      // ===== LOCAL TECHNIQUE panel — the pit photo underlays gestion de pompe. =====
-      wrap.appendChild(photoSection(p, 'pit', t('pump_section'), '', pumpCard(p)));
+      // ===== LOCAL TECHNIQUE — pump photo carries lavage + sable on its overlay;
+      // pump notes (no title) + "entretenue" follow. =====
+      const lb = Store.lastBackwash(p.id);
+      const pumpOv = el('<div class="ov-stack"></div>');
+      pumpOv.appendChild(el(`<div class="ov-sub">${esc(t('last_backwash', { date: lb ? fmtDateTime(lb.at) : t('never') }))}</div>`));
+      const prow = el('<div class="ov-btns"></div>');
+      const bw = el(`<button class="btn ov-btn">${esc(t('log_backwash'))}</button>`);
+      bw.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
+      const sand = el(`<button class="btn ov-btn">${esc(t('sand_date'))} · ${p.sandDate ? esc(fmtDate(p.sandDate)) : esc(t('unknown'))}</button>`);
+      sand.addEventListener('click', () => openSandSheet(p));
+      prow.appendChild(bw); prow.appendChild(sand);
+      pumpOv.appendChild(prow);
+      wrap.appendChild(photoPanel(p, 'pit', { title: t('pump_section'), overlay: pumpOv, minH: '300px' }));
+      const pn = el(`<textarea class="field pump-notes" rows="2" placeholder="${esc(t('pump_notes_ph'))}"></textarea>`);
+      pn.value = p.pumpNote || '';
+      pn.addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
+      wrap.appendChild(pn);
 
-      // ===== Final tick — entretenue aujourd'hui, the closing "done". =====
       wrap.appendChild(finalServiceTick(p));
     }
     return wrap;
