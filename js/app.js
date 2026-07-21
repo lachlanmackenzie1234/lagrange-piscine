@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.62'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.63'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -574,7 +574,7 @@
 
   // ----- notes / to-dos -----
   // noteForm(undefined) shows a pool picker; noteForm(poolId) is fixed to a pool.
-  function noteForm(fixedPoolId) {
+  function noteForm(fixedPoolId, hideTodo) {
     const showPicker = fixedPoolId === undefined;
     const opts = showPicker
       ? `<select name="poolId" class="note-select"><option value="">${esc(t('note_general'))}</option>` +
@@ -584,7 +584,7 @@
       <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(t('note_log_ph'))}">
       <div class="note-form-row">
         ${opts}
-        <label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>
+        ${hideTodo ? '' : `<label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>`}
         <label class="photo-btn" title="photo">📷<input type="file" accept="image/*" class="note-photos" multiple hidden></label>
         <button class="btn primary" type="submit">${esc(t('note_save'))}</button>
       </div>
@@ -1160,105 +1160,115 @@
     return wrap;
   }
 
+  // Three stacked micro-trends (pH / Cl / CyA) over the pool's readings, each on
+  // its own stable band with treated-day ticks. Replaces the old mini-bars +
+  // "Action suggérée" panel — the history carries the real signal.
+  function poolTrend(p) {
+    const R = Store.readingsFor(p.id).slice().reverse(); // chronological
+    if (!R.length) return null;
+    const treatDays = new Set(Store.treatmentsFor(p.id).map((v) => Store.localDate(v.at)));
+    const t0 = new Date(R[0].at).getTime(), t1 = new Date(R[R.length - 1].at).getTime();
+    const BAND = { ph: [CHEM_RANGES.ph.min, CHEM_RANGES.ph.max], chlorine: [CHEM_RANGES.chlorine.min, CHEM_RANGES.chlorine.max], stabilizer: [CHEM_RANGES.stabilizer.min, CHEM_RANGES.stabilizer.max] };
+    const last = R[R.length - 1];
+    const line = (key, label) => {
+      const w = 150, h = 22, pad = 2;
+      const series = R.filter((r) => r[key] != null);
+      const X = (iso) => t1 === t0 ? w / 2 : pad + ((new Date(iso).getTime() - t0) / (t1 - t0)) * (w - 2 * pad);
+      const b = BAND[key]; const vals = series.map((r) => r[key]);
+      const mx = Math.max(...vals, b[1] * 1.05), mn = Math.min(...vals, b[0] * 0.95);
+      const Y = (v) => h - pad - ((v - mn) / (mx - mn || 1)) * (h - 2 * pad);
+      const band = `<rect x="0" y="${Y(b[1]).toFixed(1)}" width="${w}" height="${Math.max(0, Y(b[0]) - Y(b[1])).toFixed(1)}" fill="var(--ok-bg)"/>`;
+      const ticks = R.filter((r) => treatDays.has(Store.localDate(r.at))).map((r) => `<line x1="${X(r.at).toFixed(1)}" y1="0" x2="${X(r.at).toFixed(1)}" y2="${h}" stroke="var(--na)" stroke-width="1" stroke-dasharray="1.5 1.5" opacity=".5"/>`).join('');
+      const col = (v) => { const s = evalMetric(key, v).state; return s === 'low' ? 'var(--low)' : s === 'high' ? 'var(--high)' : 'var(--ok)'; };
+      const pts = series.map((r) => `${X(r.at).toFixed(1)},${Y(r[key]).toFixed(1)}`).join(' ');
+      const dots = series.map((r, i) => `<circle cx="${X(r.at).toFixed(1)}" cy="${Y(r[key]).toFixed(1)}" r="${i === series.length - 1 ? 2.6 : 1.5}" fill="${col(r[key])}"/>`).join('');
+      const poly = series.length > 1 ? `<polyline points="${pts}" fill="none" stroke="var(--brand)" stroke-width="1.3"/>` : '';
+      const lv = last[key];
+      return `<div class="pt-row"><span class="pt-k">${esc(label)}</span>
+        <svg class="pt-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${band}${ticks}${poly}${dots}</svg>
+        <span class="pt-v" style="color:${lv == null ? 'var(--muted)' : col(lv)}">${lv == null ? '—' : lv}</span></div>`;
+    };
+    return el(`<div class="pool-trend">${line('ph', 'pH')}${line('chlorine', 'Cl')}${line('stabilizer', 'CyA')}</div>`);
+  }
+
+  // Occupation across the active planning weeks (this week + next) for the gate
+  // overlay — reads the pool's occupancy rows; an empty week shows "Libre".
+  function poolOccOverlay(p) {
+    const today = todayISO();
+    // weeks not fully ended (Sat..Fri) — the in-progress week + the coming one
+    const notEnded = Store.weeks().filter((wk) => {
+      const end = new Date(wk + 'T00:00:00'); end.setDate(end.getDate() + 6);
+      return end.toISOString().slice(0, 10) >= today;
+    });
+    const active = (notEnded.length ? notEnded : Store.weeks().slice(-1)).slice(0, 2);
+    if (!active.length) return null;
+    const box = el('<div class="occ-ov"></div>');
+    active.forEach((wk) => {
+      const o = Store.occupancyForWeek(wk).find((x) => x.poolId === p.id);
+      if (o) box.appendChild(el(`<div class="occ-wk"><div class="owk">${esc(t('week_of', { date: fmtDate(wk) }))}</div>
+        <div class="or1"><span>${o.name ? esc(o.name) : esc(t('occ_reserved'))}</span>${statusChip(o.status)}</div>
+        ${inOut(o) ? `<div class="or2">${esc(inOut(o))}</div>` : ''}</div>`));
+      else box.appendChild(el(`<div class="occ-wk free"><div class="owk">${esc(t('week_of', { date: fmtDate(wk) }))}</div>
+        <div class="or1"><span>${esc(t('occ_free'))}</span></div></div>`));
+    });
+    return box;
+  }
+
+  // Maps / GPS bottom-sheet — itinéraire, placer sur la carte, coords + effacer.
+  function openPoolMapPopup(p) {
+    const back = el('<div class="sheet-back"></div>');
+    const sheet = el('<div class="sheet"></div>');
+    sheet.appendChild(el(`<h3>${esc(poolTitle(p))}</h3>`));
+    sheet.appendChild(el(`<a class="sheet-item" target="_blank" rel="noopener" href="${poolMapUrl(p)}">${esc(t('open_maps'))}</a>`));
+    if (hasPool(p)) {
+      const pick = el(`<button class="sheet-item">${esc(t('pick_on_map'))}</button>`);
+      pick.addEventListener('click', () => { back.remove(); openMapPicker(p); });
+      sheet.appendChild(pick);
+    }
+    if (p.lat != null && p.lng != null) {
+      sheet.appendChild(el(`<div class="sheet-coords">${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</div>`));
+      const clr = el(`<button class="sheet-item danger">✕ ${esc(t('clear_location'))}</button>`);
+      clr.addEventListener('click', () => { Store.updatePool(p.id, { lat: null, lng: null }); back.remove(); render(); });
+      sheet.appendChild(clr);
+    }
+    back.appendChild(sheet);
+    back.addEventListener('click', (e) => { if (e.target === back) back.remove(); });
+    document.body.appendChild(back);
+  }
+
   // ---------- view: POOL DETAIL ----------
   function viewPool(id) {
     const p = Store.pool(id);
     const wrap = document.createElement('div');
     if (!p) { wrap.appendChild(header(t('pool_not_found'))); return wrap; }
     const res = Store.residence(p.res);
-
     const ps = poolStatus(p);
     const pool = hasPool(p);
-    const coords = p.lat != null && p.lng != null;
     const stWord = ps.reason === 'treated' ? t('status_treated') : ps.reason === 'retest' ? t('status_retest') : t('status_' + ps.level);
     const stBadge = pool ? ` · <span class="status-word" style="color:${statusColor(ps.level)}">${esc(stWord)}</span>` : '';
     const saltBadge = p.salt ? ` · <span class="salt-word">🧂 ${esc(t('salt_pool'))}</span>` : '';
-
-    // Itinéraire (external maps) + "placer sur la carte" (manual pin by eye).
-    // GPS auto-capture is gone — pins are placed/adjusted by hand. On a gate
-    // photo these ride the header overlay; otherwise they sit in the actions row.
-    const mkDirections = (cls) => el(`<a class="btn ${cls}" target="_blank" rel="noopener" href="${poolMapUrl(p)}">${esc(t('directions'))}</a>`);
-    const mkPick = (cls) => { const b = el(`<button class="btn ${cls}">${esc(t('pick_on_map'))}</button>`); b.addEventListener('click', () => openMapPicker(p)); return b; };
-
-    // The landing header progressively enhances: once a "portail" (gate) photo
-    // exists it becomes the backdrop of the title/status with itinéraire +
-    // placer-sur-carte overlaid — a visual cue for which gate you're arriving
-    // at. Until then it stays the plain slim header (add a gate photo below).
-    const gatePhoto = window.Photos ? Photos.poolRef(p.id, 'gate') : null;
     const subHtml = `${esc(res ? res.name : p.res)}${p.type ? ' · ' + esc(p.type) : ''}${stBadge}${saltBadge}`;
-    if (gatePhoto) {
-      wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
-      const headBody = el(`<div class="hero-head">
-        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
-        <p class="sub">${subHtml}</p>
-      </div>`);
-      const hact = el('<div class="hero-actions"></div>');
-      hact.appendChild(mkDirections('hero-btn'));
-      if (pool) hact.appendChild(mkPick('hero-btn hero-btn-sm'));
-      headBody.appendChild(hact);
-      wrap.appendChild(photoHero(p, 'gate', headBody, '220px')); // taller for 9:16 portraits
-    } else {
-      wrap.appendChild(el(`<header class="page-head">
-        <a class="back" href="#/pools">${esc(t('back_pools'))}</a>
-        <h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1>
-        <p class="sub">${subHtml}</p>
-      </header>`));
-    }
+
+    // ===== PORTAIL — gate photo hero: title + status + occupation + maps icon =====
+    wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
+    const headBody = el(`<div class="hero-head"><h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1><p class="sub">${subHtml}</p></div>`);
+    if (pool) { const occOv = poolOccOverlay(p); if (occOv) headBody.appendChild(occOv); }
+    const iconRow = el('<div class="hero-icons"></div>');
+    const mapBtn = el(`<button class="hero-ico" title="${esc(t('directions'))}">📍</button>`);
+    mapBtn.addEventListener('click', () => openPoolMapPopup(p));
+    iconRow.appendChild(mapBtn);
+    headBody.appendChild(iconRow);
+    wrap.appendChild(photoHero(p, 'gate', headBody, '240px'));
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
-
-    // portail add-photo affordance (only when there's no gate hero yet)
-    const mkPhotoAdd = (key) => {
-      const lab = el(`<label class="btn">📷 ${esc(t('add_photo'))}<input type="file" accept="image/*" hidden></label>`);
-      lab.querySelector('input').addEventListener('change', async (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
-        render();
-      });
-      return lab;
-    };
-    const actions = el('<div class="actions"></div>');
-    if (!gatePhoto) {
-      actions.appendChild(mkDirections(''));
-      if (pool) actions.appendChild(mkPick(''));
-      actions.appendChild(mkPhotoAdd('gate'));
-    }
-    if (actions.children.length) wrap.appendChild(actions);
-
-    if (!pool) {
-      wrap.appendChild(el(`<p class="empty-note">${esc(t('mgmt_note'))}</p>`));
-    }
-
-    if (pool && coords) {
-      const row = el(`<p class="coords-row"><span>${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</span>
-        <button class="link-clear">${esc(t('clear_location'))}</button></p>`);
-      row.querySelector('.link-clear').addEventListener('click', () => {
-        Store.updatePool(p.id, { lat: null, lng: null });
-        render();
-      });
-      wrap.appendChild(row);
-    }
-
     if (pool) {
       const lastV = Store.lastService(p.id);
       if (lastV) wrap.appendChild(el(`<p class="last-serviced">${esc(t('last_serviced', { date: fmtDateTime(lastV.at) }))}</p>`));
     }
+    if (!pool) wrap.appendChild(el(`<p class="empty-note">${esc(t('mgmt_note'))}</p>`));
 
-    // ===== PORTAIL panel content: occupation, then notes (both up top) =====
-    const occ = Store.occupancyFor(p.id);
-    if (occ.length) {
-      wrap.appendChild(sectionTitle(t('occupancy')));
-      const ol = el('<div class="cards"></div>');
-      occ.forEach((o) => ol.appendChild(el(`<div class="card">
-        <div class="card-row"><strong>${fmtDate(o.week)}</strong>${statusChip(o.status)}</div>
-        <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}${o.note ? ' · ' + esc(o.note) : ''}</div>
-      </div>`)));
-      wrap.appendChild(ol);
-    }
-
-    // notes / to-dos for this pool (available for every unit, incl. HO)
-    wrap.appendChild(sectionTitle(t('notes_section')));
-    wrap.appendChild(noteForm(p.id));
+    // ===== NOTES — no title, auto-tagged to this pool, à-faire lives on Aujourd'hui =====
+    wrap.appendChild(noteForm(p.id, true));
     const pNotes = Store.notesFor(p.id);
     if (pNotes.length) {
       const nc = el('<div class="cards"></div>');
@@ -1267,19 +1277,11 @@
     }
 
     if (pool) {
-      // action suggérée — the all-inclusive summary, last of the portail block
-      const advice = adviceFor(Store.latestReading(p.id));
-      if (advice.length) {
-        wrap.appendChild(el(`<div class="advice"><strong>${esc(t('advice_title'))}</strong>
-          <ul>${advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`));
-      }
-
-      // ===== PISCINE panel — the pool photo underlays chimie + saisir + produits
-      // + remplissage (+ volume, + collapsed history). =====
+      // ===== PISCINE — pool photo + chem trend (replaces mini-bars + advice),
+      // doses, Saisir, produits, remplissage, volume, then full history. =====
       const piscineBody = el('<div class="panel-body"></div>');
-      // compact chimie (glance bars + next-check); canon doses + Saisir below
-      const mini = chemMini(p);
-      if (mini) piscineBody.appendChild(mini);
+      const trend = poolTrend(p);
+      if (trend) piscineBody.appendChild(trend);
       const doses = chemDoses(p);
       if (doses) piscineBody.appendChild(doses);
       const measure = el(`<details class="measure"><summary>➕ ${esc(t('log_reading'))}</summary></details>`);
@@ -1290,21 +1292,11 @@
       piscineBody.appendChild(sectionTitle(t('watering_section')));
       piscineBody.appendChild(wateringCard(p));
       piscineBody.appendChild(volumeSection(p));
-      // history — show 3 recent for context; "+N de plus" appends the rest
+      // full history — grows at the foot of the panel, no truncation
       const readings = Store.readingsFor(p.id);
       piscineBody.appendChild(sectionTitle(t('history', { n: readings.length })));
-      if (!readings.length) {
-        piscineBody.appendChild(emptyNote(t('history_empty')));
-      } else {
-        const histWrap = el('<div class="hist-wrap"></div>');
-        histWrap.appendChild(readingsTable(p, readings.slice(0, 3)));
-        if (readings.length > 3) {
-          const more = el(`<button class="btn sm hist-more">${esc(t('hist_more', { n: readings.length - 3 }))}</button>`);
-          more.addEventListener('click', () => { histWrap.innerHTML = ''; histWrap.appendChild(readingsTable(p, readings)); });
-          histWrap.appendChild(more);
-        }
-        piscineBody.appendChild(histWrap);
-      }
+      if (!readings.length) piscineBody.appendChild(emptyNote(t('history_empty')));
+      else piscineBody.appendChild(readingsTable(p, readings));
       wrap.appendChild(photoSection(p, 'pool', '🧪 ' + t('chem_title'), t('chem_sub'), piscineBody));
 
       // ===== LOCAL TECHNIQUE panel — the pit photo underlays gestion de pompe. =====
@@ -1428,10 +1420,10 @@
   // measuring; flagged volEst=true until then.
   // Re-measured in the field (2026): depth runs shallow→deep 0.8→1.6/1.7 m.
   const POOL_PRESETS = {
-    small:  { l: 8,  w: 4, dmin: 0.8, dmax: 1.6 },   // 4×8×1.2  ≈ 38 m³
-    medium: { l: 10, w: 5, dmin: 0.8, dmax: 1.7 },   // 5×10×1.25 ≈ 63 m³
-    large:  { l: 12, w: 6, dmin: 0.8, dmax: 1.7 },   // 6×12×1.25 ≈ 90 m³
+    small:  { l: 8,  w: 4, dmin: 1.0, dmax: 1.5 },   // 4×8×1.25  ≈ 40 m³
+    medium: { l: 10, w: 5, dmin: 1.0, dmax: 1.6 },   // 5×10×1.3  ≈ 65 m³
   };
+  const PRESET_KEYS = ['small', 'medium'];              // Large dropped — pools here run ~30–65 m³
   const presetVol = (d) => Math.round(d.l * d.w * ((d.dmin + d.dmax) / 2) * 10) / 10;
 
   // Pool volume — "inconnue · Définir" until set; pick a size class to estimate
@@ -1447,7 +1439,7 @@
         // quick size presets
         box.appendChild(el(`<div class="os-head">${esc(t('vol_presets'))}</div>`));
         const presets = el('<div class="preset-row"></div>');
-        ['small', 'medium', 'large'].forEach((k) => {
+        PRESET_KEYS.forEach((k) => {
           const d = POOL_PRESETS[k], v = presetVol(d);
           const b = el(`<button class="btn sm">${esc(t('size_' + k))} <small>~${v}</small></button>`);
           // full render so the dose block above picks up the new volume live
