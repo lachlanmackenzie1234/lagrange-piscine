@@ -71,9 +71,12 @@ header.top .sub{ margin:2px 0 0; color:#bcd6ea; font-size:.82rem; }
 .bar.today i{ background:var(--title); }
 .bar.zero i{ background:var(--line); }
 .bar b{ font-size:.62rem; color:var(--title); font-weight:700; font-variant-numeric:tabular-nums; }
+.bar.sun i{ background:var(--na-bg); }
 .axis{ display:flex; gap:3px; margin-top:4px; }
-.axis span{ flex:1; text-align:center; font-size:.56rem; color:var(--muted); min-width:0;
-  overflow:hidden; white-space:nowrap; }
+.axis span{ flex:1; text-align:center; font-size:.6rem; color:var(--muted); min-width:0;
+  overflow:hidden; white-space:nowrap; font-weight:600; }
+.axis span em{ display:block; font-style:normal; font-weight:500; font-size:.52rem; color:var(--muted); }
+.axis span.sun{ color:var(--high); }
 
 /* product totals */
 .prod{ display:flex; flex-direction:column; gap:6px; }
@@ -86,16 +89,21 @@ header.top .sub{ margin:2px 0 0; color:#bcd6ea; font-size:.82rem; }
 .prow .track{ grid-column:1 / -1; height:5px; border-radius:3px; background:var(--na-bg); overflow:hidden; }
 .prow .track i{ display:block; height:100%; background:var(--brand); border-radius:3px; }
 
-/* per-pool rows */
-.pool{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px;
+/* per-pool rows — pool + last visit + last measure, with FC trend as complement */
+.pool{ display:flex; flex-direction:column; gap:5px;
   background:var(--card); border:1px solid var(--line); border-radius:12px;
   padding:10px var(--s2); margin-bottom:6px; }
-.pool .id{ font-weight:700; color:var(--title); font-size:.9rem; min-width:64px; }
-.pool .id small{ display:block; font-weight:500; color:var(--muted); font-size:.66rem; }
-.pool .spark{ width:100%; height:34px; }
-.pool .cnt{ text-align:right; }
-.pool .cnt b{ font-size:1.15rem; color:var(--title); font-variant-numeric:tabular-nums; }
-.pool .cnt small{ display:block; font-size:.64rem; color:var(--muted); }
+.pool.stale{ border-color:#f0d9a8; }
+.pool .head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.pool .id{ font-weight:700; color:var(--title); font-size:.95rem; }
+.pool .seen{ font-size:.72rem; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.pool .seen.warn{ color:var(--low); font-weight:600; }
+.pool .spark{ width:120px; height:30px; flex:none; }
+.pool .meas{ display:flex; align-items:center; gap:10px; font-size:.78rem; color:var(--ink);
+  font-variant-numeric:tabular-nums; }
+.pool .meas .m{ color:var(--muted); } .pool .meas .m b{ color:var(--ink); font-weight:600; }
+.pool .meas.none{ color:var(--muted); font-style:italic; }
+.pool .btm{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
 .dot.ok{ background:var(--ok); } .dot.low{ background:var(--low); }
 .dot.high{ background:var(--high); } .dot.na{ background:var(--na); }
@@ -108,7 +116,7 @@ header.top .sub{ margin:2px 0 0; color:#bcd6ea; font-size:.82rem; }
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>Activité<span class="beta">Beta</span></h1>
+    <h1>Piscines<span class="beta">Beta</span></h1>
     <p class="sub" id="range">—</p>
     <div class="tools">
       <label for="file">↥ Charger une sauvegarde</label>
@@ -121,13 +129,12 @@ header.top .sub{ margin:2px 0 0; color:#bcd6ea; font-size:.82rem; }
   <div class="tiles" id="tiles"></div>
   <div class="bars" id="bars"></div>
   <div class="axis" id="axis"></div>
-  <p class="note" id="passage-note"></p>
+
+  <section class="eyebrow"><h2>Piscines</h2><span class="hint" id="pools-hint"></span></section>
+  <div id="pools"></div>
 
   <section class="eyebrow"><h2>Produits ajoutés</h2><span class="hint" id="prod-hint"></span></section>
   <div class="prod" id="prod"></div>
-
-  <section class="eyebrow"><h2>Mesures par piscine</h2><span class="hint">chlore libre · dernières mesures</span></section>
-  <div id="pools"></div>
 
   <div class="foot" id="foot"></div>
 </div>
@@ -190,7 +197,32 @@ const LP = (() => {
     return readings.filter((r) => r.poolId === poolId && r.chlorine != null)
       .sort((a, b) => a.at.localeCompare(b.at)).map((r) => ({ at: r.at, fc: r.chlorine }));
   }
-  return { day, uniq, passages, passagesByDay, minPerPool, median, productTotals, poolPassages, fcSeries };
+  // Last visit of ANY category (service-mark, treatment, backwash) — a stable
+  // pool marked "entretenue" with no measure still counts. This is the fix the
+  // live app needs: its revisit logic currently leans on a measure existing.
+  function lastVisit(visits, poolId) {
+    let best = null;
+    for (const v of visits) if (v.poolId === poolId && (!best || v.at > best.at)) best = v;
+    return best;
+  }
+  // Latest reading (a measure) for a pool, or null.
+  function lastReading(readings, poolId) {
+    let best = null;
+    for (const r of readings) if (r.poolId === poolId && (!best || r.at > best.at)) best = r;
+    return best;
+  }
+  // Rolling window helpers keyed off a reference day.
+  function windowPassages(visits, refISO, days) {
+    const refT = new Date(refISO + 'T00:00:00').getTime();
+    const by = passagesByDay(visits); let sum = 0, worked = 0;
+    for (const [d, n] of Object.entries(by)) {
+      const age = (refT - new Date(d + 'T00:00:00').getTime()) / 864e5;
+      if (age >= 0 && age < days) { sum += n; worked++; }
+    }
+    return { sum, worked };
+  }
+  return { day, uniq, passages, passagesByDay, minPerPool, median, productTotals,
+    poolPassages, fcSeries, lastVisit, lastReading, windowPassages };
 })();
 
 /* ================= view (beta-only; the live app renders these its own way) */
@@ -202,7 +234,7 @@ const PRODUCTS = {
   'acti-floc': { name: 'Floculant', unit: 'sachet' },
 };
 const CL = { min: 1, max: 3 }; // FC band for the status dot
-const fmtDay = (d) => { const p = d.split('-'); return p[2] + '/' + p[1]; };
+const fmtDay = (d) => { const p = (d || '').slice(0, 10).split('-'); return p[2] + '/' + p[1]; };
 const clState = (fc) => fc == null ? 'na' : fc < CL.min ? 'low' : fc > CL.max ? 'high' : 'ok';
 
 let DATA = null;
@@ -220,39 +252,68 @@ function render() {
     'du ' + fmtDay(allDays[0] || ref) + ' au ' + fmtDay(ref) + ' · instantané';
 
   const byDay = LP.passagesByDay(V);
-  const activeDays = Object.keys(byDay);
   const totalPassages = Object.values(byDay).reduce((a, b) => a + b, 0);
-
-  // "this week" = last 7 calendar days up to ref
   const refT = new Date(ref + 'T00:00:00').getTime();
-  const wk = Object.entries(byDay).filter(([d]) => (refT - new Date(d + 'T00:00:00').getTime()) / 864e5 < 7);
-  const wkPassages = wk.reduce((a, [, n]) => a + n, 0);
-  const poolsPerDay = activeDays.length ? totalPassages / activeDays.length : 0;
-  const mpp = LP.median(activeDays.map((d) => LP.minPerPool(V, d)).filter((x) => x != null));
 
-  // tiles
+  // rhythm = 7-day mean. Sundays (nobody works) and single-day-off shifts sit
+  // as legit zeros in the graph; the mean is over days actually worked so it
+  // reads as "when we're out, this many pools", not diluted by rest days.
+  const w7 = LP.windowPassages(V, ref, 7);
+  const wPrev = LP.windowPassages(V, LP.day(new Date(refT - 7 * 864e5).toISOString()), 7);
+  const meanWorked = w7.worked ? w7.sum / w7.worked : 0;
+  const trend = wPrev.sum ? Math.round(((w7.sum - wPrev.sum) / wPrev.sum) * 100) : null;
+
   document.getElementById('tiles').innerHTML = [
-    tile(wkPassages, 'passages', '7 derniers jours', 'sur ' + wk.length + ' jours travaillés'),
-    tile(poolsPerDay.toFixed(1), 'piscines/jour', 'moyenne', 'jours actifs : ' + activeDays.length),
-    tile(mpp != null ? Math.round(mpp) : '—', 'min/piscine', 'médiane', 'jours ≥ 4 passages'),
+    tile(w7.sum, 'passages', '7 derniers jours', w7.worked + ' jours travaillés'),
+    tile(meanWorked.toFixed(1), 'piscines/jour', 'moyenne', 'par jour travaillé'),
+    tile(wPrev.sum, 'passages', 'semaine −1', trend == null ? 'réf.' : (trend >= 0 ? '▲ +' : '▼ ') + trend + '%'),
   ].join('');
   document.getElementById('rhythm-hint').textContent = totalPassages + ' passages en tout';
 
-  // bar strip — last 14 days
-  const last14 = [];
-  for (let i = 13; i >= 0; i--) { const d = new Date(refT - i * 864e5).toISOString().slice(0, 10); last14.push(d); }
-  const max = Math.max(1, ...last14.map((d) => byDay[d] || 0));
-  document.getElementById('bars').innerHTML = last14.map((d) => {
-    const n = byDay[d] || 0; const h = Math.round((n / max) * 100);
-    const cls = n === 0 ? 'zero' : (d === ref ? 'today' : '');
-    return `<span class="bar ${cls}"><b>${n || ''}</b><i style="height:${n ? Math.max(h, 8) : 3}%"></i></span>`;
+  // per-day graph — last 21 days, weekday letters, Sundays flagged
+  const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  const days = [];
+  for (let i = 20; i >= 0; i--) days.push(new Date(refT - i * 864e5).toISOString().slice(0, 10));
+  const max = Math.max(1, ...days.map((d) => byDay[d] || 0));
+  document.getElementById('bars').innerHTML = days.map((d) => {
+    const n = byDay[d] || 0; const dow = new Date(d + 'T12:00:00').getDay();
+    const cls = [n === 0 ? 'zero' : '', d === ref ? 'today' : '', dow === 0 ? 'sun' : ''].join(' ');
+    return `<span class="bar ${cls}"><b>${n || ''}</b><i style="height:${n ? Math.max(Math.round(n / max * 100), 8) : 3}%"></i></span>`;
   }).join('');
-  document.getElementById('axis').innerHTML = last14.map((d, i) =>
-    `<span>${i % 2 === 0 ? fmtDay(d) : ''}</span>`).join('');
-  document.getElementById('passage-note').textContent =
-    'Un passage = une piscine, un jour. Les jours à moins de 4 passages n’alimentent pas la médiane min/piscine (une seule piscine matin + soir fausserait le calcul).';
+  document.getElementById('axis').innerHTML = days.map((d, i) => {
+    const dow = new Date(d + 'T12:00:00').getDay();
+    return `<span class="${dow === 0 ? 'sun' : ''}">${WD[dow]}<em>${i % 3 === 0 ? fmtDay(d) : ''}</em></span>`;
+  }).join('');
 
-  // products
+  // pools — the directory, augmented: last visit (any category) + last measure.
+  // Sorted by last visit ascending so longest-unseen floats up (needs a look).
+  const pools = (DATA.pools || []).slice().sort((a, b) => {
+    if (!!a.nonPool !== !!b.nonPool) return a.nonPool ? 1 : -1; // rentals (no bassin) sink
+    const la = LP.lastVisit(V, a.id), lb = LP.lastVisit(V, b.id);
+    return (la ? la.at : '').localeCompare(lb ? lb.at : '');
+  });
+  document.getElementById('pools').innerHTML = pools.map((p) => {
+    const lv = LP.lastVisit(V, p.id), lr = LP.lastReading(R, p.id);
+    const s = LP.fcSeries(R, p.id);
+    const ageD = lv ? Math.round((refT - new Date(LP.day(lv.at) + 'T00:00:00').getTime()) / 864e5) : null;
+    const seen = lv ? 'vu ' + fmtDay(lv.at) : 'jamais vu';
+    const warn = (ageD == null || ageD > 7) ? ' warn' : '';
+    let meas;
+    if (p.nonPool) meas = '<div class="meas none">location · sans bassin</div>';
+    else if (lr) meas = `<div class="meas"><span class="dot ${clState(lr.chlorine)}"></span>` +
+      `<span class="m">Cl <b>${lr.chlorine != null ? lr.chlorine : '—'}</b></span>` +
+      `<span class="m">pH <b>${lr.ph != null ? lr.ph : '—'}</b></span>` +
+      `<span class="m">CyA <b>${lr.stabilizer != null ? lr.stabilizer : '—'}</b></span>` +
+      `<span class="m">· ${fmtDay(lr.at)}</span></div>`;
+    else meas = '<div class="meas none">aucune mesure</div>';
+    return `<div class="pool${warn ? ' stale' : ''}">
+      <div class="head"><span class="id">${p.res} ${p.unit}</span>
+        <span class="seen${warn}">${seen}</span></div>
+      <div class="btm">${meas}${p.nonPool ? '' : spark(s)}</div></div>`;
+  }).join('');
+  document.getElementById('pools-hint').textContent = pools.length + ' piscines · plus ancienne en haut';
+
+  // products — reorder signal, at the foot of the page
   const totals = LP.productTotals(V);
   const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
   const pmax = Math.max(1, ...rows.map(([, q]) => q));
@@ -263,18 +324,6 @@ function render() {
       <div class="track"><i style="width:${Math.round((q / pmax) * 100)}%"></i></div></div>`;
   }).join('');
   document.getElementById('prod-hint').textContent = rows.length + ' produits · signal de réappro';
-
-  // per-pool
-  const pp = LP.poolPassages(V);
-  const pools = Object.entries(pp).sort((a, b) => b[1] - a[1]);
-  document.getElementById('pools').innerHTML = pools.map(([id, n]) => {
-    const lab = poolLabel(id); const s = LP.fcSeries(R, id);
-    const last = s.length ? s[s.length - 1].fc : null;
-    return `<div class="pool">
-      <div class="id">${lab.res} ${lab.unit}${lab.nonPool ? '<small>sans bassin</small>' : `<small><span class="dot ${clState(last)}"></span> Cl ${last != null ? last : '—'}</small>`}</div>
-      <div>${spark(s)}</div>
-      <div class="cnt"><b>${n}</b><small>passages</small></div></div>`;
-  }).join('');
 
   document.getElementById('foot').innerHTML =
     'Beta lecture seule — données figées d’un export (aucun nom locataire). ' +
@@ -290,7 +339,7 @@ const round = (q) => Math.round(q * 10) / 10;
 
 // tiny FC sparkline as inline SVG, band shaded
 function spark(series) {
-  const w = 150, h = 34, pad = 3;
+  const w = 120, h = 30, pad = 3;
   if (!series.length) return `<svg class="spark" viewBox="0 0 ${w} ${h}"></svg>`;
   const xs = series.map((_, i) => series.length === 1 ? w / 2 : pad + (i / (series.length - 1)) * (w - 2 * pad));
   const maxFc = Math.max(3.5, ...series.map((p) => p.fc));
