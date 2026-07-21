@@ -10,6 +10,7 @@
   --navy:#123a5e; --title:#123a5e; --brand:#2b8fd0; --brand-dark:#123a5e;
   --ok:#1b9e4b; --ok-bg:#e6f6ec; --low:#d98b00; --low-bg:#fdf3e0;
   --high:#d12f2f; --high-bg:#fdeaea; --na:#8a98a4; --na-bg:#eef2f5;
+  --treated:#2f7ec4;
   --s1:8px; --s2:13px; --s3:21px; --s4:34px; --s5:55px;
 }
 /* dark: --navy stays fixed (header bar & stripes read white-on-navy in both
@@ -112,7 +113,21 @@ header.top .sub{ margin:2px 0 0; color:#bcd6ea; font-size:.82rem; }
 .legend .sw{ display:inline-block; }
 .legend .sw.band{ width:14px; height:9px; background:var(--ok-bg); border:1px solid var(--line); border-radius:2px; }
 .legend .sw.dot{ width:8px; height:8px; border-radius:50%; }
+.legend .sw.dot.treated{ background:var(--treated); }
 .legend .sw.tick{ width:0; height:12px; border-left:1px dashed var(--na); }
+
+/* collapsible residence zones — remembered open/closed like scroll position */
+.zone{ margin-bottom:var(--s2); }
+.zone-head{ width:100%; display:flex; align-items:center; gap:10px; text-align:left;
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:11px var(--s2); cursor:pointer; color:var(--ink); font:inherit; }
+.zone-head .zh-name{ font-weight:700; color:var(--title); font-size:1rem; letter-spacing:.02em; }
+.zone-head .zh-meta{ font-size:.72rem; color:var(--muted); margin-left:auto; }
+.zone-head .zh-caret{ font-size:.8rem; color:var(--muted); transition:transform .15s; width:14px; text-align:center; }
+.zone.closed .zh-caret{ transform:rotate(-90deg); }
+.zone-body{ margin-top:6px; }
+.zone.closed .zone-body{ display:none; }
+.zh-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-left:2px; }
 .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
 .dot.ok{ background:var(--ok); } .dot.low{ background:var(--low); }
 .dot.high{ background:var(--high); } .dot.na{ background:var(--na); }
@@ -134,20 +149,21 @@ header.top .sub{ margin:2px 0 0; color:#bcd6ea; font-size:.82rem; }
     </div>
   </header>
 
-  <section class="eyebrow"><h2>Rythme de passage</h2><span class="hint" id="rhythm-hint"></span></section>
-  <div class="tiles" id="tiles"></div>
-  <div class="bars" id="bars"></div>
-  <div class="axis" id="axis"></div>
-
   <section class="eyebrow"><h2>Piscines</h2><span class="hint" id="pools-hint"></span></section>
   <div class="legend">
     <span><i class="sw band"></i>zone stable Cl 1–3</span>
     <span><i class="sw dot ok"></i>ok</span>
     <span><i class="sw dot low"></i>à vérifier</span>
     <span><i class="sw dot high"></i>critique</span>
-    <span><i class="sw tick"></i>traité</span>
+    <span><i class="sw dot treated"></i>traité</span>
+    <span><i class="sw tick"></i>produit</span>
   </div>
   <div id="pools"></div>
+
+  <section class="eyebrow"><h2>Rythme de passage</h2><span class="hint" id="rhythm-hint"></span></section>
+  <div class="tiles" id="tiles"></div>
+  <div class="bars" id="bars"></div>
+  <div class="axis" id="axis"></div>
 
   <section class="eyebrow"><h2>Produits ajoutés</h2><span class="hint" id="prod-hint"></span></section>
   <div class="prod" id="prod"></div>
@@ -261,9 +277,15 @@ const PRODUCTS = {
 };
 const CL = { min: 1, max: 3 }; // FC band for the status dot
 const fmtDay = (d) => { const p = (d || '').slice(0, 10).split('-'); return p[2] + '/' + p[1]; };
+const fmtDMY = (d) => { const p = (d || '').slice(0, 10).split('-'); return p[0] ? p[2] + '/' + p[1] + '/' + p[0].slice(2) : '—'; };
 const clState = (fc) => fc == null ? 'na' : fc < CL.min ? 'low' : fc > CL.max ? 'high' : 'ok';
 
 let DATA = null;
+
+// remembered collapsed zones — persisted like the app remembers scroll position
+const ZKEY = 'lp.beta.zones.closed';
+function closedZones() { try { return new Set(JSON.parse(localStorage.getItem(ZKEY) || '[]')); } catch (_) { return new Set(); } }
+function toggleZone(z) { const s = closedZones(); s.has(z) ? s.delete(z) : s.add(z); try { localStorage.setItem(ZKEY, JSON.stringify([...s])); } catch (_) {} }
 
 function poolLabel(id) {
   const p = (DATA.pools || []).find((x) => x.id === id);
@@ -316,16 +338,12 @@ function render() {
   // Sorted longest-unseen first so what needs a look floats up.
   const spanDays = Math.max(1, (refT - new Date((allDays[0] || ref) + 'T00:00:00').getTime()) / 864e5);
   const range = [new Date((allDays[0] || ref) + 'T00:00:00').getTime(), refT + 864e5];
-  const pools = (DATA.pools || []).filter((p) => !p.nonPool).sort((a, b) => {
-    const la = LP.lastVisit(V, a.id), lb = LP.lastVisit(V, b.id);
-    return (la ? la.at : '').localeCompare(lb ? lb.at : '');
-  });
-  document.getElementById('pools').innerHTML = pools.map((p) => {
+  const poolRow = (p) => {
     const lv = LP.lastVisit(V, p.id), lr = LP.lastReading(R, p.id);
     const s = LP.fcSeries(R, p.id), tr = LP.treatments(V, p.id);
     const ageD = lv ? Math.round((refT - new Date(LP.day(lv.at) + 'T00:00:00').getTime()) / 864e5) : null;
     const seen = lv ? 'vu ' + fmtDay(lv.at) : 'jamais vu';
-    const warn = (ageD == null || ageD > 7) ? ' warn' : '';
+    const warn = (ageD == null || ageD > 7);
     const vpw = LP.visitsPerWeek(V, p.id, spanDays);
     const cadence = `<span class="cad">${vpw >= 0.1 ? vpw.toFixed(1) + '/sem' : '—'}</span>`;
     let meas;
@@ -336,23 +354,48 @@ function render() {
     else meas = '<div class="meas none">aucune mesure</div>';
     return `<div class="pool${warn ? ' stale' : ''}">
       <div class="head"><span class="id">${p.res} ${p.unit}</span>
-        <span class="seen${warn}">${seen}</span></div>
+        <span class="seen${warn ? ' warn' : ''}">${seen}</span></div>
       <div class="btm">${meas}<div class="right">${cadence}${spark(s, tr, range)}</div></div></div>`;
+  };
+  const isStale = (p) => { const lv = LP.lastVisit(V, p.id); return !lv || (refT - new Date(LP.day(lv.at) + 'T00:00:00').getTime()) / 864e5 > 7; };
+  // group into residence zones, keeping seed order; sort within by longest-unseen
+  const realPools = (DATA.pools || []).filter((p) => !p.nonPool);
+  const zoneOrder = LP.uniq(realPools.map((p) => p.res));
+  const closed = closedZones();
+  document.getElementById('pools').innerHTML = zoneOrder.map((z) => {
+    const zp = realPools.filter((p) => p.res === z).sort((a, b) => {
+      const la = LP.lastVisit(V, a.id), lb = LP.lastVisit(V, b.id);
+      return (la ? la.at : '').localeCompare(lb ? lb.at : '');
+    });
+    const due = zp.filter(isStale).length;
+    const isClosed = closed.has(z);
+    const meta = zp.length + ' piscines' + (due ? ` · <span style="color:var(--low)">${due} à voir</span>` : '');
+    return `<div class="zone${isClosed ? ' closed' : ''}" data-zone="${z}">
+      <button class="zone-head" type="button" data-zone="${z}">
+        <span class="zh-name">${z}</span><span class="zh-meta">${meta}</span><span class="zh-caret">▾</span>
+      </button>
+      <div class="zone-body">${zp.map(poolRow).join('')}</div></div>`;
   }).join('');
+  document.querySelectorAll('.zone-head').forEach((h) => h.addEventListener('click', () => {
+    const z = h.dataset.zone; toggleZone(z);
+    h.closest('.zone').classList.toggle('closed');
+  }));
   document.getElementById('pools-hint').textContent =
-    pools.length + ' piscines · ' + fmtDay(allDays[0]) + '→' + fmtDay(ref);
+    realPools.length + ' piscines · ' + fmtDay(allDays[0]) + '→' + fmtDay(ref);
 
-  // products — reorder signal, at the foot of the page
+  // products — reorder signal, at the foot of the page. Each total is annotated
+  // with the date counting began for that product ("depuis jj/mm/aa").
   const totals = LP.productTotals(V);
   const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
   const pmax = Math.max(1, ...rows.map(([, q]) => q));
+  const firstOf = (id) => { let m = null; for (const v of V) if (v.productId === id && (!m || v.at < m)) m = v.at; return m; };
   document.getElementById('prod').innerHTML = rows.map(([id, q]) => {
     const p = PRODUCTS[id] || { name: id, unit: '' };
-    return `<div class="prow"><div><div class="pn">${p.name}</div><div class="pk">${id}</div></div>
+    return `<div class="prow"><div><div class="pn">${p.name}</div><div class="pk">depuis ${fmtDMY(firstOf(id))}</div></div>
       <div class="pq">${round(q)} <small>${p.unit}</small></div>
       <div class="track"><i style="width:${Math.round((q / pmax) * 100)}%"></i></div></div>`;
   }).join('');
-  document.getElementById('prod-hint').textContent = rows.length + ' produits · signal de réappro';
+  document.getElementById('prod-hint').textContent = rows.length + ' produits · depuis ' + fmtDMY(allDays[0]);
 
   document.getElementById('foot').innerHTML =
     'Beta lecture seule — données figées d’un export (aucun nom locataire). ' +
@@ -380,10 +423,15 @@ function spark(series, treatments, range) {
   const ticks = (treatments || []).map((tt) =>
     `<line x1="${X(tt.at).toFixed(1)}" y1="0" x2="${X(tt.at).toFixed(1)}" y2="${h}" stroke="var(--na)" stroke-width="1" stroke-dasharray="1.5 1.5" opacity=".55"/>`).join('');
   if (!series.length) return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${band}${ticks}</svg>`;
+  const treatDays = new Set((treatments || []).map((tt) => (tt.at || '').slice(0, 10)));
   const pts = series.map((p) => `${X(p.at).toFixed(1)},${y(p.fc).toFixed(1)}`).join(' ');
   const dots = series.map((p, i) => {
     const st = clState(p.fc); const c = st === 'ok' ? 'var(--ok)' : st === 'low' ? 'var(--low)' : 'var(--high)';
-    return `<circle cx="${X(p.at).toFixed(1)}" cy="${y(p.fc).toFixed(1)}" r="${i === series.length - 1 ? 3 : 1.8}" fill="${c}"/>`;
+    const cx = X(p.at), cy = y(p.fc);
+    // chem-state dot; plus a small blue cap above it when that day was also treated
+    const treated = treatDays.has((p.at || '').slice(0, 10))
+      ? `<circle cx="${cx.toFixed(1)}" cy="${Math.max(2, cy - 5).toFixed(1)}" r="1.7" fill="var(--treated)"/>` : '';
+    return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${i === series.length - 1 ? 3 : 1.8}" fill="${c}"/>${treated}`;
   }).join('');
   const line = series.length > 1 ? `<polyline points="${pts}" fill="none" stroke="var(--brand)" stroke-width="1.5"/>` : '';
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${band}${ticks}${line}${dots}</svg>`;
