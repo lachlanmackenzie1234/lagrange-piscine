@@ -559,6 +559,15 @@ details.measure .reading-form { margin: 0; }
 .ov-content .ov-saisir { background: rgba(18,58,94,.86); border-color: rgba(255,255,255,.26); }
 .ov-content .ov-btn { width: auto; background: rgba(0,0,0,.4); color: #fff; border: 1px solid rgba(255,255,255,.26); }
 .flow-icons { display: flex; gap: 8px; margin: 8px 0; }
+/* labelled corner pill (icon + value) for water / volume */
+.hero-pill { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: .74rem; font-weight: 600;
+  color: #fff; background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.26); border-radius: 999px;
+  padding: 5px 11px; cursor: pointer; white-space: nowrap; }
+.hero-pill span { font-variant-numeric: tabular-nums; }
+.photo-hero.empty .hero-pill, .band-flat + .flow-icons .hero-pill { background: var(--navy); border-color: transparent; }
+/* light section heading — small navy uppercase label instead of a full stripe */
+.lite-head { font-size: .72rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--title); margin: var(--s3) 2px var(--s1); }
 .measure.hide-summary > summary { display: none; }
 .pump-notes { margin-top: 8px; width: 100%; }
 /* no-photo flat panels keep normal styling; buttons stay standard */

@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.65'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.66'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -581,7 +581,7 @@
         Store.pools().map((p) => `<option value="${p.id}">${esc(p.res + ' ' + p.unit)}</option>`).join('') + '</select>'
       : '';
     const f = el(`<form class="note-form">
-      <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(t('note_log_ph'))}">
+      <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(hideTodo ? t('note_pool_ph') : t('note_log_ph'))}">
       <div class="note-form-row">
         ${opts}
         ${hideTodo ? '' : `<label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>`}
@@ -1251,6 +1251,10 @@
     const back = openSheet(t('sand_date'), [inp, unk]);
   }
   const icoBtn = (emoji, title, onClick) => { const b = el(`<button class="hero-ico" title="${esc(title)}">${emoji}</button>`); b.addEventListener('click', onClick); return b; };
+  // labelled corner pill (icon + short value) — used for water & volume overlays
+  const pillBtn = (emoji, label, title, onClick) => { const b = el(`<button class="hero-pill" title="${esc(title)}">${emoji} <span>${esc(label)}</span></button>`); b.addEventListener('click', onClick); return b; };
+  // light section heading (small navy uppercase label, not a full stripe)
+  const lightHead = (text) => el(`<h2 class="lite-head">${esc(text)}</h2>`);
 
   // A photo panel: the reference photo backs an overlay pinned to the bottom,
   // with optional corner icons. No photo → a flat title stripe + add-photo, and
@@ -1342,18 +1346,19 @@
       const saisir = el(`<button class="btn primary ov-saisir">➕ ${esc(t('log_reading'))}</button>`);
       saisir.addEventListener('click', () => { measure.open = true; measure.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
       overlay.appendChild(saisir);
+      const wi = wateringInfo(p);
       const corners = [
-        icoBtn('💧', t('watering_section'), () => openWaterSheet(p)),
-        icoBtn('🪣', t('vol_section'), () => openVolumeSheet(p)),
+        pillBtn('💧', wi ? wi.mins + ' min' : t('water_word'), t('watering_section'), () => openWaterSheet(p)),
+        pillBtn('🪣', p.volM3 != null ? '~' + p.volM3 + ' m³' : t('vol_section'), t('vol_section'), () => openVolumeSheet(p)),
       ];
       wrap.appendChild(photoPanel(p, 'pool', { title: '🧪 ' + t('chem_title'), overlay, corners, minH: '360px' }));
       const doses = chemDoses(p);
       if (doses) wrap.appendChild(doses);
       wrap.appendChild(measure);
-      wrap.appendChild(sectionTitle(t('treat_section'), t('treat_sub')));
+      wrap.appendChild(lightHead(t('treat_section')));
       wrap.appendChild(treatmentSection(p));
       const readings = Store.readingsFor(p.id);
-      wrap.appendChild(sectionTitle(t('history', { n: readings.length })));
+      wrap.appendChild(lightHead(t('history', { n: readings.length })));
       if (!readings.length) wrap.appendChild(emptyNote(t('history_empty')));
       else wrap.appendChild(readingsTable(p, readings));
 
