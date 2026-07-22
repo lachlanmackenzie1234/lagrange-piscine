@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.66'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.67'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -39,7 +39,11 @@
     return d.toLocaleString(I18n.locale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
   const fmtTime = (iso) => (iso ? new Date(iso).toLocaleTimeString(I18n.locale(), { hour: '2-digit', minute: '2-digit' }) : '');
-  const todayISO = () => new Date().toISOString().slice(0, 10);
+  // Local calendar date (yyyy-mm-dd). toISOString() is UTC — at French local
+  // midnight in summer (UTC+2) it lands on the PREVIOUS day, so never use it
+  // for day labels or day comparisons. Store.localDate does the same for logs.
+  const ymdLocal = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
+  const todayISO = () => ymdLocal(new Date());
   // Local date+time stamp for export filenames: YYYY-MM-DD_HHMMSS (sorts well,
   // unique per save — avoids the browser's "(1)/(2)" same-name de-dup).
   function fileStamp() {
@@ -772,7 +776,7 @@
       const daysFromNow = (dueTime - Date.now()) / 864e5;
       let cls, v;
       if (daysFromNow <= 0) { cls = 'bad'; v = t('chem_due_now'); }
-      else { cls = daysFromNow < 1.5 ? 'warn' : 'ok'; v = t('chem_due_in', { days: daysFromNow.toFixed(1), date: fmtDate(new Date(dueTime).toISOString().slice(0, 10)) }); }
+      else { cls = daysFromNow < 1.5 ? 'warn' : 'ok'; v = t('chem_due_in', { days: daysFromNow.toFixed(1), date: fmtDate(ymdLocal(dueTime)) }); }
       rows.appendChild(row(cls, t('chem_next'), v, t('chem_next_h', { floor })));
     }
     // doses from this reading — suppressed after a treatment (retest first)
@@ -1049,7 +1053,7 @@
   function passageGraph(byDay, todayT) {
     const WD = t('weekday_letters');
     const days = [];
-    for (let i = 20; i >= 0; i--) days.push(new Date(todayT - i * 864e5).toISOString().slice(0, 10));
+    for (let i = 20; i >= 0; i--) { const d = new Date(todayT); d.setDate(d.getDate() - i); days.push(ymdLocal(d)); }
     const max = Math.max(1, ...days.map((d) => byDay[d] || 0));
     const bars = days.map((d) => {
       const n = byDay[d] || 0; const dow = new Date(d + 'T12:00:00').getDay();
@@ -1113,7 +1117,8 @@
     const total = Object.values(byDay).reduce((a, b) => a + b, 0);
     wrap.appendChild(sectionTitle(t('rythme_title'), t('rythme_total', { n: total })));
     const w7 = Metrics.windowPassages(byDay, today, 7);
-    const wPrev = Metrics.windowPassages(byDay, new Date(todayT - 7 * 864e5).toISOString().slice(0, 10), 7);
+    const prevRef = new Date(todayT); prevRef.setDate(prevRef.getDate() - 7);
+    const wPrev = Metrics.windowPassages(byDay, ymdLocal(prevRef), 7);
     const mean = w7.worked ? w7.sum / w7.worked : 0;
     const trend = wPrev.sum ? Math.round(((w7.sum - wPrev.sum) / wPrev.sum) * 100) : null;
     const tiles = el('<div class="lp-tiles"></div>');
@@ -1198,7 +1203,7 @@
     // weeks not fully ended (Sat..Fri) — the in-progress week + the coming one
     const notEnded = Store.weeks().filter((wk) => {
       const end = new Date(wk + 'T00:00:00'); end.setDate(end.getDate() + 6);
-      return end.toISOString().slice(0, 10) >= today;
+      return ymdLocal(end) >= today;
     });
     const active = (notEnded.length ? notEnded : Store.weeks().slice(-1)).slice(0, 2);
     if (!active.length) return null;
@@ -1739,7 +1744,7 @@
     const today = todayISO();
     const activeWeeks = Store.weeks().filter((week) => {
       const end = new Date(week + 'T00:00:00'); end.setDate(end.getDate() + 6);
-      return end.toISOString().slice(0, 10) >= today;
+      return ymdLocal(end) >= today;
     });
     (activeWeeks.length ? activeWeeks : Store.weeks().slice(-1)).forEach((week) => {
       const occ = Store.occupancyForWeek(week);

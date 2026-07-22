@@ -109,8 +109,23 @@ const Sync = (() => {
     // both devices, so there's no need to ship all 39 of them
     (st.occupancy || []).filter((o) => o.source === 'user').forEach((o) =>
       jobs.push(fsM.setDoc(ref('occupancy', o.id), stripId(o), { merge: true })));
-    st.pools.filter((p) => p.lat != null).forEach((p) =>
-      jobs.push(fsM.setDoc(ref('pools', p.id), { lat: p.lat, lng: p.lng, note: p.note || '' }, { merge: true })));
+    // pools: catch up the operator-owned card fields too (volume, sand date,
+    // pump note, …) so an edit made while sync was off still reaches the other
+    // phone on reconnect. Booleans are pushed additively (only when true) so a
+    // device that never touched `salt` can't clobber the other's toggle.
+    st.pools.forEach((p) => {
+      const doc = {};
+      if (p.lat != null) { doc.lat = p.lat; doc.lng = p.lng; }
+      if (p.note) doc.note = p.note;
+      if (p.volM3 != null) { doc.volM3 = p.volM3; doc.volEst = !!p.volEst; if (p.dims) doc.dims = p.dims; }
+      if (p.sandDate) doc.sandDate = p.sandDate;
+      if (p.pumpNote) doc.pumpNote = p.pumpNote;
+      if (p.electroNote) doc.electroNote = p.electroNote;
+      if (p.salt) doc.salt = true;
+      if (p.covered) doc.covered = true;
+      if (p.watering && p.watering.startedAt) doc.watering = p.watering;
+      if (Object.keys(doc).length) jobs.push(fsM.setDoc(ref('pools', p.id), doc, { merge: true }));
+    });
     await Promise.all(jobs);
   }
 
