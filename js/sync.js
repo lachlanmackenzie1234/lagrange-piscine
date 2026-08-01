@@ -123,7 +123,12 @@ const Sync = (() => {
       if (p.electroNote) doc.electroNote = p.electroNote;
       if (p.salt) doc.salt = true;
       if (p.covered) doc.covered = true;
-      if (p.watering && p.watering.startedAt) doc.watering = p.watering;
+      // NB: `watering` is deliberately NOT caught up here. Re-pushing it on
+      // every app-open resurrected stopped fill-timers ("EC 2 remplissage
+      // keeps coming back"): phone A stops the fill, phone B's next enable
+      // re-pushes its stale copy and the timer returns. The live pushPool
+      // path syncs start/stop fine, and a fill is hours-scale state — it
+      // doesn't need offline catch-up.
       if (Object.keys(doc).length) jobs.push(fsM.setDoc(ref('pools', p.id), doc, { merge: true }));
     });
     await Promise.all(jobs);
