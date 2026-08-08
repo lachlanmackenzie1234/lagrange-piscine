@@ -194,8 +194,10 @@ const Store = (() => {
       poolId,
       at: opts.at || new Date().toISOString(),
       type: opts.type || 'service',
+      task: opts.task || '',       // cleaning task on a service visit: balai / robot / skimmer
       note: opts.note || '',
       by: opts.by != null ? opts.by : operator(),
+      weather: opts.weather || null,
     };
     load().visits.push(rec);
     save();

@@ -177,10 +177,9 @@ const I18n = (() => {
       pump_section: 'Pump & filter', log_backwash: '⟲ Log backwash now',
       last_backwash: 'Last backwash: {date}', sand_date: 'Filter sand changed',
       pump_notes: 'Pump notes / particularities', pump_notes_ph: 'e.g. skimmer left side off — see valve',
-      mark_serviced: '✓ Mark serviced today',
       serviced_today: 'Serviced today',
       last_serviced: 'Last serviced {date}',
-      service_undo: 'Undo today’s service',
+      clean_title: 'Cleaning', task_balai: 'Balai', task_robot: 'Robot', task_skimmer: 'Skimmer',
       done_today_title: 'Done today ({n})',
       // day route
       nav_today: '🧭 Navigate today’s stops ({n})',
@@ -418,10 +417,9 @@ const I18n = (() => {
       pump_section: 'Gestion de pompe', log_backwash: '⟲ Enregistrer un lavage',
       last_backwash: 'Dernier lavage : {date}', sand_date: 'Sable du filtre changé',
       pump_notes: 'Notes pompe / particularités', pump_notes_ph: 'ex. skimmer côté gauche coupé — voir vanne',
-      mark_serviced: '✓ Marquer entretenue aujourd’hui',
       serviced_today: 'Entretenue aujourd’hui',
       last_serviced: 'Dernier entretien {date}',
-      service_undo: 'Annuler l’entretien du jour',
+      clean_title: 'Nettoyage', task_balai: 'Balai', task_robot: 'Robot', task_skimmer: 'Skimmer',
       done_today_title: 'Faites aujourd’hui ({n})',
       // itinéraire du jour
       nav_today: '🧭 Itinéraire des arrêts du jour ({n})',

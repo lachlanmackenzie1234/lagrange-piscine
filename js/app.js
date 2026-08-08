@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.68'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.69'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -548,21 +548,44 @@
   }
 
   // The closing "done" of the scroll — mark (or unmark) today's service visit.
-  function finalServiceTick(p) {
-    const doneToday = servicedToday(p.id);
-    const box = el('<div class="final-tick"></div>');
-    const btn = el(`<button class="btn primary big-tick ${doneToday ? 'done' : ''}">${doneToday ? '✓ ' : ''}${esc(doneToday ? t('service_undo') : t('mark_serviced'))}</button>`);
-    btn.addEventListener('click', () => {
-      if (doneToday) {
-        Store.visitsFor(p.id)
-          .filter((v) => (v.type || 'service') === 'service' && Store.localDate(v.at) === todayISO())
-          .forEach((v) => Store.deleteVisit(v.id));
-      } else {
-        Store.addVisit(p.id, { type: 'service' });
-      }
-      render();
+  // Cleaning — replaces the single "marquer entretenue" tick with the three
+  // real tasks (balai / robot / skimmer). Each tap logs a `service` visit
+  // tagged with the task, so it still reads as "entretenue aujourd'hui"
+  // everywhere (Today page, passages, à-revoir) and syncs like any visit.
+  // Tap again to undo today's log. A recent per-task log sits underneath,
+  // like the chemistry history.
+  const CLEAN_TASKS = [
+    { k: 'balai', icon: '🧹' },
+    { k: 'robot', icon: '🤖' },
+    { k: 'skimmer', icon: '🧺' },
+  ];
+  function cleaningSection(p) {
+    const today = todayISO();
+    const box = el('<div class="clean-box"></div>');
+    box.appendChild(lightHead(t('clean_title')));
+    const svc = Store.visitsFor(p.id).filter((v) => (v.type || 'service') === 'service');
+    const row = el('<div class="clean-btns"></div>');
+    CLEAN_TASKS.forEach(({ k, icon }) => {
+      const doneV = svc.find((v) => v.task === k && Store.localDate(v.at) === today);
+      const b = el(`<button class="btn clean-btn${doneV ? ' done' : ''}">${icon} ${esc(t('task_' + k))}${doneV ? ' ✓' : ''}</button>`);
+      b.addEventListener('click', () => {
+        if (doneV) Store.deleteVisit(doneV.id);
+        else Store.addVisit(p.id, { type: 'service', task: k, weather: window.Weather && Weather.current() });
+        render();
+      });
+      row.appendChild(b);
     });
-    box.appendChild(btn);
+    box.appendChild(row);
+    const logged = svc.filter((v) => v.task).slice(0, 6);
+    if (logged.length) {
+      const ul = el('<div class="clean-log"></div>');
+      logged.forEach((v) => {
+        const tk = CLEAN_TASKS.find((x) => x.k === v.task);
+        ul.appendChild(el(`<div class="clean-row"><span class="cl-t">${tk ? tk.icon + ' ' : ''}${esc(t('task_' + v.task))}</span>
+          <span class="cl-meta">${fmtDateTime(v.at)}${v.weather ? ' ' + wxChip(v.weather) : ''}${byTag(v)}</span></div>`));
+      });
+      box.appendChild(ul);
+    }
     return box;
   }
   function openPhoto(id) {
@@ -1385,7 +1408,7 @@
       pn.addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
       wrap.appendChild(pn);
 
-      wrap.appendChild(finalServiceTick(p));
+      wrap.appendChild(cleaningSection(p));
     }
     return wrap;
   }
