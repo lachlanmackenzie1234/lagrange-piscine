@@ -454,6 +454,32 @@ details.measure .reading-form { margin: 0; }
 .lp-legend .sw.dot.high { background: var(--high); } .lp-legend .sw.dot.treated { background: var(--treated); }
 .lp-legend .sw.tick { width: 0; height: 12px; border-left: 1px dashed var(--na); }
 
+/* Aperçu: one-line weather, forecast folded underneath */
+.wx-strip { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin: 0 0 12px; overflow: hidden; }
+.wx-now { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: none; border: none;
+  font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.wx-big { font-size: 1.2rem; font-weight: 800; white-space: nowrap; }
+.wx-small { flex: 1; min-width: 0; font-size: .82rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wx-caret { color: var(--muted); font-size: .8rem; transition: transform .15s; }
+.wx-strip.open .wx-caret { transform: rotate(180deg); }
+.wx-days { border-top: 1px solid var(--line); padding: 2px 14px 8px; }
+.wx-day { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: .88rem; }
+.wx-day:first-child { border-top: none; }
+.wx-day .wx-sub { grid-column: 1 / -1; font-size: .76rem; color: var(--muted); }
+.wx-refresh { background: none; border: none; color: var(--brand); font: inherit; font-size: .8rem; font-weight: 600; padding: 8px 0 0; cursor: pointer; }
+
+/* Piscines: compact status map */
+.leaflet-map.mini { height: 200px; margin-bottom: 4px; }
+.map-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+.map-list-btn { background: none; border: none; color: var(--brand); font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer; padding: 2px 0; }
+
+/* planning week folds (inside Aperçu) */
+.zone.wk .wk-head { margin-bottom: 0; }
+.zone.wk .wk-toggle { flex: 1; cursor: pointer; }
+.zone.wk .wk-head h2 { display: flex; align-items: center; gap: 8px; }
+.zone.wk .wk-head .zh-caret { font-size: .8rem; width: 14px; text-align: center; transition: transform .15s; }
+.zone.wk .zone-body { margin-top: 8px; }
+
 /* collapsible residence zones — open/closed remembered across navigation */
 .zone { margin-bottom: 10px; }
 .zone-head { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; font: inherit;

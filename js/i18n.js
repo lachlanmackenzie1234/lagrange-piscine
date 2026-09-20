@@ -4,13 +4,14 @@ const I18n = (() => {
 
   const STR = {
     en: {
-      tab_today: 'Today', tab_pools: 'Pools', tab_schedule: 'Schedule', tab_map: 'Map', tab_weather: 'Weather', tab_more: 'More',
+      tab_today: 'Overview', tab_pools: 'Pools', tab_schedule: 'Schedule', tab_map: 'Map', tab_weather: 'Weather', tab_more: 'Settings',
+      wx_loading_short: 'weather…', map_list: 'Residences',
       weather_title: 'Weather', wx_forecast: 'Forecast', wx_refresh: 'Refresh',
       wx_loading: 'Loading weather… (needs a connection the first time)',
       wx_updated: 'Updated {time}',
       wx_clear: 'Clear', wx_cloud: 'Cloudy', wx_fog: 'Fog', wx_rain: 'Rain', wx_snow: 'Snow', wx_storm: 'Storm', wx_unknown: '—',
 
-      today_title: 'This week', today_sub: 'Turnover Saturday · {date}',
+      today_title: 'Overview', today_sub: 'Turnover Saturday · {date}',
       arrivals_title: 'Arrivals to prep ({n})',
       arrivals_sub: 'Pools that must be checked & clean for new guests this Saturday.',
       arrivals_empty: 'No new arrivals recorded for this week.',
@@ -244,13 +245,14 @@ const I18n = (() => {
       add_photo: '＋', photo_del_confirm: 'Delete this photo?',
     },
     fr: {
-      tab_today: 'Aujourd’hui', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_weather: 'Météo', tab_more: 'Plus',
+      tab_today: 'Aperçu', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_weather: 'Météo', tab_more: 'Réglages',
+      wx_loading_short: 'météo…', map_list: 'Résidences',
       weather_title: 'Météo', wx_forecast: 'Prévisions', wx_refresh: 'Actualiser',
       wx_loading: 'Chargement météo… (connexion requise la première fois)',
       wx_updated: 'Mis à jour {time}',
       wx_clear: 'Dégagé', wx_cloud: 'Nuageux', wx_fog: 'Brouillard', wx_rain: 'Pluie', wx_snow: 'Neige', wx_storm: 'Orage', wx_unknown: '—',
 
-      today_title: 'Cette semaine', today_sub: 'Rotation samedi · {date}',
+      today_title: 'Aperçu', today_sub: 'Rotation samedi · {date}',
       arrivals_title: 'Arrivées à préparer ({n})',
       arrivals_sub: 'Piscines à contrôler et nettoyer pour les nouveaux arrivants ce samedi.',
       arrivals_empty: 'Aucune arrivée enregistrée cette semaine.',

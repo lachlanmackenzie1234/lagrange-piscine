@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.70'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.71'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -169,7 +169,7 @@
 
   // ---------- router ----------
   const routes = {
-    '': viewToday, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
+    '': viewPools, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
     'schedule': viewSchedule, 'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings,
   };
 
@@ -193,12 +193,13 @@
 
   function render() {
     const { name, args } = parseHash();
-    const view = routes[name] || viewToday;
+    const view = routes[name] || viewPools;
     app.innerHTML = '';
     app.appendChild(view(...args));
+    // three tabs; the old standalone routes stay reachable and light their parent
+    const TAB_OF = { today: 'today', schedule: 'today', log: 'today', pools: 'pools', pool: 'pools', map: 'pools', weather: 'pools', settings: 'settings' };
     document.querySelectorAll('.tabbar a').forEach((a) => {
-      a.classList.toggle('active', a.dataset.route === (name || 'today') ||
-        (name === '' && a.dataset.route === 'today'));
+      a.classList.toggle('active', a.dataset.route === (TAB_OF[name] || 'pools'));
     });
     applyChrome();
     window.scrollTo(0, scrollMem[hashKey()] || 0);
@@ -365,12 +366,37 @@
     });
   }
 
-  async function initLeaflet(container) {
+  // Compact status map for the top of Piscines: pins in the four state
+  // colours, a glance and nothing more. Residence addresses live in a sheet.
+  function statusMap() {
+    const box = el('<div class="status-map"></div>');
+    if (!mapPoints().length) return box;
+    const mapDiv = el('<div class="leaflet-map mini"></div>');
+    box.appendChild(mapDiv);
+    initLeaflet(mapDiv, { mini: true });
+    const row = el('<div class="map-row"></div>');
+    const list = el(`<button class="map-list-btn" type="button">🗺 ${esc(t('map_list'))}</button>`);
+    list.addEventListener('click', () => openSheet(t('map_list'), residenceCards()));
+    row.appendChild(list);
+    box.appendChild(row);
+    return box;
+  }
+  function residenceCards() {
+    return Store.residences().map((res) => {
+      const n = Store.poolsByRes(res.code).length;
+      const href = res.lat != null && res.lng != null ? coordsQueryUrl(res.lat, res.lng) : mapsUrl(res.mapsQuery);
+      const tag = res.poi ? `🏬 ${esc(t('depot'))}` : res.nonPool ? esc(t('mgmt_only')) : esc(t('n_pools', { n }));
+      return el(`<a class="sheet-item" target="_blank" rel="noopener" href="${href}"><b>${esc(res.code)} · ${esc(res.name)}</b> <span class="muted">${tag}</span><br><span class="muted">${esc(res.mapsQuery)}</span></a>`);
+    });
+  }
+
+  async function initLeaflet(container, opts) {
+    const mini = !!(opts && opts.mini);
     try {
       const L = await loadLeaflet();
       if (!container.isConnected) return;
       const pts = mapPoints();
-      const map = L.map(container).setView([45.0, -1.175], 12);
+      const map = L.map(container, { zoomControl: !mini }).setView([45.0, -1.175], 12);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
       const bounds = [];
       pts.forEach((pt) => {
@@ -379,7 +405,7 @@
         m.bindPopup(`${link}<br><a href="${pt.maps}" target="_blank" rel="noopener">Google Maps ↗</a>`);
         bounds.push([pt.lat, pt.lng]);
       });
-      if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+      if (bounds.length) map.fitBounds(bounds, { padding: mini ? [14, 14] : [30, 30], maxZoom: mini ? 14 : 15 });
       setTimeout(() => map.invalidateSize(), 100);
     } catch (e) {
       container.style.display = 'none'; // offline / blocked → list below still works
@@ -868,10 +894,45 @@
   }
 
   // ---------- view: TODAY ----------
+  // One-line weather for the top of Aperçu: today at a glance, the forecast
+  // folded underneath. Météo is mostly a tagging feature now (every log
+  // carries a snapshot), so it earns a strip, not a page.
+  let wxOpen = false;
+  function weatherStrip() {
+    const strip = el('<div class="wx-strip"></div>');
+    const d = window.Weather && Weather.data;
+    if (!d || !d.current) {
+      strip.appendChild(el(`<div class="wx-now"><span class="wx-small">🌤️ ${esc(t('wx_loading_short'))}</span></div>`));
+      if (window.Weather) Weather.load(true);
+      return strip;
+    }
+    const c = d.current, w = wmo(c.weather_code);
+    const now = el(`<button class="wx-now" type="button">
+      <span class="wx-big">${w.e} ${Math.round(c.temperature_2m)}°</span>
+      <span class="wx-small">${esc(t(w.k))} · UV ${Math.round(c.uv_index)} · 💨 ${Math.round(c.wind_speed_10m)} km/h</span>
+      <span class="wx-caret">▾</span></button>`);
+    const days = el('<div class="wx-days"></div>');
+    const daily = d.daily || {};
+    (daily.time || []).forEach((day, i) => {
+      const dw = wmo(daily.weather_code[i]);
+      days.appendChild(el(`<div class="wx-day"><span>${esc(fmtDate(day))}</span><span>${dw.e} ${Math.round(daily.temperature_2m_max[i])}° / ${Math.round(daily.temperature_2m_min[i])}°</span>
+        <span class="wx-sub">🌧️ ${daily.precipitation_sum[i]} mm · UV ${Math.round(daily.uv_index_max[i])} · ${esc(t(dw.k))}</span></div>`));
+    });
+    const refresh = el(`<button class="wx-refresh" type="button">↻ ${esc(t('wx_refresh'))} · ${esc(t('wx_updated', { time: fmtTime(d.at) }))}</button>`);
+    refresh.addEventListener('click', () => { Weather.load(true).then(() => render()); });
+    days.appendChild(refresh);
+    days.hidden = !wxOpen; strip.classList.toggle('open', wxOpen);
+    now.addEventListener('click', () => { wxOpen = !wxOpen; days.hidden = !wxOpen; strip.classList.toggle('open', wxOpen); });
+    strip.appendChild(now); strip.appendChild(days);
+    Weather.load(false); // background refresh if stale
+    return strip;
+  }
+
   function viewToday() {
     const wrap = document.createElement('div');
     const week = currentWeek();
     wrap.appendChild(header(t('today_title'), t('today_sub', { date: fmtDate(week) })));
+    wrap.appendChild(weatherStrip());
 
     // pools currently filling — the end-of-day "did I leave a hose running?" check
     const filling = Store.wateringPools();
@@ -889,6 +950,21 @@
       wrap.appendChild(c);
     }
 
+
+    // the week's roster — sheets, paste-import, the active weeks as folds
+    wrap.appendChild(sectionTitle(t('schedule_title'), t('schedule_sub')));
+    wrap.appendChild(planningBlock());
+
+    // "À revoir" — maintained pools not seen today, longest-not-seen first
+    // (blind spots on top). A memory-jog, not a route: just what's slipped.
+    const revisit = toRevisit();
+    wrap.appendChild(sectionTitle(t('revisit_title', { n: revisit.length }), t('revisit_sub')));
+    if (revisit.length) {
+      const list = el('<div class="cards"></div>');
+      revisit.forEach(({ p, last }) => list.appendChild(revisitCard(p, last)));
+      wrap.appendChild(list);
+    } else wrap.appendChild(emptyNote(t('revisit_empty')));
+
     // preventive layer: open to-dos + quick capture; full history under #/log
     const todos = Store.openTodos();
     const noteHead = el(`<div class="section-title"><h2>${esc(t('todos_title', { n: todos.length }))}</h2></div>`);
@@ -900,35 +976,6 @@
       wrap.appendChild(c);
     }
     wrap.appendChild(noteForm(undefined));
-
-    // maintenance views consider only pools we actually service
-    const occ = Store.occupancyForWeek(week).filter((o) => hasPool(Store.pool(o.poolId)));
-
-    const arriving = occ.filter((o) => o.status === 'arriving');
-    wrap.appendChild(sectionTitle(t('arrivals_title', { n: arriving.length }), t('arrivals_sub')));
-    if (arriving.length) {
-      const list = el('<div class="cards"></div>');
-      arriving.forEach((o) => list.appendChild(occCard(o)));
-      wrap.appendChild(list);
-    } else wrap.appendChild(emptyNote(t('arrivals_empty')));
-
-    const cycling = occ.filter((o) => ['occupied', 'owner'].includes(o.status));
-    wrap.appendChild(sectionTitle(t('midweek_title', { n: cycling.length }), t('midweek_sub')));
-    if (cycling.length) {
-      const list = el('<div class="cards"></div>');
-      cycling.forEach((o) => list.appendChild(occCard(o)));
-      wrap.appendChild(list);
-    } else wrap.appendChild(emptyNote(t('midweek_empty')));
-
-    // "À revoir" — maintained pools not seen today, longest-not-seen first
-    // (blind spots on top). A memory-jog, not a route: just what's slipped.
-    const revisit = toRevisit();
-    wrap.appendChild(sectionTitle(t('revisit_title', { n: revisit.length }), t('revisit_sub')));
-    if (revisit.length) {
-      const list = el('<div class="cards"></div>');
-      revisit.forEach(({ p, last }) => list.appendChild(revisitCard(p, last)));
-      wrap.appendChild(list);
-    } else wrap.appendChild(emptyNote(t('revisit_empty')));
     return wrap;
   }
 
@@ -1095,6 +1142,7 @@
     const poolRes = Store.residences().filter((r) => !r.nonPool);
     const nPools = Store.pools().filter((p) => hasPool(p)).length;
     wrap.appendChild(header(t('pools_title'), t('pools_sub', { n: nPools, m: poolRes.length })));
+    wrap.appendChild(statusMap());
 
     const V = Metrics.liveVisits();
     const today = todayISO();
@@ -1752,10 +1800,19 @@
     return wrap;
   }
 
+  // week folds — current week open, others closed, choice remembered per week
+  const WKEY = 'lagrange-piscine.weeks-open';
+  const weekPref = () => { try { return JSON.parse(localStorage.getItem(WKEY) || '{}') || {}; } catch (_) { return {}; } };
+  const setWeekPref = (w, open) => { const m = weekPref(); m[w] = open; try { localStorage.setItem(WKEY, JSON.stringify(m)); } catch (_) {} };
+
   function viewSchedule() {
     const wrap = document.createElement('div');
     wrap.appendChild(header(t('schedule_title'), t('schedule_sub')));
-    wrap.appendChild(sectionTitle(t('plan_photos')));
+    wrap.appendChild(planningBlock());
+    return wrap;
+  }
+  function planningBlock() {
+    const wrap = el('<div class="planning"></div>');
     wrap.appendChild(planningPhotos());
     const impBtn = el(`<button class="btn sm plan-import-open">⇪ ${esc(t('plan_import'))}</button>`);
     impBtn.addEventListener('click', openPlanImport);
@@ -1771,9 +1828,13 @@
     (activeWeeks.length ? activeWeeks : Store.weeks().slice(-1)).forEach((week) => {
       const occ = Store.occupancyForWeek(week);
       const arr = occ.filter((o) => o.status === 'arriving').length;
+      const pref = weekPref();
+      const open = week in pref ? !!pref[week] : week === cw;
+      const fold = el(`<div class="zone wk${open ? '' : ' closed'}"></div>`);
       const head = el(`<div class="section-title wk-head">
-        <div><h2>${fmtDate(week)} ${week === cw ? `<span class="chip st-arriving">${esc(t('this_week'))}</span>` : ''}</h2>
+        <div class="wk-toggle"><h2><span class="zh-caret">▾</span>${fmtDate(week)} ${week === cw ? `<span class="chip st-arriving">${esc(t('this_week'))}</span>` : ''}</h2>
         <p>${esc(t('sched_counts', { n: occ.length, m: arr }))}</p></div></div>`);
+      head.querySelector('.wk-toggle').addEventListener('click', () => { const o = fold.classList.toggle('closed'); setWeekPref(week, !o); });
       const clearBtn = el(`<button class="wk-clear">🗑 ${esc(t('wk_clear'))}</button>`);
       clearBtn.addEventListener('click', () => {
         if (confirm(t('wk_clear_confirm', { date: fmtDate(week), n: occ.length }))) {
@@ -1782,8 +1843,8 @@
         }
       });
       head.appendChild(clearBtn);
-      wrap.appendChild(head);
-      const cards = el('<div class="cards"></div>');
+      fold.appendChild(head);
+      const cards = el('<div class="cards zone-body"></div>');
       Store.residences().forEach((res) => {
         const items = occ.filter((o) => Store.pool(o.poolId)?.res === res.code);
         if (!items.length && !Store.poolsByRes(res.code).length) return;
@@ -1800,7 +1861,8 @@
         card.appendChild(add);
         cards.appendChild(card);
       });
-      wrap.appendChild(cards);
+      fold.appendChild(cards);
+      wrap.appendChild(fold);
     });
     return wrap;
   }
