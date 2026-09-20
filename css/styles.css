@@ -610,7 +610,9 @@ details.measure .reading-form { margin: 0; }
 .photo-hero.empty .hero-pill, .band-flat + .flow-icons .hero-pill { background: var(--navy); border-color: transparent; }
 /* light section heading — small navy uppercase label instead of a full stripe */
 .lite-head { font-size: .72rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
-  color: var(--title); margin: var(--s3) 2px var(--s1); }
+  color: var(--title); margin: var(--s3) 2px var(--s1); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.lh-toggle { background: none; border: none; padding: 0; font: inherit; font-size: .7rem; letter-spacing: .02em; text-transform: none;
+  font-weight: 600; color: var(--brand); cursor: pointer; white-space: nowrap; }
 .measure.hide-summary > summary { display: none; }
 .pump-notes { margin-top: 8px; width: 100%; }
 /* bare .field on a control (pump-notes textarea, sand-date input): give it the

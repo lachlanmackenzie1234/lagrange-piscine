@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.73'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.74'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -580,8 +580,9 @@
   function cleaningSection(p) {
     const today = todayISO();
     const box = el('<div class="clean-box"></div>');
-    box.appendChild(lightHead(t('clean_title')));
     const svc = Store.visitsFor(p.id).filter((v) => (v.type || 'service') === 'service');
+    const tasks = svc.filter((v) => v.task);
+    box.appendChild(lightHead(t('clean_title'), tasks.length, LOG_N.clean));
     const row = el('<div class="clean-btns"></div>');
     CLEAN_TASKS.forEach(({ k, icon }) => {
       const doneV = svc.find((v) => v.task === k && Store.localDate(v.at) === today);
@@ -594,7 +595,7 @@
       row.appendChild(b);
     });
     box.appendChild(row);
-    const logged = svc.filter((v) => v.task).slice(0, 6);
+    const logged = logSlice(tasks, LOG_N.clean);
     if (logged.length) {
       const ul = el('<div class="clean-log"></div>');
       logged.forEach((v) => {
@@ -1303,7 +1304,23 @@
   // labelled corner pill (icon + short value) — used for water & volume overlays
   const pillBtn = (emoji, label, title, onClick) => { const b = el(`<button class="hero-pill" title="${esc(title)}">${emoji} <span>${esc(label)}</span></button>`); b.addEventListener('click', onClick); return b; };
   // light section heading (small navy uppercase label, not a full stripe)
-  const lightHead = (text) => el(`<h2 class="lite-head">${esc(text)}</h2>`);
+  // Pool-page logs (produits, historique, nettoyage) show the recent tail by
+  // default; one shared switch extends all three to the whole season.
+  const LOG_KEY = 'lagrange-piscine.fullLog';
+  const fullLog = () => { try { return localStorage.getItem(LOG_KEY) === '1'; } catch (_) { return false; } };
+  const LOG_N = { treat: 8, hist: 8, clean: 6 };
+  const logSlice = (list, n) => (fullLog() ? list : list.slice(0, n));
+  // heading with an optional "toute la saison / récents" switch (shown only
+  // when there is more than the recent tail)
+  function lightHead(text, total, n) {
+    const h = el(`<h2 class="lite-head">${esc(text)}</h2>`);
+    if (total != null && total > n) {
+      const b = el(`<button class="lh-toggle" type="button">${esc(fullLog() ? t('log_recent') : t('log_full', { n: total }))}</button>`);
+      b.addEventListener('click', () => { try { localStorage.setItem(LOG_KEY, fullLog() ? '0' : '1'); } catch (_) {} render(); });
+      h.appendChild(b);
+    }
+    return h;
+  }
 
   // A photo panel: the reference photo backs an overlay pinned to the bottom,
   // with optional corner icons. No photo → a flat title stripe + add-photo, and
@@ -1416,12 +1433,12 @@
       const doses = chemDoses(p);
       if (doses) wrap.appendChild(doses);
       wrap.appendChild(measure);
-      wrap.appendChild(lightHead(t('treat_section')));
+      wrap.appendChild(lightHead(t('treat_section'), Store.treatmentsFor(p.id).length, LOG_N.treat));
       wrap.appendChild(treatmentSection(p));
       const readings = Store.readingsFor(p.id);
-      wrap.appendChild(lightHead(t('history', { n: readings.length })));
+      wrap.appendChild(lightHead(t('history', { n: readings.length }), readings.length, LOG_N.hist));
       if (!readings.length) wrap.appendChild(emptyNote(t('history_empty')));
-      else wrap.appendChild(readingsTable(p, readings));
+      else wrap.appendChild(readingsTable(p, logSlice(readings, LOG_N.hist)));
 
       // ===== LOCAL TECHNIQUE — pump photo carries lavage + sable on its overlay;
       // pump notes (no title) + "entretenue" follow. =====
@@ -1636,7 +1653,7 @@
         btns.appendChild(b);
       });
     box.appendChild(btns);
-    const list = Store.treatmentsFor(p.id).slice(0, 8);
+    const list = logSlice(Store.treatmentsFor(p.id), LOG_N.treat);
     if (list.length) {
       const ul = el('<div class="treat-list"></div>');
       list.forEach((tr) => {
