@@ -155,6 +155,7 @@ const Store = (() => {
     if (!state.schema) state.schema = SCHEMA;
     ['readings', 'visits', 'notes', 'occupancy'].forEach((k) => { if (!Array.isArray(state[k])) state[k] = []; });
     if (!state.occCleared || typeof state.occCleared !== 'object') state.occCleared = {};
+    if (!state.season || typeof state.season !== 'object') state.season = { start: null, at: '' };
   }
 
   function save() {
@@ -169,8 +170,31 @@ const Store = (() => {
   const poolsByRes = (code) => pools().filter((p) => p.res === code);
   const wateringPools = () => pools().filter((p) => p.watering && p.watering.startedAt);
 
+  // ---- season boundary ----
+  // "Nouvelle saison" hides chemistry / doses / passages logged before `start`
+  // from the live views without deleting anything (the archive stays in the
+  // blob + export, and deletes are what sync resurrects). Notes and the pool
+  // cards carry over untouched. The marker syncs (last writer wins by `at`);
+  // "voir toutes les saisons" is a per-device lens.
+  const ALL_KEY = 'lagrange-piscine.allSeasons';
+  const seasonStart = () => load().season.start || null;
+  const allSeasons = () => { try { return localStorage.getItem(ALL_KEY) === '1'; } catch (_) { return false; } };
+  const setAllSeasons = (on) => { try { localStorage.setItem(ALL_KEY, on ? '1' : '0'); } catch (_) {} };
+  const inSeason = (rec) => { const st = seasonStart(); return !st || allSeasons() || !rec.at || rec.at >= st; };
+  function setSeasonStart(startISO) {
+    const rec = { start: startISO || null, at: new Date().toISOString() };
+    load().season = rec; save();
+    mirror((s) => s.pushSeason(rec));
+    return rec;
+  }
+  function applyRemoteSeason(rec) {
+    if (!rec || typeof rec.at !== 'string' || (load().season.at || '') >= rec.at) return false;
+    state.season = { start: rec.start || null, at: rec.at }; save();
+    return true;
+  }
+
   const readingsFor = (poolId) =>
-    load().readings.filter((r) => r.poolId === poolId && !r.deleted).sort((a, b) => b.at.localeCompare(a.at));
+    load().readings.filter((r) => r.poolId === poolId && !r.deleted && inSeason(r)).sort((a, b) => b.at.localeCompare(a.at));
   const latestReading = (poolId) => readingsFor(poolId)[0] || null;
 
   const occupancyFor = (poolId) =>
@@ -233,7 +257,7 @@ const Store = (() => {
     return rec;
   }
   function visitsFor(poolId) {
-    return load().visits.filter((v) => v.poolId === poolId && !v.deleted).sort((a, b) => b.at.localeCompare(a.at));
+    return load().visits.filter((v) => v.poolId === poolId && !v.deleted && inSeason(v)).sort((a, b) => b.at.localeCompare(a.at));
   }
   const lastVisit = (poolId) => visitsFor(poolId)[0] || null;
   const lastService = (poolId) => visitsFor(poolId).find((v) => (v.type || 'service') === 'service') || null;
@@ -278,7 +302,7 @@ const Store = (() => {
 
   // Was this pool serviced (not just backwashed) on a given local date?
   function servicedOn(poolId, dateISO) {
-    return load().visits.some((v) => v.poolId === poolId && !v.deleted && (v.type || 'service') === 'service' && localDate(v.at) === dateISO);
+    return load().visits.some((v) => v.poolId === poolId && !v.deleted && inSeason(v) && (v.type || 'service') === 'service' && localDate(v.at) === dateISO);
   }
   function localDate(iso) {
     const d = new Date(iso);
@@ -365,7 +389,7 @@ const Store = (() => {
     // cached first snapshot, or the server's value when this phone's stop was
     // made before sync was live — must not resurrect a timer already stopped
     // (or restarted) here.
-    if ('watering' in f && f.wateringAt && p.wateringAt && f.wateringAt < p.wateringAt) { delete f.watering; delete f.wateringAt; }
+    Object.keys(LWW).forEach((k) => { const s = LWW[k]; if (k in f && f[s] && p[s] && f[s] < p[s]) { delete f[k]; delete f[s]; } });
     Object.assign(p, f);
     save();
   }
@@ -455,11 +479,25 @@ const Store = (() => {
     save();
   }
 
+  // Pool fields that flip across phones and must never be resurrected by a
+  // stale copy: each carries a last-writer-wins timestamp.
+  const LWW = { watering: 'wateringAt', winter: 'winterAt' };
   function updatePool(id, patch) {
     const p = pool(id);
     if (!p) return p;
-    if ('watering' in patch) patch = { ...patch, wateringAt: new Date().toISOString() }; // LWW stamp
+    Object.keys(LWW).forEach((k) => { if (k in patch) patch = { ...patch, [LWW[k]]: new Date().toISOString() }; }); // LWW stamps
     Object.assign(p, patch); save(); mirror((s) => s.pushPool(id, patch));
+    return p;
+  }
+  // Hivernage: the pool sleeps (out of À revoir, rhythm, tiles; ice-blue pin)
+  // and the flip itself is logged as a service visit so the date, operator and
+  // weather sit in the history.
+  const isWintered = (p) => !!(p && p.winter && p.winter.since);
+  function setWinter(poolId, on) {
+    const p = pool(poolId);
+    if (!p || isWintered(p) === !!on) return p;
+    updatePool(poolId, { winter: on ? { since: localDate(new Date().toISOString()) } : null });
+    addVisit(poolId, { type: 'service', task: on ? 'hivernage' : 'remise' });
     return p;
   }
   function updateResidence(code, patch) {
@@ -537,6 +575,8 @@ const Store = (() => {
     operator, setOperator, knownOperators,
     updatePool, updateResidence,
     updateOccupancy, addOccupancy, deleteOccupancy, clearWeek,
+    isWintered, setWinter, LWW,
+    seasonStart, allSeasons, setAllSeasons, inSeason, setSeasonStart, applyRemoteSeason,
     applyRemoteReading, applyRemoteReadingRemoved,
     applyRemoteVisit, applyRemoteVisitRemoved, applyRemotePool,
     applyRemoteNote, applyRemoteNoteRemoved,

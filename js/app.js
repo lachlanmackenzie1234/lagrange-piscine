@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.72'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.73'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -170,7 +170,7 @@
   // ---------- router ----------
   const routes = {
     '': viewPools, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
-    'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings,
+    'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings, 'bilan': viewBilan,
   };
 
   function parseHash() {
@@ -197,7 +197,7 @@
     app.innerHTML = '';
     app.appendChild(view(...args));
     // three tabs; the old standalone routes stay reachable and light their parent
-    const TAB_OF = { today: 'today', log: 'today', pools: 'pools', pool: 'pools', map: 'pools', weather: 'pools', settings: 'settings' };
+    const TAB_OF = { today: 'today', log: 'today', pools: 'pools', pool: 'pools', map: 'pools', weather: 'pools', settings: 'settings', bilan: 'settings' };
     document.querySelectorAll('.tabbar a').forEach((a) => {
       a.classList.toggle('active', a.dataset.route === (TAB_OF[name] || 'pools'));
     });
@@ -220,6 +220,8 @@
     const r = Store.residence(p.res);
     return !(r && r.nonPool);
   }
+  // …and currently in service (not wintered): what the daily lists look at.
+  const isOpen = (p) => hasPool(p) && !Store.isWintered(p);
   function mapsUrl(query) {
     return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
   }
@@ -292,6 +294,7 @@
   const statusDot = (p) => `<span class="status-dot" style="background:${statusColor(poolStatus(p).level)}"></span>`;
   // Points to plot: a pin per pool that has its own GPS; else one pin per
   // residence that has coords but no pinned pools.
+  const WINTER_PIN = '#7cc4ee'; // ice-blue: asleep for the winter
   function mapPoints() {
     const pts = [];
     const resWithPoolPins = new Set();
@@ -300,7 +303,7 @@
       // EPP "Lot. Éden Club" lots) stay off the map to keep it clean.
       if (hasPool(p) && p.lat != null && p.lng != null) {
         resWithPoolPins.add(p.res);
-        pts.push({ lat: p.lat, lng: p.lng, label: `${p.res} ${p.unit}`, color: statusColor(poolStatus(p).level), maps: poolMapUrl(p), href: `#/pool/${p.id}` });
+        pts.push({ lat: p.lat, lng: p.lng, label: `${p.res} ${p.unit}`, color: Store.isWintered(p) ? WINTER_PIN : statusColor(poolStatus(p).level), maps: poolMapUrl(p), href: `#/pool/${p.id}` });
       }
     });
     Store.residences().forEach((res) => {
@@ -981,7 +984,7 @@
   // The list shrinks through the day as each pool gets a passage logged.
   function toRevisit() {
     const today = todayISO();
-    return Store.pools().filter(hasPool)
+    return Store.pools().filter(isOpen)
       .map((p) => ({ p, last: lastPassage(p.id) }))
       .filter(({ last }) => !last || Store.localDate(last) !== today)
       .sort((a, b) => (a.last === null ? -1 : b.last === null ? 1 : a.last.localeCompare(b.last)));
@@ -1018,8 +1021,8 @@
   // HTML beta before porting; counting event rows would double-count.
   const Metrics = (() => {
     const day = (iso) => Store.localDate(iso);
-    const liveVisits = () => Store.load().visits.filter((v) => !v.deleted && v.poolId);
-    const liveReadings = () => Store.load().readings.filter((r) => !r.deleted);
+    const liveVisits = () => Store.load().visits.filter((v) => !v.deleted && v.poolId && Store.inSeason(v));
+    const liveReadings = () => Store.load().readings.filter((r) => !r.deleted && Store.inSeason(r));
     function passagesByDay(visits) {
       const seen = new Set(), m = {};
       for (const v of visits) { const d = day(v.at); const k = v.poolId + '|' + d; if (!seen.has(k)) { seen.add(k); m[d] = (m[d] || 0) + 1; } }
@@ -1119,7 +1122,7 @@
   function viewPools() {
     const wrap = document.createElement('div');
     const poolRes = Store.residences().filter((r) => !r.nonPool);
-    const nPools = Store.pools().filter((p) => hasPool(p)).length;
+    const nPools = Store.pools().filter(isOpen).length;
     wrap.appendChild(header(t('pools_title'), t('pools_sub', { n: nPools, m: poolRes.length })));
     wrap.appendChild(statusMap());
 
@@ -1143,7 +1146,7 @@
       <span><i class="sw tick"></i>${esc(t('leg_product'))}</span></div>`));
 
     poolRes.forEach((res) => {
-      const list = Store.poolsByRes(res.code).filter(hasPool).sort((a, b) => {
+      const list = Store.poolsByRes(res.code).filter(isOpen).sort((a, b) => {
         const la = Store.lastVisit(a.id), lb = Store.lastVisit(b.id);
         return (la ? la.at : '').localeCompare(lb ? lb.at : '');
       });
@@ -1161,6 +1164,19 @@
       zone.querySelector('.zone-head').addEventListener('click', () => { toggleZone(res.code); zone.classList.toggle('closed'); });
       wrap.appendChild(zone);
     });
+
+    // pools asleep for the winter — one fold, closed by default, out of the way
+    const wintered = Store.pools().filter((p) => hasPool(p) && Store.isWintered(p));
+    if (wintered.length) {
+      const isClosed = !closed.has('_winter');
+      const zone = el(`<div class="zone winter${isClosed ? ' closed' : ''}">
+        <button class="zone-head" type="button"><span class="zh-name">❄️</span><span class="zh-sub">${esc(t('winter_fold', { n: wintered.length }))}</span><span class="zh-caret">▾</span></button>
+        <div class="zone-body"></div></div>`);
+      const body = zone.querySelector('.zone-body');
+      wintered.forEach((p) => body.appendChild(el(`<a class="card" href="#/pool/${p.id}"><div class="card-row"><strong>${esc(poolTitle(p))}</strong><span class="chip st-closed">${esc(fmtDate(p.winter.since))}</span></div></a>`)));
+      zone.querySelector('.zone-head').addEventListener('click', () => { toggleZone('_winter'); zone.classList.toggle('closed'); });
+      wrap.appendChild(zone);
+    }
 
     // rythme de passage
     const byDay = Metrics.passagesByDay(V);
@@ -1347,9 +1363,22 @@
       const carteBtn = el(`<button class="hero-ico" title="${esc(t('map_title'))}">🗺️</button>`);
       carteBtn.addEventListener('click', () => openCarteSheet(p));
       iconRow.appendChild(carteBtn);
+      // hivernage — a twice-a-year flip, one tap + confirm, logged as a visit
+      const wintered = Store.isWintered(p);
+      const wBtn = el(`<button class="hero-ico${wintered ? ' on' : ''}" title="${esc(t('winter_btn'))}">❄️</button>`);
+      wBtn.addEventListener('click', () => {
+        const msg = wintered ? t('winter_reopen_confirm', { pool: poolTitle(p) }) : t('winter_confirm', { pool: poolTitle(p) });
+        if (confirm(msg)) { Store.setWinter(p.id, !wintered); render(); }
+      });
+      iconRow.appendChild(wBtn);
     }
     headBody.appendChild(iconRow);
     wrap.appendChild(photoHero(p, 'gate', headBody, '240px'));
+    if (pool && Store.isWintered(p)) {
+      const b = el(`<div class="winter-banner"><span>${esc(t('winter_since', { date: fmtDate(p.winter.since) }))}</span><button class="btn sm">${esc(t('winter_reopen'))}</button></div>`);
+      b.querySelector('button').addEventListener('click', () => { if (confirm(t('winter_reopen_confirm', { pool: poolTitle(p) }))) { Store.setWinter(p.id, false); render(); } });
+      wrap.appendChild(b);
+    }
 
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
     if (pool) {
@@ -1848,6 +1877,79 @@
 
   // Who is logging on this phone. Device-local (not synced): each phone is one
   // person. New logs get stamped; the name rides to the other phone via records.
+  // Season: the boundary (archive, never delete), the bulk winter flip, the
+  // report. See Store's season block for why nothing gets purged.
+  function seasonSection() {
+    const box = el('<div class="sync-box"></div>');
+    box.appendChild(el(`<div class="section-title"><h2>${esc(t('season_title'))}</h2></div>`));
+    const st = Store.seasonStart();
+    box.appendChild(el(`<p class="season-line">${esc(st ? t('season_since', { date: fmtDate(st) }) : t('season_all_data'))}</p>`));
+    if (st) {
+      const lens = el(`<label class="season-lens"><input type="checkbox"${Store.allSeasons() ? ' checked' : ''}> ${esc(t('season_all_lens'))}</label>`);
+      lens.querySelector('input').addEventListener('change', (e) => { Store.setAllSeasons(e.target.checked); render(); });
+      box.appendChild(lens);
+    }
+    box.appendChild(el(`<a class="btn" href="#/bilan">${esc(t('season_bilan'))}</a>`));
+    const open = Store.pools().filter(isOpen);
+    const close = el(`<button class="btn">${esc(t('season_close'))}</button>`);
+    close.addEventListener('click', () => {
+      if (!open.length) return;
+      if (confirm(t('season_close_confirm', { n: open.length }))) { open.forEach((p) => Store.setWinter(p.id, true)); alert(t('season_closed_done', { n: open.length })); render(); }
+    });
+    box.appendChild(close);
+    const nw = el(`<button class="btn">${esc(t('season_new'))}</button>`);
+    nw.addEventListener('click', () => { if (confirm(t('season_new_confirm'))) { Store.setSeasonStart(todayISO()); render(); } });
+    box.appendChild(nw);
+    if (st) { const rs = el(`<button class="btn">${esc(t('season_reset'))}</button>`); rs.addEventListener('click', () => { Store.setSeasonStart(null); render(); }); box.appendChild(rs); }
+    return box;
+  }
+
+  // ---------- view: BILAN DE SAISON ----------
+  // Per residence and per pool, from the log: passages, chlorine (grams of
+  // product, stick/galet via their grammage), backwashes, readings, last seen.
+  function bilanStats(V, R, poolId) {
+    const prod = (id) => window.SEED.PRODUCTS.find((x) => x.id === id);
+    const clGrams = (v) => { const pr = v.productId && prod(v.productId); if (!pr || !/^cl-|^shock$/.test(pr.kind || '')) return 0; const q = Number(v.qty) || 0; return pr.unit === 'g' ? q : (pr.grammage || 0) * q; };
+    const vs = poolId ? V.filter((v) => v.poolId === poolId) : V, rs = poolId ? R.filter((r) => r.poolId === poolId) : R;
+    const all = vs.concat(rs);
+    const days = new Set(all.map((x) => x.poolId + '|' + Store.localDate(x.at)));
+    return { passages: days.size, clG: Math.round(vs.reduce((a, v) => a + clGrams(v), 0)), wash: vs.filter((v) => v.type === 'backwash').length, readings: rs.length,
+      first: all.reduce((m, x) => (!m || x.at < m ? x.at : m), ''), last: all.reduce((m, x) => (x.at > m ? x.at : m), '') };
+  }
+  function viewBilan() {
+    const wrap = document.createElement('div');
+    wrap.appendChild(el(`<a class="back back-slim" href="#/settings">‹ ${esc(t('settings_title'))}</a>`));
+    const V = Metrics.liveVisits(), R = Metrics.liveReadings();
+    const tot = bilanStats(V, R, null);
+    wrap.appendChild(header(t('bilan_title'), tot.last ? t('bilan_sub', { from: fmtDate(tot.first.slice(0, 10)), to: fmtDate(tot.last.slice(0, 10)) }) : ''));
+    if (!tot.last) { wrap.appendChild(emptyNote(t('bilan_empty'))); return wrap; }
+    const fmtMass = (g) => g >= 10000 ? Math.round(g / 1000) + ' kg' : g >= 1000 ? round1(g / 1000) + ' kg' : Math.round(g) + ' g';
+    const tiles = el('<div class="lp-tiles"></div>');
+    tiles.innerHTML = [
+      lpTile(tot.passages, t('bilan_passages'), '', ''),
+      lpTile(fmtMass(tot.clG), t('bilan_cl'), '', ''),
+      lpTile(tot.wash, t('bilan_wash'), '', t('bilan_readings') + ' ' + tot.readings),
+    ].join('');
+    wrap.appendChild(tiles);
+    const out = { from: tot.first, to: tot.last, totals: tot, residences: [] };
+    Store.residences().filter((r) => !r.nonPool).forEach((res) => {
+      const pools = Store.poolsByRes(res.code).filter(hasPool);
+      const rows = pools.map((p) => ({ p, s: bilanStats(V, R, p.id) })).filter(({ s }) => s.last);
+      if (!rows.length) return;
+      const rs = bilanStats(V.filter((v) => pools.some((p) => p.id === v.poolId)), R.filter((r) => pools.some((p) => p.id === r.poolId)), null);
+      const card = el(`<div class="card bilan-card"><div class="card-row"><strong>${esc(res.code)} · ${esc(res.name)}</strong><span class="muted">${rs.passages} ${esc(t('bilan_passages'))} · ${fmtMass(rs.clG)}</span></div></div>`);
+      rows.forEach(({ p, s }) => card.appendChild(el(`<div class="bilan-row"><strong>${esc(p.unit)}${Store.isWintered(p) ? ' ❄️' : ''}</strong>
+        <span>${s.passages} ${esc(t('bilan_passages'))} · ${fmtMass(s.clG)} · ${s.wash} ${esc(t('bilan_wash'))} · ${s.readings} ${esc(t('bilan_readings'))}</span>
+        <span class="muted">${esc(t('vu_on', { date: fmtDate(s.last.slice(0, 10)) }))}</span></div>`)));
+      wrap.appendChild(card);
+      out.residences.push({ code: res.code, name: res.name, totals: rs, pools: rows.map(({ p, s }) => ({ id: p.id, unit: p.unit, wintered: Store.isWintered(p), ...s })) });
+    });
+    const exp = el(`<button class="btn">${esc(t('bilan_export'))}</button>`);
+    exp.addEventListener('click', () => downloadFile(`lagrange-piscine-bilan-${fileStamp()}.json`, JSON.stringify(out, null, 2), 'application/json'));
+    wrap.appendChild(exp);
+    return wrap;
+  }
+
   function operatorSection() {
     const box = el('<div class="sync-box"></div>');
     box.appendChild(el(`<div class="section-title"><h2>${esc(t('op_title'))}</h2></div>`));
@@ -1879,6 +1981,7 @@
     wrap.appendChild(header(t('settings_title')));
     wrap.appendChild(operatorSection());
     wrap.appendChild(syncSection());
+    wrap.appendChild(seasonSection());
 
     // date + time in the filename so successive saves sort cleanly and don't
     // collide into "(1)/(2)" (the browser's de-dup of same-named downloads).

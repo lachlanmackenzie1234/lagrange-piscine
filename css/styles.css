@@ -474,6 +474,21 @@ details.measure .reading-form { margin: 0; }
 .map-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
 .map-list-btn { background: none; border: none; color: var(--brand); font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer; padding: 2px 0; }
 
+/* hivernage + season */
+.hero-ico.on { background: #cfe8f8; border-color: #7cc4ee; }
+.winter-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e8f4fc; color: #1b5e8a;
+  border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; font-size: .9rem; font-weight: 600; }
+.winter-banner .btn { margin: 0; padding: 7px 12px; font-size: .85rem; }
+.zone.winter .zone-head { opacity: .8; }
+.season-line { margin: 0 0 8px; font-size: .88rem; color: var(--muted); }
+.season-lens { display: flex; gap: 8px; align-items: center; font-size: .9rem; margin: 0 0 6px; }
+.bilan-card .bilan-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; padding: 7px 0; border-top: 1px solid var(--line); font-size: .86rem; }
+.bilan-card .bilan-row strong { flex: 1 0 100%; }
+@media (prefers-color-scheme: dark) {
+  .hero-ico.on { background: #12293a; border-color: #3d7ea6; }
+  .winter-banner { background: #12293a; color: #9ed0f0; }
+}
+
 /* collapsible residence zones — open/closed remembered across navigation */
 .zone { margin-bottom: 10px; }
 .zone-head { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; font: inherit;

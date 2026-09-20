@@ -63,6 +63,9 @@ const Sync = (() => {
     unsubs.push(fsM.onSnapshot(col('occupancy'), (s) => applyLog(s, 'occupancy'),
       () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('pools'), applyPools, () => setStatus('error')));
+    unsubs.push(fsM.onSnapshot(ref('meta', 'season'), (d) => {
+      if (d.exists() && Store.applyRemoteSeason(d.data())) window.dispatchEvent(new CustomEvent('lp-data-changed'));
+    }, () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(ref('meta', 'occCleared'), (d) => {
       if (d.exists() && Store.applyRemoteOccCleared(d.data())) window.dispatchEvent(new CustomEvent('lp-data-changed'));
     }, () => setStatus('error')));
@@ -134,13 +137,24 @@ const Sync = (() => {
     // after opening the app) still lands, but a stale copy can never clobber
     // a newer one from the other phone — which is how a blind re-push used to
     // resurrect EC 2's fill. Offline → the transaction fails quietly; next open.
-    const wjobs = st.pools.filter((p) => p.wateringAt).map((p) =>
-      fsM.runTransaction(fb.db, async (tx) => {
+    const wjobs = [];
+    Object.entries(Store.LWW).forEach(([k, stamp]) => st.pools.filter((p) => p[stamp]).forEach((p) =>
+      wjobs.push(fsM.runTransaction(fb.db, async (tx) => {
         const r = ref('pools', p.id);
         const snap = await tx.get(r);
-        const remoteAt = snap.exists() ? snap.data().wateringAt : null;
-        if (!remoteAt || remoteAt < p.wateringAt) tx.set(r, { watering: p.watering ?? null, wateringAt: p.wateringAt }, { merge: true });
+        const remoteAt = snap.exists() ? snap.data()[stamp] : null;
+        if (!remoteAt || remoteAt < p[stamp]) tx.set(r, { [k]: p[k] ?? null, [stamp]: p[stamp] }, { merge: true });
+      }).catch(() => {}))));
+    // season boundary: newest marker wins
+    const season = st.season || {};
+    if (season.at) {
+      wjobs.push(fsM.runTransaction(fb.db, async (tx) => {
+        const r = ref('meta', 'season');
+        const snap = await tx.get(r);
+        const remoteAt = snap.exists() ? snap.data().at : null;
+        if (!remoteAt || remoteAt < season.at) tx.set(r, { start: season.start ?? null, at: season.at });
       }).catch(() => {}));
+    }
     // week-clear markers: newest wins per week (max-merge in a transaction)
     const cleared = st.occCleared || {};
     if (Object.keys(cleared).length) {
@@ -228,12 +242,13 @@ const Sync = (() => {
   const removeNote = (id) => active && fb && fb.fsM.deleteDoc(ref('notes', id)).catch(() => {});
   const pushPhoto = (rec) => active && fb && fb.fsM.setDoc(ref('photos', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removePhoto = (id) => active && fb && fb.fsM.deleteDoc(ref('photos', id)).catch(() => {});
+  const pushSeason = (rec) => active && fb && fb.fsM.setDoc(ref('meta', 'season'), { start: rec.start ?? null, at: rec.at }).catch(() => {});
   const pushOccCleared = (week, at) => active && fb && fb.fsM.setDoc(ref('meta', 'occCleared'), { [week]: at }, { merge: true }).catch(() => {});
   const pushOccupancy = (rec) => active && fb && fb.fsM.setDoc(ref('occupancy', rec.id), stripId(rec), { merge: true }).catch(() => {});
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
-    ['lat', 'lng', 'note', 'sandDate', 'pumpNote', 'watering', 'wateringAt', 'dims', 'volM3', 'volEst', 'salt', 'electroNote', 'covered'].forEach((k) => { if (k in patch) f[k] = patch[k] ?? null; });
+    ['lat', 'lng', 'note', 'sandDate', 'pumpNote', 'watering', 'wateringAt', 'winter', 'winterAt', 'dims', 'volM3', 'volEst', 'salt', 'electroNote', 'covered'].forEach((k) => { if (k in patch) f[k] = patch[k] ?? null; });
     if (!Object.keys(f).length) return;
     fb.fsM.setDoc(ref('pools', poolId), f, { merge: true }).catch(() => {});
   }
@@ -245,7 +260,7 @@ const Sync = (() => {
 
   return {
     enable, disable, maybeAutoStart,
-    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushOccupancy, pushOccCleared,
+    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushOccupancy, pushOccCleared, pushSeason,
     get active() { return active; },
     get status() { return status; },
     get team() { return team; },
