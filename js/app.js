@@ -19,9 +19,17 @@
       if (th.style === 'ocean') delete r.dataset.style; else r.dataset.style = th.style;
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.content = getComputedStyle(r).getPropertyValue('--navy').trim() || '#123a5e';
+      if (th.style === 'pixel') loadGame();
     },
     pixel: () => document.documentElement.dataset.style === 'pixel',
   };
+  // Pixel's game layer (js/game.js) is a sidecar: fetched once, only when the
+  // style is Pixel, so the other styles never pay for it.
+  function loadGame() {
+    if (window.Game || document.getElementById('game-js')) return;
+    const sc = document.createElement('script'); sc.id = 'game-js'; sc.src = 'js/game.js'; sc.onload = () => render();
+    document.head.appendChild(sc);
+  }
   // Pixel skin sidecar: photos go through a 48-px canvas and come back up
   // pixelated — the real gate photo as pixel art. Cached per photo; the first
   // paint shows the original and re-renders once the small version exists.
@@ -53,7 +61,7 @@
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.79'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.80'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -177,8 +185,12 @@
   // ---------- router ----------
   const routes = {
     '': viewPools, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
-    'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings, 'bilan': viewBilan,
+    'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings, 'bilan': viewBilan, 'quest': viewQuest,
   };
+  function viewQuest() {
+    if (window.Game && Theme.pixel()) return Game.view(render);
+    const w = document.createElement('div'); w.appendChild(header(t('tab_quest'))); w.appendChild(emptyNote(t('quest_pixel_only'))); return w;
+  }
 
   function parseHash() {
     const h = location.hash.replace(/^#\/?/, '');
@@ -203,10 +215,11 @@
     document.querySelectorAll('.sheet-back').forEach((x) => x.remove());
     const { name, args } = parseHash();
     const view = routes[name] || viewPools;
+    if (window.Game) Game.onRoute(name, args[0]);
     app.innerHTML = '';
     app.appendChild(view(...args));
     // three tabs; the old standalone routes stay reachable and light their parent
-    const TAB_OF = { today: 'today', log: 'today', pools: 'pools', pool: 'pools', map: 'pools', weather: 'pools', settings: 'settings', bilan: 'settings' };
+    const TAB_OF = { today: 'today', log: 'today', pools: 'pools', pool: 'pools', map: 'pools', weather: 'pools', settings: 'settings', bilan: 'settings', quest: 'quest' };
     document.querySelectorAll('.tabbar a').forEach((a) => {
       a.classList.toggle('active', a.dataset.route === (TAB_OF[name] || 'pools'));
     });
@@ -1216,6 +1229,8 @@
       wrap.appendChild(b);
     }
 
+    // Pixel: the pool page is the encounter — the creature card reads the log live
+    if (pool && window.Game && Theme.pixel()) wrap.appendChild(Game.poolSection(p));
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
     if (pool) {
       const lastV = Store.lastService(p.id);

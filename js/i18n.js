@@ -5,7 +5,7 @@ const I18n = (() => {
   const STR = {
     en: {
       tab_today: 'Overview', tab_pools: 'Pools', tab_more: 'Settings',
-      wx_loading_short: 'weather…', map_list: 'Residences',
+      wx_loading_short: 'weather…', map_list: 'Residences', tab_quest: 'Quest', quest_pixel_only: 'The quest lives in the Pixel style (Settings › Style).',
       weather_title: 'Weather', wx_forecast: 'Forecast', wx_refresh: 'Refresh',
       wx_loading: 'Loading weather… (needs a connection the first time)',
       wx_updated: 'Updated {time}',
@@ -208,7 +208,7 @@ const I18n = (() => {
     },
     fr: {
       tab_today: 'Aperçu', tab_pools: 'Piscines', tab_more: 'Réglages',
-      wx_loading_short: 'météo…', map_list: 'Résidences',
+      wx_loading_short: 'météo…', map_list: 'Résidences', tab_quest: 'Quête', quest_pixel_only: 'La quête vit dans le style Pixel (Réglages › Style).',
       weather_title: 'Météo', wx_forecast: 'Prévisions', wx_refresh: 'Actualiser',
       wx_loading: 'Chargement météo… (connexion requise la première fois)',
       wx_updated: 'Mis à jour {time}',
