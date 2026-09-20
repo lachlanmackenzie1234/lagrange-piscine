@@ -154,6 +154,8 @@
   window.addEventListener('scroll', () => { scrollMem[hashKey()] = window.scrollY; }, { passive: true });
 
   function render() {
+    // a render means state changed — any open bottom sheet is stale, drop it
+    document.querySelectorAll('.sheet-back').forEach((x) => x.remove());
     const { name, args } = parseHash();
     const view = routes[name] || viewPools;
     app.innerHTML = '';
