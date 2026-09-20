@@ -1,0 +1,252 @@
+<title>Lagrange Piscine — Styles</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap">
+<style>
+  :root { --pg-bg: #eef2f5; --pg-ink: #22303c; --pg-muted: #6b7a87; --pg-line: #dde5ec; --pg-card: #fff; --pg-brand: #2b8fd0; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pg-bg: #0a1119; --pg-ink: #e7eef4; --pg-muted: #8ea0ae; --pg-line: #243343; --pg-card: #16212d; } }
+  :root[data-theme="dark"] { --pg-bg: #0a1119; --pg-ink: #e7eef4; --pg-muted: #8ea0ae; --pg-line: #243343; --pg-card: #16212d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--pg-bg); color: var(--pg-ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.45; }
+  .sheet { max-width: 900px; margin: 0 auto; padding-block: 24px 60px; padding-inline: 16px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .lede { margin: 0 0 18px; color: var(--pg-muted); max-width: 62ch; }
+  .ctl { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 18px; }
+  .seg { display: inline-flex; border: 1px solid var(--pg-line); border-radius: 9px; overflow: hidden; background: var(--pg-card); }
+  .seg button { background: none; border: none; color: var(--pg-muted); font: inherit; font-weight: 700; font-size: .82rem; padding: 7px 13px; cursor: pointer; }
+  .seg button.on { background: var(--pg-brand); color: #fff; }
+  .seg button:focus-visible { outline: 2px solid var(--pg-brand); outline-offset: -2px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+  .cap { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--pg-muted); margin: 0 0 6px 4px; }
+  .cap small { font-weight: 500; letter-spacing: 0; text-transform: none; }
+  .notes { margin: 26px 0 0; color: var(--pg-muted); font-size: .9rem; max-width: 70ch; }
+  .notes b { color: var(--pg-ink); }
+
+  /* icons */
+  .ic { width: 1em; height: 1em; display: inline-block; vertical-align: -.15em; fill: none; stroke: currentColor; stroke-width: var(--stroke, 1.6); stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* ============ the phone: every style is a token set + a few structural rules ============ */
+  .phone {
+    /* Océan (default) tokens */
+    --bg: #ffffff; --card: #ffffff; --ink: #22303c; --muted: #6b7a87; --line: #dde5ec;
+    --navy: #123a5e; --title: #123a5e; --brand: #2b8fd0; --ok: #1b9e4b; --low: #d98b00; --high: #d12f2f; --ok-bg: #e6f6ec;
+    --na: #8a98a4; --na-bg: #eef2f5; --tab-bg: rgba(255,255,255,.96); --input-bg: #fff;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-title: var(--font); --font-num: var(--font);
+    --fs: 16px; --radius: 14px; --radius-sm: 10px; --s1: 8px; --s2: 13px; --s3: 21px; --stroke: 1.6; --tap: 44px; --tab-h: 60px;
+    --card-border: 1px solid var(--line); --card-shadow: 0 1px 2px rgba(20,32,43,.04);
+    --stripe-bg: var(--navy); --stripe-fg: #fff; --stripe-radius: var(--radius); --stripe-pad: 12px 16px;
+    --dot: 50%; --icon: 20px; --tab-icon: 22px;
+    width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--pg-line); border-radius: 22px; overflow: hidden;
+    font-family: var(--font); font-size: var(--fs); line-height: 1.4;
+  }
+  .phone[data-mode="dark"] { --bg: #0e1620; --card: #16212d; --ink: #e7eef4; --muted: #8ea0ae; --line: #243343; --na-bg: #1d2935; --na: #8094a3; --ok-bg: #14301f; --title: #cfe4f5; --tab-bg: rgba(14,22,32,.96); --input-bg: #0f1923; }
+
+  /* ---- Minimal: small, compact, quiet ---- */
+  .phone[data-style="minimal"] {
+    --fs: 14px; --radius: 8px; --radius-sm: 6px; --s1: 6px; --s2: 9px; --s3: 14px; --stroke: 1.4; --tap: 38px; --tab-h: 50px;
+    --card-border: none; --card-shadow: none; --line: #e6ebef; --bg: #fafbfc; --card: #fafbfc;
+    --stripe-bg: transparent; --stripe-fg: var(--muted); --stripe-radius: 0; --stripe-pad: 4px 0;
+    --title: #22303c; --navy: #22303c; --icon: 17px; --tab-icon: 19px;
+  }
+  .phone[data-style="minimal"][data-mode="dark"] { --bg: #0f151b; --card: #0f151b; --line: #1f2a34; --title: #e7eef4; --navy: #2a3a4a; --stripe-fg: #8ea0ae; }
+  .phone[data-style="minimal"] .stripe { text-transform: uppercase; letter-spacing: .1em; font-size: .68rem; font-weight: 700; border-bottom: 1px solid var(--line); }
+  .phone[data-style="minimal"] .stripe small { display: none; }
+  .phone[data-style="minimal"] .pool { border-bottom: 1px solid var(--line); border-radius: 0; padding: 8px 2px; }
+  .phone[data-style="minimal"] .pool .spark { display: none; }
+  .phone[data-style="minimal"] .pool .r1 { font-size: .95rem; }
+  .phone[data-style="minimal"] .zone { background: none; color: var(--ink); padding: 6px 2px; border-bottom: 1px solid var(--ink); border-radius: 0; }
+  .phone[data-style="minimal"] .zone .zn { font-size: .8rem; }
+  .phone[data-style="minimal"] .hero { height: 150px; }
+  .phone[data-style="minimal"] .hero h2 { font-size: 1.3rem; }
+  .phone[data-style="minimal"] .rows { border: none; background: none; }
+  .phone[data-style="minimal"] .row { padding: 8px 2px; }
+
+  /* ---- Tableau: dense, squared, detailed, mono figures ---- */
+  .phone[data-style="tableau"] {
+    --bg: #f4f7f4; --card: #ffffff; --ink: #1d2a22; --muted: #667a6e; --line: #d5e0d8; --na-bg: #e9f0ea; --na: #8a9b90;
+    --navy: #1f4d3a; --title: #1f4d3a; --brand: #2f8f66; --ok-bg: #e2f0e8; --tab-bg: rgba(244,247,244,.96);
+    --font-num: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --fs: 14px; --radius: 4px; --radius-sm: 3px; --s1: 4px; --s2: 8px; --s3: 12px; --stroke: 1.5; --tap: 36px; --tab-h: 50px;
+    --card-border: 1px solid var(--line); --card-shadow: none;
+    --stripe-bg: transparent; --stripe-fg: var(--title); --stripe-radius: 0; --stripe-pad: 4px 0 4px 10px; --icon: 17px; --tab-icon: 19px;
+  }
+  .phone[data-style="tableau"][data-mode="dark"] { --bg: #0c1712; --card: #14221a; --ink: #e6efe9; --muted: #8aa595; --line: #22362b; --na-bg: #1a2a21; --na: #7e9587; --title: #cfe9d8; --ok-bg: #16332a; --tab-bg: rgba(12,23,18,.96); --input-bg: #0a130e; }
+  .phone[data-style="tableau"] .stripe { border-left: 3px solid var(--brand); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
+  .phone[data-style="tableau"] .zone { background: var(--card); color: var(--title); border: 1px solid var(--line); border-bottom: 2px solid var(--navy); padding: 5px 8px; }
+  .phone[data-style="tableau"] .pool { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "n s" "v s" "m s"; gap: 0 8px; padding: 5px 8px; border-radius: 0; margin: 0; border-bottom: none; border-top: none; }
+  .phone[data-style="tableau"] .pool .r1 { justify-content: flex-start; gap: 8px; }
+  .phone[data-style="tableau"] .pool .r1 .seen::before { content: "· "; }
+  .phone[data-style="tableau"] .pool .r2 { display: contents; }
+  .phone[data-style="tableau"] .pool .r2 .dot { display: none; }
+  .phone[data-style="tableau"] .pool .r1 span:first-child::before { content: ""; display: inline-block; width: 8px; height: 8px; background: var(--lv); margin-right: 6px; vertical-align: 1px; }
+  .phone[data-style="tableau"] .pools { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .phone[data-style="tableau"] .pools .pool + .pool { border-top: 1px solid var(--line); }
+  .phone[data-style="tableau"] .pool .r1 { grid-area: n; font-size: .95rem; }
+  .phone[data-style="tableau"] .pool .vals { grid-area: v; }
+  .phone[data-style="tableau"] .pool .meta { grid-area: m; margin: 0; font-size: .74rem; }
+  .phone[data-style="tableau"] .pool .spark { grid-area: s; align-self: center; width: 72px; height: 24px; }
+  .phone[data-style="tableau"] .pool .seen { display: inline; }
+  .phone[data-style="tableau"] .hero { height: 170px; }
+  .phone[data-style="tableau"] .hero h2 { font-size: 1.35rem; }
+  .phone[data-style="tableau"] .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  .phone[data-style="tableau"] .row { padding: 7px 8px; }
+
+  /* ---- Pixel: the game spin-off ---- */
+  .phone[data-style="pixel"] {
+    --bg: #f6f1dc; --card: #fffbe9; --ink: #20203a; --muted: #5f5f7a; --line: #20203a; --na-bg: #e8e2c6; --na: #7a7a90;
+    --navy: #20203a; --title: #20203a; --brand: #2f4fdf; --ok: #2aa845; --low: #e39b12; --high: #d82f2f; --ok-bg: #d9f2dc;
+    --tab-bg: #fffbe9; --input-bg: #fffbe9;
+    --font: "Pixelify Sans", ui-monospace, monospace; --fs: 15px; --radius: 0; --radius-sm: 0; --s1: 8px; --s2: 12px; --s3: 18px; --stroke: 2.4; --tap: 44px; --tab-h: 58px;
+    --card-border: 3px solid var(--ink); --card-shadow: 4px 4px 0 var(--ink);
+    --stripe-bg: var(--brand); --stripe-fg: #fff; --stripe-radius: 0; --stripe-pad: 8px 12px; --dot: 0; --icon: 20px; --tab-icon: 22px;
+    border-radius: 0; border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+  }
+  .phone[data-style="pixel"][data-mode="dark"] { --bg: #14142a; --card: #1e1e3c; --ink: #e6e6ff; --muted: #a2a2c8; --line: #e6e6ff; --na-bg: #2a2a4a; --na: #8a8ab0; --navy: #e6e6ff; --title: #e6e6ff; --brand: #59c2ff; --ok-bg: #163a2a; --tab-bg: #1e1e3c; --input-bg: #14142a; --card-border: 3px solid #e6e6ff; --card-shadow: 4px 4px 0 #59c2ff; border-color: #e6e6ff; box-shadow: 6px 6px 0 #59c2ff; }
+  .phone[data-style="pixel"] .ic { shape-rendering: crispEdges; stroke-linecap: square; stroke-linejoin: miter; }
+  .phone[data-style="pixel"] .stripe { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); letter-spacing: .02em; }
+  .phone[data-style="pixel"] .zone { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); background: var(--brand); }
+  .phone[data-style="pixel"][data-mode="dark"] .stripe, .phone[data-style="pixel"][data-mode="dark"] .zone { box-shadow: 4px 4px 0 var(--brand); background: #2f4fdf; }
+  .phone[data-style="pixel"] .pool, .phone[data-style="pixel"] .rows, .phone[data-style="pixel"] .composer { margin-bottom: 14px; }
+  .phone[data-style="pixel"] .spark polyline { stroke-width: 3; shape-rendering: crispEdges; }
+  .phone[data-style="pixel"] .spark circle { r: 3; }
+  .phone[data-style="pixel"] .hero { background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); image-rendering: pixelated; }
+  .phone[data-style="pixel"] .hero::before { content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(#7ec8ff, #7ec8ff) 0 0/100% 46% no-repeat,
+      linear-gradient(#3a9ad9, #3a9ad9) 0 46%/100% 30% no-repeat,
+      linear-gradient(#e9d59a, #e9d59a) 0 76%/100% 24% no-repeat;
+    background-color: #e9d59a; }
+  .phone[data-style="pixel"] .hero::after { content: ""; position: absolute; left: 14%; top: 18%; width: 22%; height: 22%;
+    background:
+      radial-gradient(circle at 50% 50%, #ffd23f 0 46%, transparent 47%) ;
+    image-rendering: pixelated; clip-path: polygon(25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%,0 25%,25% 25%); }
+  .phone[data-style="pixel"] .hero .hz { position: relative; z-index: 1; background: var(--card); border: 3px solid var(--ink); padding: 8px 10px; margin: 0 -2px -2px; }
+  .phone[data-style="pixel"] .hero-ico, .phone[data-style="pixel"] .pill { background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); border-radius: 0; }
+  .phone[data-style="pixel"] .send { box-shadow: 3px 3px 0 var(--ink); border: 3px solid var(--ink); }
+  .phone[data-style="pixel"] .btn { box-shadow: 3px 3px 0 var(--ink); border: 3px solid var(--ink); }
+  .phone[data-style="pixel"] .btn.done { background: var(--brand); color: #fff; }
+  .phone[data-style="pixel"] .tabbar { border-top: 3px solid var(--ink); }
+  .phone[data-style="pixel"] .tabbar a.active { color: var(--brand); text-shadow: 2px 2px 0 var(--na-bg); }
+  .phone[data-style="pixel"] .badge { font-size: .7rem; background: var(--ink); color: var(--card); padding: 1px 5px; }
+
+  /* ============ shared mock markup ============ */
+  .screen { padding: var(--s2) var(--s2) var(--s3); }
+  .ttl { font-family: var(--font-title); font-size: 1.5rem; font-weight: 800; color: var(--title); margin: 4px 0 0; letter-spacing: -.01em; }
+  .ttl-sub { color: var(--muted); font-size: .9rem; margin: 0 0 var(--s2); }
+  .stripe { background: var(--stripe-bg); color: var(--stripe-fg); border-radius: var(--stripe-radius); padding: var(--stripe-pad); font-weight: 700; margin: var(--s3) 0 var(--s1); }
+  .stripe small { display: block; font-weight: 400; opacity: .85; font-size: .82rem; }
+  .zone { background: var(--navy); color: #fff; border-radius: var(--radius); padding: 9px 12px; display: flex; align-items: center; gap: 8px; margin: var(--s2) 0 var(--s1); }
+  .zone .zn { font-weight: 800; } .zone .zs { opacity: .85; font-size: .9em; } .zone .zc { margin-left: auto; font-size: .8em; opacity: .85; }
+  .pool { background: var(--card); border: var(--card-border); box-shadow: var(--card-shadow); border-radius: var(--radius); padding: 10px 12px; margin: 0 0 var(--s1); }
+  .pool .r1 { display: flex; justify-content: space-between; align-items: baseline; font-weight: 800; font-size: 1.05rem; }
+  .pool .seen { font-weight: 400; font-size: .8rem; color: var(--muted); }
+  .pool .r2 { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+  .dot { width: 9px; height: 9px; border-radius: var(--dot); display: inline-block; flex: none; }
+  .vals { display: flex; gap: 10px; font-size: .92rem; color: var(--muted); font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  .vals b { color: var(--ink); }
+  .meta { margin-left: auto; font-size: .78rem; color: var(--muted); font-family: var(--font-num); }
+  .spark { width: 96px; height: 26px; flex: none; }
+  .spark rect { fill: var(--ok-bg); } .spark polyline { fill: none; stroke: var(--brand); stroke-width: 1.5; } .spark line { stroke: var(--na); stroke-dasharray: 2 2; }
+  .hero { position: relative; height: 200px; margin: var(--s2) 0; border-radius: var(--radius); overflow: hidden; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px;
+    background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55)), radial-gradient(120% 80% at 30% 20%, #8fb7c9, #3d6d86 60%, #1f4459); }
+  .hero .hz { }
+  .hero h2 { margin: 0; font-family: var(--font-title); font-size: 1.6rem; display: flex; align-items: center; gap: 8px; }
+  .hero .sub { margin: 2px 0 8px; font-size: .9rem; opacity: .9; }
+  .icons { display: flex; gap: 8px; }
+  .hero-ico { width: var(--tap); height: var(--tap); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,.38); border: 1px solid rgba(255,255,255,.26); color: #fff; font-size: var(--icon); }
+  .corner { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 1; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 700; color: #fff; background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.26); border-radius: 999px; padding: 4px 10px; font-family: var(--font-num); }
+  .pill .ic { font-size: 14px; }
+  .composer { background: var(--card); border: var(--card-border); box-shadow: var(--card-shadow); border-radius: var(--radius); padding: 10px 12px; margin: var(--s2) 0; }
+  .cmain { display: flex; gap: 8px; }
+  .cin { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 9px 11px; color: var(--muted); background: var(--input-bg); font-size: .95rem; }
+  .send { width: var(--tap); border-radius: var(--radius-sm); background: var(--navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
+  .phone[data-style="pixel"] .send { background: var(--brand); }
+  .crow { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: .8rem; color: var(--muted); }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-weight: 600; }
+  .phone[data-style="pixel"] .chip { border: 2px solid var(--ink); border-radius: 0; }
+  .chip.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .clean { display: flex; gap: 8px; margin: var(--s1) 0 var(--s2); }
+  .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: .88rem; background: var(--card); color: var(--ink); border: var(--card-border, 1px solid var(--line)); border-radius: var(--radius-sm); padding: 9px 6px; min-height: var(--tap); }
+  .btn .ic { font-size: 18px; color: var(--title); } .btn.done { background: var(--navy); color: #fff; border-color: var(--navy); } .btn.done .ic { color: #fff; }
+  .rows { background: var(--card); border: var(--card-border); box-shadow: var(--card-shadow); border-radius: var(--radius); overflow: hidden; margin: var(--s1) 0 var(--s2); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-top: 1px solid var(--line); font-size: .95rem; }
+  .row:first-child { border-top: none; }
+  .row .ic { font-size: var(--icon); color: var(--title); } .row .lbl { flex: 1; } .row .lbl small { display: block; color: var(--muted); font-size: .76rem; }
+  .row .val { color: var(--muted); font-size: .86rem; display: inline-flex; align-items: center; gap: 6px; } .row .val .ic { font-size: 16px; color: var(--na); }
+  .tabbar { display: flex; height: var(--tab-h); border-top: 1px solid var(--line); background: var(--tab-bg); }
+  .tabbar a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: .6rem; font-weight: 700; color: var(--muted); text-decoration: none; }
+  .tabbar a .ic { font-size: var(--tab-icon); } .tabbar a.active { color: var(--brand); }
+  .phone[data-style="minimal"] .tabbar a { font-size: .58rem; }
+  .badge { display: none; }
+  .phone[data-style="pixel"] .badge { display: inline-block; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-overview" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v2.5H9z"/><path d="M8.5 10.5h7M8.5 14h7M8.5 17.5h4"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3c0 0-6.5 7-6.5 11.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 12h2M11 12h9M4 17h11M20 17h0"/><circle cx="15" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="17.5" cy="17" r="2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+  <symbol id="i-snow" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></symbol>
+  <symbol id="i-bucket" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 12h-11z"/><path d="M8 8a4 4 0 0 1 8 0"/><path d="M7 12h10"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3"/></symbol>
+  <symbol id="i-broom" viewBox="0 0 24 24"><path d="M14 3l7 7M9.5 7.5l7 7"/><path d="M16.5 14.5l-1.2 1.2c-2.2 2.2-5 3.3-8.1 3.3H4c0-3.1 1.1-5.9 3.3-8.1l1.2-1.2"/></symbol>
+  <symbol id="i-robot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="12" rx="3"/><path d="M12 8V5"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/><path d="M9 17h6"/></symbol>
+  <symbol id="i-net" viewBox="0 0 24 24"><path d="M3 10h18l-2.5 9h-13z"/><path d="M8 10l1.5-6M16 10l-1.5-6"/><path d="M6 14.5h12M12 10v9"/></symbol>
+  <symbol id="i-chevron-r" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M4 10a8 8 0 0 1 14-3M20 14a8 8 0 0 1-14 3"/><path d="M18 3v4h-4M6 21v-4h4"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></symbol>
+</svg>
+
+<main class="sheet">
+  <h1>Quatre styles</h1>
+  <p class="lede">Océan reste tel quel. Les trois autres changent la matière, pas seulement la couleur : police, densité, angles, cadres, icônes. Même données, mêmes écrans — Piscines, fiche, composer, Réglages.</p>
+  <div class="ctl">
+    <div class="seg" role="group" aria-label="Mode"><button type="button" id="m-light" class="on" data-mode="light">Clair</button><button type="button" id="m-dark" data-mode="dark">Sombre</button></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <p class="notes"><b>Minimal</b> — 14 px, cartes sans bordure, séparateurs fins, sections en petites capitales, pas de courbe dans la liste : le strict nécessaire, beaucoup d'air en moins.
+  <b>Tableau</b> — 14 px, angles à 4 px, chiffres en chasse fixe alignés, chaque piscine sur deux lignes dans une grille : Cl · pH · CyA, /sem, vue le, courbe — tout, serré, lisible.
+  <b>Pixel</b> — Pixelify Sans, cadres de 3 px avec ombre portée en escalier, aucun arrondi, icônes à angles vifs, pastilles carrées, courbes en marches. Les photos passent par un canvas 48 px puis remontent en <i>pixelated</i> : la vraie photo, en pixel art (ici : une scène dessinée en CSS, faute de photo). Le reste de l'app est inchangé — c'est une peau, pas une logique.</p>
+</main>
+
+<script>
+  (function () {
+    const ico = (n) => `<svg class="ic"><use href="#${n}"/></svg>`;
+    const spark = `<svg class="spark" viewBox="0 0 96 26"><rect x="0" y="8" width="96" height="9"/><line x1="18" y1="0" x2="18" y2="26"/><line x1="52" y1="0" x2="52" y2="26"/><line x1="70" y1="0" x2="70" y2="26"/><polyline points="6,20 30,16 52,13 78,10 92,9"/><circle cx="92" cy="9" r="2.5" fill="var(--ok)" stroke="none"/></svg>`;
+    const pool = (n, seen, lv, cl, ph, cya, wk) => `<div class="pool" style="--lv:var(--${lv})">
+      <div class="r1"><span>${n}</span><span class="seen">vu ${seen}</span></div>
+      <div class="r2"><span class="dot" style="background:var(--${lv})"></span><span class="vals"><span>Cl <b class="num">${cl}</b></span><span>pH <b class="num">${ph}</b></span><span>CyA <b class="num">${cya}</b></span></span><span class="meta num">${wk}/sem</span>${spark}</div></div>`;
+    const phone = (style, label) => `<div><div class="cap">${label}</div><div class="phone" data-style="${style}" data-mode="light">
+      <div class="screen">
+        <p class="ttl">Piscines <span class="badge">LV.3</span></p><p class="ttl-sub">23 piscines · 5 résidences</p>
+        <div class="zone"><span class="zn">EC</span><span class="zs">Eden Club</span><span class="zc">5 piscines</span></div>
+        <div class="pools">${pool('EC 2', 'mar. 15 sept.', 'low', '5.3', '7.3', '40', '1.6')}${pool('EC 5', 'sam. 19 sept.', 'ok', '0.5', '7.3', '28', '1.7')}</div>
+        <div class="hero"><div class="corner"><span class="pill">${ico('i-drop')}<span>42 min</span></span><span class="pill">${ico('i-bucket')}<span>40 m³</span></span></div>
+          <div class="hz"><h2><span class="dot" style="background:var(--low);width:10px;height:10px"></span>EC 2</h2><p class="sub">Eden Club · T4</p>
+          <div class="icons"><span class="hero-ico">${ico('i-pin')}</span><span class="hero-ico">${ico('i-map')}</span><span class="hero-ico">${ico('i-snow')}</span></div></div></div>
+        <div class="composer"><div class="cmain"><span class="cin">note rapide…</span><span class="send">${ico('i-plus')}</span></div>
+          <div class="crow"><span class="chip">EC 2</span><span class="chip on">${ico('i-check')} À faire</span><span>${ico('i-camera')}</span></div></div>
+        <div class="stripe">Nettoyage<small>3 derniers · toute la saison (16)</small></div>
+        <div class="clean"><span class="btn done">${ico('i-broom')} Balai ${ico('i-check')}</span><span class="btn">${ico('i-robot')} Robot</span><span class="btn">${ico('i-net')} Skimmer</span></div>
+        <div class="stripe">Équipe</div>
+        <div class="rows"><div class="row">${ico('i-user')}<span class="lbl">Nom d'utilisateur</span><span class="val">Loki ${ico('i-chevron-r')}</span></div>
+          <div class="row">${ico('i-sync')}<span class="lbl">Synchro<small>code équipe 1234</small></span><span class="val">Connectée ${ico('i-chevron-r')}</span></div>
+          <div class="row">${ico('i-export')}<span class="lbl">Exporter<small>sauvegarde, données, mesures, notes</small></span><span class="val">20 sept. ${ico('i-chevron-r')}</span></div></div>
+      </div>
+      <nav class="tabbar"><a href="#">${ico('i-overview')}Aperçu</a><a href="#" class="active">${ico('i-drop')}Piscines</a><a href="#">${ico('i-sliders')}Réglages</a></nav>
+    </div></div>`;
+    document.getElementById('grid').innerHTML = phone('ocean', 'Océan · défaut') + phone('minimal', 'Minimal') + phone('tableau', 'Tableau') + phone('pixel', 'Pixel');
+    const root = document.documentElement;
+    const setMode = (m) => { document.querySelectorAll('.phone').forEach((p) => { p.dataset.mode = m; }); root.dataset.theme = m; ['m-light', 'm-dark'].forEach((id) => document.getElementById(id).classList.toggle('on', id === 'm-' + m)); try { localStorage.setItem('lp-beta-mode', m); } catch (_) {} };
+    document.getElementById('m-light').addEventListener('click', () => setMode('light'));
+    document.getElementById('m-dark').addEventListener('click', () => setMode('dark'));
+    let saved = null; try { saved = localStorage.getItem('lp-beta-mode'); } catch (_) {}
+    setMode(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  })();
+</script>
