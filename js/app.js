@@ -1305,10 +1305,10 @@
   const pillBtn = (emoji, label, title, onClick) => { const b = el(`<button class="hero-pill" title="${esc(title)}">${emoji} <span>${esc(label)}</span></button>`); b.addEventListener('click', onClick); return b; };
   // light section heading (small navy uppercase label, not a full stripe)
   // Pool-page logs (produits, historique, nettoyage) show the recent tail by
-  // default; one shared switch extends all three to the whole season.
+  // default (3 rows); one shared switch expands all three to the whole season.
   const LOG_KEY = 'lagrange-piscine.fullLog';
   const fullLog = () => { try { return localStorage.getItem(LOG_KEY) === '1'; } catch (_) { return false; } };
-  const LOG_N = { treat: 8, hist: 8, clean: 6 };
+  const LOG_N = { treat: 3, hist: 3, clean: 3 };
   const logSlice = (list, n) => (fullLog() ? list : list.slice(0, n));
   // heading with an optional "toute la saison / récents" switch (shown only
   // when there is more than the recent tail)
