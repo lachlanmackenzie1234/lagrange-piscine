@@ -1,0 +1,381 @@
+<title>Lagrange Quest</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap">
+<style>
+  :root {
+    --bg: #f6f1dc; --card: #fffbe9; --ink: #20203a; --muted: #5f5f7a; --na-bg: #e8e2c6; --na: #7a7a90;
+    --brand: #2f4fdf; --ok: #2aa845; --low: #e39b12; --high: #d82f2f; --sh: #20203a;
+    --c-common: #6b7a87; --c-uncommon: #2aa845; --c-rare: #2f4fdf; --c-vrare: #7b3fc4; --c-epic: #e39b12; --c-legend: #d82f2f;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14142a; --card: #1e1e3c; --ink: #e6e6ff; --muted: #a2a2c8; --na-bg: #2a2a4a; --na: #8a8ab0; --brand: #59c2ff; --sh: #59c2ff; color-scheme: dark; } }
+  :root[data-theme="dark"] { --bg: #14142a; --card: #1e1e3c; --ink: #e6e6ff; --muted: #a2a2c8; --na-bg: #2a2a4a; --na: #8a8ab0; --brand: #59c2ff; --sh: #59c2ff; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Pixelify Sans", ui-monospace, monospace; font-size: 15px; line-height: 1.35; }
+  .app { max-width: 480px; margin: 0 auto; padding-block: 14px 90px; padding-inline: 16px; }
+  h1 { font-size: 1.5rem; margin: 0; letter-spacing: .02em; }
+  .sub { color: var(--muted); margin: 0 0 12px; font-size: .9rem; }
+  .box { background: var(--card); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--sh); padding: 10px 12px; margin: 0 0 14px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .grow { flex: 1; min-width: 0; }
+  .btn { font: inherit; font-size: .95rem; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--sh); padding: 8px 12px; cursor: pointer; text-align: left; }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--sh); }
+  .btn.p { background: var(--brand); color: #fff; }
+  .btn.dis { opacity: .45; pointer-events: none; }
+  .btn:focus-visible { outline: 3px solid var(--low); outline-offset: 2px; }
+  .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .menu .btn { min-height: 46px; }
+  .tabs { position: fixed; left: 0; right: 0; bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--card); border-top: 3px solid var(--ink); display: flex; }
+  .tabs button { flex: 1; font: inherit; font-size: .78rem; background: none; border: none; color: var(--muted); padding: 10px 4px 8px; cursor: pointer; }
+  .tabs button.on { color: var(--brand); text-shadow: 2px 2px 0 var(--na-bg); }
+  .sprite { image-rendering: pixelated; width: 96px; height: 96px; display: block; }
+  .sprite.sm { width: 48px; height: 48px; }
+  .hp { height: 14px; border: 3px solid var(--ink); background: var(--na-bg); position: relative; }
+  .hp i { display: block; height: 100%; background: var(--ok); transition: width .3s; }
+  .hp.mid i { background: var(--low); } .hp.low i { background: var(--high); }
+  .stat { display: grid; grid-template-columns: 78px 1fr auto; gap: 6px; align-items: center; font-size: .86rem; padding: 2px 0; }
+  .stat .bar { height: 8px; border: 2px solid var(--ink); background: var(--na-bg); } .stat .bar i { display: block; height: 100%; background: var(--brand); }
+  .stat .v { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 52px; text-align: right; }
+  .log { min-height: 74px; font-size: .95rem; }
+  .log p { margin: 0 0 4px; } .log p.me { color: var(--brand); } .log p.foe { color: var(--high); } .log p.win { color: var(--ok); font-weight: 600; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .crea { background: var(--card); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--sh); padding: 8px 6px; text-align: center; cursor: pointer; font-size: .82rem; }
+  .crea .sprite { margin: 0 auto 4px; width: 64px; height: 64px; }
+  .crea.wild { border-color: var(--high); }
+  .crea small { display: block; color: var(--muted); font-size: .72rem; }
+  .tag { display: inline-block; font-size: .7rem; padding: 1px 6px; border: 2px solid var(--ink); background: var(--na-bg); margin-right: 4px; }
+  .tag.wild { background: var(--high); color: #fff; border-color: var(--ink); }
+  .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .slot { aspect-ratio: 1; border: 3px solid var(--ink); background: var(--na-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: .66rem; padding: 3px; cursor: pointer; position: relative; overflow: hidden; }
+  .slot.empty { opacity: .55; cursor: default; }
+  .slot .pc { width: 22px; height: 22px; image-rendering: pixelated; margin-bottom: 2px; }
+  .slot .rr { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .r-common { background: var(--c-common); } .r-uncommon { background: var(--c-uncommon); } .r-rare { background: var(--c-rare); } .r-vrare { background: var(--c-vrare); } .r-epic { background: var(--c-epic); } .r-legend { background: var(--c-legend); }
+  .t-common { color: var(--c-common); } .t-uncommon { color: var(--c-uncommon); } .t-rare { color: var(--c-rare); } .t-vrare { color: var(--c-vrare); } .t-epic { color: var(--c-epic); } .t-legend { color: var(--c-legend); }
+  .equip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .equip .slot { aspect-ratio: auto; min-height: 64px; }
+  .kv { display: flex; justify-content: space-between; gap: 10px; font-size: .9rem; padding: 3px 0; border-bottom: 2px dotted var(--na-bg); }
+  .kv:last-child { border-bottom: none; }
+  .file { font-size: .8rem; color: var(--muted); margin: 0; }
+  .file input { font: inherit; font-size: .75rem; }
+  .loot { text-align: center; }
+  .loot .big { font-size: 1.2rem; font-weight: 600; margin: 6px 0; }
+  .shake { animation: shake .35s; } @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  .flash { animation: flash .35s; } @keyframes flash { 50% { opacity: .2; } }
+  @media (prefers-reduced-motion: reduce) { .shake, .flash { animation: none; } }
+  .sets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: .82rem; }
+  .sets div { border: 2px solid var(--ink); padding: 6px; }
+  .hint { font-size: .8rem; color: var(--muted); }
+</style>
+
+<div class="app" id="app"></div>
+<nav class="tabs" id="tabs">
+  <button data-v="dex">Créatures</button><button data-v="bag">Sac</button><button data-v="me">Dresseur</button>
+</nav>
+
+<script id="data" type="application/json">{"residences": {}, "pools": [], "readings": [], "visits": [], "exportedAt": "2026-09-20"}</script>
+<script>
+(() => {
+  'use strict';
+  // ------------------------------------------------------------ data
+  let D = JSON.parse(document.getElementById('data').textContent);
+  try { const o = sessionStorage.getItem('lq-data'); if (o) { const d = JSON.parse(o); if (d.pools) D = { residences: Object.fromEntries((d.residences || []).map((r) => [r.code, r.name])), pools: d.pools.filter((p) => !p.nonPool), readings: (d.readings || []).filter((r) => !r.deleted), visits: (d.visits || []).filter((v) => !v.deleted && v.poolId), exportedAt: new Date().toISOString().slice(0, 10) }; } } catch (_) {}
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const el = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
+  const day = (iso) => iso.slice(0, 10);
+  const NOW = new Date(D.exportedAt + 'T18:00:00');
+  const daysSince = (iso) => iso ? (NOW - new Date(iso)) / 864e5 : 999;
+  const PRODUCTS = { 'hth-stick': { n: 'Stick', g: 300, kind: 'cl' }, 'hth-galet': { n: 'Galet', g: 200, kind: 'cl' }, 'hypomen-pro': { n: 'Choc', g: 1, kind: 'cl' }, 'hth-phminus': { n: 'pH-', kind: 'ph' }, 'mareva-phplus': { n: 'pH+', kind: 'ph' }, 'acti-floc': { n: 'Floc', kind: 'floc' } };
+
+  // ------------------------------------------------------------ seeded pixels
+  function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  const TYPES = {
+    galet: { n: 'Galet', pal: ['#f2c14e', '#e39b12', '#8a4a1e'] },
+    stick: { n: 'Stick', pal: ['#7ec8ff', '#2f4fdf', '#1a1c5a'] },
+    electro: { n: 'Électro', pal: ['#b5f27a', '#2aa845', '#7b3fc4'] },
+    couverte: { n: 'Couverte', pal: ['#c9b6e8', '#7b3fc4', '#20203a'] },
+  };
+  // 12×12 mirrored creature from the pool id — 23 pools, 23 sprites, forever the same
+  function sprite(id, type, size) {
+    const r = rng(hash(id)); const W = 12, H = 12, half = 6;
+    const cells = [];
+    for (let y = 0; y < H; y++) { cells[y] = []; for (let x = 0; x < half; x++) {
+      const cy = Math.abs(y - 6) / 6, cx = (half - x) / half; // denser in the middle
+      cells[y][x] = r() < 0.72 - 0.45 * (cy * cy + cx * cx * .6) ? 1 : 0;
+    } }
+    // guarantee a body core + an eye row
+    for (let y = 4; y < 9; y++) cells[y][half - 1] = 1;
+    const eyeY = 3 + Math.floor(r() * 3), eyeX = 1 + Math.floor(r() * 3);
+    const pal = TYPES[type].pal, dark = '#20203a';
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    const on = (x, y) => y >= 0 && y < H && x >= 0 && x < W && cells[y][x < half ? x : W - 1 - x];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (on(x, y)) { const shade = (y + (x < half ? x : W - 1 - x)) % 3; g.fillStyle = pal[shade === 0 ? 1 : shade === 1 ? 0 : 1]; if (y > 8) g.fillStyle = pal[2]; g.fillRect(x, y, 1, 1); }
+      else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = dark; g.fillRect(x, y, 1, 1); }
+    }
+    g.fillStyle = '#fff'; g.fillRect(eyeX, eyeY, 1, 1); g.fillRect(W - 1 - eyeX, eyeY, 1, 1);
+    g.fillStyle = dark; g.fillRect(eyeX, eyeY + 1, 1, 1); g.fillRect(W - 1 - eyeX, eyeY + 1, 1, 1);
+    const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'sprite' + (size === 'sm' ? ' sm' : ''); img.alt = ''; return img;
+  }
+  // 8×8 item glyph per slot, tinted by rarity
+  const SLOTS = ['tête', 'torse', 'main g.', 'main d.', 'jambes', 'pieds', 'amulette', 'cape'];
+  const GLYPH = { 'tête': ['..####..', '.######.', '##.##.##', '########', '.######.', '..#..#..', '........', '........'],
+    'torse': ['#.####.#', '########', '.######.', '.######.', '.######.', '.######.', '.##..##.', '........'],
+    'main g.': ['...##...', '..####..', '.##..##.', '.##..##.', '..####..', '...##...', '...##...', '........'],
+    'main d.': ['...##...', '..####..', '.##..##.', '.##..##.', '..####..', '...##...', '...##...', '........'],
+    'jambes': ['.######.', '.##..##.', '.##..##.', '.##..##.', '.##..##.', '.##..##.', '###..###', '........'],
+    'pieds': ['........', '........', '.##..##.', '.##..##.', '###..###', '###..###', '###..###', '........'],
+    'amulette': ['..#..#..', '.#....#.', '#......#', '#......#', '.#....#.', '..####..', '..####..', '...##...'],
+    'cape': ['..####..', '.######.', '########', '########', '########', '.######.', '..####..', '.#....#.'] };
+  const RAR = [['common', 'Commun', .20], ['uncommon', 'Peu commun', .10], ['rare', 'Rare', .05], ['vrare', 'Très rare', .01], ['epic', 'Épique', .001], ['legend', 'Légendaire', .0001]];
+  const RCOL = { common: '#6b7a87', uncommon: '#2aa845', rare: '#2f4fdf', vrare: '#7b3fc4', epic: '#e39b12', legend: '#d82f2f' };
+  const SETS = { common: "de l'Écumeur", uncommon: 'du Skimmer', rare: 'de la Marée', vrare: "de l'Électrolyseur", epic: 'des Dunes', legend: 'du Trident de Lacanau' };
+  function glyph(slot, rar) {
+    const rows = GLYPH[slot]; const c = document.createElement('canvas'); c.width = 8; c.height = 8; const g = c.getContext('2d');
+    rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') { g.fillStyle = RCOL[rar]; g.fillRect(x, y, 1, 1); } }));
+    const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'pc'; img.alt = ''; return img;
+  }
+
+  // ------------------------------------------------------------ creatures from the log
+  function creature(p) {
+    const R = D.readings.filter((r) => r.poolId === p.id).sort((a, b) => b.at.localeCompare(a.at));
+    const V = D.visits.filter((v) => v.poolId === p.id).sort((a, b) => b.at.localeCompare(a.at));
+    const last = R[0] || null;
+    const lastVisit = V[0] ? V[0].at : (last ? last.at : null);
+    const level = new Set(V.map((v) => day(v.at)).concat(R.map((r) => day(r.at)))).size;
+    const vol = p.volM3 || 40;
+    const cl28 = V.filter((v) => v.type === 'treatment' && daysSince(v.at) <= 28 && PRODUCTS[v.productId] && PRODUCTS[v.productId].kind === 'cl').reduce((a, v) => a + (v.qty || 0) * (PRODUCTS[v.productId].g || 1), 0);
+    const faim = cl28 / vol / 4; // g per m³ per week over the last four weeks
+    const feed = {}; V.forEach((v) => { if (v.type === 'treatment' && v.productId) feed[v.productId] = (feed[v.productId] || 0) + 1; });
+    const type = p.salt ? 'electro' : p.covered ? 'couverte' : (feed['hth-galet'] || 0) > (feed['hth-stick'] || 0) ? 'galet' : 'stick';
+    const lastWash = V.find((v) => v.type === 'backwash');
+    const washes = V.filter((v) => v.type === 'backwash').map((v) => v.at).sort();
+    let interval = 10; if (washes.length > 2) { const gaps = []; for (let i = 1; i < washes.length; i++) gaps.push((new Date(washes[i]) - new Date(washes[i - 1])) / 864e5); gaps.sort((a, b) => a - b); interval = Math.max(4, gaps[Math.floor(gaps.length / 2)]); }
+    const filtre = lastWash ? daysSince(lastWash.at) : 30;
+    const sable = p.sandDate ? (NOW - new Date(p.sandDate)) / 365.25 / 864e5 : null;
+    const humeur = daysSince(lastVisit);
+    const cleans = V.filter((v) => v.type === 'service' && v.task).length;
+    return { p, id: p.id, name: `${p.res} ${p.unit}`, line: D.residences[p.res] || p.res, type, level, vol, last, lastVisit, faim, filtre, interval, sable, humeur, cleans,
+      wild: humeur > 5 || hp(stateFrom(last, humeur, V, vol)) < 60,
+      base: stateFrom(last, humeur, V, vol) };
+  }
+  function stateFrom(last, humeur, V, vol) {
+    // battle state: the water as it probably is now — the last reading, minus
+    // a gentle daily loss, plus every dose logged since (a stick keeps feeding)
+    const d = Math.min(14, last ? daysSince(last.at) : 7);
+    let cl = last && last.chlorine != null ? last.chlorine - 0.12 * d : 0.5;
+    (V || []).filter((v) => v.type === 'treatment' && (!last || v.at > last.at) && PRODUCTS[v.productId] && PRODUCTS[v.productId].kind === 'cl').forEach((v) => {
+      const g = (v.qty || 0) * (PRODUCTS[v.productId].g || 1); cl += (g / (vol || 40)) * 0.045 * Math.max(0.25, 1 - daysSince(v.at) / 8);
+    });
+    cl = Math.max(0.1, Math.min(4, cl));
+    const ph = last && last.ph != null ? last.ph + 0.02 * d : 7.5;
+    const cya = last && last.stabilizer != null ? last.stabilizer : 30;
+    return { cl: +cl.toFixed(2), ph: +ph.toFixed(2), cya, dirt: Math.min(3, Math.floor(((humeur || d) + 1) / 2.5)), filtre: 0 };
+  }
+  function hp(s) {
+    let pen = 0;
+    if (s.cl < 1) pen += (1 - s.cl) * 45; else if (s.cl > 3) pen += (s.cl - 3) * 12;
+    if (s.ph < 7.0) pen += (7.0 - s.ph) * 60; else if (s.ph > 7.6) pen += (s.ph - 7.6) * 60;
+    pen += (s.dirt || 0) * 9;
+    pen += Math.max(0, (s.filtre || 0) - 14) * 2;
+    return Math.max(0, Math.min(100, Math.round(100 - pen)));
+  }
+  const CREA = D.pools.map(creature).sort((a, b) => b.level - a.level);
+
+  // ------------------------------------------------------------ game state (device-local, game only)
+  const KEY = 'lagrange-quest.v1';
+  let G; try { G = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (_) { G = null; }
+  if (!G) G = { xp: 0, wins: 0, fights: 0, bag: [], equip: {}, seen: {}, calmed: {}, name: 'Loki' };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(G)); } catch (_) {} };
+  const trainerLevel = () => Math.floor(Math.sqrt(G.xp / 12)) + 1;
+
+  // ------------------------------------------------------------ views
+  let view = 'dex', battle = null;
+  const app = $('app');
+  function show(v) { view = v; battle = v === 'battle' ? battle : null; render(); }
+  document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => show(b.dataset.v)));
+  function render() {
+    document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.v === view || (view === 'battle' && b.dataset.v === 'dex')));
+    app.innerHTML = '';
+    ({ dex: viewDex, bag: viewBag, me: viewMe, battle: viewBattle, loot: viewLoot })[view]();
+    window.scrollTo(0, 0);
+  }
+
+  function viewDex() {
+    app.appendChild(el(`<h1>Lagrange Quest</h1>`));
+    const wild = CREA.filter((c) => c.wild).length;
+    app.appendChild(el(`<p class="sub">23 créatures · ${wild} sauvages · données du ${D.exportedAt}</p>`));
+    const g = el('<div class="grid3"></div>');
+    CREA.forEach((c) => {
+      const card = el(`<div class="crea${c.wild ? ' wild' : ''}"></div>`);
+      card.appendChild(sprite(c.id, c.type));
+      card.appendChild(el(`<div><b>${esc(c.name)}</b><small>Nv ${c.level} · ${TYPES[c.type].n}</small>${c.wild ? '<small style="color:var(--high)">sauvage</small>' : G.calmed[c.id] ? '<small style="color:var(--ok)">apaisée</small>' : '<small>&nbsp;</small>'}</div>`));
+      card.addEventListener('click', () => startBattle(c));
+      g.appendChild(card);
+    });
+    app.appendChild(g);
+    app.appendChild(el(`<p class="hint">Tape une créature pour l'affronter — les sauvages n'ont pas vu de passage depuis 5 jours ou ont une eau déséquilibrée. Le niveau est le nombre de passages de la saison.</p>`));
+  }
+
+  // ------------------------------------------------------------ battle
+  function startBattle(c) {
+    G.seen[c.id] = true; save();
+    battle = { c, s: { ...c.base }, turn: 0, log: [], acts: { chem: 0, clean: 0, filt: 0, mes: 0 }, measured: false, menu: 'main', over: false };
+    battle.log.push({ k: 'foe', t: `Une ${c.name} sauvage apparaît ! (${TYPES[c.type].n}, Nv ${c.level})` });
+    view = 'battle'; render();
+  }
+  const stat = (label, v, max, txt) => `<div class="stat"><span>${label}</span><span class="bar"><i style="width:${Math.min(100, Math.round(v / max * 100))}%"></i></span><span class="v">${txt}</span></div>`;
+  function viewBattle() {
+    const b = battle, c = b.c, H = hp(b.s);
+    const wrap = el('<div></div>');
+    const head = el(`<div class="box"><div class="row"><div class="grow"><b>${esc(c.name)}</b> <span class="tag">${TYPES[c.type].n}</span><span class="tag">Nv ${c.level}</span>${c.wild ? '<span class="tag wild">sauvage</span>' : ''}
+      <div class="hp ${H < 40 ? 'low' : H < 75 ? 'mid' : ''}" style="margin:6px 0"><i style="width:${H}%"></i></div><div class="hint">PV ${H}/100 · tour ${b.turn}</div></div><div id="sp"></div></div></div>`);
+    head.querySelector('#sp').appendChild(sprite(c.id, c.type));
+    wrap.appendChild(head);
+    const q = (x) => b.measured ? x : '?';
+    wrap.appendChild(el(`<div class="box">
+      ${stat('Faim', c.faim, 40, c.faim.toFixed(0) + ' g/m³/sem')}
+      ${stat('Chlore', b.s.cl, 4, q(b.s.cl.toFixed(1)) + ' ppm')}
+      ${stat('pH', Math.abs(b.s.ph - 7.3) * 2, 1.2, q(b.s.ph.toFixed(2)))}
+      ${stat('Saleté', b.s.dirt, 3, ['propre', 'feuilles', 'sale', 'très sale'][b.s.dirt])}
+      ${stat('Filtre', c.filtre + b.s.filtre, Math.max(c.interval * 2, 1), (c.filtre + b.s.filtre).toFixed(0) + ' j (rythme ' + c.interval.toFixed(0) + ')')}
+      ${c.sable != null ? stat('Sable', c.sable, 6, c.sable.toFixed(1) + ' ans') : ''}
+      ${stat('Masse', c.vol, 70, c.vol + ' m³')}
+    </div>`));
+    const log = el('<div class="box log"></div>');
+    b.log.slice(-4).forEach((l) => log.appendChild(el(`<p class="${l.k}">${esc(l.t)}</p>`)));
+    wrap.appendChild(log);
+    const menu = el('<div class="menu"></div>');
+    const btn = (label, fn, cls) => { const x = el(`<button class="btn ${cls || ''}">${label}</button>`); x.addEventListener('click', fn); return x; };
+    if (b.over) {
+      menu.appendChild(btn('Butin ▸', () => { view = 'loot'; render(); }, 'p'));
+      menu.appendChild(btn('Retour', () => show('dex')));
+    } else if (b.menu === 'main') {
+      menu.appendChild(btn('Chimie ▸', () => { b.menu = 'chem'; render(); }));
+      menu.appendChild(btn('Nettoyer ▸', () => { b.menu = 'clean'; render(); }));
+      menu.appendChild(btn('Filtre ▸', () => { b.menu = 'filt'; render(); }));
+      menu.appendChild(btn(b.measured ? 'Mesurer ✓' : 'Mesurer', () => act('mes', 'mesure'), b.measured ? 'dis' : ''));
+      menu.appendChild(btn('Fuir', () => { b.log.push({ k: 'foe', t: `Tu prends la fuite. ${c.name} reste sauvage.` }); b.over = true; b.fled = true; render(); }));
+    } else if (b.menu === 'chem') {
+      [['Stick', 'stick'], ['Galet', 'galet'], ['Choc', 'choc'], ['pH−', 'phm'], ['pH+', 'php'], ['◂ retour', 'back']].forEach(([l, k]) => menu.appendChild(btn(l, () => k === 'back' ? (b.menu = 'main', render()) : act('chem', k))));
+    } else if (b.menu === 'clean') {
+      [['Balai', 'balai'], ['Robot', 'robot'], ['Skimmer', 'skimmer'], ['◂ retour', 'back']].forEach(([l, k]) => menu.appendChild(btn(l, () => k === 'back' ? (b.menu = 'main', render()) : act('clean', k))));
+    } else if (b.menu === 'filt') {
+      [['Lavage', 'lavage'], ['Sable neuf', 'sable'], ['◂ retour', 'back']].forEach(([l, k]) => menu.appendChild(btn(l, () => k === 'back' ? (b.menu = 'main', render()) : act('filt', k))));
+    }
+    wrap.appendChild(menu);
+    app.appendChild(wrap);
+  }
+  const WEATHER = [['Canicule', 'cl', -0.2, 'la chaleur brûle le chlore'], ['Pluie', 'ph', +0.1, "l'eau de pluie fait monter le pH"], ['Vent de sable', 'dirt', +1, 'les feuilles et le sable tombent'], ['Locataires', 'cl', -0.3, 'baignade de 14 h — le chlore plonge'], ['Calme plat', null, 0, 'rien ne bouge'], ['Calme plat', null, 0, 'la piscine te regarde']];
+  function act(kind, k) {
+    const b = battle, s = b.s, c = b.c, per40 = 40 / c.vol;
+    b.acts[kind]++; b.turn++; b.menu = 'main';
+    const mine = (t) => b.log.push({ k: 'me', t: `${G.name} utilise ${t}` });
+    if (kind === 'mes') { b.measured = true; mine('MESURER : les vraies valeurs apparaissent.'); }
+    if (k === 'stick') { s.cl = +(s.cl + 0.6 * per40).toFixed(2); mine(`STICK · +${(0.6 * per40).toFixed(1)} ppm de chlore lent.`); }
+    if (k === 'galet') { s.cl = +(s.cl + 0.5 * per40).toFixed(2); s.cya += 3; mine(`GALET · +${(0.5 * per40).toFixed(1)} ppm, +3 stabilisant.`); }
+    if (k === 'choc') { s.cl = +(s.cl + 1.8 * per40).toFixed(2); mine(`CHOC · +${(1.8 * per40).toFixed(1)} ppm d'un coup.`); }
+    if (k === 'phm') { s.ph = +(s.ph - 0.3).toFixed(2); mine('pH− · −0,3.'); }
+    if (k === 'php') { s.ph = +(s.ph + 0.3).toFixed(2); mine('pH+ · +0,3.'); }
+    if (k === 'balai') { s.dirt = Math.max(0, s.dirt - 1); mine('BALAI · le fond redevient net.'); }
+    if (k === 'skimmer') { s.dirt = Math.max(0, s.dirt - 1); mine('SKIMMER · paniers vidés.'); }
+    if (k === 'robot') { s.dirt = Math.max(0, s.dirt - 2); mine('ROBOT · double passage.'); }
+    if (k === 'lavage') { c.filtre = 0; s.filtre = 0; mine('LAVAGE · contre-lavage, filtre remis à zéro.'); }
+    if (k === 'sable') { if (c.sable != null && c.sable > 3) { c.sable = 0; mine('SABLE NEUF · le filtre respire.'); } else { mine('SABLE NEUF · inutile, le sable est encore bon.'); } }
+    // the creature's turn: the weather
+    const w = WEATHER[Math.floor(Math.random() * WEATHER.length)];
+    if (w[1] === 'cl') s.cl = +Math.max(0, s.cl + w[2]).toFixed(2); if (w[1] === 'ph') s.ph = +(s.ph + w[2]).toFixed(2); if (w[1] === 'dirt') s.dirt = Math.min(3, s.dirt + w[2]);
+    b.log.push({ k: 'foe', t: `${c.name} utilise ${w[0].toUpperCase()} — ${w[3]}.` });
+    const H = hp(s);
+    const real = b.acts.chem + b.acts.clean + b.acts.filt;
+    if (H >= 85 && real >= 1 && b.turn >= 2) { b.over = true; b.won = true; G.wins++; G.fights++; G.calmed[c.id] = true; G.xp += 10 + c.level; b.log.push({ k: 'win', t: `${c.name} est apaisée ! +${10 + c.level} XP` }); }
+    else if (b.turn >= 10) { b.over = true; G.fights++; b.log.push({ k: 'foe', t: `${c.name} s'enfuit dans les dunes… (10 tours)` }); }
+    save(); render();
+    const sp = document.querySelector('#sp img'); if (sp) sp.classList.add(kind === 'mes' ? 'flash' : 'shake');
+  }
+
+  // ------------------------------------------------------------ loot
+  function rollLoot(b) {
+    const r = Math.random(); let acc = 0, tier = null;
+    for (let i = RAR.length - 1; i >= 0; i--) { acc += RAR[i][2]; if (r < acc) { tier = RAR[i]; break; } }
+    if (!tier) return null;
+    // the slot follows what you did: chemistry → amulette/torse, cleaning → hands/feet, filter → legs/cape, measuring → head
+    const pool = [];
+    const a = b.acts; pool.push(...Array(1 + a.mes * 3).fill('tête'), ...Array(1 + a.chem * 2).fill('amulette'), ...Array(1 + a.chem).fill('torse'), ...Array(1 + a.clean).fill('main g.'), ...Array(1 + a.clean).fill('main d.'), ...Array(1 + a.clean).fill('pieds'), ...Array(1 + a.filt * 2).fill('jambes'), ...Array(1 + a.filt).fill('cape'));
+    const slot = pool[Math.floor(Math.random() * pool.length)];
+    const piece = { 'tête': 'Casque', 'torse': 'Plastron', 'main g.': 'Bague', 'main d.': 'Bague', 'jambes': 'Jambières', 'pieds': 'Bottes', 'amulette': 'Amulette', 'cape': 'Cape' }[slot];
+    return { id: 'it-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), slot, rar: tier[0], name: `${piece} ${SETS[tier[0]]}`, from: b.c.name, at: D.exportedAt };
+  }
+  function viewLoot() {
+    const b = battle;
+    if (b.loot === undefined) b.loot = b.won ? rollLoot(b) : null;
+    const box = el('<div class="box loot"></div>');
+    if (!b.won) box.innerHTML = `<div class="big">Pas de butin.</div><p class="hint">${b.fled ? 'Fuir ne rapporte rien — mais la piscine t\'attend demain.' : 'Dix tours et la créature s\'est échappée.'}</p>`;
+    else if (!b.loot) box.innerHTML = `<div class="big">${esc(b.c.name)} ne laisse rien tomber.</div><p class="hint">Un butin tombe environ une fois sur trois.</p>`;
+    else {
+      const it = b.loot;
+      const full = G.bag.length >= 32;
+      box.innerHTML = `<div class="hint">${esc(b.c.name)} laisse tomber</div><div class="big t-${it.rar}">${esc(it.name)}</div><div class="hint">${RAR.find((x) => x[0] === it.rar)[1]} · ${it.slot}</div>${full ? '<p style="color:var(--high)">Sac plein (32) — objet perdu.</p>' : ''}`;
+      box.insertBefore(glyph(it.slot, it.rar), box.firstChild); box.firstChild.style.width = '48px'; box.firstChild.style.height = '48px'; box.firstChild.style.margin = '4px auto 6px'; box.firstChild.style.display = 'block';
+      if (!full && !b.banked) { G.bag.push(it); b.banked = true; save(); }
+    }
+    const menu = el('<div class="menu"></div>');
+    const x = el('<button class="btn p">Continuer</button>'); x.addEventListener('click', () => show('dex')); menu.appendChild(x);
+    const y = el('<button class="btn">Sac ▸</button>'); y.addEventListener('click', () => show('bag')); menu.appendChild(y);
+    app.appendChild(el('<h1>Butin</h1>')); app.appendChild(box); app.appendChild(menu);
+  }
+
+  // ------------------------------------------------------------ bag + equipment
+  function viewBag() {
+    app.appendChild(el('<h1>Équipement</h1>'));
+    const eq = el('<div class="box"><div class="equip" id="eq"></div></div>');
+    SLOTS.forEach((sl) => {
+      const it = G.equip[sl];
+      const d = el(`<div class="slot${it ? '' : ' empty'}"><span>${sl}</span></div>`);
+      if (it) { d.insertBefore(glyph(it.slot, it.rar), d.firstChild); d.appendChild(el(`<span class="rr r-${it.rar}"></span>`)); d.appendChild(el(`<b class="t-${it.rar}" style="font-size:.6rem">${esc(it.name.split(' ')[0])}</b>`)); d.addEventListener('click', () => { if (G.bag.length < 32) { G.bag.push(it); delete G.equip[sl]; save(); render(); } }); }
+      eq.querySelector('#eq').appendChild(d);
+    });
+    app.appendChild(eq);
+    // set bonuses: pieces of one panoplie worn together
+    const counts = {}; Object.values(G.equip).forEach((it) => { counts[it.rar] = (counts[it.rar] || 0) + 1; });
+    const sets = el('<div class="box"><b>Panoplies</b><div class="sets" style="margin-top:6px"></div></div>');
+    RAR.forEach(([k, n]) => sets.querySelector('.sets').appendChild(el(`<div><span class="t-${k}">${n}</span><br>${counts[k] || 0} / 8 portées<br><small class="hint">${(RAR.find((x) => x[0] === k)[2] * 100).toFixed(2).replace('.', ',')} % par combat</small></div>`)));
+    app.appendChild(sets);
+    app.appendChild(el(`<h1 style="font-size:1.2rem">Sac <span class="hint">${G.bag.length} / 32</span></h1>`));
+    const bag = el('<div class="box"><div class="slots"></div></div>');
+    for (let i = 0; i < 32; i++) {
+      const it = G.bag[i];
+      const d = el(`<div class="slot${it ? '' : ' empty'}"></div>`);
+      if (it) { d.appendChild(glyph(it.slot, it.rar)); d.appendChild(el(`<span>${esc(it.slot)}</span>`)); d.appendChild(el(`<span class="rr r-${it.rar}"></span>`)); d.title = `${it.name} · ${it.from}`;
+        d.addEventListener('click', () => { const prev = G.equip[it.slot]; G.equip[it.slot] = it; G.bag.splice(i, 1); if (prev) G.bag.push(prev); save(); render(); }); }
+      bag.querySelector('.slots').appendChild(d);
+    }
+    app.appendChild(bag);
+    app.appendChild(el('<p class="hint">Tape un objet du sac pour l\'équiper ; tape une pièce portée pour la ranger. Une panoplie est six raretés de huit pièces — 48 pièces à trouver, chaque créature peut laisser tomber n\'importe laquelle.</p>'));
+  }
+
+  // ------------------------------------------------------------ trainer
+  function viewMe() {
+    const byOp = {}; D.visits.forEach((v) => { const k = v.by || '—'; byOp[k] = byOp[k] || { n: 0, d: new Set(), bw: 0, tr: 0 }; byOp[k].n++; byOp[k].d.add(v.poolId + day(v.at)); if (v.type === 'backwash') byOp[k].bw++; if (v.type === 'treatment') byOp[k].tr++; });
+    app.appendChild(el('<h1>Dresseur</h1>'));
+    const box = el(`<div class="box"><div class="row"><div class="grow"><b style="font-size:1.2rem">${esc(G.name)}</b> <span class="tag">Nv ${trainerLevel()}</span><div class="hint">${G.xp} XP · ${G.wins} apaisées / ${G.fights} combats</div></div>
+      <button class="btn" id="rename">✎</button></div></div>`);
+    box.querySelector('#rename').addEventListener('click', () => { const n = prompt('Nom du dresseur', G.name); if (n) { G.name = n.trim().slice(0, 14) || G.name; save(); render(); } });
+    app.appendChild(box);
+    // badges: a residence is an arène — held when none of its pools is wild
+    const badges = el('<div class="box"><b>Arènes</b><div class="sets" style="margin-top:6px"></div></div>');
+    Object.entries(D.residences).forEach(([code, name]) => { const cs = CREA.filter((c) => c.p.res === code); if (!cs.length) return; const held = cs.every((c) => !c.wild || G.calmed[c.id]); badges.querySelector('.sets').appendChild(el(`<div><b>${esc(code)}</b> ${esc(name)}<br><span class="${held ? 't-uncommon' : 'hint'}">${held ? 'badge tenu' : cs.filter((c) => c.wild && !G.calmed[c.id]).length + ' sauvage(s)'}</span></div>`)); });
+    app.appendChild(badges);
+    const score = el('<div class="box"><b>Tableau de la saison</b><div style="margin-top:6px"></div></div>');
+    Object.entries(byOp).filter(([k]) => k !== '—').sort((a, b) => b[1].d.size - a[1].d.size).forEach(([k, v]) => score.lastElementChild.appendChild(el(`<div class="kv"><span>${esc(k)}</span><span>${v.d.size} passages · ${v.tr} doses · ${v.bw} lavages</span></div>`)));
+    app.appendChild(score);
+    const f = el(`<div class="box"><p class="file">Autre sauvegarde (export « données seules ») : <input type="file" accept="application/json" id="load"></p></div>`);
+    f.querySelector('#load').addEventListener('change', async (e) => { const t = await e.target.files[0].text(); try { const d = JSON.parse(t); if (!d.pools) throw 0; sessionStorage.setItem('lq-data', t); location.reload(); } catch (_) { alert('Fichier non reconnu'); } });
+    app.appendChild(f);
+  }
+
+  render();
+})();
+</script>
