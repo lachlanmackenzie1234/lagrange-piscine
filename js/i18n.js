@@ -191,7 +191,7 @@ const I18n = (() => {
       
       note_log_ph: 'e.g. check AG 8 — going green · tile to fix · skimmer broke · set to auto',
       note_pool_ph: 'quick note…', water_word: 'watering',
-      note_todo: 'To-do (needs action)',
+      note_todo: 'To-do',
       note_general: 'General',
       note_save: 'Add',
       todos_title: 'To-do ({n})',
@@ -395,7 +395,7 @@ const I18n = (() => {
       
       note_log_ph: 'ex. vérifier AG 8 — verdit · carreau à réparer · skimmer cassé · mettre en auto',
       note_pool_ph: 'note rapide…', water_word: 'arrosage',
-      note_todo: 'À faire (action requise)',
+      note_todo: 'À faire',
       note_general: 'Général',
       note_save: 'Ajouter',
       todos_title: 'À faire ({n})',

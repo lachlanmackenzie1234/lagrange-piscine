@@ -546,7 +546,7 @@
         ${opts}
         ${hideTodo ? '' : `<label class="nf-todo"><input type="checkbox" name="todo" hidden>${ico('check', 'ic-sm')} ${esc(t('note_todo'))}</label>`}
         <label class="photo-btn" title="photo">${ico('camera')}<span class="nf-count"></span><input type="file" accept="image/*" class="note-photos" multiple hidden></label>
-        ${showPicker ? `<a class="nf-log" href="#/log">${esc(t('see_all'))} ${ico('chevron-r')}</a>` : ''}
+        ${showPicker ? `<a class="nf-log" href="#/log">${esc(t('see_all'))}</a>` : ''}
       </div>
     </form>`);
     const photosIn = f.querySelector('.note-photos');
