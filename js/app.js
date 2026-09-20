@@ -8,23 +8,52 @@
   // Theme: mode (auto / light / dark) + palette, device-local, applied on <html>
   // (index.html applies the saved choice before first paint; this keeps it live).
   const THEME_KEY = 'lagrange-piscine.theme';
-  const PALETTES = [['ocean', '#123a5e', '#2b8fd0'], ['dune', '#5a3e2b', '#b8622a'], ['pin', '#1f4d3a', '#2f8f66']];
+  const STYLES = ['ocean', 'minimal', 'tableau', 'pixel'];
   const Theme = {
-    get() { try { return { mode: 'auto', palette: 'ocean', ...JSON.parse(localStorage.getItem(THEME_KEY) || '{}') }; } catch (_) { return { mode: 'auto', palette: 'ocean' }; } },
+    get() { try { const th = JSON.parse(localStorage.getItem(THEME_KEY) || '{}'); return { mode: 'auto', style: STYLES.includes(th.style) ? th.style : 'ocean', ...(th.mode ? { mode: th.mode } : {}) }; } catch (_) { return { mode: 'auto', style: 'ocean' }; } },
     set(patch) {
       const th = { ...Theme.get(), ...patch };
       try { localStorage.setItem(THEME_KEY, JSON.stringify(th)); } catch (_) {}
       const r = document.documentElement;
       if (th.mode === 'auto') delete r.dataset.mode; else r.dataset.mode = th.mode;
-      if (th.palette === 'ocean') delete r.dataset.palette; else r.dataset.palette = th.palette;
+      if (th.style === 'ocean') delete r.dataset.style; else r.dataset.style = th.style;
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.content = getComputedStyle(r).getPropertyValue('--navy').trim() || '#123a5e';
     },
+    pixel: () => document.documentElement.dataset.style === 'pixel',
   };
+  // Pixel skin sidecar: photos go through a 48-px canvas and come back up
+  // pixelated — the real gate photo as pixel art. Cached per photo; the first
+  // paint shows the original and re-renders once the small version exists.
+  const Pixel = (() => {
+    const cache = new Map(); const pending = new Set();
+    function src(rec) {
+      if (!Theme.pixel() || !rec || !rec.dataUrl) return rec ? rec.dataUrl : '';
+      if (cache.has(rec.id)) return cache.get(rec.id);
+      if (!pending.has(rec.id)) {
+        pending.add(rec.id);
+        const im = new Image();
+        im.onload = () => {
+          try {
+            const w = 48, h = Math.max(1, Math.round(w * im.naturalHeight / im.naturalWidth));
+            const c = document.createElement('canvas'); c.width = w; c.height = h;
+            const cx = c.getContext('2d'); cx.imageSmoothingEnabled = false; cx.drawImage(im, 0, 0, w, h);
+            cache.set(rec.id, c.toDataURL('image/png'));
+          } catch (_) { cache.set(rec.id, rec.dataUrl); }
+          pending.delete(rec.id);
+          if (Theme.pixel()) render();
+        };
+        im.onerror = () => { cache.set(rec.id, rec.dataUrl); pending.delete(rec.id); };
+        im.src = rec.dataUrl;
+      }
+      return rec.dataUrl;
+    }
+    return { src };
+  })();
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.78'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.79'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -400,7 +429,7 @@
     const wrap = el(`<div class="thumb"><button class="thumb-del" title="delete">${ico('x')}</button></div>`);
     const img = document.createElement('img');
     img.loading = 'lazy';
-    img.src = rec.dataUrl;
+    img.src = Pixel.src(rec);
     img.addEventListener('click', () => openPhoto(rec.id));
     wrap.insertBefore(img, wrap.firstChild);
     wrap.querySelector('.thumb-del').addEventListener('click', (e) => {
@@ -420,7 +449,7 @@
     const hero = el(`<div class="photo-hero ${ph ? '' : 'empty'}"></div>`);
     if (minH) hero.style.minHeight = minH;
     if (ph) {
-      hero.style.backgroundImage = `url('${ph.dataUrl}')`;
+      hero.style.backgroundImage = `url('${Pixel.src(ph)}')`;
       hero.appendChild(el('<div class="hero-scrim"></div>'));
     }
     const ctrls = el('<div class="hero-ctrls"></div>');
@@ -1122,7 +1151,7 @@
     if (ph) {
       const hero = el('<div class="photo-hero overlay-bottom"></div>');
       hero.style.minHeight = opts.minH || '340px';
-      hero.style.backgroundImage = `url('${ph.dataUrl}')`;
+      hero.style.backgroundImage = `url('${Pixel.src(ph)}')`;
       hero.appendChild(el('<div class="hero-scrim"></div>'));
       const ctrls = el('<div class="hero-ctrls"></div>');
       ctrls.appendChild(camInput(async (f) => { try { await Photos.remove(ph.id); } catch (_) {} try { await Photos.add({ poolId: p.id, label: key }, f); } catch (_) {} render(); }));
@@ -1839,12 +1868,12 @@
     const th = Theme.get();
     const modeSeg = el(`<span class="segv">${['auto', 'light', 'dark'].map((m) => `<span data-mode="${m}" class="${th.mode === m ? 'on' : ''}">${esc(t('theme_' + m))}</span>`).join('')}</span>`);
     modeSeg.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); Theme.set({ mode: b.dataset.mode }); render(); }));
-    const palRow = el(`<span class="pal-row">${PALETTES.map(([k, a, c]) => `<button type="button" class="pal-btn${th.palette === k ? ' on' : ''}" data-pal="${k}" title="${esc(t('pal_' + k))}" aria-label="${esc(t('pal_' + k))}" style="--p1:${a};--p2:${c}"></button>`).join('')}</span>`);
-    palRow.querySelectorAll('[data-pal]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); Theme.set({ palette: b.dataset.pal }); render(); }));
+    const styleSeg = el(`<span class="segv">${STYLES.map((k) => `<span data-style="${k}" class="${th.style === k ? 'on' : ''}">${esc(t('style_' + k))}</span>`).join('')}</span>`);
+    styleSeg.querySelectorAll('[data-style]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); Theme.set({ style: b.dataset.style }); render(); }));
     setGroup(wrap, t('set_app'), [
       updRow,
       setRow('sun', t('theme_title'), null, modeSeg, null),
-      setRow('palette', t('palette_title'), t('pal_' + th.palette), palRow, null),
+      setRow('palette', t('style_title'), null, styleSeg, null),
       setRow('globe', t('language'), null, seg, null),
       setRow('note', t('log_title'), null, null, () => { location.hash = '#/log'; }),
     ]);

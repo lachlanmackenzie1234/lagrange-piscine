@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#123a5e">
   <script>
-    // theme before first paint (no flash): {mode: auto|light|dark, palette: ocean|dune|pin}
+    // theme before first paint (no flash): {mode: auto|light|dark, style: ocean|minimal|tableau|pixel}
     try { const th = JSON.parse(localStorage.getItem('lagrange-piscine.theme') || '{}');
       if (th.mode === 'light' || th.mode === 'dark') document.documentElement.dataset.mode = th.mode;
-      if (th.palette && th.palette !== 'ocean') document.documentElement.dataset.palette = th.palette; } catch (_) {}
+      if (th.style && th.style !== 'ocean') document.documentElement.dataset.style = th.style; } catch (_) {}
   </script>
   <title>Lagrange Piscine</title>
   <link rel="manifest" href="manifest.webmanifest">
