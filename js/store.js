@@ -8,6 +8,11 @@ const Store = (() => {
 
   const slug = (s) => String(s).trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
   const poolId = (res, unit) => `${res}-${slug(unit)}`;
+  // Collision-proof ids. Date.now()+performance.now() alone collides when a
+  // roster import mints 30 rows inside one millisecond — twins sharing an id
+  // that deleteOccupancy could never fully tombstone ("Vider leaves rows").
+  let seq = 0;
+  const uid = (prefix) => `${prefix}-${Date.now()}-${(++seq).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
   let state = null;
 
@@ -42,6 +47,8 @@ const Store = (() => {
       coordsSeedVersion: COORDS_SEED,
       occSeedVersion: OCC_SEED,
       occAdopted: true,
+      occIdsFixed: true,
+      occCleared: {},   // week → ISO time of the last "Vider" (see clearWeek)
       createdAt: new Date().toISOString(),
     };
   }
@@ -83,6 +90,21 @@ const Store = (() => {
       state.occAdopted = true;
       save();
     }
+    // One-time: pre-v0.70 roster imports could mint twin rows sharing one id
+    // (same-millisecond ids). If any twin was Vider'd the whole set was meant
+    // to go; otherwise the extras get an id of their own so they finally sync.
+    if (!state.occIdsFixed) {
+      const byId = new Map();
+      (state.occupancy || []).forEach((o) => { if (!byId.has(o.id)) byId.set(o.id, []); byId.get(o.id).push(o); });
+      byId.forEach((rows) => {
+        if (rows.length < 2) return;
+        const dead = rows.find((o) => o.deleted);
+        if (dead) rows.forEach((o) => { o.deleted = true; o.deletedAt = o.deletedAt || dead.deletedAt; o.source = 'user'; });
+        else rows.slice(1).forEach((o) => { o.id = uid('occ-u'); });
+      });
+      state.occIdsFixed = true;
+      save();
+    }
     // occupancy: refresh the seed rows on version bump, but keep the operator's
     // own edits/additions (source:'user'), which override the matching cell.
     if ((state.occSeedVersion || 0) < OCC_SEED) {
@@ -118,8 +140,7 @@ const Store = (() => {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         state = JSON.parse(raw);
-        if (!state.schema) state.schema = SCHEMA;
-        ['readings', 'visits', 'notes'].forEach((k) => { if (!Array.isArray(state[k])) state[k] = []; });
+        normalize();
         migrate();
         return state;
       }
@@ -127,6 +148,13 @@ const Store = (() => {
     state = seedState();
     save();
     return state;
+  }
+
+  // Shape guarantees for a blob that came from disk or a backup file.
+  function normalize() {
+    if (!state.schema) state.schema = SCHEMA;
+    ['readings', 'visits', 'notes', 'occupancy'].forEach((k) => { if (!Array.isArray(state[k])) state[k] = []; });
+    if (!state.occCleared || typeof state.occCleared !== 'object') state.occCleared = {};
   }
 
   function save() {
@@ -157,7 +185,7 @@ const Store = (() => {
   // ---- mutations ----
   function addReading(r) {
     const rec = {
-      id: `rd-${Date.now()}-${Math.floor(performance.now())}`,
+      id: uid('rd'),
       poolId: r.poolId,
       at: r.at || new Date().toISOString(),
       ph: phNorm(r.ph),
@@ -190,7 +218,7 @@ const Store = (() => {
   // ---- visits (service log) ----
   function addVisit(poolId, opts = {}) {
     const rec = {
-      id: `vs-${Date.now()}-${Math.floor(performance.now())}`,
+      id: uid('vs'),
       poolId,
       at: opts.at || new Date().toISOString(),
       type: opts.type || 'service',
@@ -230,7 +258,7 @@ const Store = (() => {
   // sticks/galets/doses.
   function addTreatment(poolId, opts = {}) {
     const rec = {
-      id: `tr-${Date.now()}-${Math.floor(performance.now())}`,
+      id: uid('tr'),
       poolId,
       at: opts.at || new Date().toISOString(),
       type: 'treatment',
@@ -260,7 +288,7 @@ const Store = (() => {
   // ---- notes / to-dos (chronological, optionally tied to a pool) ----
   function addNote(n) {
     const rec = {
-      id: `nt-${Date.now()}-${Math.floor(performance.now())}`,
+      id: uid('nt'),
       at: n.at || new Date().toISOString(),
       text: (n.text || '').trim(),
       poolId: n.poolId || '',
@@ -331,7 +359,15 @@ const Store = (() => {
   }
   function applyRemotePool(poolId, fields) {
     const p = pool(poolId);
-    if (p) { Object.assign(p, fields); save(); }
+    if (!p) return;
+    const f = { ...fields };
+    // Fill-timer: last writer wins by `wateringAt`. A stale copy — Firestore's
+    // cached first snapshot, or the server's value when this phone's stop was
+    // made before sync was live — must not resurrect a timer already stopped
+    // (or restarted) here.
+    if ('watering' in f && f.wateringAt && p.wateringAt && f.wateringAt < p.wateringAt) { delete f.watering; delete f.wateringAt; }
+    Object.assign(p, f);
+    save();
   }
 
   // Once a record is deleted locally, a stale non-deleted copy arriving from
@@ -351,10 +387,11 @@ const Store = (() => {
   }
   function addOccupancy(entry) {
     const rec = {
-      id: `occ-u-${Date.now()}-${Math.floor(performance.now())}`,
+      id: uid('occ-u'),
       poolId: entry.poolId, week: entry.week,
       name: entry.name || '', arrival: entry.arrival || '', departure: entry.departure || '',
       status: entry.status || 'occupied', note: entry.note || '', source: 'user',
+      createdAt: new Date().toISOString(),
     };
     load().occupancy.push(rec);
     save();
@@ -362,15 +399,54 @@ const Store = (() => {
     return rec;
   }
   function deleteOccupancy(id) {
-    const o = load().occupancy.find((x) => x.id === id);
-    if (!o) return;
-    // soft-delete (tombstone) + source:'user' so the removal survives a re-seed
-    o.deleted = true; o.deletedAt = new Date().toISOString(); o.source = 'user';
+    const rows = load().occupancy.filter((x) => x.id === id);
+    if (!rows.length) return;
+    // soft-delete (tombstone) + source:'user' so the removal survives a re-seed.
+    // Every row carrying the id goes (legacy twins), not just the first match.
+    const at = new Date().toISOString();
+    rows.forEach((o) => { o.deleted = true; o.deletedAt = at; o.source = 'user'; });
     save();
-    mirror((s) => s.pushOccupancy(o));
+    mirror((s) => s.pushOccupancy(rows[0]));
+  }
+  // "Vider" is a statement about the WEEK, not about row ids: each phone
+  // imports the roster separately (different ids for the same cells), so an
+  // id-by-id tombstone from one phone can't reach the other's copies — its
+  // stale rows re-sync and the week never fully empties. clearWeek records
+  // "everything created before T is gone" and the marker syncs; both sides
+  // then drop any row older than the clear, whichever phone minted it.
+  const rowCreated = (o) => {
+    if (o.createdAt) return o.createdAt;
+    const m = /^occ-u-(\d+)-/.exec(o.id || '');       // legacy ids carry their birth ms
+    return m ? new Date(+m[1]).toISOString() : '1970-01-01T00:00:00.000Z'; // seed rows: older than any clear
+  };
+  function clearWeek(week, at) {
+    at = at || new Date().toISOString();
+    const st = load();
+    if ((st.occCleared[week] || '') < at) st.occCleared[week] = at;
+    const cut = st.occCleared[week];
+    const rows = st.occupancy.filter((o) => o.week === week && !o.deleted && rowCreated(o) < cut);
+    rows.forEach((o) => { o.deleted = true; o.deletedAt = cut; o.source = 'user'; });
+    save();
+    mirror((s) => { s.pushOccCleared(week, cut); rows.forEach((o) => s.pushOccupancy(o)); });
+    return rows.length;
+  }
+  function applyRemoteOccCleared(map) {
+    let changed = false;
+    Object.keys(map || {}).forEach((week) => {
+      const at = map[week];
+      if (typeof at !== 'string' || (load().occCleared[week] || '') >= at) return;
+      state.occCleared[week] = at;
+      state.occupancy.filter((o) => o.week === week && !o.deleted && rowCreated(o) < at)
+        .forEach((o) => { o.deleted = true; o.deletedAt = at; o.source = 'user'; });
+      changed = true;
+    });
+    if (changed) save();
+    return changed;
   }
   function applyRemoteOccupancy(rec) {
-    const i = load().occupancy.findIndex((o) => o.id === rec.id);
+    const cut = load().occCleared[rec.week];
+    if (cut && !rec.deleted && rowCreated(rec) < cut) rec = { ...rec, deleted: true, deletedAt: cut };
+    const i = state.occupancy.findIndex((o) => o.id === rec.id);
     if (i >= 0) state.occupancy[i] = keepDeleted(state.occupancy[i], rec); else state.occupancy.push(rec);
     save();
   }
@@ -381,7 +457,9 @@ const Store = (() => {
 
   function updatePool(id, patch) {
     const p = pool(id);
-    if (p) { Object.assign(p, patch); save(); mirror((s) => s.pushPool(id, patch)); }
+    if (!p) return p;
+    if ('watering' in patch) patch = { ...patch, wateringAt: new Date().toISOString() }; // LWW stamp
+    Object.assign(p, patch); save(); mirror((s) => s.pushPool(id, patch));
     return p;
   }
   function updateResidence(code, patch) {
@@ -420,6 +498,8 @@ const Store = (() => {
     const photos = Array.isArray(data.photos) ? data.photos : [];
     delete data.photos;
     state = data;
+    normalize();
+    migrate();
     save();
     if (window.Photos && photos.length && Photos.importAll) Photos.importAll(photos);
   }
@@ -456,11 +536,11 @@ const Store = (() => {
     addNote, notes, notesFor, openTodos, setNoteDone, updateNote, deleteNote,
     operator, setOperator, knownOperators,
     updatePool, updateResidence,
-    updateOccupancy, addOccupancy, deleteOccupancy,
+    updateOccupancy, addOccupancy, deleteOccupancy, clearWeek,
     applyRemoteReading, applyRemoteReadingRemoved,
     applyRemoteVisit, applyRemoteVisitRemoved, applyRemotePool,
     applyRemoteNote, applyRemoteNoteRemoved,
-    applyRemoteOccupancy, applyRemoteOccupancyRemoved,
+    applyRemoteOccupancy, applyRemoteOccupancyRemoved, applyRemoteOccCleared,
     exportJSON, importJSON, resetToSeed,
   };
 })();

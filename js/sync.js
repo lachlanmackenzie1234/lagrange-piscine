@@ -63,6 +63,9 @@ const Sync = (() => {
     unsubs.push(fsM.onSnapshot(col('occupancy'), (s) => applyLog(s, 'occupancy'),
       () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('pools'), applyPools, () => setStatus('error')));
+    unsubs.push(fsM.onSnapshot(ref('meta', 'occCleared'), (d) => {
+      if (d.exists() && Store.applyRemoteOccCleared(d.data())) window.dispatchEvent(new CustomEvent('lp-data-changed'));
+    }, () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('photos'), applyPhotos, () => setStatus('error')));
   }
 
@@ -123,15 +126,34 @@ const Sync = (() => {
       if (p.electroNote) doc.electroNote = p.electroNote;
       if (p.salt) doc.salt = true;
       if (p.covered) doc.covered = true;
-      // NB: `watering` is deliberately NOT caught up here. Re-pushing it on
-      // every app-open resurrected stopped fill-timers ("EC 2 remplissage
-      // keeps coming back"): phone A stops the fill, phone B's next enable
-      // re-pushes its stale copy and the timer returns. The live pushPool
-      // path syncs start/stop fine, and a fill is hours-scale state — it
-      // doesn't need offline catch-up.
+      // NB: `watering` is NOT in this blind merge — see the transaction below.
       if (Object.keys(doc).length) jobs.push(fsM.setDoc(ref('pools', p.id), doc, { merge: true }));
     });
-    await Promise.all(jobs);
+    // Fill-timer catch-up: last-writer-wins by `wateringAt`, inside a
+    // transaction. A stop/start made before sync was live (the first seconds
+    // after opening the app) still lands, but a stale copy can never clobber
+    // a newer one from the other phone — which is how a blind re-push used to
+    // resurrect EC 2's fill. Offline → the transaction fails quietly; next open.
+    const wjobs = st.pools.filter((p) => p.wateringAt).map((p) =>
+      fsM.runTransaction(fb.db, async (tx) => {
+        const r = ref('pools', p.id);
+        const snap = await tx.get(r);
+        const remoteAt = snap.exists() ? snap.data().wateringAt : null;
+        if (!remoteAt || remoteAt < p.wateringAt) tx.set(r, { watering: p.watering ?? null, wateringAt: p.wateringAt }, { merge: true });
+      }).catch(() => {}));
+    // week-clear markers: newest wins per week (max-merge in a transaction)
+    const cleared = st.occCleared || {};
+    if (Object.keys(cleared).length) {
+      wjobs.push(fsM.runTransaction(fb.db, async (tx) => {
+        const r = ref('meta', 'occCleared');
+        const snap = await tx.get(r);
+        const remote = snap.exists() ? snap.data() : {};
+        const out = {};
+        Object.keys(cleared).forEach((w) => { if ((remote[w] || '') < cleared[w]) out[w] = cleared[w]; });
+        if (Object.keys(out).length) tx.set(r, out, { merge: true });
+      }).catch(() => {}));
+    }
+    await Promise.all(jobs.concat(wjobs));
   }
 
   // Photos are the heavy part (base64 ~50–150 KB each). Re-uploading the whole
@@ -176,8 +198,9 @@ const Sync = (() => {
         trackConnectivity();
       }
       attach();
+      active = true;               // live mirroring from here — edits made during
+                                   // catch-up must not fall into a silent gap
       await pushData();            // small + fast — report online once data is up
-      active = true;
       setStatus(navigator.onLine ? 'online' : 'offline');
       pushPhotos();                // heavy, once per device, in the background
     } catch (e) {
@@ -205,11 +228,12 @@ const Sync = (() => {
   const removeNote = (id) => active && fb && fb.fsM.deleteDoc(ref('notes', id)).catch(() => {});
   const pushPhoto = (rec) => active && fb && fb.fsM.setDoc(ref('photos', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removePhoto = (id) => active && fb && fb.fsM.deleteDoc(ref('photos', id)).catch(() => {});
+  const pushOccCleared = (week, at) => active && fb && fb.fsM.setDoc(ref('meta', 'occCleared'), { [week]: at }, { merge: true }).catch(() => {});
   const pushOccupancy = (rec) => active && fb && fb.fsM.setDoc(ref('occupancy', rec.id), stripId(rec), { merge: true }).catch(() => {});
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
-    ['lat', 'lng', 'note', 'sandDate', 'pumpNote', 'watering', 'dims', 'volM3', 'volEst', 'salt', 'electroNote', 'covered'].forEach((k) => { if (k in patch) f[k] = patch[k] ?? null; });
+    ['lat', 'lng', 'note', 'sandDate', 'pumpNote', 'watering', 'wateringAt', 'dims', 'volM3', 'volEst', 'salt', 'electroNote', 'covered'].forEach((k) => { if (k in patch) f[k] = patch[k] ?? null; });
     if (!Object.keys(f).length) return;
     fb.fsM.setDoc(ref('pools', poolId), f, { merge: true }).catch(() => {});
   }
@@ -221,7 +245,7 @@ const Sync = (() => {
 
   return {
     enable, disable, maybeAutoStart,
-    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushOccupancy,
+    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushOccupancy, pushOccCleared,
     get active() { return active; },
     get status() { return status; },
     get team() { return team; },

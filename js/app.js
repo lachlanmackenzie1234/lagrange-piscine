@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.69'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.70'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1715,8 +1715,7 @@
       // Clean per-week REPLACE (like the old seed rebuild): drop every existing
       // row for the weeks present in the paste, then add the paste fresh. This
       // is idempotent and can't create duplicates, whatever was there before.
-      const weeks = new Set(norm.map((r) => r.week));
-      Store.load().occupancy.filter((o) => weeks.has(o.week) && !o.deleted).forEach((o) => Store.deleteOccupancy(o.id));
+      new Set(norm.map((r) => r.week)).forEach((w) => Store.clearWeek(w));
       norm.forEach((r) => Store.addOccupancy(r));
       const per = {};
       norm.forEach((r) => { per[r.week] = (per[r.week] || 0) + 1; });
@@ -1778,7 +1777,7 @@
       const clearBtn = el(`<button class="wk-clear">🗑 ${esc(t('wk_clear'))}</button>`);
       clearBtn.addEventListener('click', () => {
         if (confirm(t('wk_clear_confirm', { date: fmtDate(week), n: occ.length }))) {
-          Store.occupancyForWeek(week).forEach((o) => Store.deleteOccupancy(o.id));
+          Store.clearWeek(week);
           render();
         }
       });
