@@ -566,7 +566,7 @@ input.field, textarea.field { font: inherit; font-size: .95rem; padding: 10px 12
   gap: 2px; font-size: .6rem; color: var(--muted); font-weight: 600; min-width: 0;
 }
 .tabbar a .lbl { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tabbar a span.ic { font-size: 1.15rem; line-height: 1; }
+.tabbar a svg.ic { font-size: 22px; }
 .tabbar a.active { color: var(--brand); }
 
 @media (prefers-color-scheme: dark) {
@@ -582,3 +582,39 @@ input.field, textarea.field { font: inherit; font-size: .95rem; padding: 10px 12
   .readings th { background: #1b2733; }
   .field input { background: #0f1923; }
 }
+
+/* drawn icons — one sprite in index.html, one stroke, currentColor */
+svg.ic { width: 1em; height: 1em; display: inline-block; vertical-align: -.15em; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.ic.ic-ice { color: #7cc4ee; }
+.hero-ico svg.ic { font-size: 20px; } .hero-pill svg.ic { font-size: 15px; } .hero-cam svg.ic { font-size: 18px; }
+.clean-btn svg.ic { font-size: 18px; } .photo-btn svg.ic { font-size: 22px; color: var(--title); }
+.link-del svg.ic, .link-act.del svg.ic, .thumb-del svg.ic { font-size: 16px; } .time-ok svg.ic, .icon-check svg.ic { font-size: 18px; }
+.zone-head .zh-name svg.ic { font-size: 18px; } .zh-caret svg.ic, .wx-caret svg.ic { font-size: 16px; }
+.winter-banner svg.ic { font-size: 18px; } .lh-toggle svg.ic { font-size: 12px; }
+.map-list-btn svg.ic, .wx-refresh svg.ic { font-size: 15px; }
+
+/* Réglages — grouped rows, value on the right */
+.set-group { margin: 0 0 16px; }
+.set-h { font-size: .72rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--title); margin: 0 4px 6px; }
+.rows { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border: none; border-top: 1px solid var(--line);
+  background: none; color: var(--ink); font: inherit; font-size: .95rem; text-align: left; cursor: pointer; }
+.row:first-child { border-top: none; }
+.row:active { background: var(--na-bg); }
+.row > svg.ic { font-size: 20px; color: var(--title); }
+.row .lbl { flex: 1; min-width: 0; }
+.row .lbl small { display: block; font-size: .76rem; color: var(--muted); font-weight: 400; }
+.row .val { color: var(--muted); font-size: .86rem; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.row .val > svg.ic { font-size: 16px; color: var(--na); }
+.row .val .sync-status { margin: 0; font-size: .86rem; }
+.row .val .sync-status.s-online::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; }
+.row .val-act { color: var(--brand); font-weight: 600; }
+.row.danger { background: var(--high-bg); } .row.danger > svg.ic, .row.danger .lbl { color: var(--high); }
+.segv { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: .78rem; font-weight: 700; }
+.segv span { padding: 4px 10px; color: var(--muted); cursor: pointer; } .segv span.on { background: var(--brand); color: #fff; }
+.set-foot { margin: 4px 4px 0; font-size: .76rem; color: var(--muted); }
+.sheet-body .btn.full { width: 100%; margin-top: 10px; }
+.sheet-body .sync-hint { margin: 0 0 10px; }
+.sheet-item svg.ic { font-size: 18px; margin-right: 4px; vertical-align: -.2em; }
+.season-sheet .season-line { margin: 0 0 10px; }

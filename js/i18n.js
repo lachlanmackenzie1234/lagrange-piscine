@@ -33,7 +33,7 @@ const I18n = (() => {
       rythme_prev: 'prev. week',
       prod_title: 'Products added', prod_count: '{n} products', prod_since: 'since {date}',
 
-      back_pools: '‹ Pools', directions: '📍 Directions', occupancy: 'Occupancy',
+      back_pools: '‹ Pools', directions: 'Directions', occupancy: 'Occupancy',
       log_reading: 'Log a reading',
       f_ph: 'pH', f_cl: 'Free Cl (ppm)', f_cya: 'Stabilizer (ppm)', f_note: 'Note',
       f_when: 'When (optional — defaults to now)',
@@ -53,16 +53,16 @@ const I18n = (() => {
       
 
       map_title: 'Map', map_sub: 'Open residences in Google Maps',
-      n_pools: '{n} pools', open_maps: '📍 Open in Google Maps',
+      n_pools: '{n} pools', open_maps: 'Open in Google Maps',
       map_tip: 'Residence pins marked “~” are approximate — capture GPS at a pool to drop an exact pin.',
 
       settings_title: 'Settings & backup',
-      export_btn: '⬇︎ Backup (.json)', export_data_btn: '⬇︎ Data only (no photos)', import_btn: '⬆︎ Import backup',
-      export_csv_readings: '⬇︎ Readings (.csv)', export_csv_notes: '⬇︎ Notes (.csv)',
-      reset_btn: '↺ Reset to seed data', about: 'About',
+      export_btn: 'Backup (.json)', export_data_btn: 'Data only (no photos)', import_btn: 'Import a backup',
+      export_csv_readings: 'Readings (.csv)', export_csv_notes: 'Notes (.csv)',
+      reset_btn: 'Reset to seed data', about: 'About',
       about_text: 'Data is stored only on this device. Export regularly to back up.',
       language: 'Language',
-      update_app: 'Update app (clear cache)', updating: 'Updating…',
+      update_app: 'clears the cache and reloads', updating: 'Updating…',
       imported_ok: 'Backup imported.', import_fail: 'Import Discard all local changes and reload the original seed data?',
 
 
@@ -133,8 +133,8 @@ const I18n = (() => {
       depot: 'Depot',
 
       // service log
-      watering_section: 'Filling / watering', watering_today: '💧 Filling now ({n})',
-      start_watering: '💧 Start filling', stop_watering: '■ Stop filling',
+      watering_section: 'Filling / watering', watering_today: 'Filling now ({n})',
+      start_watering: 'Start filling', stop_watering: '■ Stop filling',
       watering_since: 'Filling since {time} · {mins} min',
       reminder: 'Reminder', reminder_none: 'None',
       reminder_in: '⏳ Reminder in {mins} min', reminder_overdue: '⏰ Turn off — reminder passed!',
@@ -147,27 +147,27 @@ const I18n = (() => {
       task_hivernage: 'Winterised', task_remise: 'Back in service',
       log_full: 'whole season ({n}) ▸', log_recent: '◂ recent only',
       winter_btn: 'Winterise', winter_confirm: 'Put {pool} into winter mode? It leaves the daily lists until you bring it back.',
-      winter_since: '❄️ Winterised since {date}', winter_reopen: 'Back in service', winter_reopen_confirm: 'Bring {pool} back into service?',
+      winter_since: 'Winterised since {date}', winter_reopen: 'Back in service', winter_reopen_confirm: 'Bring {pool} back into service?',
       winter_fold: 'Winterised ({n})', 
       season_title: 'Season', season_all_data: 'All data shown (no season boundary).', season_since: 'Season since {date}',
-      season_all_lens: 'Show all seasons', season_new: '🌱 New season', season_close: '❄️ Close the season', season_bilan: '📊 Season report',
+      season_all_lens: 'Show all seasons', season_new: 'New season', season_close: 'Close the season', season_bilan: 'Season report',
       season_new_confirm: 'Start a new season today? Chemistry, doses and passages logged before today leave the live views (kept in the archive and in exports). Notes and pool cards carry over.',
       season_close_confirm: 'Close the season — winterise all {n} open pools?', season_closed_done: '{n} pools winterised.', season_reset: 'Remove the boundary',
       bilan_title: 'Season report', bilan_sub: '{from} → {to}', bilan_passages: 'passages', bilan_cl: 'chlorine', bilan_wash: 'backwashes', bilan_readings: 'readings',
-      bilan_export: '⬇︎ Export report (.json)', bilan_empty: 'Nothing logged in this season yet.', 
+      bilan_export: 'Export report (.json)', bilan_empty: 'Nothing logged in this season yet.', 
       // day route
       // GPS location capture
       
-      pick_on_map: '🗺️ Place on map', map_save: 'Save here',
+      pick_on_map: 'Place on map', map_save: 'Save here',
       layer_sat: 'Satellite', layer_map: 'Map',
       geo_error: 'Could not get your location. Allow location access and try again.',
       clear_location: 'Clear GPS',
-      coords_label: '📍 {lat}, {lng}',
+      coords_label: '{lat}, {lng}',
       // management-only (no pool) residences
       mgmt_only: 'Rental only — no pool',
       mgmt_note: 'Rental management only — no pool to maintain here. Listed so the prefix + number matches the rental papers.',
       // team sync
-      op_title: 'Username',
+      op_title: 'Username', set_team: 'Team', set_backup: 'Backup', set_app: 'App', export_row: 'Export', export_row_sub: 'backup, data only, readings, notes', version_word: 'Version', update_short: 'Update', season_boundary: 'Season boundary', season_open_n: '{n} open pools',
       
       
       op_ph: 'e.g. Loki',
@@ -236,7 +236,7 @@ const I18n = (() => {
       rythme_prev: 'semaine −1',
       prod_title: 'Produits ajoutés', prod_count: '{n} produits', prod_since: 'depuis {date}',
 
-      back_pools: '‹ Piscines', directions: '📍 Itinéraire', occupancy: 'Occupation',
+      back_pools: '‹ Piscines', directions: 'Itinéraire', occupancy: 'Occupation',
       log_reading: 'Saisir une mesure',
       f_ph: 'pH', f_cl: 'Chlore libre (ppm)', f_cya: 'Stabilisant (ppm)', f_note: 'Note',
       f_when: 'Quand (optionnel — par défaut maintenant)',
@@ -256,16 +256,16 @@ const I18n = (() => {
       
 
       map_title: 'Carte', map_sub: 'Ouvrir les résidences dans Google Maps',
-      n_pools: '{n} piscines', open_maps: '📍 Ouvrir dans Google Maps',
+      n_pools: '{n} piscines', open_maps: 'Ouvrir dans Google Maps',
       map_tip: 'Les repères « ~ » sont approximatifs — enregistrez le GPS à une piscine pour un repère exact.',
 
       settings_title: 'Réglages & sauvegarde',
-      export_btn: '⬇︎ Sauvegarde (.json)', export_data_btn: '⬇︎ Données seules (sans photos)', import_btn: '⬆︎ Importer une sauvegarde',
-      export_csv_readings: '⬇︎ Mesures (.csv)', export_csv_notes: '⬇︎ Notes (.csv)',
-      reset_btn: '↺ Réinitialiser aux données d’origine', about: 'À propos',
+      export_btn: 'Sauvegarde (.json)', export_data_btn: 'Données seules (sans photos)', import_btn: 'Importer une sauvegarde',
+      export_csv_readings: 'Mesures (.csv)', export_csv_notes: 'Notes (.csv)',
+      reset_btn: 'Réinitialiser aux données d’origine', about: 'À propos',
       about_text: 'Les données sont stockées uniquement sur cet appareil. Exportez régulièrement pour sauvegarder.',
       language: 'Langue',
-      update_app: 'Mettre à jour (vider le cache)', updating: 'Mise à jour…',
+      update_app: 'vide le cache et recharge', updating: 'Mise à jour…',
       imported_ok: 'Sauvegarde importée.', import_fail: 'Échec de l’import : ',
       confirm_reset: 'Annuler toutes les modifications locales et recharger les données d’origine ?',
 
@@ -337,8 +337,8 @@ const I18n = (() => {
       depot: 'Dépôt',
 
       // suivi d’entretien
-      watering_section: 'Remplissage', watering_today: '💧 En remplissage ({n})',
-      start_watering: '💧 Démarrer le remplissage', stop_watering: '■ Arrêter',
+      watering_section: 'Remplissage', watering_today: 'En remplissage ({n})',
+      start_watering: 'Démarrer le remplissage', stop_watering: '■ Arrêter',
       watering_since: 'En remplissage depuis {time} · {mins} min',
       reminder: 'Rappel', reminder_none: 'Aucun',
       reminder_in: '⏳ Rappel dans {mins} min', reminder_overdue: '⏰ À couper — rappel dépassé !',
@@ -351,27 +351,27 @@ const I18n = (() => {
       task_hivernage: 'Hivernage', task_remise: 'Remise en service',
       log_full: 'toute la saison ({n}) ▸', log_recent: '◂ récents seulement',
       winter_btn: 'Hivernage', winter_confirm: 'Mettre {pool} en hivernage ? Elle quitte les listes du jour jusqu’à la remise en service.',
-      winter_since: '❄️ En hivernage depuis le {date}', winter_reopen: 'Remettre en service', winter_reopen_confirm: 'Remettre {pool} en service ?',
+      winter_since: 'En hivernage depuis le {date}', winter_reopen: 'Remettre en service', winter_reopen_confirm: 'Remettre {pool} en service ?',
       winter_fold: 'Hivernage ({n})', 
       season_title: 'Saison', season_all_data: 'Toutes les données affichées (pas de limite de saison).', season_since: 'Saison depuis le {date}',
-      season_all_lens: 'Voir toutes les saisons', season_new: '🌱 Nouvelle saison', season_close: '❄️ Fermer la saison', season_bilan: '📊 Bilan de saison',
+      season_all_lens: 'Voir toutes les saisons', season_new: 'Nouvelle saison', season_close: 'Fermer la saison', season_bilan: 'Bilan de saison',
       season_new_confirm: 'Commencer une nouvelle saison aujourd’hui ? Chimie, doses et passages d’avant aujourd’hui quittent les vues (conservés dans l’archive et les exports). Notes et fiches piscine restent.',
       season_close_confirm: 'Fermer la saison — mettre les {n} piscines ouvertes en hivernage ?', season_closed_done: '{n} piscines en hivernage.', season_reset: 'Retirer la limite',
       bilan_title: 'Bilan de saison', bilan_sub: '{from} → {to}', bilan_passages: 'passages', bilan_cl: 'chlore', bilan_wash: 'lavages', bilan_readings: 'mesures',
-      bilan_export: '⬇︎ Exporter le bilan (.json)', bilan_empty: 'Rien de saisi sur cette saison pour l’instant.', 
+      bilan_export: 'Exporter le bilan (.json)', bilan_empty: 'Rien de saisi sur cette saison pour l’instant.', 
       // itinéraire du jour
       // capture de position GPS
       
-      pick_on_map: '🗺️ Placer sur la carte', map_save: 'Enregistrer ici',
+      pick_on_map: 'Placer sur la carte', map_save: 'Enregistrer ici',
       layer_sat: 'Satellite', layer_map: 'Plan',
       geo_error: 'Position introuvable. Autorisez la localisation puis réessayez.',
       clear_location: 'Effacer le GPS',
-      coords_label: '📍 {lat}, {lng}',
+      coords_label: '{lat}, {lng}',
       // résidences en gestion seule (sans piscine)
       mgmt_only: 'Location seule — sans piscine',
       mgmt_note: 'Gestion locative uniquement — pas de piscine à entretenir ici. Listée pour que le préfixe + numéro corresponde aux feuilles de location.',
       // synchro équipe
-      op_title: 'Nom d’utilisateur',
+      op_title: 'Nom d’utilisateur', set_team: 'Équipe', set_backup: 'Sauvegarde', set_app: 'Application', export_row: 'Exporter', export_row_sub: 'sauvegarde, données seules, mesures, notes', version_word: 'Version', update_short: 'Mettre à jour', season_boundary: 'Limite de saison', season_open_n: '{n} piscines ouvertes',
       
       
       op_ph: 'ex. Loki',

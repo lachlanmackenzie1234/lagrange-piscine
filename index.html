@@ -14,12 +14,49 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- 24-unit grid · 1.6 stroke · round caps · currentColor -->
+  <symbol id="i-overview" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v2.5H9z"/><path d="M8.5 10.5h7M8.5 14h7M8.5 17.5h4"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3c0 0-6.5 7-6.5 11.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 12h2M11 12h9M4 17h11M20 17h0"/><circle cx="15" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="17.5" cy="17" r="2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+  <symbol id="i-snow" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><path d="M12 3l-2 2M12 3l2 2M12 21l-2-2M12 21l2-2M3 12l2-2M3 12l2 2M21 12l-2-2M21 12l-2 2"/></symbol>
+  <symbol id="i-bucket" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 12h-11z"/><path d="M8 8a4 4 0 0 1 8 0"/><path d="M7 12h10"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3"/></symbol>
+  <symbol id="i-backwash" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 0 1 14.7-5.8M20.5 12a8.5 8.5 0 0 1-14.7 5.8"/><path d="M18.5 2.5v3.7h-3.7M5.5 21.5v-3.7h3.7"/></symbol>
+  <symbol id="i-sand" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10"/><path d="M8 3v3.5c0 2.2 4 3.2 4 5.5s-4 3.3-4 5.5V21M16 3v3.5c0 2.2-4 3.2-4 5.5s4 3.3 4 5.5V21"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.3A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.7L14 9V3"/><path d="M7.5 15.5h9"/></symbol>
+  <symbol id="i-broom" viewBox="0 0 24 24"><path d="M14 3l7 7M9.5 7.5l7 7"/><path d="M16.5 14.5l-1.2 1.2c-2.2 2.2-5 3.3-8.1 3.3H4c0-3.1 1.1-5.9 3.3-8.1l1.2-1.2"/><path d="M6 15.5l2.5 2.5"/></symbol>
+  <symbol id="i-robot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="12" rx="3"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/><path d="M9 17h6"/><path d="M5 12H3M21 12h-2"/></symbol>
+  <symbol id="i-net" viewBox="0 0 24 24"><path d="M3 10h18l-2.5 9h-13z"/><path d="M8 10l1.5-6M16 10l-1.5-6"/><path d="M6 14.5h12M7 19l1-9M17 19l-1-9M12 10v9"/></symbol>
+  <symbol id="i-chevron-r" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-chevron-d" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 17v3h16v-3"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4.5h-4.5"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M4 10a8 8 0 0 1 14-3M20 14a8 8 0 0 1-14 3"/><path d="M18 3v4h-4M6 21v-4h4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a1.5 1.5 0 0 0 0-2.1l-1.9-1.9a1.5 1.5 0 0 0-2.1 0L4 16z"/><path d="M13 7l4 4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 16v-5M12 16V8M17 16v-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3"/><path d="M6 7l1 14h10l1-14"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 8h11a2.5 2.5 0 1 0-2.5-2.5M3 12h15a2.5 2.5 0 1 1-2.5 2.5M3 16h9a2 2 0 1 1-2 2"/></symbol>
+  <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16.5" cy="9" r="1.5"/></symbol>
+  <symbol id="i-warning" viewBox="0 0 24 24"><path d="M12 3.5l9.5 17h-19z"/><path d="M12 10v5M12 18.2v.3"/></symbol>
+</svg>
+
   <main id="app"><!-- views render here --></main>
 
   <nav class="tabbar">
-    <a href="#/today" data-route="today"><span class="ic">📋</span><span class="lbl" data-i18n="tab_today">Today</span></a>
-    <a href="#/pools" data-route="pools"><span class="ic">💧</span><span class="lbl" data-i18n="tab_pools">Pools</span></a>
-    <a href="#/settings" data-route="settings"><span class="ic">⚙️</span><span class="lbl" data-i18n="tab_more">More</span></a>
+    <a href="#/today" data-route="today"><svg class="ic" aria-hidden="true"><use href="#i-overview"/></svg><span class="lbl" data-i18n="tab_today">Overview</span></a>
+    <a href="#/pools" data-route="pools"><svg class="ic" aria-hidden="true"><use href="#i-drop"/></svg><span class="lbl" data-i18n="tab_pools">Pools</span></a>
+    <a href="#/settings" data-route="settings"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span class="lbl" data-i18n="tab_more">Settings</span></a>
   </nav>
 
   <script src="js/i18n.js"></script>

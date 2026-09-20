@@ -5,8 +5,10 @@
   const productById = (id) => (PRODUCTS || []).find((x) => x.id === id) || null;
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
+  // drawn icon from the sprite in index.html — one stroke, currentColor
+  const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.76'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.77'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -334,7 +336,7 @@
     box.appendChild(mapDiv);
     initLeaflet(mapDiv, { mini: true });
     const row = el('<div class="map-row"></div>');
-    const list = el(`<button class="map-list-btn" type="button">🗺 ${esc(t('map_list'))}</button>`);
+    const list = el(`<button class="map-list-btn" type="button">${ico('map')} ${esc(t('map_list'))}</button>`);
     list.addEventListener('click', () => openSheet(t('map_list'), residenceCards()));
     row.appendChild(list);
     box.appendChild(row);
@@ -377,7 +379,7 @@
 
   // ----- photos -----
   function photoThumb(rec) {
-    const wrap = el('<div class="thumb"><button class="thumb-del" title="delete">✕</button></div>');
+    const wrap = el(`<div class="thumb"><button class="thumb-del" title="delete">${ico('x')}</button></div>`);
     const img = document.createElement('img');
     img.loading = 'lazy';
     img.src = rec.dataUrl;
@@ -404,7 +406,7 @@
       hero.appendChild(el('<div class="hero-scrim"></div>'));
     }
     const ctrls = el('<div class="hero-ctrls"></div>');
-    const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">${ph ? '📷' : '＋'}<input type="file" accept="image/*" hidden></label>`);
+    const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">${ph ? ico('camera') : ico('plus')}<input type="file" accept="image/*" hidden></label>`);
     lab.querySelector('input').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -414,7 +416,7 @@
     });
     ctrls.appendChild(lab);
     if (ph) {
-      const del = el('<button class="hero-cam hero-del" title="delete">✕</button>');
+      const del = el(`<button class="hero-cam hero-del" title="delete">${ico('x')}</button>`);
       del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
       ctrls.appendChild(del);
     }
@@ -463,9 +465,9 @@
   // Tap again to undo today's log. A recent per-task log sits underneath,
   // like the chemistry history.
   const CLEAN_TASKS = [
-    { k: 'balai', icon: '🧹' },
-    { k: 'robot', icon: '🤖' },
-    { k: 'skimmer', icon: '🧺' },
+    { k: 'balai', icon: ico('broom') },
+    { k: 'robot', icon: ico('robot') },
+    { k: 'skimmer', icon: ico('net') },
   ];
   function cleaningSection(p) {
     const today = todayISO();
@@ -476,7 +478,7 @@
     const row = el('<div class="clean-btns"></div>');
     CLEAN_TASKS.forEach(({ k, icon }) => {
       const doneV = svc.find((v) => v.task === k && Store.localDate(v.at) === today);
-      const b = el(`<button class="btn clean-btn${doneV ? ' done' : ''}">${icon} ${esc(t('task_' + k))}${doneV ? ' ✓' : ''}</button>`);
+      const b = el(`<button class="btn clean-btn${doneV ? ' done' : ''}">${icon} ${esc(t('task_' + k))}${doneV ? ' ' + ico('check', 'ic-sm') : ''}</button>`);
       b.addEventListener('click', () => {
         if (doneV) Store.deleteVisit(doneV.id);
         else Store.addVisit(p.id, { type: 'service', task: k, weather: window.Weather && Weather.current() });
@@ -521,7 +523,7 @@
       <div class="note-form-row">
         ${opts}
         ${hideTodo ? '' : `<label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>`}
-        <label class="photo-btn" title="photo">📷<input type="file" accept="image/*" class="note-photos" multiple hidden></label>
+        <label class="photo-btn" title="photo">${ico('camera')}<input type="file" accept="image/*" class="note-photos" multiple hidden></label>
         <button class="btn primary" type="submit">${esc(t('note_save'))}</button>
       </div>
     </form>`);
@@ -579,7 +581,7 @@
       ta.focus();
     });
     actions.appendChild(edit);
-    const del = el('<button class="link-act del">✕</button>');
+    const del = el(`<button class="link-act del">${ico('x')}</button>`);
     del.addEventListener('click', () => { if (confirm(t('confirm_del_note'))) { Store.deleteNote(n.id); render(); } });
     actions.appendChild(del);
     return card;
@@ -685,7 +687,7 @@
     const now = el(`<button class="wx-now" type="button">
       <span class="wx-big">${w.e} ${Math.round(c.temperature_2m)}°</span>
       <span class="wx-small">${esc(t(w.k))} · UV ${Math.round(c.uv_index)} · 💨 ${Math.round(c.wind_speed_10m)} km/h</span>
-      <span class="wx-caret">▾</span></button>`);
+      <span class="wx-caret">${ico('chevron-d')}</span></button>`);
     const days = el('<div class="wx-days"></div>');
     const daily = d.daily || {};
     (daily.time || []).forEach((day, i) => {
@@ -693,7 +695,7 @@
       days.appendChild(el(`<div class="wx-day"><span>${esc(fmtDate(day))}</span><span>${dw.e} ${Math.round(daily.temperature_2m_max[i])}° / ${Math.round(daily.temperature_2m_min[i])}°</span>
         <span class="wx-sub">🌧️ ${daily.precipitation_sum[i]} mm · UV ${Math.round(daily.uv_index_max[i])} · ${esc(t(dw.k))}</span></div>`));
     });
-    const refresh = el(`<button class="wx-refresh" type="button">↻ ${esc(t('wx_refresh'))} · ${esc(t('wx_updated', { time: fmtTime(d.at) }))}</button>`);
+    const refresh = el(`<button class="wx-refresh" type="button">${ico('refresh')} ${esc(t('wx_refresh'))} · ${esc(t('wx_updated', { time: fmtTime(d.at) }))}</button>`);
     refresh.addEventListener('click', () => { Weather.load(true).then(() => render()); });
     days.appendChild(refresh);
     days.hidden = !wxOpen; strip.classList.toggle('open', wxOpen);
@@ -728,7 +730,7 @@
       filling.forEach((p) => {
         const wi = wateringInfo(p);
         const card = el(`<a class="card watering ${wi && wi.overdue ? 'overdue' : 'active'}" href="#/pool/${p.id}">
-          <div class="card-row"><strong>💧 ${esc(p.res + ' ' + p.unit)}</strong>${wi && wi.overdue ? `<span class="chip st-backup">${esc(t('turn_off_short'))}</span>` : ''}</div>
+          <div class="card-row"><strong>${ico('drop', 'ic-brand')} ${esc(p.res + ' ' + p.unit)}</strong>${wi && wi.overdue ? `<span class="chip st-backup">${esc(t('turn_off_short'))}</span>` : ''}</div>
           <div class="card-sub">${wi ? esc(t('watering_since', { time: fmtTime(p.watering.startedAt), mins: wi.mins })) : ''}</div>
         </a>`);
         c.appendChild(card);
@@ -775,7 +777,7 @@
   function revisitCard(p, last) {
     const days = last ? Math.round((Date.now() - new Date(last).getTime()) / 864e5) : null;
     const seen = last ? t('seen_ago', { d: days }) : t('seen_never');
-    const water = p.watering && p.watering.startedAt ? ' 💧' : '';
+    const water = p.watering && p.watering.startedAt ? ' ' + ico('drop', 'ic-brand') : '';
     return el(`<a class="card${last ? '' : ' never-seen'}" href="#/pool/${p.id}">
       <div class="card-row"><strong>${statusDot(p)}${esc(poolTitle(p))}${water}</strong><span class="chip ${last ? 'st-empty' : 'st-arriving'}">${esc(seen)}</span></div>
       ${chemPills(Store.latestReading(p.id))}
@@ -926,7 +928,7 @@
       const zone = el(`<div class="zone${isClosed ? ' closed' : ''}" data-zone="${res.code}">
         <button class="zone-head" type="button">
           <span class="zh-name">${esc(res.code)}</span><span class="zh-sub">${esc(res.name)}</span>
-          <span class="zh-meta">${meta}</span><span class="zh-caret">▾</span>
+          <span class="zh-meta">${meta}</span><span class="zh-caret">${ico('chevron-d')}</span>
         </button><div class="zone-body"></div></div>`);
       const body = zone.querySelector('.zone-body');
       list.forEach((p) => body.appendChild(poolRow(p, ctx)));
@@ -939,7 +941,7 @@
     if (wintered.length) {
       const isClosed = !closed.has('_winter');
       const zone = el(`<div class="zone winter${isClosed ? ' closed' : ''}">
-        <button class="zone-head" type="button"><span class="zh-name">❄️</span><span class="zh-sub">${esc(t('winter_fold', { n: wintered.length }))}</span><span class="zh-caret">▾</span></button>
+        <button class="zone-head" type="button"><span class="zh-name">${ico('snow')}</span><span class="zh-sub">${esc(t('winter_fold', { n: wintered.length }))}</span><span class="zh-caret">${ico('chevron-d')}</span></button>
         <div class="zone-body"></div></div>`);
       const body = zone.querySelector('.zone-body');
       wintered.forEach((p) => body.appendChild(el(`<a class="card" href="#/pool/${p.id}"><div class="card-row"><strong>${esc(poolTitle(p))}</strong><span class="chip st-closed">${esc(fmtDate(p.winter.since))}</span></div></a>`)));
@@ -1053,14 +1055,14 @@
     if (hasPool(p)) { const pick = el(`<button class="sheet-item">${esc(t('pick_on_map'))}</button>`); pick.addEventListener('click', () => { back.remove(); openMapPicker(p); }); nodes.push(pick); }
     if (p.lat != null && p.lng != null) {
       nodes.push(el(`<div class="sheet-coords">${esc(t('coords_label', { lat: p.lat, lng: p.lng }))}</div>`));
-      const clr = el(`<button class="sheet-item danger">✕ ${esc(t('clear_location'))}</button>`);
+      const clr = el(`<button class="sheet-item danger">${ico('x')} ${esc(t('clear_location'))}</button>`);
       clr.addEventListener('click', () => { Store.updatePool(p.id, { lat: null, lng: null }); back.remove(); render(); });
       nodes.push(clr);
     }
     const back = openSheet(poolTitle(p) + ' · ' + t('map_title'), nodes);
   }
-  const openWaterSheet = (p) => openSheet('💧 ' + t('watering_section'), [wateringCard(p)]);
-  const openVolumeSheet = (p) => openSheet('🪣 ' + t('vol_section'), [volumeSection(p)]);
+  const openWaterSheet = (p) => openSheet(t('watering_section'), [wateringCard(p)]);
+  const openVolumeSheet = (p) => openSheet(t('vol_section'), [volumeSection(p)]);
   function openSandSheet(p) {
     const inp = el(`<input type="date" class="field" value="${esc(p.sandDate || '')}">`);
     inp.addEventListener('change', () => { Store.updatePool(p.id, { sandDate: inp.value }); });
@@ -1082,7 +1084,7 @@
   function lightHead(text, total, n) {
     const h = el(`<h2 class="lite-head">${esc(text)}</h2>`);
     if (total != null && total > n) {
-      const b = el(`<button class="lh-toggle" type="button">${esc(fullLog() ? t('log_recent') : t('log_full', { n: total }))}</button>`);
+      const b = el(`<button class="lh-toggle" type="button">${fullLog() ? ico('chevron-d') + ' ' + esc(t('log_recent')) : esc(t('log_full', { n: total })) + ' ' + ico('chevron-r')}</button>`);
       b.addEventListener('click', () => { try { localStorage.setItem(LOG_KEY, fullLog() ? '0' : '1'); } catch (_) {} render(); });
       h.appendChild(b);
     }
@@ -1095,7 +1097,7 @@
   function photoPanel(p, key, opts) {
     const ph = window.Photos ? Photos.poolRef(p.id, key) : null;
     const frag = document.createDocumentFragment();
-    const camInput = (onFile) => { const l = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`); l.querySelector('input').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) onFile(f); }); return l; };
+    const camInput = (onFile) => { const l = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">${ico('camera')}<input type="file" accept="image/*" hidden></label>`); l.querySelector('input').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) onFile(f); }); return l; };
     if (ph) {
       const hero = el('<div class="photo-hero overlay-bottom"></div>');
       hero.style.minHeight = opts.minH || '340px';
@@ -1103,7 +1105,7 @@
       hero.appendChild(el('<div class="hero-scrim"></div>'));
       const ctrls = el('<div class="hero-ctrls"></div>');
       ctrls.appendChild(camInput(async (f) => { try { await Photos.remove(ph.id); } catch (_) {} try { await Photos.add({ poolId: p.id, label: key }, f); } catch (_) {} render(); }));
-      const del = el('<button class="hero-cam hero-del">✕</button>');
+      const del = el(`<button class="hero-cam hero-del">${ico('x')}</button>`);
       del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
       ctrls.appendChild(del);
       hero.appendChild(ctrls);
@@ -1140,16 +1142,16 @@
     wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
     const headBody = el(`<div class="hero-head"><h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1><p class="sub">${subHtml}</p></div>`);
     const iconRow = el('<div class="hero-icons"></div>');
-    const itinBtn = el(`<button class="hero-ico" title="${esc(t('directions'))}">📍</button>`);
+    const itinBtn = el(`<button class="hero-ico" title="${esc(t('directions'))}">${ico('pin')}</button>`);
     itinBtn.addEventListener('click', () => openItinSheet(p));
     iconRow.appendChild(itinBtn);
     if (pool) {
-      const carteBtn = el(`<button class="hero-ico" title="${esc(t('map_title'))}">🗺️</button>`);
+      const carteBtn = el(`<button class="hero-ico" title="${esc(t('map_title'))}">${ico('map')}</button>`);
       carteBtn.addEventListener('click', () => openCarteSheet(p));
       iconRow.appendChild(carteBtn);
       // hivernage — a twice-a-year flip, one tap + confirm, logged as a visit
       const wintered = Store.isWintered(p);
-      const wBtn = el(`<button class="hero-ico${wintered ? ' on' : ''}" title="${esc(t('winter_btn'))}">❄️</button>`);
+      const wBtn = el(`<button class="hero-ico${wintered ? ' on' : ''}" title="${esc(t('winter_btn'))}">${ico('snow')}</button>`);
       wBtn.addEventListener('click', () => {
         const msg = wintered ? t('winter_reopen_confirm', { pool: poolTitle(p) }) : t('winter_confirm', { pool: poolTitle(p) });
         if (confirm(msg)) { Store.setWinter(p.id, !wintered); render(); }
@@ -1159,7 +1161,7 @@
     headBody.appendChild(iconRow);
     wrap.appendChild(photoHero(p, 'gate', headBody, '240px'));
     if (pool && Store.isWintered(p)) {
-      const b = el(`<div class="winter-banner"><span>${esc(t('winter_since', { date: fmtDate(p.winter.since) }))}</span><button class="btn sm">${esc(t('winter_reopen'))}</button></div>`);
+      const b = el(`<div class="winter-banner"><span>${ico('snow')} ${esc(t('winter_since', { date: fmtDate(p.winter.since) }))}</span><button class="btn sm">${esc(t('winter_reopen'))}</button></div>`);
       b.querySelector('button').addEventListener('click', () => { if (confirm(t('winter_reopen_confirm', { pool: poolTitle(p) }))) { Store.setWinter(p.id, false); render(); } });
       wrap.appendChild(b);
     }
@@ -1193,10 +1195,10 @@
       overlay.appendChild(saisir);
       const wi = wateringInfo(p);
       const corners = [
-        pillBtn('💧', wi ? wi.mins + ' min' : t('water_word'), t('watering_section'), () => openWaterSheet(p)),
-        pillBtn('🪣', p.volM3 != null ? '~' + p.volM3 + ' m³' : t('vol_section'), t('vol_section'), () => openVolumeSheet(p)),
+        pillBtn(ico('drop'), wi ? wi.mins + ' min' : t('water_word'), t('watering_section'), () => openWaterSheet(p)),
+        pillBtn(ico('bucket'), p.volM3 != null ? '~' + p.volM3 + ' m³' : t('vol_section'), t('vol_section'), () => openVolumeSheet(p)),
       ];
-      wrap.appendChild(photoPanel(p, 'pool', { title: '🧪 ' + t('chem_title'), overlay, corners, minH: '360px' }));
+      wrap.appendChild(photoPanel(p, 'pool', { title: t('chem_title'), overlay, corners, minH: '360px' }));
       const doses = chemDoses(p);
       if (doses) wrap.appendChild(doses);
       wrap.appendChild(measure);
@@ -1285,7 +1287,7 @@
         <td class="${evalMetric('ph', r.ph).state}">${r.ph ?? '—'}</td>
         <td class="${evalMetric('chlorine', r.chlorine).state}">${r.chlorine ?? '—'}</td>
         <td class="${evalMetric('stabilizer', r.stabilizer).state}">${r.stabilizer ?? '—'}</td>
-        <td><button class="link-del" data-id="${r.id}">✕</button></td>
+        <td><button class="link-del" data-id="${r.id}">${ico('x')}</button></td>
       </tr>`);
       tr.querySelector('.link-del').addEventListener('click', () => {
         if (confirm(t('confirm_del'))) { Store.deleteReading(r.id); render(); }
@@ -1435,7 +1437,7 @@
           // minutes and jump the page. Commit only when ✓ is tapped.
           const wrap = el('<span class="time-edit"></span>');
           const inp = el(`<input type="datetime-local" class="treat-time-edit" value="${toLocalInput(tr.at)}">`);
-          const ok = el(`<button class="time-ok" title="${esc(t('validate'))}">✓</button>`);
+          const ok = el(`<button class="time-ok" title="${esc(t('validate'))}">${ico('check')}</button>`);
           ok.addEventListener('click', () => { if (inp.value) Store.updateVisit(tr.id, { at: new Date(inp.value).toISOString() }); render(); });
           wrap.appendChild(inp); wrap.appendChild(ok);
           timeBtn.replaceWith(wrap);
@@ -1444,7 +1446,7 @@
         meta.appendChild(timeBtn);
         if (tr.weather) meta.appendChild(el(`<span>${wxChip(tr.weather)}</span>`));
         if (tr.by) meta.appendChild(el(`<span>${byTag(tr)}</span>`));
-        const del = el('<button class="link-del">✕</button>');
+        const del = el(`<button class="link-del">${ico('x')}</button>`);
         del.addEventListener('click', () => { Store.deleteVisit(tr.id); render(); });
         meta.appendChild(del);
         ul.appendChild(itm);
@@ -1555,7 +1557,7 @@
     });
     wrap.appendChild(cards);
 
-    const refresh = el(`<button class="btn">↻ ${esc(t('wx_refresh'))}</button>`);
+    const refresh = el(`<button class="btn">${ico('refresh')} ${esc(t('wx_refresh'))}</button>`);
     refresh.addEventListener('click', () => { Weather.load(true).then(() => render()); });
     wrap.appendChild(refresh);
     Weather.load(false); // background refresh if stale
@@ -1628,8 +1630,8 @@
 
   const SYNC_STATE = { off: 'sync_state_off', connecting: 'sync_state_connecting', online: 'sync_state_online', offline: 'sync_state_offline', error: 'sync_state_error' };
   function syncSection() {
-    const box = el('<div class="sync-box"></div>');
-    box.appendChild(el(`<div class="section-title"><h2>${esc(t('sync_title'))}</h2><p>${esc(t('sync_desc'))}</p></div>`));
+    const box = el('<div class="sheet-body"></div>');
+    box.appendChild(el(`<p class="sync-hint">${esc(t('sync_desc'))}</p>`));
     if (!window.Sync) return box;
     const st = Sync.status;
     const on = Sync.active;
@@ -1650,6 +1652,7 @@
       field.appendChild(input);
       box.appendChild(field);
       box.appendChild(btn);
+      btn.classList.add('full');
       box.appendChild(el(`<p class="sync-hint">${esc(t('sync_hint'))}</p>`));
     } else {
       const btn = el(`<button class="btn danger">${esc(t('sync_disconnect'))}</button>`);
@@ -1659,34 +1662,6 @@
     return box;
   }
 
-  // Who is logging on this phone. Device-local (not synced): each phone is one
-  // person. New logs get stamped; the name rides to the other phone via records.
-  // Season: the boundary (archive, never delete), the bulk winter flip, the
-  // report. See Store's season block for why nothing gets purged.
-  function seasonSection() {
-    const box = el('<div class="sync-box"></div>');
-    box.appendChild(el(`<div class="section-title"><h2>${esc(t('season_title'))}</h2></div>`));
-    const st = Store.seasonStart();
-    box.appendChild(el(`<p class="season-line">${esc(st ? t('season_since', { date: fmtDate(st) }) : t('season_all_data'))}</p>`));
-    if (st) {
-      const lens = el(`<label class="season-lens"><input type="checkbox"${Store.allSeasons() ? ' checked' : ''}> ${esc(t('season_all_lens'))}</label>`);
-      lens.querySelector('input').addEventListener('change', (e) => { Store.setAllSeasons(e.target.checked); render(); });
-      box.appendChild(lens);
-    }
-    box.appendChild(el(`<a class="btn" href="#/bilan">${esc(t('season_bilan'))}</a>`));
-    const open = Store.pools().filter(isOpen);
-    const close = el(`<button class="btn">${esc(t('season_close'))}</button>`);
-    close.addEventListener('click', () => {
-      if (!open.length) return;
-      if (confirm(t('season_close_confirm', { n: open.length }))) { open.forEach((p) => Store.setWinter(p.id, true)); alert(t('season_closed_done', { n: open.length })); render(); }
-    });
-    box.appendChild(close);
-    const nw = el(`<button class="btn">${esc(t('season_new'))}</button>`);
-    nw.addEventListener('click', () => { if (confirm(t('season_new_confirm'))) { Store.setSeasonStart(todayISO()); render(); } });
-    box.appendChild(nw);
-    if (st) { const rs = el(`<button class="btn">${esc(t('season_reset'))}</button>`); rs.addEventListener('click', () => { Store.setSeasonStart(null); render(); }); box.appendChild(rs); }
-    return box;
-  }
 
   // ---------- view: BILAN DE SAISON ----------
   // Per residence and per pool, from the log: passages, chlorine (grams of
@@ -1722,7 +1697,7 @@
       if (!rows.length) return;
       const rs = bilanStats(V.filter((v) => pools.some((p) => p.id === v.poolId)), R.filter((r) => pools.some((p) => p.id === r.poolId)), null);
       const card = el(`<div class="card bilan-card"><div class="card-row"><strong>${esc(res.code)} · ${esc(res.name)}</strong><span class="muted">${rs.passages} ${esc(t('bilan_passages'))} · ${fmtMass(rs.clG)}</span></div></div>`);
-      rows.forEach(({ p, s }) => card.appendChild(el(`<div class="bilan-row"><strong>${esc(p.unit)}${Store.isWintered(p) ? ' ❄️' : ''}</strong>
+      rows.forEach(({ p, s }) => card.appendChild(el(`<div class="bilan-row"><strong>${esc(p.unit)}${Store.isWintered(p) ? ' ' + ico('snow', 'ic-ice') : ''}</strong>
         <span>${s.passages} ${esc(t('bilan_passages'))} · ${fmtMass(s.clG)} · ${s.wash} ${esc(t('bilan_wash'))} · ${s.readings} ${esc(t('bilan_readings'))}</span>
         <span class="muted">${esc(t('vu_on', { date: fmtDate(s.last.slice(0, 10)) }))}</span></div>`)));
       wrap.appendChild(card);
@@ -1735,12 +1710,11 @@
   }
 
   function operatorSection() {
-    const box = el('<div class="sync-box"></div>');
-    box.appendChild(el(`<div class="section-title"><h2>${esc(t('op_title'))}</h2></div>`));
+    const box = el('<div class="sheet-body"></div>');
     const cur = Store.operator();
     const row = el('<div class="inline-set"></div>');
     const input = el(`<input class="sync-input" type="text" inputmode="text" autocomplete="off" placeholder="${esc(t('op_ph'))}" value="${esc(cur)}">`);
-    const ok = el(`<button class="icon-check" title="${esc(t('op_save'))}" aria-label="${esc(t('op_save'))}">✓</button>`);
+    const ok = el(`<button class="icon-check" title="${esc(t('op_save'))}" aria-label="${esc(t('op_save'))}">${ico('check')}</button>`);
     const commit = () => { Store.setOperator(input.value); render(); };
     ok.addEventListener('click', commit);
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } });
@@ -1760,70 +1734,117 @@
   }
 
   // ---------- view: SETTINGS ----------
+  // ---------- view: RÉGLAGES — grouped rows, values on the right ----------
+  const LAST_EXPORT = 'lagrange-piscine.lastExport';
+  function exportAs(kind) {
+    const stamp = fileStamp();
+    if (kind === 'backup') downloadFile(`lagrange-piscine-backup-${stamp}.json`, Store.exportJSON(), 'application/json');
+    else if (kind === 'data') downloadFile(`lagrange-piscine-data-${stamp}.json`, Store.exportJSON(false), 'application/json');
+    else if (kind === 'readings') downloadFile(`lagrange-piscine-readings-${stamp}.csv`, readingsCsv(), 'text/csv');
+    else downloadFile(`lagrange-piscine-notes-${stamp}.csv`, notesCsv(), 'text/csv');
+    try { localStorage.setItem(LAST_EXPORT, todayISO()); } catch (_) {}
+  }
+  // one settings row: icon · label (+ sub) · value · chevron when it opens something
+  function setRow(icon, label, sub, val, onClick, cls) {
+    const r = el(`<button class="row${cls ? ' ' + cls : ''}" type="button">${ico(icon)}<span class="lbl">${esc(label)}${sub ? `<small>${esc(sub)}</small>` : ''}</span><span class="val"></span></button>`);
+    const v = r.querySelector('.val');
+    if (val != null) { if (typeof val === 'string') v.appendChild(el(`<span>${esc(val)}</span>`)); else v.appendChild(val); }
+    if (onClick) { v.insertAdjacentHTML('beforeend', ico('chevron-r')); r.addEventListener('click', onClick); }
+    return r;
+  }
+  function setGroup(wrap, title, rows) {
+    const g = el('<div class="set-group"></div>');
+    if (title) g.appendChild(el(`<div class="set-h">${esc(title)}</div>`));
+    const box = el('<div class="rows"></div>');
+    rows.filter(Boolean).forEach((r) => box.appendChild(r));
+    g.appendChild(box);
+    wrap.appendChild(g);
+  }
   function viewSettings() {
     const wrap = document.createElement('div');
     wrap.appendChild(header(t('settings_title')));
-    wrap.appendChild(operatorSection());
-    wrap.appendChild(syncSection());
-    wrap.appendChild(seasonSection());
 
-    // date + time in the filename so successive saves sort cleanly and don't
-    // collide into "(1)/(2)" (the browser's de-dup of same-named downloads).
-    const exportBtn = el(`<button class="btn">${esc(t('export_btn'))}</button>`);
-    exportBtn.addEventListener('click', () =>
-      downloadFile(`lagrange-piscine-backup-${fileStamp()}.json`, Store.exportJSON(), 'application/json'));
+    // Équipe
+    const me = Store.operator();
+    const syncSt = window.Sync ? Sync.status : 'off';
+    const syncOn = !!(window.Sync && Sync.active);
+    const syncVal = el(`<span class="sync-status s-${syncSt}">${esc(t(SYNC_STATE[syncSt] || 'sync_state_off'))}</span>`);
+    setGroup(wrap, t('set_team'), [
+      setRow('user', t('op_title'), null, me || '—', () => openSheet(t('op_title'), [operatorSection()])),
+      setRow('sync', t('sync_title'), syncOn && Sync.team ? t('team_code') + ' ' + Sync.team : null, syncVal, () => openSheet(t('sync_title'), [syncSection()])),
+    ]);
 
-    // data-only backup (no photos) — small enough to share/inspect quickly
-    const exportDataBtn = el(`<button class="btn">${esc(t('export_data_btn'))}</button>`);
-    exportDataBtn.addEventListener('click', () =>
-      downloadFile(`lagrange-piscine-data-${fileStamp()}.json`, Store.exportJSON(false), 'application/json'));
+    // Saison
+    const st = Store.seasonStart();
+    const open = Store.pools().filter(isOpen);
+    const passages = bilanStats(Metrics.liveVisits(), Metrics.liveReadings(), null).passages;
+    setGroup(wrap, t('season_title'), [
+      setRow('calendar', t('season_boundary'), st ? t('season_since', { date: fmtDate(st) }) : t('season_all_data'), null, () => openSheet(t('season_title'), [seasonSheet()])),
+      setRow('chart', t('season_bilan'), null, passages ? passages + ' ' + t('bilan_passages') : null, () => { location.hash = '#/bilan'; }),
+      setRow('snow', t('season_close'), t('season_open_n', { n: open.length }), null, () => {
+        if (!open.length) return;
+        if (confirm(t('season_close_confirm', { n: open.length }))) { open.forEach((p) => Store.setWinter(p.id, true)); alert(t('season_closed_done', { n: open.length })); render(); }
+      }),
+    ]);
 
-    const csvReadBtn = el(`<button class="btn">${esc(t('export_csv_readings'))}</button>`);
-    csvReadBtn.addEventListener('click', () =>
-      downloadFile(`lagrange-piscine-readings-${fileStamp()}.csv`, readingsCsv(), 'text/csv'));
-    const csvNoteBtn = el(`<button class="btn">${esc(t('export_csv_notes'))}</button>`);
-    csvNoteBtn.addEventListener('click', () =>
-      downloadFile(`lagrange-piscine-notes-${fileStamp()}.csv`, notesCsv(), 'text/csv'));
-
+    // Sauvegarde
+    let lastExp = null; try { lastExp = localStorage.getItem(LAST_EXPORT); } catch (_) {}
     const importInput = el('<input type="file" accept="application/json" hidden>');
-    const importBtn = el(`<button class="btn">${esc(t('import_btn'))}</button>`);
-    importBtn.addEventListener('click', () => importInput.click());
     importInput.addEventListener('change', async () => {
       const file = importInput.files[0];
       if (!file) return;
       try { Store.importJSON(await file.text()); alert(t('imported_ok')); render(); }
       catch (e) { alert(t('import_fail') + e.message); }
     });
+    setGroup(wrap, t('set_backup'), [
+      setRow('export', t('export_row'), t('export_row_sub'), lastExp ? fmtDate(lastExp) : null, () => {
+        const items = [['backup', 'export_btn'], ['data', 'export_data_btn'], ['readings', 'export_csv_readings'], ['notes', 'export_csv_notes']].map(([k, key]) => {
+          const b = el(`<button class="sheet-item">${ico('export')} ${esc(t(key))}</button>`);
+          b.addEventListener('click', () => { exportAs(k); back.remove(); render(); });
+          return b;
+        });
+        const back = openSheet(t('export_row'), items);
+      }),
+      setRow('import', t('import_btn'), null, null, () => importInput.click()),
+    ]);
+    wrap.appendChild(importInput);
 
-    const resetBtn = el(`<button class="btn danger">${esc(t('reset_btn'))}</button>`);
-    resetBtn.addEventListener('click', () => {
-      if (confirm(t('confirm_reset'))) { Store.resetToSeed(); render(); }
-    });
+    // Application
+    const upd = el(`<span class="val-act">${esc(t('update_short'))}</span>`);
+    const updRow = setRow('refresh', t('version_word'), `${APP_VERSION} · ${t('update_app')}`, upd, null);
+    updRow.addEventListener('click', () => { upd.textContent = t('updating'); forceUpdate(); });
+    const seg = el(`<span class="segv"><span data-lang="en" class="${I18n.get() === 'en' ? 'on' : ''}">EN</span><span data-lang="fr" class="${I18n.get() === 'fr' ? 'on' : ''}">FR</span></span>`);
+    seg.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); I18n.set(b.dataset.lang); render(); }));
+    setGroup(wrap, t('set_app'), [
+      updRow,
+      setRow('globe', t('language'), null, seg, null),
+      setRow('note', t('log_title'), null, null, () => { location.hash = '#/log'; }),
+    ]);
 
-    // language picker (mirrors the top-right toggle)
-    const langRow = el(`<div class="lang-row">
-      <span>${esc(t('language'))}</span>
-      <div class="lang-seg">
-        <button data-lang="en" class="${I18n.get() === 'en' ? 'on' : ''}">EN</button>
-        <button data-lang="fr" class="${I18n.get() === 'fr' ? 'on' : ''}">FR</button>
-      </div></div>`);
-    langRow.querySelectorAll('[data-lang]').forEach((b) =>
-      b.addEventListener('click', () => { I18n.set(b.dataset.lang); render(); }));
-
-    const logBtn = el(`<a class="btn" href="#/log">📝 ${esc(t('log_title'))}</a>`);
-
-    const updateBtn = el(`<button class="btn">↻ ${esc(t('update_app'))} · ${APP_VERSION}</button>`);
-    updateBtn.addEventListener('click', () => { updateBtn.disabled = true; updateBtn.textContent = t('updating'); forceUpdate(); });
-
-    const box = el('<div class="settings"></div>');
-    [logBtn, updateBtn, langRow, exportBtn, exportDataBtn, csvReadBtn, csvNoteBtn, importBtn, importInput, resetBtn].forEach((n) => box.appendChild(n));
-    wrap.appendChild(box);
-
-    wrap.appendChild(sectionTitle(t('about')));
-    const tgt = `pH ${CHEM_RANGES.ph.min}–${CHEM_RANGES.ph.max} · Cl ${CHEM_RANGES.chlorine.min}–${CHEM_RANGES.chlorine.max} ppm · CYA ${CHEM_RANGES.stabilizer.min}–${CHEM_RANGES.stabilizer.max} ppm`;
-    wrap.appendChild(el(`<p class="empty-note">${esc(t('about_text'))}<br>${esc(tgt)}</p>`));
+    // danger, alone at the bottom
+    setGroup(wrap, null, [
+      setRow('trash', t('reset_btn'), null, null, () => { if (confirm(t('confirm_reset'))) { Store.resetToSeed(); render(); } }, 'danger'),
+    ]);
+    wrap.appendChild(el(`<p class="set-foot">${esc(t('about_text'))}</p>`));
     return wrap;
   }
+  // season sheet: the boundary + lens + reset (the bulk flips live on the rows)
+  function seasonSheet() {
+    const box = el('<div class="season-sheet"></div>');
+    const st = Store.seasonStart();
+    box.appendChild(el(`<p class="season-line">${esc(st ? t('season_since', { date: fmtDate(st) }) : t('season_all_data'))}</p>`));
+    if (st) {
+      const lens = el(`<label class="season-lens"><input type="checkbox"${Store.allSeasons() ? ' checked' : ''}> ${esc(t('season_all_lens'))}</label>`);
+      lens.querySelector('input').addEventListener('change', (e) => { Store.setAllSeasons(e.target.checked); render(); });
+      box.appendChild(lens);
+    }
+    const nw = el(`<button class="sheet-item">${ico('calendar')} ${esc(t('season_new'))}</button>`);
+    nw.addEventListener('click', () => { if (confirm(t('season_new_confirm'))) { Store.setSeasonStart(todayISO()); document.querySelectorAll('.sheet-back').forEach((x) => x.remove()); render(); } });
+    box.appendChild(nw);
+    if (st) { const rs = el(`<button class="sheet-item danger">${ico('x')} ${esc(t('season_reset'))}</button>`); rs.addEventListener('click', () => { Store.setSeasonStart(null); document.querySelectorAll('.sheet-back').forEach((x) => x.remove()); render(); }); box.appendChild(rs); }
+    return box;
+  }
+
 
   // ---------- boot ----------
   Store.load();
