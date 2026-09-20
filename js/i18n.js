@@ -167,7 +167,7 @@ const I18n = (() => {
       mgmt_only: 'Rental only — no pool',
       mgmt_note: 'Rental management only — no pool to maintain here. Listed so the prefix + number matches the rental papers.',
       // team sync
-      op_title: 'Username', set_team: 'Team', set_backup: 'Backup', set_app: 'App', export_row: 'Export', export_row_sub: 'backup, data only, readings, notes', version_word: 'Version', update_short: 'Update', season_boundary: 'Season boundary', season_open_n: '{n} open pools',
+      op_title: 'Username', set_team: 'Team', set_backup: 'Backup', set_app: 'App', export_row: 'Export', export_row_sub: 'backup, data only, readings, notes', version_word: 'Version', theme_title: 'Theme', theme_auto: 'Auto', theme_light: 'Light', theme_dark: 'Dark', palette_title: 'Palette', pal_ocean: 'Ocean', pal_dune: 'Dune', pal_pin: 'Pine', update_short: 'Update', season_boundary: 'Season boundary', season_open_n: '{n} open pools',
       
       
       op_ph: 'e.g. Loki',
@@ -371,7 +371,7 @@ const I18n = (() => {
       mgmt_only: 'Location seule — sans piscine',
       mgmt_note: 'Gestion locative uniquement — pas de piscine à entretenir ici. Listée pour que le préfixe + numéro corresponde aux feuilles de location.',
       // synchro équipe
-      op_title: 'Nom d’utilisateur', set_team: 'Équipe', set_backup: 'Sauvegarde', set_app: 'Application', export_row: 'Exporter', export_row_sub: 'sauvegarde, données seules, mesures, notes', version_word: 'Version', update_short: 'Mettre à jour', season_boundary: 'Limite de saison', season_open_n: '{n} piscines ouvertes',
+      op_title: 'Nom d’utilisateur', set_team: 'Équipe', set_backup: 'Sauvegarde', set_app: 'Application', export_row: 'Exporter', export_row_sub: 'sauvegarde, données seules, mesures, notes', version_word: 'Version', theme_title: 'Thème', theme_auto: 'Auto', theme_light: 'Clair', theme_dark: 'Sombre', palette_title: 'Palette', pal_ocean: 'Océan', pal_dune: 'Dune', pal_pin: 'Pin', update_short: 'Mettre à jour', season_boundary: 'Limite de saison', season_open_n: '{n} piscines ouvertes',
       
       
       op_ph: 'ex. Loki',

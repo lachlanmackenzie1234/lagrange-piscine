@@ -5,10 +5,26 @@
   const productById = (id) => (PRODUCTS || []).find((x) => x.id === id) || null;
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
   const t = (k, p) => I18n.t(k, p);
+  // Theme: mode (auto / light / dark) + palette, device-local, applied on <html>
+  // (index.html applies the saved choice before first paint; this keeps it live).
+  const THEME_KEY = 'lagrange-piscine.theme';
+  const PALETTES = [['ocean', '#123a5e', '#2b8fd0'], ['dune', '#5a3e2b', '#b8622a'], ['pin', '#1f4d3a', '#2f8f66']];
+  const Theme = {
+    get() { try { return { mode: 'auto', palette: 'ocean', ...JSON.parse(localStorage.getItem(THEME_KEY) || '{}') }; } catch (_) { return { mode: 'auto', palette: 'ocean' }; } },
+    set(patch) {
+      const th = { ...Theme.get(), ...patch };
+      try { localStorage.setItem(THEME_KEY, JSON.stringify(th)); } catch (_) {}
+      const r = document.documentElement;
+      if (th.mode === 'auto') delete r.dataset.mode; else r.dataset.mode = th.mode;
+      if (th.palette === 'ocean') delete r.dataset.palette; else r.dataset.palette = th.palette;
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.content = getComputedStyle(r).getPropertyValue('--navy').trim() || '#123a5e';
+    },
+  };
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.77'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.78'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -520,15 +536,21 @@
       ? `<select name="poolId" class="note-select"><option value="">${esc(t('note_general'))}</option>` +
         Store.pools().map((p) => `<option value="${p.id}">${esc(p.res + ' ' + p.unit)}</option>`).join('') + '</select>'
       : '';
+    // compact composer: the line + send, then the small options underneath
     const f = el(`<form class="note-form">
-      <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(hideTodo ? t('note_pool_ph') : t('note_log_ph'))}">
-      <div class="note-form-row">
+      <div class="nf-main">
+        <input class="note-input" name="text" type="text" autocomplete="off" placeholder="${esc(hideTodo ? t('note_pool_ph') : t('note_log_ph'))}">
+        <button class="nf-send" type="submit" title="${esc(t('note_save'))}" aria-label="${esc(t('note_save'))}">${ico('plus')}</button>
+      </div>
+      <div class="nf-row">
         ${opts}
-        ${hideTodo ? '' : `<label class="note-todo"><input type="checkbox" name="todo"> ${esc(t('note_todo'))}</label>`}
-        <label class="photo-btn" title="photo">${ico('camera')}<input type="file" accept="image/*" class="note-photos" multiple hidden></label>
-        <button class="btn primary" type="submit">${esc(t('note_save'))}</button>
+        ${hideTodo ? '' : `<label class="nf-todo"><input type="checkbox" name="todo" hidden>${ico('check', 'ic-sm')} ${esc(t('note_todo'))}</label>`}
+        <label class="photo-btn" title="photo">${ico('camera')}<span class="nf-count"></span><input type="file" accept="image/*" class="note-photos" multiple hidden></label>
+        ${showPicker ? `<a class="nf-log" href="#/log">${esc(t('see_all'))} ${ico('chevron-r')}</a>` : ''}
       </div>
     </form>`);
+    const photosIn = f.querySelector('.note-photos');
+    photosIn.addEventListener('change', () => { const n = photosIn.files.length; f.querySelector('.nf-count').textContent = n ? n : ''; f.querySelector('.photo-btn').classList.toggle('has', n > 0); });
     f.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(f);
@@ -714,15 +736,12 @@
     wrap.appendChild(weatherStrip());
     // preventive layer: open to-dos + quick capture; full history under #/log
     const todos = Store.openTodos();
-    const noteHead = el(`<div class="section-title"><h2>${esc(t('todos_title', { n: todos.length }))}</h2></div>`);
-    noteHead.appendChild(el(`<a class="see-all" href="#/log">${esc(t('see_all'))}</a>`));
-    wrap.appendChild(noteHead);
+    wrap.appendChild(noteForm(undefined));
     if (todos.length) {
-      const c = el('<div class="cards"></div>');
+      const c = el('<div class="cards todos"></div>');
       todos.forEach((n) => c.appendChild(noteItem(n)));
       wrap.appendChild(c);
     }
-    wrap.appendChild(noteForm(undefined));
 
     // pools currently filling — the end-of-day "did I leave a hose running?" check
     const filling = Store.wateringPools();
@@ -1817,8 +1836,15 @@
     updRow.addEventListener('click', () => { upd.textContent = t('updating'); forceUpdate(); });
     const seg = el(`<span class="segv"><span data-lang="en" class="${I18n.get() === 'en' ? 'on' : ''}">EN</span><span data-lang="fr" class="${I18n.get() === 'fr' ? 'on' : ''}">FR</span></span>`);
     seg.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); I18n.set(b.dataset.lang); render(); }));
+    const th = Theme.get();
+    const modeSeg = el(`<span class="segv">${['auto', 'light', 'dark'].map((m) => `<span data-mode="${m}" class="${th.mode === m ? 'on' : ''}">${esc(t('theme_' + m))}</span>`).join('')}</span>`);
+    modeSeg.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); Theme.set({ mode: b.dataset.mode }); render(); }));
+    const palRow = el(`<span class="pal-row">${PALETTES.map(([k, a, c]) => `<button type="button" class="pal-btn${th.palette === k ? ' on' : ''}" data-pal="${k}" title="${esc(t('pal_' + k))}" aria-label="${esc(t('pal_' + k))}" style="--p1:${a};--p2:${c}"></button>`).join('')}</span>`);
+    palRow.querySelectorAll('[data-pal]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); Theme.set({ palette: b.dataset.pal }); render(); }));
     setGroup(wrap, t('set_app'), [
       updRow,
+      setRow('sun', t('theme_title'), null, modeSeg, null),
+      setRow('palette', t('palette_title'), t('pal_' + th.palette), palRow, null),
       setRow('globe', t('language'), null, seg, null),
       setRow('note', t('log_title'), null, null, () => { location.hash = '#/log'; }),
     ]);
@@ -1862,6 +1888,7 @@
   });
   window.addEventListener('lp-sync-status', render);
   window.addEventListener('lp-weather', render);
+  Theme.set({}); // sync the status-bar colour with the saved palette
   if (window.Photos) Photos.init();
   if (window.Weather) Weather.load();
   if (window.Sync) Sync.maybeAutoStart();
