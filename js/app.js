@@ -7,7 +7,7 @@
   const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.71'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.72'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -63,11 +63,11 @@
     return { start, mins, overdue, remainMin, reminderMin: w.reminderMin };
   }
 
-  // Nearest turnover Saturday on/after today (falls back to last known week).
+  // Turnover Saturday of the week in progress — the calendar decides.
   function currentWeek() {
-    const wks = Store.weeks();
-    const t0 = todayISO();
-    return wks.find((w) => w >= t0) || wks[wks.length - 1] || S.SAT.jun27;
+    const d = new Date(todayISO() + 'T00:00:00');
+    d.setDate(d.getDate() - ((d.getDay() + 1) % 7)); // back to Saturday
+    return ymdLocal(d);
   }
 
   function evalMetric(key, v) {
@@ -170,7 +170,7 @@
   // ---------- router ----------
   const routes = {
     '': viewPools, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
-    'schedule': viewSchedule, 'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings,
+    'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings,
   };
 
   function parseHash() {
@@ -197,7 +197,7 @@
     app.innerHTML = '';
     app.appendChild(view(...args));
     // three tabs; the old standalone routes stay reachable and light their parent
-    const TAB_OF = { today: 'today', schedule: 'today', log: 'today', pools: 'pools', pool: 'pools', map: 'pools', weather: 'pools', settings: 'settings' };
+    const TAB_OF = { today: 'today', log: 'today', pools: 'pools', pool: 'pools', map: 'pools', weather: 'pools', settings: 'settings' };
     document.querySelectorAll('.tabbar a').forEach((a) => {
       a.classList.toggle('active', a.dataset.route === (TAB_OF[name] || 'pools'));
     });
@@ -209,10 +209,6 @@
   // ---------- shared bits ----------
   function header(title, sub) {
     return el(`<header class="page-head"><h1>${esc(title)}</h1>${sub ? `<p class="sub">${esc(sub)}</p>` : ''}</header>`);
-  }
-  function statusChip(status) {
-    const m = OCC_STATUS[status] || OCC_STATUS.empty;
-    return `<span class="chip ${m.cls}">${esc(t('st_' + status))}</span>`;
   }
   // Primary label = residence code prefix + logement number (matches the papers).
   function poolTitle(p) {
@@ -410,13 +406,6 @@
     } catch (e) {
       container.style.display = 'none'; // offline / blocked → list below still works
     }
-  }
-  // "in <date> → out <date>" localized
-  function inOut(o) {
-    const parts = [];
-    if (o.arrival) parts.push(t('in_date', { date: fmtDate(o.arrival) }));
-    if (o.departure) parts.push(t('out_date', { date: fmtDate(o.departure) }));
-    return parts.join(' → ');
   }
   function sectionTitle(t0, sub) {
     return el(`<div class="section-title"><h2>${esc(t0)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>`);
@@ -933,6 +922,17 @@
     const week = currentWeek();
     wrap.appendChild(header(t('today_title'), t('today_sub', { date: fmtDate(week) })));
     wrap.appendChild(weatherStrip());
+    // preventive layer: open to-dos + quick capture; full history under #/log
+    const todos = Store.openTodos();
+    const noteHead = el(`<div class="section-title"><h2>${esc(t('todos_title', { n: todos.length }))}</h2></div>`);
+    noteHead.appendChild(el(`<a class="see-all" href="#/log">${esc(t('see_all'))}</a>`));
+    wrap.appendChild(noteHead);
+    if (todos.length) {
+      const c = el('<div class="cards"></div>');
+      todos.forEach((n) => c.appendChild(noteItem(n)));
+      wrap.appendChild(c);
+    }
+    wrap.appendChild(noteForm(undefined));
 
     // pools currently filling — the end-of-day "did I leave a hose running?" check
     const filling = Store.wateringPools();
@@ -951,9 +951,9 @@
     }
 
 
-    // the week's roster — sheets, paste-import, the active weeks as folds
-    wrap.appendChild(sectionTitle(t('schedule_title'), t('schedule_sub')));
-    wrap.appendChild(planningBlock());
+    // the week's roster is the paper chart — two photos, this week + next
+    wrap.appendChild(sectionTitle(t('plan_photos')));
+    wrap.appendChild(planningPhotos());
 
     // "À revoir" — maintained pools not seen today, longest-not-seen first
     // (blind spots on top). A memory-jog, not a route: just what's slipped.
@@ -965,17 +965,6 @@
       wrap.appendChild(list);
     } else wrap.appendChild(emptyNote(t('revisit_empty')));
 
-    // preventive layer: open to-dos + quick capture; full history under #/log
-    const todos = Store.openTodos();
-    const noteHead = el(`<div class="section-title"><h2>${esc(t('todos_title', { n: todos.length }))}</h2></div>`);
-    noteHead.appendChild(el(`<a class="see-all" href="#/log">${esc(t('see_all'))}</a>`));
-    wrap.appendChild(noteHead);
-    if (todos.length) {
-      const c = el('<div class="cards"></div>');
-      todos.forEach((n) => c.appendChild(noteItem(n)));
-      wrap.appendChild(c);
-    }
-    wrap.appendChild(noteForm(undefined));
     return wrap;
   }
 
@@ -1007,16 +996,6 @@
     </a>`);
   }
 
-  function occCard(o) {
-    const p = Store.pool(o.poolId);
-    const latest = p ? Store.latestReading(p.id) : null;
-    const done = servicedToday(o.poolId) ? `<span class="chip st-done">${esc(t('serviced_today'))}</span>` : '';
-    return el(`<a class="card" href="#/pool/${o.poolId}">
-      <div class="card-row"><strong>${p && hasPool(p) ? statusDot(p) : ''}${p ? esc(poolTitle(p)) : esc(o.poolId)}</strong>${statusChip(o.status)}</div>
-      <div class="card-sub">${o.name ? esc(o.name) + ' · ' : ''}${esc(inOut(o))}</div>
-      ${chemPills(latest)}${done}
-    </a>`);
-  }
 
   function poolMiniCard(p) {
     if (!hasPool(p)) {
@@ -1267,28 +1246,6 @@
     return el(`<div class="pool-trend">${line('ph', 'pH')}${line('chlorine', 'Cl')}${line('stabilizer', 'CyA')}</div>`);
   }
 
-  // Occupation across the active planning weeks (this week + next) for the gate
-  // overlay — reads the pool's occupancy rows; an empty week shows "Libre".
-  function poolOccOverlay(p) {
-    const today = todayISO();
-    // weeks not fully ended (Sat..Fri) — the in-progress week + the coming one
-    const notEnded = Store.weeks().filter((wk) => {
-      const end = new Date(wk + 'T00:00:00'); end.setDate(end.getDate() + 6);
-      return ymdLocal(end) >= today;
-    });
-    const active = (notEnded.length ? notEnded : Store.weeks().slice(-1)).slice(0, 2);
-    if (!active.length) return null;
-    const box = el('<div class="occ-ov"></div>');
-    active.forEach((wk) => {
-      const o = Store.occupancyForWeek(wk).find((x) => x.poolId === p.id);
-      if (o) box.appendChild(el(`<div class="occ-wk"><div class="owk">${esc(t('week_of', { date: fmtDate(wk) }))}</div>
-        <div class="or1"><span>${o.name ? esc(o.name) : esc(t('occ_reserved'))}</span>${statusChip(o.status)}</div>
-        ${inOut(o) ? `<div class="or2">${esc(inOut(o))}</div>` : ''}</div>`));
-      else box.appendChild(el(`<div class="occ-wk free"><div class="owk">${esc(t('week_of', { date: fmtDate(wk) }))}</div>
-        <div class="or1"><span>${esc(t('occ_free'))}</span></div></div>`));
-    });
-    return box;
-  }
 
   // Generic bottom-sheet: title + a list of nodes. Tapping the scrim closes it.
   function openSheet(title, nodes) {
@@ -1382,7 +1339,6 @@
     // ===== PORTAIL — gate photo hero: title + status + occupation + maps icon =====
     wrap.appendChild(el(`<a class="back back-slim" href="#/pools">${esc(t('back_pools'))}</a>`));
     const headBody = el(`<div class="hero-head"><h1>${pool ? statusDot(p) : ''}${esc(poolTitle(p))}</h1><p class="sub">${subHtml}</p></div>`);
-    if (pool) { const occOv = poolOccOverlay(p); if (occOv) headBody.appendChild(occOv); }
     const iconRow = el('<div class="hero-icons"></div>');
     const itinBtn = el(`<button class="hero-ico" title="${esc(t('directions'))}">📍</button>`);
     itinBtn.addEventListener('click', () => openItinSheet(p));
@@ -1685,97 +1641,7 @@
     return box;
   }
 
-  // ---------- view: SCHEDULE ----------
-  // Edit / add a planning entry for a week. o = existing occupancy row (edit)
-  // or null (add, ctx.res = residence code). Clobber-safe + synced via the store.
-  function openOccModal(o, ctx) {
-    const isNew = !o;
-    const week = ctx.week;
-    const ov = el('<div class="occ-modal-ov"></div>');
-    const card = el('<div class="occ-modal"></div>');
-    card.appendChild(el(`<div class="occ-modal-head"><strong>${esc(isNew ? t('occ_new') : t('occ_edit'))}</strong><button class="occ-x" aria-label="close">✕</button></div>`));
-    let poolSel = null;
-    if (isNew) {
-      const opts = Store.poolsByRes(ctx.res).map((p) => `<option value="${p.id}">${esc(p.unit)}</option>`).join('');
-      poolSel = el(`<label class="field"><span>${esc(t('occ_unit'))}</span><select>${opts}</select></label>`);
-      card.appendChild(poolSel);
-    } else {
-      const p = Store.pool(o.poolId);
-      card.appendChild(el(`<p class="occ-unit-label">${esc(p ? poolTitle(p) : o.poolId)} · ${esc(fmtDate(week))}</p>`));
-    }
-    const fName = el(`<label class="field"><span>${esc(t('occ_name'))}</span><input type="text" value="${o ? esc(o.name) : ''}"></label>`);
-    const fArr = el(`<label class="field"><span>${esc(t('occ_arrival'))}</span><input type="date" value="${o ? esc(o.arrival) : ''}"></label>`);
-    const fDep = el(`<label class="field"><span>${esc(t('occ_departure'))}</span><input type="date" value="${o ? esc(o.departure) : ''}"></label>`);
-    const statusOpts = Object.keys(OCC_STATUS).map((k) => `<option value="${k}"${o && o.status === k ? ' selected' : ''}>${esc(t('st_' + k))}</option>`).join('');
-    const fStatus = el(`<label class="field"><span>${esc(t('occ_status'))}</span><select>${statusOpts}</select></label>`);
-    const fNote = el(`<label class="field"><span>${esc(t('occ_note'))}</span><input type="text" value="${o ? esc(o.note) : ''}"></label>`);
-    [fName, fArr, fDep, fStatus, fNote].forEach((f) => card.appendChild(f));
-    const saveBtn = el(`<button class="btn primary">${esc(t('occ_save'))}</button>`);
-    saveBtn.addEventListener('click', () => {
-      const patch = {
-        name: fName.querySelector('input').value.trim(),
-        arrival: fArr.querySelector('input').value,
-        departure: fDep.querySelector('input').value,
-        status: fStatus.querySelector('select').value,
-        note: fNote.querySelector('input').value.trim(),
-      };
-      if (isNew) { if (poolSel.querySelector('select').value) Store.addOccupancy({ poolId: poolSel.querySelector('select').value, week, ...patch }); }
-      else Store.updateOccupancy(o.id, patch);
-      ov.remove(); render();
-    });
-    card.appendChild(saveBtn);
-    if (!isNew) {
-      const del = el(`<button class="btn danger">${esc(t('occ_delete'))}</button>`);
-      del.addEventListener('click', () => { if (confirm(t('occ_del_confirm'))) { Store.deleteOccupancy(o.id); ov.remove(); render(); } });
-      card.appendChild(del);
-    }
-    ov.appendChild(card);
-    ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
-    card.querySelector('.occ-x').addEventListener('click', () => ov.remove());
-    document.body.appendChild(ov);
-  }
 
-  // Paste-merge a roster (JSON array). Names are PII so they're not in the
-  // public seed; this is how a parsed sheet reaches the app — it upserts rows
-  // by (poolId, week) as source:'user', which then sync to the other phone.
-  function openPlanImport() {
-    const ov = el('<div class="occ-modal-ov"></div>');
-    const card = el('<div class="occ-modal"></div>');
-    card.appendChild(el(`<div class="occ-modal-head"><strong>${esc(t('plan_import'))}</strong><button class="occ-x" aria-label="close">✕</button></div>`));
-    card.appendChild(el(`<p class="plan-import-hint">${esc(t('plan_import_hint'))}</p>`));
-    const ta = el('<textarea class="plan-import-ta" rows="8" placeholder="[ { &quot;res&quot;: &quot;EP&quot;, &quot;unit&quot;: &quot;30B/63&quot;, &quot;week&quot;: &quot;2026-07-11&quot;, &quot;name&quot;: &quot;…&quot;, &quot;departure&quot;: &quot;2026-08-01&quot;, &quot;status&quot;: &quot;arriving&quot; } ]"></textarea>');
-    card.appendChild(ta);
-    const status = el('<p class="plan-import-status"></p>');
-    card.appendChild(status);
-    const btn = el(`<button class="btn primary">${esc(t('plan_import_btn'))}</button>`);
-    btn.addEventListener('click', () => {
-      let rows;
-      try { rows = JSON.parse(ta.value); } catch (_) { status.textContent = t('plan_import_bad'); return; }
-      if (!Array.isArray(rows)) { status.textContent = t('plan_import_bad'); return; }
-      // normalise + resolve poolId
-      const norm = rows.map((r) => ({
-        poolId: r.poolId || (r.res && r.unit ? Store.poolId(r.res, r.unit) : null),
-        week: r.week,
-        name: r.name || '', arrival: r.arrival || '', departure: r.departure || '',
-        status: r.status || 'occupied', note: r.note || '',
-      })).filter((r) => r.poolId && r.week);
-      if (!norm.length) { status.textContent = t('plan_import_bad'); return; }
-      // Clean per-week REPLACE (like the old seed rebuild): drop every existing
-      // row for the weeks present in the paste, then add the paste fresh. This
-      // is idempotent and can't create duplicates, whatever was there before.
-      new Set(norm.map((r) => r.week)).forEach((w) => Store.clearWeek(w));
-      norm.forEach((r) => Store.addOccupancy(r));
-      const per = {};
-      norm.forEach((r) => { per[r.week] = (per[r.week] || 0) + 1; });
-      status.textContent = Object.keys(per).sort().map((w) => `${fmtDate(w)}: ${per[w]}`).join(' · ') + ' ✓';
-      setTimeout(() => { ov.remove(); render(); }, 1400);
-    });
-    card.appendChild(btn);
-    ov.appendChild(card);
-    ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
-    card.querySelector('.occ-x').addEventListener('click', () => ov.remove());
-    document.body.appendChild(ov);
-  }
 
   // The two planning-sheet photos (this week + next), pinned at the top so the
   // current paper roster lives in the app and syncs to Dorian. Tap to view full.
@@ -1800,72 +1666,6 @@
     return wrap;
   }
 
-  // week folds — current week open, others closed, choice remembered per week
-  const WKEY = 'lagrange-piscine.weeks-open';
-  const weekPref = () => { try { return JSON.parse(localStorage.getItem(WKEY) || '{}') || {}; } catch (_) { return {}; } };
-  const setWeekPref = (w, open) => { const m = weekPref(); m[w] = open; try { localStorage.setItem(WKEY, JSON.stringify(m)); } catch (_) {} };
-
-  function viewSchedule() {
-    const wrap = document.createElement('div');
-    wrap.appendChild(header(t('schedule_title'), t('schedule_sub')));
-    wrap.appendChild(planningBlock());
-    return wrap;
-  }
-  function planningBlock() {
-    const wrap = el('<div class="planning"></div>');
-    wrap.appendChild(planningPhotos());
-    const impBtn = el(`<button class="btn sm plan-import-open">⇪ ${esc(t('plan_import'))}</button>`);
-    impBtn.addEventListener('click', openPlanImport);
-    wrap.appendChild(impBtn);
-    const cw = currentWeek();
-    // Shift the view forward: drop weeks whose turnover cycle has fully ended
-    // (last day < today), so the schedule stays on the active + upcoming weeks.
-    const today = todayISO();
-    const activeWeeks = Store.weeks().filter((week) => {
-      const end = new Date(week + 'T00:00:00'); end.setDate(end.getDate() + 6);
-      return ymdLocal(end) >= today;
-    });
-    (activeWeeks.length ? activeWeeks : Store.weeks().slice(-1)).forEach((week) => {
-      const occ = Store.occupancyForWeek(week);
-      const arr = occ.filter((o) => o.status === 'arriving').length;
-      const pref = weekPref();
-      const open = week in pref ? !!pref[week] : week === cw;
-      const fold = el(`<div class="zone wk${open ? '' : ' closed'}"></div>`);
-      const head = el(`<div class="section-title wk-head">
-        <div class="wk-toggle"><h2><span class="zh-caret">▾</span>${fmtDate(week)} ${week === cw ? `<span class="chip st-arriving">${esc(t('this_week'))}</span>` : ''}</h2>
-        <p>${esc(t('sched_counts', { n: occ.length, m: arr }))}</p></div></div>`);
-      head.querySelector('.wk-toggle').addEventListener('click', () => { const o = fold.classList.toggle('closed'); setWeekPref(week, !o); });
-      const clearBtn = el(`<button class="wk-clear">🗑 ${esc(t('wk_clear'))}</button>`);
-      clearBtn.addEventListener('click', () => {
-        if (confirm(t('wk_clear_confirm', { date: fmtDate(week), n: occ.length }))) {
-          Store.clearWeek(week);
-          render();
-        }
-      });
-      head.appendChild(clearBtn);
-      fold.appendChild(head);
-      const cards = el('<div class="cards zone-body"></div>');
-      Store.residences().forEach((res) => {
-        const items = occ.filter((o) => Store.pool(o.poolId)?.res === res.code);
-        if (!items.length && !Store.poolsByRes(res.code).length) return;
-        const card = el(`<div class="card"><div class="card-row"><strong>${esc(res.name)}</strong></div></div>`);
-        items.forEach((o) => {
-          const p = Store.pool(o.poolId);
-          const row = el(`<button class="sched-row edit"><span>${esc(p ? p.unit : o.poolId)} ${statusChip(o.status)}</span>
-            <span class="muted">${o.name ? esc(o.name) : ''}${o.departure ? ' · → ' + esc(fmtDate(o.departure)) : ''}${o.note ? ' · ' + esc(o.note) : ''}</span></button>`);
-          row.addEventListener('click', () => openOccModal(o, { poolId: o.poolId, week }));
-          card.appendChild(row);
-        });
-        const add = el(`<button class="sched-add">＋ ${esc(t('occ_add'))}</button>`);
-        add.addEventListener('click', () => openOccModal(null, { res: res.code, week }));
-        card.appendChild(add);
-        cards.appendChild(card);
-      });
-      fold.appendChild(cards);
-      wrap.appendChild(fold);
-    });
-    return wrap;
-  }
 
   // ---------- view: LOG (notes & to-dos) ----------
   function viewLog() {
