@@ -258,8 +258,6 @@ const Sync = (() => {
   const pushPhoto = (rec) => active && fb && fb.fsM.setDoc(ref('photos', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removePhoto = (id) => active && fb && fb.fsM.deleteDoc(ref('photos', id)).catch(() => {});
   const pushSeason = (rec) => active && fb && fb.fsM.setDoc(ref('meta', 'season'), { start: rec.start ?? null, at: rec.at }).catch(dirty('meta:season'));
-  const pushOccCleared = (week, at) => active && fb && fb.fsM.setDoc(ref('meta', 'occCleared'), { [week]: at }, { merge: true }).catch(dirty('meta:occCleared'));
-  const pushOccupancy = (rec) => active && fb && fb.fsM.setDoc(ref('occupancy', rec.id), stripId(rec), { merge: true }).catch(dirty('occupancy:' + rec.id));
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
@@ -275,7 +273,7 @@ const Sync = (() => {
 
   return {
     enable, disable, maybeAutoStart,
-    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushOccupancy, pushOccCleared, pushSeason,
+    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushSeason,
     get active() { return active; },
     get status() { return status; },
     get team() { return team; },

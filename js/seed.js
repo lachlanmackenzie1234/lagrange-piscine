@@ -44,15 +44,6 @@ const PRODUCTS = [
 ];
 
 // Status codes seen on the rotation sheets.
-const OCC_STATUS = {
-  arriving:  { label: 'Arriving (turnover)', cls: 'st-arriving' }, // new guest this Saturday
-  occupied:  { label: 'Occupied',            cls: 'st-occupied' }, // mid-stay (DÉJÀ LÀ)
-  departing: { label: 'Departing',           cls: 'st-departing' },
-  owner:     { label: 'Owner (PROPRIO)',     cls: 'st-owner' },
-  closed:    { label: 'Closed (FERMÉE)',     cls: 'st-closed' },
-  backup:    { label: 'Backup (EN SECOURS)', cls: 'st-backup' },
-  empty:     { label: 'Empty',               cls: 'st-empty' },
-};
 
 const RESIDENCES = [
   {
@@ -154,8 +145,6 @@ const POOLS = [
   { res: 'HO', unit: '229', nonPool: true },
 ];
 
-// ISO Saturdays for the 2026 season turnover.
-const SAT = { jun27: '2026-06-27', jul04: '2026-07-04', jul11: '2026-07-11', jul18: '2026-07-18' };
 
 // Occupancy roster (renter NAMES) is PII — it must not live in the committed,
 // publicly-served code. It's kept in the gitignored js/seed.private.js
@@ -165,4 +154,4 @@ const SAT = { jun27: '2026-06-27', jul04: '2026-07-04', jul11: '2026-07-11', jul
 // maintained via the in-app planning editor.
 const OCCUPANCY = (window.SEED_PRIVATE && window.SEED_PRIVATE.OCCUPANCY) || [];
 
-window.SEED = { CHEM_RANGES, CYA_SALT, PRODUCTS, OCC_STATUS, RESIDENCES, POOLS, OCCUPANCY, SAT };
+window.SEED = { CHEM_RANGES, CYA_SALT, PRODUCTS, RESIDENCES, POOLS, OCCUPANCY };

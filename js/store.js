@@ -199,14 +199,7 @@ const Store = (() => {
     load().readings.filter((r) => r.poolId === poolId && !r.deleted && inSeason(r)).sort((a, b) => b.at.localeCompare(a.at));
   const latestReading = (poolId) => readingsFor(poolId)[0] || null;
 
-  const occupancyFor = (poolId) =>
-    load().occupancy.filter((o) => o.poolId === poolId && !o.deleted).sort((a, b) => a.week.localeCompare(b.week));
-  const occupancyForWeek = (week) => load().occupancy.filter((o) => o.week === week && !o.deleted);
 
-  function weeks() {
-    const set = new Set(load().occupancy.filter((o) => !o.deleted).map((o) => o.week));
-    return [...set].sort();
-  }
 
   // ---- mutations ----
   function addReading(r) {
@@ -427,36 +420,6 @@ const Store = (() => {
     return rec;
   }
 
-  // ---- occupancy edits (operator-maintained planning) ----
-  // Any edit/add/delete tags the row source:'user' so migrate() preserves it.
-  function updateOccupancy(id, patch) {
-    const o = load().occupancy.find((x) => x.id === id);
-    if (o) { Object.assign(o, patch, { source: 'user' }); save(); mirror((s) => s.pushOccupancy(o), 'occupancy:' + o.id); }
-    return o;
-  }
-  function addOccupancy(entry) {
-    const rec = {
-      id: uid('occ-u'),
-      poolId: entry.poolId, week: entry.week,
-      name: entry.name || '', arrival: entry.arrival || '', departure: entry.departure || '',
-      status: entry.status || 'occupied', note: entry.note || '', source: 'user',
-      createdAt: new Date().toISOString(),
-    };
-    load().occupancy.push(rec);
-    save();
-    mirror((s) => s.pushOccupancy(rec), 'occupancy:' + rec.id);
-    return rec;
-  }
-  function deleteOccupancy(id) {
-    const rows = load().occupancy.filter((x) => x.id === id);
-    if (!rows.length) return;
-    // soft-delete (tombstone) + source:'user' so the removal survives a re-seed.
-    // Every row carrying the id goes (legacy twins), not just the first match.
-    const at = new Date().toISOString();
-    rows.forEach((o) => { o.deleted = true; o.deletedAt = at; o.source = 'user'; });
-    save();
-    mirror((s) => s.pushOccupancy(rows[0]), 'occupancy:' + id);
-  }
   // "Vider" is a statement about the WEEK, not about row ids: each phone
   // imports the roster separately (different ids for the same cells), so an
   // id-by-id tombstone from one phone can't reach the other's copies — its
@@ -468,17 +431,6 @@ const Store = (() => {
     const m = /^occ-u-(\d+)-/.exec(o.id || '');       // legacy ids carry their birth ms
     return m ? new Date(+m[1]).toISOString() : '1970-01-01T00:00:00.000Z'; // seed rows: older than any clear
   };
-  function clearWeek(week, at) {
-    at = at || new Date().toISOString();
-    const st = load();
-    if ((st.occCleared[week] || '') < at) st.occCleared[week] = at;
-    const cut = st.occCleared[week];
-    const rows = st.occupancy.filter((o) => o.week === week && !o.deleted && rowCreated(o) < cut);
-    rows.forEach((o) => { o.deleted = true; o.deletedAt = cut; o.source = 'user'; });
-    save();
-    mirror((s) => { s.pushOccCleared(week, cut); rows.forEach((o) => s.pushOccupancy(o)); }, 'meta:occCleared', ...rows.map((o) => 'occupancy:' + o.id));
-    return rows.length;
-  }
   function applyRemoteOccCleared(map) {
     let changed = false;
     Object.keys(map || {}).forEach((week) => {
@@ -524,11 +476,6 @@ const Store = (() => {
     updatePool(poolId, { winter: on ? { since: localDate(new Date().toISOString()) } : null });
     addVisit(poolId, { type: 'service', task: on ? 'hivernage' : 'remise' });
     return p;
-  }
-  function updateResidence(code, patch) {
-    const r = residence(code);
-    if (r) { Object.assign(r, patch); save(); }
-    return r;
   }
 
   function numOrNull(v) {
@@ -593,14 +540,13 @@ const Store = (() => {
     KEY, slug, poolId,
     load, save,
     residences, residence, pools, pool, poolsByRes, wateringPools,
-    readingsFor, latestReading, occupancyFor, occupancyForWeek, weeks,
+    readingsFor, latestReading,
     addReading, deleteReading,
     addVisit, visitsFor, lastVisit, lastService, lastBackwash, deleteVisit, updateVisit, servicedOn, localDate,
     addTreatment, treatmentsFor, lastTreatment,
     addNote, notes, notesFor, openTodos, setNoteDone, updateNote, deleteNote,
     operator, setOperator, knownOperators,
-    updatePool, updateResidence,
-    updateOccupancy, addOccupancy, deleteOccupancy, clearWeek,
+    updatePool,
     isWintered, setWinter, LWW,
     markDirty, dirtyMarks, dirtyAll, clearDirty,
     seasonStart, allSeasons, setAllSeasons, inSeason, setSeasonStart, applyRemoteSeason,

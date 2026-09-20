@@ -4,7 +4,7 @@ const I18n = (() => {
 
   const STR = {
     en: {
-      tab_today: 'Overview', tab_pools: 'Pools', tab_schedule: 'Schedule', tab_map: 'Map', tab_weather: 'Weather', tab_more: 'Settings',
+      tab_today: 'Overview', tab_pools: 'Pools', tab_more: 'Settings',
       wx_loading_short: 'weather…', map_list: 'Residences',
       weather_title: 'Weather', wx_forecast: 'Forecast', wx_refresh: 'Refresh',
       wx_loading: 'Loading weather… (needs a connection the first time)',
@@ -12,24 +12,18 @@ const I18n = (() => {
       wx_clear: 'Clear', wx_cloud: 'Cloudy', wx_fog: 'Fog', wx_rain: 'Rain', wx_snow: 'Snow', wx_storm: 'Storm', wx_unknown: '—',
 
       today_title: 'Overview', today_sub: 'Turnover Saturday · {date}',
-      arrivals_title: 'Arrivals to prep ({n})',
-      arrivals_sub: 'Pools that must be checked & clean for new guests this Saturday.',
-      arrivals_empty: 'No new arrivals recorded for this week.',
-      midweek_title: 'Mid-week checks ({n})',
-      midweek_sub: 'Occupied pools to cycle and keep balanced during the stay.',
-      midweek_empty: 'Nothing mid-stay this week.',
-      chem_due_title: 'Chemistry due ({n})',
-      chem_due_sub: 'No reading logged in the last 4 days.',
-      chem_due_empty: 'All pools have a recent reading. 🎉',
+      
+      
+      
+      
       revisit_title: 'To revisit ({n})',
       revisit_sub: 'Longest not seen first — blind spots on top.',
       revisit_empty: 'Every pool seen today. 🎉',
       seen_never: 'never seen',
       seen_ago: 'seen {d}d ago',
-      no_reading: 'no reading', last_date: 'last {date}', never: 'never',
+      no_reading: 'no reading', never: 'never',
 
       pools_title: 'Pools', pools_sub: '{n} pools across {m} residences',
-      to_confirm: '⚠︎ details to confirm',
       pools_word: 'pools', zone_due: '{n} to see', vu_on: 'seen {date}', per_week: '/wk',
       weekday_letters: 'SMTWTFS',
       leg_stable: 'stable zone', leg_product: 'product',
@@ -41,7 +35,7 @@ const I18n = (() => {
 
       back_pools: '‹ Pools', directions: '📍 Directions', occupancy: 'Occupancy',
       log_reading: 'Log a reading',
-      f_ph: 'pH', f_cl: 'Free Cl (ppm)', f_cya: 'Stabilizer (ppm)', f_temp: 'Temp (°C)', f_note: 'Note',
+      f_ph: 'pH', f_cl: 'Free Cl (ppm)', f_cya: 'Stabilizer (ppm)', f_note: 'Note',
       f_when: 'When (optional — defaults to now)',
       status_green: 'Stable', status_orange: 'To check', status_red: 'Critical', status_grey: 'No data', status_none: '',
       leg_treated: 'In progress', leg_todo: 'To see',
@@ -49,20 +43,14 @@ const I18n = (() => {
       targets: 'Targets — pH {phmin}–{phmax} · Cl {clmin}–{clmax}ppm · CYA {cyamin}–{cyamax}ppm',
       save_reading: 'Save reading',
       history: 'History ({n})', history_empty: 'No readings yet. Log the first one above.',
-      hist_more: '+{n} more',
-      th_when: 'When', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', th_temp: '°C',
+      th_when: 'When', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', 
       confirm_del: 'Delete this reading?', pool_not_found: 'Pool not found',
 
-      schedule_title: 'Schedule', schedule_sub: 'Saturday turnover cycle',
       plan_photos: 'Planning sheets', plan_wk1: 'This week', plan_wk2: 'Next week',
-      occ_add: 'add', occ_new: 'New entry', occ_edit: 'Edit entry', occ_unit: 'Unit',
-      occ_name: 'Name', occ_arrival: 'Arrival', occ_departure: 'Departure', occ_status: 'Status',
-      occ_note: 'Remark', occ_save: 'Save', occ_delete: 'Delete', occ_del_confirm: 'Delete this entry?',
-      week_of: 'wk {date}', occ_free: 'Free', occ_reserved: 'Reserved',
-      plan_import: 'Import roster', plan_import_hint: 'Paste the roster JSON — replaces the pasted weeks cleanly (no duplicates), syncs to the team.',
-      plan_import_btn: 'Import', plan_import_bad: 'Invalid JSON.', plan_import_ok: '{n} rows imported ✓',
-      wk_clear: 'Clear', wk_clear_confirm: 'Clear the week of {date}? ({n} entries will be removed — then paste the fresh roster.)',
-      this_week: 'this week', sched_counts: '{n} active · {m} arriving',
+      
+      
+      
+      
 
       map_title: 'Map', map_sub: 'Open residences in Google Maps',
       n_pools: '{n} pools', open_maps: '📍 Open in Google Maps',
@@ -75,67 +63,45 @@ const I18n = (() => {
       about_text: 'Data is stored only on this device. Export regularly to back up.',
       language: 'Language',
       update_app: 'Update app (clear cache)', updating: 'Updating…',
-      imported_ok: 'Backup imported.', import_fail: 'Import failed: ',
-      confirm_reset: 'Discard all local changes and reload the original seed data?',
+      imported_ok: 'Backup imported.', import_fail: 'Import Discard all local changes and reload the original seed data?',
 
-      in_date: 'in {date}', out_date: 'out {date}',
 
-      st_arriving: 'Arriving (turnover)', st_occupied: 'Occupied', st_departing: 'Departing',
-      st_owner: 'Owner (PROPRIO)', st_closed: 'Closed (FERMÉE)', st_backup: 'Backup (EN SECOURS)', st_empty: 'Empty',
+      
 
       // suggested actions (qualitative — verify against your products & labels)
-      advice_title: 'Suggested action',
-      action_ph_high: 'pH high → add pH⁻ (pH minus), run filtration, retest after a few hours.',
-      action_ph_low: 'pH low → add pH⁺ (pH plus), run filtration, retest.',
-      action_cl_high: 'Chlorine high → pause dosing; let it drop before guests use the pool.',
-      action_cl_low: 'Chlorine low → add tablets/galets (check the feeder/skimmer).',
-      action_cl_vlow: 'Chlorine very low → shock treat; recheck before reopening.',
-      action_cya_low: 'Stabiliser low → let the galets build it (or add stabiliser).',
-      action_cya_high: 'Stabiliser high → stop galets, switch to unstabilised (stick/shock); let evaporation + top-up dilute it.',
-      action_cya_vhigh: 'Stabiliser very high → unstabilised only; dilute actively (heavy top-up or partial drain).',
+      
+      
+      
+      
 
       // chemistry panel (advisory)
       chem_title: 'Chemistry',
-      chem_sub: 'Estimated from the last test + forecast',
-      chem_active: 'Active chlorine',
-      chem_active_h: 'at pH {ph} (HOCl)',
-      chem_target_fc: 'Target chlorine',
-      chem_target_fc_h: 'for CYA {cya}',
-      chem_decay: 'Daily loss',
-      chem_decay_h: 'ppm/day in sun',
-      chem_calibrated: 'calibrated',
-      chem_next: 'Next check',
-      chem_treated_h: 'dosed {time} — retest to confirm',
-      chem_due_now: 'now',
-      chem_due_in: '~{days} d · {date}',
-      chem_next_h: 'until Cl ~{floor}',
-      chem_salt: 'Salt',
-      chem_salt_h: 'aim {min}–{max} g/L',
-      chem_cya: 'Stabiliser',
-      chem_cya_h: 'aim {min}–{max} ppm',
+      
+      
+      
+      
+      
+      
+      
+      
       chem_dose: 'To reach target',
-      chem_dose_v: '≈ {stick} stick · {galet} galet',
-      chem_dose_h: '{vol} m³ · +{delta} ppm',
+      
       chem_dose_novol: 'set the volume',
       chem_dose_novol_h: 'add pool size below',
       dose_title: 'Doses',
       dose_phminus: 'pH‑',
       dose_phplus: 'pH+',
       dose_choc: 'Shock',
-      dose_stab: 'Stabiliser',
       dose_maint: 'Upkeep',
       dose_ph_h: '−{drop} pH/step · ~{n}× → {target} · retest',
       dose_phplus_h: '+{rise} pH/step · ~{n}× → {target} · retest',
-      dose_step_h: 'per step · filter + retest',
       dose_choc_h: '+{d} ppm · shock only',
-      dose_stab_h: '+{d} ppm → {target} · powder',
-      dose_maint_h: 'galet {gd}d · stick {sd}d',
+      
       dose_maint_galet_h: 'builds CYA · {d}d · or sticks',
       dose_maint_stick_h: 'CYA in band, no CYA · {d}d · or galets',
       status_treated: 'treated — recheck',
       status_retest: 'reconfirm (dosed, not re-tested)',
       salt_pool: 'Salt pool',
-      salt_on: '🧂 Salt ✓', salt_off: '🧂 Salt pool?',
 
       // pool volume
       vol_section: 'Pool volume',
@@ -148,16 +114,14 @@ const I18n = (() => {
       vol_hint: 'enter the dimensions',
       vol_presets: 'Estimated size',
       vol_measure: 'Measure',
-      size_small: 'Small', size_medium: 'Medium', size_large: 'Large',
+      size_small: 'Small', size_medium: 'Medium', 
       estimated: 'estimate',
       f_salt: 'Salt (g/L)',
       target_salt: 'salt {min}–{max} g/L',
-      fc_over_test: '> test 6 · dilute 50/50',
       cya_test_tip: 'CyA test: zero with the sample; if cloudy/green, filter it first (else reads high). Test chlorine at once, no swirling.',
 
       // products applied
       treat_section: 'Products added',
-      treat_sub: 'log what you dosed (the colleague sees it)',
       treat_qty: 'Qty',
       edit_time: 'Tap to edit the time',
       validate: 'Validate',
@@ -177,47 +141,37 @@ const I18n = (() => {
       turn_off_short: '⏰ turn off',
       pump_section: 'Pump & filter', log_backwash: '⟲ Log backwash now',
       last_backwash: 'Last backwash: {date}', sand_date: 'Filter sand changed',
-      pump_notes: 'Pump notes / particularities', pump_notes_ph: 'e.g. skimmer left side off — see valve',
-      serviced_today: 'Serviced today',
+      pump_notes_ph: 'e.g. skimmer left side off — see valve',
       last_serviced: 'Last serviced {date}',
       clean_title: 'Cleaning', task_balai: 'Balai', task_robot: 'Robot', task_skimmer: 'Skimmer',
       task_hivernage: 'Winterised', task_remise: 'Back in service',
       log_full: 'whole season ({n}) ▸', log_recent: '◂ recent only',
       winter_btn: 'Winterise', winter_confirm: 'Put {pool} into winter mode? It leaves the daily lists until you bring it back.',
       winter_since: '❄️ Winterised since {date}', winter_reopen: 'Back in service', winter_reopen_confirm: 'Bring {pool} back into service?',
-      winter_fold: 'Winterised ({n})', winter_none: 'No pool in winter mode.',
+      winter_fold: 'Winterised ({n})', 
       season_title: 'Season', season_all_data: 'All data shown (no season boundary).', season_since: 'Season since {date}',
       season_all_lens: 'Show all seasons', season_new: '🌱 New season', season_close: '❄️ Close the season', season_bilan: '📊 Season report',
       season_new_confirm: 'Start a new season today? Chemistry, doses and passages logged before today leave the live views (kept in the archive and in exports). Notes and pool cards carry over.',
       season_close_confirm: 'Close the season — winterise all {n} open pools?', season_closed_done: '{n} pools winterised.', season_reset: 'Remove the boundary',
       bilan_title: 'Season report', bilan_sub: '{from} → {to}', bilan_passages: 'passages', bilan_cl: 'chlorine', bilan_wash: 'backwashes', bilan_readings: 'readings',
-      bilan_export: '⬇︎ Export report (.json)', bilan_empty: 'Nothing logged in this season yet.', bilan_pools: 'pools',
-      done_today_title: 'Done today ({n})',
+      bilan_export: '⬇︎ Export report (.json)', bilan_empty: 'Nothing logged in this season yet.', 
       // day route
-      nav_today: '🧭 Navigate today’s stops ({n})',
       // GPS location capture
-      set_location: '📍 GPS here',
-      update_location: '📍 Update GPS',
+      
       pick_on_map: '🗺️ Place on map', map_save: 'Save here',
       layer_sat: 'Satellite', layer_map: 'Map',
-      geo_locating: 'Locating…',
       geo_error: 'Could not get your location. Allow location access and try again.',
-      geo_unsupported: 'Geolocation isn’t available on this device/browser.',
       clear_location: 'Clear GPS',
       coords_label: '📍 {lat}, {lng}',
       // management-only (no pool) residences
       mgmt_only: 'Rental only — no pool',
       mgmt_note: 'Rental management only — no pool to maintain here. Listed so the prefix + number matches the rental papers.',
-      rentals_label: 'rentals',
       // team sync
       op_title: 'Username',
-      op_desc: 'Who’s logging on this phone. New measures, treatments and notes get tagged with your name — older entries stay blank.',
-      op_current: 'This phone logs as {name}.',
-      op_none: 'No name set — new logs stay blank.',
-      op_name: 'Your name',
+      
+      
       op_ph: 'e.g. Loki',
       op_save: 'Save name',
-      op_hint: 'Stays on this phone only; the tag travels with each log through sync.',
       sync_title: 'Sync',
       sync_desc: 'Data sync + team connection.',
       sync_hint: 'Enter the same code on both phones to pair them.',
@@ -234,12 +188,10 @@ const I18n = (() => {
       // notes / to-dos (preventive log)
       log_title: 'Notes & log',
       log_sub: 'Preventive log — to-dos and observations',
-      notes_section: 'Notes',
-      add_note: '+ Note',
+      
       note_log_ph: 'e.g. check AG 8 — going green · tile to fix · skimmer broke · set to auto',
       note_pool_ph: 'quick note…', water_word: 'watering',
       note_todo: 'To-do (needs action)',
-      note_pool: 'Pool',
       note_general: 'General',
       note_save: 'Add',
       todos_title: 'To-do ({n})',
@@ -251,12 +203,11 @@ const I18n = (() => {
       done_badge: 'done',
       confirm_del_note: 'Delete this note?',
       // photos
-      photos_section: 'Photos', ref_photos: 'Reference photos',
-      ref_gate: 'Front gate', ref_pool: 'Pool', ref_pit: 'Pump room',
+      
       add_photo: '＋', photo_del_confirm: 'Delete this photo?',
     },
     fr: {
-      tab_today: 'Aperçu', tab_pools: 'Piscines', tab_schedule: 'Planning', tab_map: 'Carte', tab_weather: 'Météo', tab_more: 'Réglages',
+      tab_today: 'Aperçu', tab_pools: 'Piscines', tab_more: 'Réglages',
       wx_loading_short: 'météo…', map_list: 'Résidences',
       weather_title: 'Météo', wx_forecast: 'Prévisions', wx_refresh: 'Actualiser',
       wx_loading: 'Chargement météo… (connexion requise la première fois)',
@@ -264,24 +215,18 @@ const I18n = (() => {
       wx_clear: 'Dégagé', wx_cloud: 'Nuageux', wx_fog: 'Brouillard', wx_rain: 'Pluie', wx_snow: 'Neige', wx_storm: 'Orage', wx_unknown: '—',
 
       today_title: 'Aperçu', today_sub: 'Rotation samedi · {date}',
-      arrivals_title: 'Arrivées à préparer ({n})',
-      arrivals_sub: 'Piscines à contrôler et nettoyer pour les nouveaux arrivants ce samedi.',
-      arrivals_empty: 'Aucune arrivée enregistrée cette semaine.',
-      midweek_title: 'Contrôles en semaine ({n})',
-      midweek_sub: 'Piscines occupées à entretenir et équilibrer pendant le séjour.',
-      midweek_empty: 'Aucun séjour en cours cette semaine.',
-      chem_due_title: 'Analyses à faire ({n})',
-      chem_due_sub: 'Aucune mesure depuis 4 jours.',
-      chem_due_empty: 'Toutes les piscines ont une mesure récente. 🎉',
+      
+      
+      
+      
       revisit_title: 'À revoir ({n})',
       revisit_sub: 'Pas vue depuis le plus longtemps en premier — angles morts en haut.',
       revisit_empty: 'Toutes les piscines vues aujourd’hui. 🎉',
       seen_never: 'jamais vue',
       seen_ago: 'vue il y a {d} j',
-      no_reading: 'aucune mesure', last_date: 'dernière {date}', never: 'jamais',
+      no_reading: 'aucune mesure', never: 'jamais',
 
       pools_title: 'Piscines', pools_sub: '{n} piscines · {m} résidences',
-      to_confirm: '⚠︎ détails à confirmer',
       pools_word: 'piscines', zone_due: '{n} à voir', vu_on: 'vu {date}', per_week: '/sem',
       weekday_letters: 'DLMMJVS',
       leg_stable: 'zone stable', leg_product: 'produit',
@@ -293,7 +238,7 @@ const I18n = (() => {
 
       back_pools: '‹ Piscines', directions: '📍 Itinéraire', occupancy: 'Occupation',
       log_reading: 'Saisir une mesure',
-      f_ph: 'pH', f_cl: 'Chlore libre (ppm)', f_cya: 'Stabilisant (ppm)', f_temp: 'Temp. (°C)', f_note: 'Note',
+      f_ph: 'pH', f_cl: 'Chlore libre (ppm)', f_cya: 'Stabilisant (ppm)', f_note: 'Note',
       f_when: 'Quand (optionnel — par défaut maintenant)',
       status_green: 'Stable', status_orange: 'À vérifier', status_red: 'Critique', status_grey: 'Sans donnée', status_none: '',
       leg_treated: 'En cours', leg_todo: 'À voir',
@@ -301,20 +246,14 @@ const I18n = (() => {
       targets: 'Cibles — pH {phmin}–{phmax} · Cl {clmin}–{clmax}ppm · CYA {cyamin}–{cyamax}ppm',
       save_reading: 'Enregistrer',
       history: 'Historique ({n})', history_empty: 'Aucune mesure pour l’instant. Saisissez la première ci-dessus.',
-      hist_more: '+{n} de plus',
-      th_when: 'Quand', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', th_temp: '°C',
+      th_when: 'Quand', th_ph: 'pH', th_cl: 'Cl', th_cya: 'CYA', 
       confirm_del: 'Supprimer cette mesure ?', pool_not_found: 'Piscine introuvable',
 
-      schedule_title: 'Planning', schedule_sub: 'Cycle de rotation du samedi',
       plan_photos: 'Feuilles de planning', plan_wk1: 'Cette semaine', plan_wk2: 'Semaine suivante',
-      occ_add: 'ajouter', occ_new: 'Nouvelle entrée', occ_edit: 'Modifier l’entrée', occ_unit: 'Logement',
-      occ_name: 'Nom', occ_arrival: 'Arrivée', occ_departure: 'Départ', occ_status: 'État',
-      occ_note: 'Remarque', occ_save: 'Enregistrer', occ_delete: 'Supprimer', occ_del_confirm: 'Supprimer cette entrée ?',
-      week_of: 'sem. {date}', occ_free: 'Libre', occ_reserved: 'Réservé',
-      plan_import: 'Importer le planning', plan_import_hint: 'Collez le JSON du planning — remplace proprement les semaines collées (sans doublons), synchronisé.',
-      plan_import_btn: 'Importer', plan_import_bad: 'JSON invalide.', plan_import_ok: '{n} lignes importées ✓',
-      wk_clear: 'Vider', wk_clear_confirm: 'Vider la semaine du {date} ? ({n} entrées seront supprimées — puis collez le planning à jour.)',
-      this_week: 'cette semaine', sched_counts: '{n} actives · {m} arrivées',
+      
+      
+      
+      
 
       map_title: 'Carte', map_sub: 'Ouvrir les résidences dans Google Maps',
       n_pools: '{n} piscines', open_maps: '📍 Ouvrir dans Google Maps',
@@ -330,64 +269,43 @@ const I18n = (() => {
       imported_ok: 'Sauvegarde importée.', import_fail: 'Échec de l’import : ',
       confirm_reset: 'Annuler toutes les modifications locales et recharger les données d’origine ?',
 
-      in_date: 'arr. {date}', out_date: 'dép. {date}',
 
-      st_arriving: 'Arrivée (rotation)', st_occupied: 'Occupée', st_departing: 'Départ',
-      st_owner: 'Propriétaire (PROPRIO)', st_closed: 'Fermée (FERMÉE)', st_backup: 'Secours (EN SECOURS)', st_empty: 'Vide',
+      
 
       // actions suggérées (indicatif — à vérifier selon vos produits et leurs notices)
-      advice_title: 'Action suggérée',
-      action_ph_high: 'pH élevé → ajouter du pH⁻ (pH moins), faire tourner la filtration, recontrôler après quelques heures.',
-      action_ph_low: 'pH bas → ajouter du pH⁺ (pH plus), faire tourner la filtration, recontrôler.',
-      action_cl_high: 'Chlore élevé → suspendre le dosage ; laisser baisser avant la baignade.',
-      action_cl_low: 'Chlore bas → ajouter des galets (vérifier le diffuseur/skimmer).',
-      action_cl_vlow: 'Chlore très bas → traitement choc ; recontrôler avant réouverture.',
-      action_cya_low: 'Stabilisant bas → laisser les galets le monter (ou ajouter du stabilisant).',
-      action_cya_high: 'Stabilisant élevé → arrêter les galets, passer au non stabilisé (stick/choc) ; laisser l’évaporation + remise à niveau diluer.',
-      action_cya_vhigh: 'Stabilisant très élevé → non stabilisé uniquement ; diluer activement (remise à niveau forte ou vidange partielle).',
+      
+      
+      
+      
 
       // panneau chimie (indicatif)
       chem_title: 'Chimie',
-      chem_sub: 'Estimé depuis le dernier test + prévisions',
-      chem_active: 'Chlore actif',
-      chem_active_h: 'à pH {ph} (HOCl)',
-      chem_target_fc: 'Chlore cible',
-      chem_target_fc_h: 'pour stab. {cya}',
-      chem_decay: 'Perte/jour',
-      chem_decay_h: 'ppm/jour au soleil',
-      chem_calibrated: 'calibré',
-      chem_next: 'Prochaine vérif',
-      chem_treated_h: 'traité {time} — retester pour confirmer',
-      chem_due_now: 'maintenant',
-      chem_due_in: '~{days} j · {date}',
-      chem_next_h: 'jusqu’à Cl ~{floor}',
-      chem_salt: 'Sel',
-      chem_salt_h: 'viser {min}–{max} g/L',
-      chem_cya: 'Stabilisant',
-      chem_cya_h: 'viser {min}–{max} ppm',
+      
+      
+      
+      
+      
+      
+      
+      
       chem_dose: 'Pour la cible',
-      chem_dose_v: '≈ {stick} stick · {galet} galet',
-      chem_dose_h: '{vol} m³ · +{delta} ppm',
+      
       chem_dose_novol: 'saisir le volume',
       chem_dose_novol_h: 'ajouter la taille ci-dessous',
       dose_title: 'Doses',
       dose_phminus: 'pH‑',
       dose_phplus: 'pH+',
       dose_choc: 'Choc',
-      dose_stab: 'Stabilisant',
       dose_maint: 'Entretien',
       dose_ph_h: '−{drop} pH/palier · ~{n}× → {target} · retester',
       dose_phplus_h: '+{rise} pH/palier · ~{n}× → {target} · retester',
-      dose_step_h: 'par palier · filtrer + retester',
       dose_choc_h: '+{d} ppm · choc seul',
-      dose_stab_h: '+{d} ppm → {target} · poudre',
-      dose_maint_h: 'galet {gd}j · stick {sd}j',
+      
       dose_maint_galet_h: 'monte le CYA · {d}j · ou sticks',
       dose_maint_stick_h: 'CYA en zone, sans CYA · {d}j · ou galets',
       status_treated: 'traité — à revérifier',
       status_retest: 'à reconfirmer (traité, pas retesté)',
       salt_pool: 'Piscine au sel',
-      salt_on: '🧂 Au sel ✓', salt_off: '🧂 Au sel ?',
 
       // volume du bassin
       vol_section: 'Volume du bassin',
@@ -400,16 +318,14 @@ const I18n = (() => {
       vol_hint: 'saisir les dimensions',
       vol_presets: 'Taille estimée',
       vol_measure: 'Mesurer',
-      size_small: 'Petite', size_medium: 'Moyenne', size_large: 'Large',
+      size_small: 'Petite', size_medium: 'Moyenne', 
       estimated: 'estimé',
       f_salt: 'Sel (g/L)',
       target_salt: 'sel {min}–{max} g/L',
-      fc_over_test: '> test 6 · diluer 50/50',
       cya_test_tip: 'Test stab : zéro avec l’échantillon ; si trouble/verte, filtrer d’abord (sinon lit trop haut). Chlore : tester tout de suite, sans remuer.',
 
       // produits ajoutés
       treat_section: 'Produits ajoutés',
-      treat_sub: 'noter ce qui a été ajouté (visible par le collègue)',
       treat_qty: 'Qté',
       edit_time: 'Toucher pour modifier l’heure',
       validate: 'Valider',
@@ -429,47 +345,37 @@ const I18n = (() => {
       turn_off_short: '⏰ à couper',
       pump_section: 'Gestion de pompe', log_backwash: '⟲ Enregistrer un lavage',
       last_backwash: 'Dernier lavage : {date}', sand_date: 'Sable du filtre changé',
-      pump_notes: 'Notes pompe / particularités', pump_notes_ph: 'ex. skimmer côté gauche coupé — voir vanne',
-      serviced_today: 'Entretenue aujourd’hui',
+      pump_notes_ph: 'ex. skimmer côté gauche coupé — voir vanne',
       last_serviced: 'Dernier entretien {date}',
       clean_title: 'Nettoyage', task_balai: 'Balai', task_robot: 'Robot', task_skimmer: 'Skimmer',
       task_hivernage: 'Hivernage', task_remise: 'Remise en service',
       log_full: 'toute la saison ({n}) ▸', log_recent: '◂ récents seulement',
       winter_btn: 'Hivernage', winter_confirm: 'Mettre {pool} en hivernage ? Elle quitte les listes du jour jusqu’à la remise en service.',
       winter_since: '❄️ En hivernage depuis le {date}', winter_reopen: 'Remettre en service', winter_reopen_confirm: 'Remettre {pool} en service ?',
-      winter_fold: 'Hivernage ({n})', winter_none: 'Aucune piscine en hivernage.',
+      winter_fold: 'Hivernage ({n})', 
       season_title: 'Saison', season_all_data: 'Toutes les données affichées (pas de limite de saison).', season_since: 'Saison depuis le {date}',
       season_all_lens: 'Voir toutes les saisons', season_new: '🌱 Nouvelle saison', season_close: '❄️ Fermer la saison', season_bilan: '📊 Bilan de saison',
       season_new_confirm: 'Commencer une nouvelle saison aujourd’hui ? Chimie, doses et passages d’avant aujourd’hui quittent les vues (conservés dans l’archive et les exports). Notes et fiches piscine restent.',
       season_close_confirm: 'Fermer la saison — mettre les {n} piscines ouvertes en hivernage ?', season_closed_done: '{n} piscines en hivernage.', season_reset: 'Retirer la limite',
       bilan_title: 'Bilan de saison', bilan_sub: '{from} → {to}', bilan_passages: 'passages', bilan_cl: 'chlore', bilan_wash: 'lavages', bilan_readings: 'mesures',
-      bilan_export: '⬇︎ Exporter le bilan (.json)', bilan_empty: 'Rien de saisi sur cette saison pour l’instant.', bilan_pools: 'piscines',
-      done_today_title: 'Faites aujourd’hui ({n})',
+      bilan_export: '⬇︎ Exporter le bilan (.json)', bilan_empty: 'Rien de saisi sur cette saison pour l’instant.', 
       // itinéraire du jour
-      nav_today: '🧭 Itinéraire des arrêts du jour ({n})',
       // capture de position GPS
-      set_location: '📍 GPS ici',
-      update_location: '📍 Mettre à jour le GPS',
+      
       pick_on_map: '🗺️ Placer sur la carte', map_save: 'Enregistrer ici',
       layer_sat: 'Satellite', layer_map: 'Plan',
-      geo_locating: 'Localisation…',
       geo_error: 'Position introuvable. Autorisez la localisation puis réessayez.',
-      geo_unsupported: 'Géolocalisation indisponible sur cet appareil/navigateur.',
       clear_location: 'Effacer le GPS',
       coords_label: '📍 {lat}, {lng}',
       // résidences en gestion seule (sans piscine)
       mgmt_only: 'Location seule — sans piscine',
       mgmt_note: 'Gestion locative uniquement — pas de piscine à entretenir ici. Listée pour que le préfixe + numéro corresponde aux feuilles de location.',
-      rentals_label: 'locations',
       // synchro équipe
       op_title: 'Nom d’utilisateur',
-      op_desc: 'Qui saisit sur ce téléphone. Les nouvelles mesures, traitements et notes sont marqués à ton nom — les anciens restent vierges.',
-      op_current: 'Ce téléphone saisit en tant que {name}.',
-      op_none: 'Aucun nom défini — les nouvelles saisies restent vierges.',
-      op_name: 'Ton nom',
+      
+      
       op_ph: 'ex. Loki',
       op_save: 'Enregistrer',
-      op_hint: 'Reste sur ce téléphone ; le marqueur voyage avec chaque saisie via la synchro.',
       sync_title: 'Synchro',
       sync_desc: 'Synchronisation de données + connexion équipe.',
       sync_hint: 'Saisissez le même code sur les deux téléphones pour les appairer.',
@@ -486,12 +392,10 @@ const I18n = (() => {
       // notes / à‑faire (journal préventif)
       log_title: 'Notes & journal',
       log_sub: 'Journal préventif — à‑faire et observations',
-      notes_section: 'Notes',
-      add_note: '+ Note',
+      
       note_log_ph: 'ex. vérifier AG 8 — verdit · carreau à réparer · skimmer cassé · mettre en auto',
       note_pool_ph: 'note rapide…', water_word: 'arrosage',
       note_todo: 'À faire (action requise)',
-      note_pool: 'Piscine',
       note_general: 'Général',
       note_save: 'Ajouter',
       todos_title: 'À faire ({n})',
@@ -503,8 +407,7 @@ const I18n = (() => {
       done_badge: 'fait',
       confirm_del_note: 'Supprimer cette note ?',
       // photos
-      photos_section: 'Photos', ref_photos: 'Photos de référence',
-      ref_gate: 'Portail', ref_pool: 'Piscine', ref_pit: 'Local technique',
+      
       add_photo: '＋', photo_del_confirm: 'Supprimer cette photo ?',
     },
   };

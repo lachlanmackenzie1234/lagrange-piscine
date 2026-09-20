@@ -1,13 +1,12 @@
 /* Lagrange Piscine — app shell, router and views. Vanilla JS, no build step. */
 (() => {
   const S = window.SEED;
-  const { CHEM_RANGES, OCC_STATUS, PRODUCTS, CYA_SALT } = S;
+  const { CHEM_RANGES, PRODUCTS, CYA_SALT } = S;
   const productById = (id) => (PRODUCTS || []).find((x) => x.id === id) || null;
   const productLabel = (p) => p ? `${p.brand} ${p.name}` : '';
-  const FC_TEST_MAX = 6; // Lovibond DPD No.1 tablet free chlorine ("Cl6") reads to ~6 mg/L (dilute 50/50 above that)
   const t = (k, p) => I18n.t(k, p);
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.75'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.76'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -79,19 +78,6 @@
     return { state: 'ok' };
   }
 
-  // Qualitative correction guidance for an out-of-range reading.
-  function adviceFor(r) {
-    if (!r) return [];
-    const out = [];
-    const st = (k) => evalMetric(k, r[k]).state;
-    if (st('ph') === 'high') out.push(t('action_ph_high'));
-    if (st('ph') === 'low') out.push(t('action_ph_low'));
-    if (st('chlorine') === 'high') out.push(t('action_cl_high'));
-    if (st('chlorine') === 'low') out.push(r.chlorine !== null && r.chlorine < 0.5 ? t('action_cl_vlow') : t('action_cl_low'));
-    if (st('stabilizer') === 'low') out.push(t('action_cya_low'));
-    else if (st('stabilizer') === 'high') out.push(r.stabilizer >= 80 ? t('action_cya_vhigh') : t('action_cya_high'));
-    return out;
-  }
 
   // ----- chemistry engine (advisory; standard outdoor-pool chemistry) -----
   // Heuristic, transparent coefficients — refined per pool by its own history.
@@ -139,33 +125,7 @@
       return (volM3 * deltaFC) / active;
     },
   };
-  // Upcoming sun/heat from the forecast — this is what makes the interval
-  // adaptive (a heatwave pulls the next check sooner; a cool spell pushes it out).
-  function forecastDrivers() {
-    const d = window.Weather && Weather.data;
-    if (!d || !d.daily || !d.daily.uv_index_max) return null;
-    const avg = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : null);
-    const uvs = d.daily.uv_index_max.slice(0, 3).filter((x) => x != null);
-    const temps = (d.daily.temperature_2m_max || []).slice(0, 3).filter((x) => x != null);
-    if (!uvs.length) return null;
-    return { uv: avg(uvs), temp: avg(temps) };
-  }
-  // Measured FC decay between the two most recent readings (per pool), used to
-  // self-calibrate the model. Null if a dose clearly happened (FC went up) or
-  // the gap is too short/long to trust.
-  function observedLoss(p) {
-    const rs = Store.readingsFor(p.id).filter((r) => r.chlorine != null); // newest first
-    if (rs.length < 2) return null;
-    const [newer, older] = rs;
-    const days = (new Date(newer.at).getTime() - new Date(older.at).getTime()) / 864e5;
-    if (days < 0.5 || days > 14) return null;
-    const drop = older.chlorine - newer.chlorine;
-    if (drop <= 0) return null;
-    return drop / days;
-  }
 
-  // Unique residence stops (Maps queries) for pools with work this week.
-  const servicedToday = (poolId) => Store.servicedOn(poolId, todayISO());
 
   // ---------- router ----------
   const routes = {
@@ -465,46 +425,6 @@
     return hero;
   }
 
-  // A section whose reference photo underlays its header: the 9:16 photo (capped
-  // height) backs a scrim carrying the section-stripe title, with change/delete
-  // controls top-right; the section's content sits below in the panel body. No
-  // photo yet → a plain navy stripe with a small "add photo" control.
-  function photoSection(p, key, titleText, subText, contentNode) {
-    const ph = window.Photos ? Photos.poolRef(p.id, key) : null;
-    const frag = document.createDocumentFragment();
-    if (ph) {
-      const band = el('<div class="photo-band"></div>');
-      band.style.backgroundImage = `url('${ph.dataUrl}')`;
-      band.appendChild(el('<div class="hero-scrim"></div>'));
-      const ctrls = el('<div class="hero-ctrls"></div>');
-      const lab = el(`<label class="hero-cam" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`);
-      lab.querySelector('input').addEventListener('change', async (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        try { await Photos.remove(ph.id); } catch (_) {} // replace = drop old + add
-        try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
-        render();
-      });
-      ctrls.appendChild(lab);
-      const del = el('<button class="hero-cam hero-del" title="delete">✕</button>');
-      del.addEventListener('click', () => { if (confirm(t('photo_del_confirm'))) { Photos.remove(ph.id); render(); } });
-      ctrls.appendChild(del);
-      band.appendChild(ctrls);
-      band.appendChild(el(`<div class="band-title"><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div>`));
-      frag.appendChild(band);
-    } else {
-      const bar = el(`<div class="section-title band-flat"><div><h2>${esc(titleText)}</h2>${subText ? `<p>${esc(subText)}</p>` : ''}</div></div>`);
-      const add = el(`<label class="band-add" title="${esc(t('add_photo'))}">📷<input type="file" accept="image/*" hidden></label>`);
-      add.querySelector('input').addEventListener('change', async (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        try { await Photos.add({ poolId: p.id, label: key }, file); } catch (_) {}
-        render();
-      });
-      bar.appendChild(add);
-      frag.appendChild(bar);
-    }
-    if (contentNode) frag.appendChild(contentNode);
-    return frag;
-  }
 
   // filling / watering card — extracted so it can live inside the Piscine panel
   function wateringCard(p) {
@@ -534,36 +454,6 @@
     return wb;
   }
 
-  // pump & filter card — extracted so it can live inside the Local technique panel
-  function pumpCard(p) {
-    const pump = el('<div class="card pump"></div>');
-    const lb = Store.lastBackwash(p.id);
-    pump.appendChild(el(`<p class="pump-line">${esc(t('last_backwash', { date: lb ? fmtDateTime(lb.at) : t('never') }))}</p>`));
-    const bwBtn = el(`<button class="btn">${esc(t('log_backwash'))}</button>`);
-    bwBtn.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
-    pump.appendChild(bwBtn);
-    pump.appendChild(collapsible({
-      label: t('sand_date'),
-      value: () => p.sandDate ? { text: fmtDate(p.sandDate), empty: false } : { text: t('unknown'), empty: true },
-      buildEditor: (box, done) => {
-        const inp = el(`<input type="date" class="date-sm" value="${esc(p.sandDate || '')}">`);
-        inp.addEventListener('change', () => Store.updatePool(p.id, { sandDate: inp.value }));
-        const unk = el(`<button class="btn sm">${esc(t('unknown'))}</button>`);
-        unk.addEventListener('click', () => { Store.updatePool(p.id, { sandDate: '' }); done(); });
-        const ok = el(`<button class="btn sm">${esc(t('done'))}</button>`);
-        ok.addEventListener('click', done);
-        const foot = el('<div class="one-shot-foot"></div>');
-        const btns = el('<div class="os-btns"></div>'); btns.appendChild(unk); btns.appendChild(ok);
-        foot.appendChild(inp); foot.appendChild(btns);
-        box.appendChild(foot);
-      },
-    }));
-    const pn = el(`<label class="field"><span>${esc(t('pump_notes'))}</span><textarea rows="2" placeholder="${esc(t('pump_notes_ph'))}"></textarea></label>`);
-    pn.querySelector('textarea').value = p.pumpNote || '';
-    pn.querySelector('textarea').addEventListener('change', (e) => Store.updatePool(p.id, { pumpNote: e.target.value }));
-    pump.appendChild(pn);
-    return pump;
-  }
 
   // The closing "done" of the scroll — mark (or unmark) today's service visit.
   // Cleaning — replaces the single "marquer entretenue" tick with the three
@@ -765,115 +655,7 @@
     };
   }
 
-  function chemPanel(p, withTitle = true) {
-    const r = Store.latestReading(p.id);
-    if (!r) return null;
-    const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
-    const treatedAt = treatedSince(p, r.at); // dosed since the last test → awaiting re-check
-    const rows = el('<div class="chem-rows"></div>');
-    const row = (cls, k, v, h) => el(`<div class="chem-row ${cls}">
-      <span class="cr-k">${esc(k)}</span><span class="cr-v">${esc(v)}</span><span class="cr-h">${esc(h)}</span></div>`);
 
-    // active chlorine fraction from pH (the HOCl curve) — the priority on salt pools
-    const frac = Chem.hoclFraction(ph);
-    if (frac != null) {
-      const pct = Math.round(frac * 100);
-      rows.appendChild(row(pct >= 50 ? 'ok' : pct >= 30 ? 'warn' : 'bad',
-        t('chem_active'), pct + '%', t('chem_active_h', { ph })));
-    }
-    // salt level (salt pools) vs the working band
-    if (p.salt) {
-      const sb = CHEM_RANGES.salt, sv = r.salt;
-      const cls = sv == null ? '' : (sv < sb.min || sv > sb.max) ? 'warn' : 'ok';
-      rows.appendChild(row(cls, t('chem_salt'), sv == null ? '—' : sv + ' g/L', t('chem_salt_h', { min: sb.min, max: sb.max })));
-    }
-    // target FC from CYA
-    if (cya != null) {
-      const tFC = Chem.targetFC(cya, p.salt), mFC = Chem.minFC(cya, p.salt);
-      const cls = fc == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad';
-      // flag when the target is beyond the DPD test's 2 mg/L ceiling (dilute to read)
-      const cibleHint = t('chem_target_fc_h', { cya }) + (tFC > FC_TEST_MAX ? ' · ' + t('fc_over_test') : '');
-      rows.appendChild(row(cls, t('chem_target_fc'), tFC, cibleHint));
-      // stabiliser vs recommended band (higher for salt pools)
-      const band = Chem.cyaBand(!!p.salt);
-      const ccls = cya > 100 ? 'bad' : (cya < band.min || cya > band.max) ? 'warn' : 'ok';
-      rows.appendChild(row(ccls, t('chem_cya'), cya, t('chem_cya_h', { min: band.min, max: band.max })));
-    }
-    // predicted daily loss (model, blended with measured decay when available)
-    const fd = forecastDrivers();
-    const uv = fd ? fd.uv : (r.weather && r.weather.uv);
-    const temp = fd ? fd.temp : (r.weather && r.weather.temp);
-    const modelLoss = Chem.dailyLoss(cya, uv, temp, !!p.covered);
-    const obs = observedLoss(p);
-    const loss = obs != null ? (modelLoss + obs) / 2 : modelLoss;
-    rows.appendChild(row('', t('chem_decay'), '~' + loss.toFixed(1),
-      t('chem_decay_h') + (obs != null ? ' · ' + t('chem_calibrated') : '')));
-    // next check — after a dose, the reading is stale: prompt a re-test instead
-    // of the predicted due date.
-    if (treatedAt) {
-      rows.appendChild(row('warn', t('chem_next'), t('status_treated'), t('chem_treated_h', { time: fmtDateTime(treatedAt) })));
-    } else if (fc != null && loss > 0) {
-      const floor = Chem.minFC(cya, p.salt);
-      const dueTime = new Date(r.at).getTime() + ((fc - floor) / loss) * 864e5;
-      const daysFromNow = (dueTime - Date.now()) / 864e5;
-      let cls, v;
-      if (daysFromNow <= 0) { cls = 'bad'; v = t('chem_due_now'); }
-      else { cls = daysFromNow < 1.5 ? 'warn' : 'ok'; v = t('chem_due_in', { days: daysFromNow.toFixed(1), date: fmtDate(ymdLocal(dueTime)) }); }
-      rows.appendChild(row(cls, t('chem_next'), v, t('chem_next_h', { floor })));
-    }
-    // doses from this reading — suppressed after a treatment (retest first)
-    if (fc != null || ph != null) {
-      rows.appendChild(el(`<div class="chem-sub">${esc(t('dose_title'))}${p.volM3 ? ` · ${p.volM3} m³${p.volEst ? ' (' + esc(t('estimated')) + ')' : ''}` : ''}</div>`));
-      doseLines(p, r, !!treatedAt).forEach((d) => rows.appendChild(row(d.cls, d.k, d.v, d.h)));
-    }
-
-    const box = el('<div class="chem-panel"></div>');
-    if (withTitle) box.appendChild(el(`<div class="section-title"><h2>🧪 ${esc(t('chem_title'))}</h2><p>${esc(t('chem_sub'))}</p></div>`));
-    box.appendChild(rows);
-    if (p.salt && p.electroNote) box.appendChild(el(`<p class="chem-note">⚡ ${esc(p.electroNote)}</p>`));
-    return box;
-  }
-
-  // Compact chimie: four small stat bars (Cl% · Cl · CyA · /jour), colour-coded,
-  // plus a one-line next-check caption. Shrinks the tall read-out to a glance;
-  // the canon doses live in chemDoses() just below.
-  function chemMini(p) {
-    const r = Store.latestReading(p.id);
-    if (!r) return null;
-    const cya = r.stabilizer, fc = r.chlorine, ph = r.ph;
-    const treatedAt = treatedSince(p, r.at);
-    const cells = [];
-    const frac = Chem.hoclFraction(ph);
-    if (frac != null) { const pct = Math.round(frac * 100); cells.push({ k: 'Cl%', v: pct + '%', cls: pct >= 50 ? 'ok' : pct >= 30 ? 'warn' : 'bad' }); }
-    if (fc != null) {
-      const tFC = cya != null ? Chem.targetFC(cya, p.salt) : null;
-      const mFC = cya != null ? Chem.minFC(cya, p.salt) : null;
-      cells.push({ k: 'Cl', v: fc, cls: tFC == null ? '' : fc >= tFC ? 'ok' : fc >= mFC ? 'warn' : 'bad' });
-    }
-    if (cya != null) { const band = Chem.cyaBand(!!p.salt); cells.push({ k: 'CyA', v: cya, cls: cya > 100 ? 'bad' : (cya < band.min || cya > band.max) ? 'warn' : 'ok' }); }
-    const fd = forecastDrivers();
-    const uv = fd ? fd.uv : (r.weather && r.weather.uv);
-    const temp = fd ? fd.temp : (r.weather && r.weather.temp);
-    const modelLoss = Chem.dailyLoss(cya, uv, temp, !!p.covered);
-    const obs = observedLoss(p);
-    const loss = obs != null ? (modelLoss + obs) / 2 : modelLoss;
-    cells.push({ k: '/jour', v: '~' + loss.toFixed(1), cls: '' });
-    const box = el('<div class="chem-mini-wrap"></div>');
-    const rowEl = el('<div class="chem-mini"></div>');
-    cells.forEach((c) => rowEl.appendChild(el(`<div class="cm-cell ${c.cls}"><span class="cm-v">${esc(String(c.v))}</span><span class="cm-k">${esc(c.k)}</span></div>`)));
-    box.appendChild(rowEl);
-    let nc = null;
-    if (treatedAt) nc = { cls: 'warn', text: '⏳ ' + t('status_treated') };
-    else if (fc != null && loss > 0) {
-      const floor = Chem.minFC(cya, p.salt);
-      const dueTime = new Date(r.at).getTime() + ((fc - floor) / loss) * 864e5;
-      const days = (dueTime - Date.now()) / 864e5;
-      if (days <= 0) nc = { cls: 'bad', text: t('chem_next') + ' · ' + t('chem_due_now') };
-      else nc = { cls: days < 1.5 ? 'warn' : 'ok', text: t('chem_next') + ' · ' + t('chem_due_in', { days: days.toFixed(1), date: fmtDate(new Date(dueTime).toISOString().slice(0, 10)) }) };
-    }
-    if (nc) box.appendChild(el(`<p class="chem-mini-next ${nc.cls}">${esc(nc.text)}</p>`));
-    return box;
-  }
   // The canon doses for the latest reading (the actionable part of chimie).
   function chemDoses(p) {
     const r = Store.latestReading(p.id);
@@ -1001,20 +783,6 @@
   }
 
 
-  function poolMiniCard(p) {
-    if (!hasPool(p)) {
-      return el(`<a class="card mgmt" href="#/pool/${p.id}">
-        <div class="card-row"><strong>${esc(poolTitle(p))}</strong><span class="chip st-mgmt">${esc(t('mgmt_only'))}</span></div>
-      </a>`);
-    }
-    const latest = Store.latestReading(p.id);
-    const tag = latest ? t('last_date', { date: fmtDate(latest.at) }) : t('never');
-    const water = p.watering && p.watering.startedAt ? ' 💧' : '';
-    return el(`<a class="card" href="#/pool/${p.id}">
-      <div class="card-row"><strong>${statusDot(p)}${esc(poolTitle(p))}${water}</strong><span class="chip st-empty">${esc(tag)}</span></div>
-      ${chemPills(latest)}
-    </a>`);
-  }
 
   // ---------- view: POOLS (home) ----------
   // Activity metrics — a "passage" = one pool on one calendar day (any category:
@@ -1300,7 +1068,6 @@
     unk.addEventListener('click', () => { Store.updatePool(p.id, { sandDate: '' }); back.remove(); render(); });
     const back = openSheet(t('sand_date'), [inp, unk]);
   }
-  const icoBtn = (emoji, title, onClick) => { const b = el(`<button class="hero-ico" title="${esc(title)}">${emoji}</button>`); b.addEventListener('click', onClick); return b; };
   // labelled corner pill (icon + short value) — used for water & volume overlays
   const pillBtn = (emoji, label, title, onClick) => { const b = el(`<button class="hero-pill" title="${esc(title)}">${emoji} <span>${esc(label)}</span></button>`); b.addEventListener('click', onClick); return b; };
   // light section heading (small navy uppercase label, not a full stripe)
