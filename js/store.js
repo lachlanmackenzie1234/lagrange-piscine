@@ -156,6 +156,8 @@ const Store = (() => {
     ['readings', 'visits', 'notes', 'occupancy'].forEach((k) => { if (!Array.isArray(state[k])) state[k] = []; });
     if (!state.occCleared || typeof state.occCleared !== 'object') state.occCleared = {};
     if (!state.season || typeof state.season !== 'object') state.season = { start: null, at: '' };
+    if (!Array.isArray(state.dirty)) state.dirty = [];
+    state.dirtyAll = !!state.dirtyAll;
   }
 
   function save() {
@@ -184,7 +186,7 @@ const Store = (() => {
   function setSeasonStart(startISO) {
     const rec = { start: startISO || null, at: new Date().toISOString() };
     load().season = rec; save();
-    mirror((s) => s.pushSeason(rec));
+    mirror((s) => s.pushSeason(rec), 'meta:season');
     return rec;
   }
   function applyRemoteSeason(rec) {
@@ -223,7 +225,7 @@ const Store = (() => {
     };
     load().readings.push(rec);
     save();
-    mirror((s) => s.pushReading(rec));
+    mirror((s) => s.pushReading(rec), 'readings:' + rec.id);
     return rec;
   }
   // Soft-delete (tombstone). We keep the record with deleted:true instead of
@@ -236,7 +238,7 @@ const Store = (() => {
     if (!r) return;
     r.deleted = true; r.deletedAt = new Date().toISOString();
     save();
-    mirror((s) => s.pushReading(r));
+    mirror((s) => s.pushReading(r), 'readings:' + r.id);
   }
 
   // ---- visits (service log) ----
@@ -253,7 +255,7 @@ const Store = (() => {
     };
     load().visits.push(rec);
     save();
-    mirror((s) => s.pushVisit(rec));
+    mirror((s) => s.pushVisit(rec), 'visits:' + rec.id);
     return rec;
   }
   function visitsFor(poolId) {
@@ -267,13 +269,13 @@ const Store = (() => {
     if (!v) return;
     v.deleted = true; v.deletedAt = new Date().toISOString();
     save();
-    mirror((s) => s.pushVisit(v));
+    mirror((s) => s.pushVisit(v), 'visits:' + v.id);
   }
   // Edit a visit/treatment in place (e.g. correct its time). Re-pushes the
   // whole record to sync.
   function updateVisit(id, patch) {
     const v = load().visits.find((x) => x.id === id);
-    if (v) { Object.assign(v, patch); save(); mirror((s) => s.pushVisit(v)); }
+    if (v) { Object.assign(v, patch); save(); mirror((s) => s.pushVisit(v), 'visits:' + v.id); }
     return v;
   }
   // ---- product applications ("produits ajoutés") ----
@@ -294,7 +296,7 @@ const Store = (() => {
     };
     load().visits.push(rec);
     save();
-    mirror((s) => s.pushVisit(rec));
+    mirror((s) => s.pushVisit(rec), 'visits:' + rec.id);
     return rec;
   }
   const treatmentsFor = (poolId) => visitsFor(poolId).filter((v) => v.type === 'treatment');
@@ -323,7 +325,7 @@ const Store = (() => {
     };
     load().notes.push(rec);
     save();
-    mirror((s) => s.pushNote(rec));
+    mirror((s) => s.pushNote(rec), 'notes:' + rec.id);
     return rec;
   }
   const notes = () => load().notes.filter((n) => !n.deleted).sort((a, b) => b.at.localeCompare(a.at));
@@ -331,13 +333,13 @@ const Store = (() => {
   const openTodos = () => notes().filter((n) => n.todo && !n.done);
   function setNoteDone(id, done) {
     const n = load().notes.find((x) => x.id === id);
-    if (n) { n.done = !!done; save(); mirror((s) => s.pushNote(n)); }
+    if (n) { n.done = !!done; save(); mirror((s) => s.pushNote(n), 'notes:' + n.id); }
     return n;
   }
   // Edit a note's text in place (fix a typo / add a forgotten detail).
   function updateNote(id, patch) {
     const n = load().notes.find((x) => x.id === id);
-    if (n) { Object.assign(n, patch); save(); mirror((s) => s.pushNote(n)); }
+    if (n) { Object.assign(n, patch); save(); mirror((s) => s.pushNote(n), 'notes:' + n.id); }
     return n;
   }
   function deleteNote(id) {
@@ -345,7 +347,7 @@ const Store = (() => {
     if (!n) return;
     n.deleted = true; n.deletedAt = new Date().toISOString();
     save();
-    mirror((s) => s.pushNote(n));
+    mirror((s) => s.pushNote(n), 'notes:' + n.id);
   }
   function applyRemoteNote(rec) {
     const i = load().notes.findIndex((n) => n.id === rec.id);
@@ -359,8 +361,31 @@ const Store = (() => {
 
   // ---- sync glue ----
   // Fire a mirror callback to Team Sync if it's active (no-op otherwise).
-  function mirror(fn) {
-    if (window.Sync && window.Sync.active) { try { fn(window.Sync); } catch (_) {} }
+  // Each record leaves the phone through this one door. If the door is shut
+  // (sync off, or not yet connected in the first seconds after opening) or the
+  // push throws, the record's mark goes on the dirty list and the next
+  // catch-up sends just that — never the whole log again.
+  function mirror(fn, ...marks) {
+    if (window.Sync && window.Sync.active) {
+      try { fn(window.Sync); return; } catch (_) { /* fall through: mark */ }
+    }
+    if (marks.length) markDirty(...marks);
+  }
+  function markDirty(...marks) {
+    const st = load();
+    let changed = false;
+    marks.forEach((m) => { if (m && !st.dirty.includes(m)) { st.dirty.push(m); changed = true; } });
+    if (changed) save();
+  }
+  const dirtyMarks = () => load().dirty.slice();
+  const dirtyAll = () => load().dirtyAll;
+  // Server acknowledged: drop the pushed marks (null = everything, incl. the
+  // post-import "push it all" flag). Marks added meanwhile stay.
+  function clearDirty(marks) {
+    const st = load();
+    if (marks == null) { st.dirty = []; st.dirtyAll = false; }
+    else { const done = new Set(marks); st.dirty = st.dirty.filter((m) => !done.has(m)); }
+    save();
   }
   // Remote changes coming back from Team Sync — apply WITHOUT re-mirroring.
   function applyRemoteReading(rec) {
@@ -406,7 +431,7 @@ const Store = (() => {
   // Any edit/add/delete tags the row source:'user' so migrate() preserves it.
   function updateOccupancy(id, patch) {
     const o = load().occupancy.find((x) => x.id === id);
-    if (o) { Object.assign(o, patch, { source: 'user' }); save(); mirror((s) => s.pushOccupancy(o)); }
+    if (o) { Object.assign(o, patch, { source: 'user' }); save(); mirror((s) => s.pushOccupancy(o), 'occupancy:' + o.id); }
     return o;
   }
   function addOccupancy(entry) {
@@ -419,7 +444,7 @@ const Store = (() => {
     };
     load().occupancy.push(rec);
     save();
-    mirror((s) => s.pushOccupancy(rec));
+    mirror((s) => s.pushOccupancy(rec), 'occupancy:' + rec.id);
     return rec;
   }
   function deleteOccupancy(id) {
@@ -430,7 +455,7 @@ const Store = (() => {
     const at = new Date().toISOString();
     rows.forEach((o) => { o.deleted = true; o.deletedAt = at; o.source = 'user'; });
     save();
-    mirror((s) => s.pushOccupancy(rows[0]));
+    mirror((s) => s.pushOccupancy(rows[0]), 'occupancy:' + id);
   }
   // "Vider" is a statement about the WEEK, not about row ids: each phone
   // imports the roster separately (different ids for the same cells), so an
@@ -451,7 +476,7 @@ const Store = (() => {
     const rows = st.occupancy.filter((o) => o.week === week && !o.deleted && rowCreated(o) < cut);
     rows.forEach((o) => { o.deleted = true; o.deletedAt = cut; o.source = 'user'; });
     save();
-    mirror((s) => { s.pushOccCleared(week, cut); rows.forEach((o) => s.pushOccupancy(o)); });
+    mirror((s) => { s.pushOccCleared(week, cut); rows.forEach((o) => s.pushOccupancy(o)); }, 'meta:occCleared', ...rows.map((o) => 'occupancy:' + o.id));
     return rows.length;
   }
   function applyRemoteOccCleared(map) {
@@ -486,7 +511,7 @@ const Store = (() => {
     const p = pool(id);
     if (!p) return p;
     Object.keys(LWW).forEach((k) => { if (k in patch) patch = { ...patch, [LWW[k]]: new Date().toISOString() }; }); // LWW stamps
-    Object.assign(p, patch); save(); mirror((s) => s.pushPool(id, patch));
+    Object.assign(p, patch); save(); mirror((s) => s.pushPool(id, patch), 'pools:' + id);
     return p;
   }
   // Hivernage: the pool sleeps (out of À revoir, rhythm, tiles; ice-blue pin)
@@ -537,6 +562,7 @@ const Store = (() => {
     delete data.photos;
     state = data;
     normalize();
+    state.dirty = []; state.dirtyAll = true; // the server's view is unknown now
     migrate();
     save();
     if (window.Photos && photos.length && Photos.importAll) Photos.importAll(photos);
@@ -576,6 +602,7 @@ const Store = (() => {
     updatePool, updateResidence,
     updateOccupancy, addOccupancy, deleteOccupancy, clearWeek,
     isWintered, setWinter, LWW,
+    markDirty, dirtyMarks, dirtyAll, clearDirty,
     seasonStart, allSeasons, setAllSeasons, inSeason, setSeasonStart, applyRemoteSeason,
     applyRemoteReading, applyRemoteReadingRemoved,
     applyRemoteVisit, applyRemoteVisitRemoved, applyRemotePool,

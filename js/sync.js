@@ -28,6 +28,7 @@ const Sync = (() => {
   const LS_TEAM = 'lagrange-piscine.team';
   const LS_ON = 'lagrange-piscine.sync';
   const LS_PHOTOS = 'lagrange-piscine.photosPushed.'; // + team → '1' once fully pushed
+  const LS_DATA = 'lagrange-piscine.dataPushed.';     // + team → '1' once the log was pushed in full
 
   let fb = null;          // loaded SDK + instances
   let active = false;
@@ -102,24 +103,34 @@ const Sync = (() => {
     window.dispatchEvent(new CustomEvent('lp-data-changed'));
   }
 
-  // Small data — cheap to re-push every enable (catches up anything created
-  // while sync was off). Idempotent via merge; keyed by id → conflict-free.
+  // Catch-up. Once per device + team the whole log goes up (and again after a
+  // backup import); after that only the store's dirty marks — records that
+  // left the phone while sync was off or not yet connected. Nothing already
+  // acknowledged by the server is ever re-sent (that used to be ~1,200 writes
+  // per app open). Marks clear only once the server has acknowledged.
   async function pushData() {
     const { fsM } = fb;
     const st = Store.load();
+    const full = Store.dirtyAll() || localStorage.getItem(LS_DATA + team) !== '1';
+    const marks = full ? null : Store.dirtyMarks();
+    if (!full && !marks.length) return;
+    const wanted = marks && new Set(marks);
+    const want = (kind, id) => full || wanted.has(kind + ':' + id);
     const jobs = [];
-    st.readings.forEach((r) => jobs.push(fsM.setDoc(ref('readings', r.id), stripId(r), { merge: true })));
-    st.visits.forEach((v) => jobs.push(fsM.setDoc(ref('visits', v.id), stripId(v), { merge: true })));
-    (st.notes || []).forEach((n) => jobs.push(fsM.setDoc(ref('notes', n.id), stripId(n), { merge: true })));
+    const failed = new Set();
+    st.readings.forEach((r) => { if (want('readings', r.id)) jobs.push(fsM.setDoc(ref('readings', r.id), stripId(r), { merge: true })); });
+    st.visits.forEach((v) => { if (want('visits', v.id)) jobs.push(fsM.setDoc(ref('visits', v.id), stripId(v), { merge: true })); });
+    (st.notes || []).forEach((n) => { if (want('notes', n.id)) jobs.push(fsM.setDoc(ref('notes', n.id), stripId(n), { merge: true })); });
     // only the operator's own occupancy edits sync — seed rows are identical on
     // both devices, so there's no need to ship all 39 of them
-    (st.occupancy || []).filter((o) => o.source === 'user').forEach((o) =>
-      jobs.push(fsM.setDoc(ref('occupancy', o.id), stripId(o), { merge: true })));
-    // pools: catch up the operator-owned card fields too (volume, sand date,
-    // pump note, …) so an edit made while sync was off still reaches the other
-    // phone on reconnect. Booleans are pushed additively (only when true) so a
-    // device that never touched `salt` can't clobber the other's toggle.
+    (st.occupancy || []).filter((o) => o.source === 'user').forEach((o) => {
+      if (want('occupancy', o.id)) jobs.push(fsM.setDoc(ref('occupancy', o.id), stripId(o), { merge: true }));
+    });
+    // pools: the operator-owned card fields (volume, sand date, pump note, …).
+    // Booleans are pushed additively (only when true) so a device that never
+    // touched `salt` can't clobber the other's toggle.
     st.pools.forEach((p) => {
+      if (!want('pools', p.id)) return;
       const doc = {};
       if (p.lat != null) { doc.lat = p.lat; doc.lng = p.lng; }
       if (p.note) doc.note = p.note;
@@ -129,45 +140,47 @@ const Sync = (() => {
       if (p.electroNote) doc.electroNote = p.electroNote;
       if (p.salt) doc.salt = true;
       if (p.covered) doc.covered = true;
-      // NB: `watering` is NOT in this blind merge — see the transaction below.
+      // NB: the LWW fields (watering, winter) are NOT in this blind merge — see below.
       if (Object.keys(doc).length) jobs.push(fsM.setDoc(ref('pools', p.id), doc, { merge: true }));
+      // Fill-timer / hivernage: last-writer-wins by their stamp, inside a
+      // transaction, so a stop/start made before sync was live still lands but
+      // a stale copy can never clobber a newer one from the other phone.
+      // Offline → the transaction fails; the mark stays for the next open.
+      Object.entries(Store.LWW).forEach(([k, stamp]) => {
+        if (!p[stamp]) return;
+        jobs.push(fsM.runTransaction(fb.db, async (tx) => {
+          const r = ref('pools', p.id);
+          const snap = await tx.get(r);
+          const remoteAt = snap.exists() ? snap.data()[stamp] : null;
+          if (!remoteAt || remoteAt < p[stamp]) tx.set(r, { [k]: p[k] ?? null, [stamp]: p[stamp] }, { merge: true });
+        }).catch(() => { failed.add('pools:' + p.id); }));
+      });
     });
-    // Fill-timer catch-up: last-writer-wins by `wateringAt`, inside a
-    // transaction. A stop/start made before sync was live (the first seconds
-    // after opening the app) still lands, but a stale copy can never clobber
-    // a newer one from the other phone — which is how a blind re-push used to
-    // resurrect EC 2's fill. Offline → the transaction fails quietly; next open.
-    const wjobs = [];
-    Object.entries(Store.LWW).forEach(([k, stamp]) => st.pools.filter((p) => p[stamp]).forEach((p) =>
-      wjobs.push(fsM.runTransaction(fb.db, async (tx) => {
-        const r = ref('pools', p.id);
-        const snap = await tx.get(r);
-        const remoteAt = snap.exists() ? snap.data()[stamp] : null;
-        if (!remoteAt || remoteAt < p[stamp]) tx.set(r, { [k]: p[k] ?? null, [stamp]: p[stamp] }, { merge: true });
-      }).catch(() => {}))));
-    // season boundary: newest marker wins
+    // season boundary + week-clear markers: newest wins
     const season = st.season || {};
-    if (season.at) {
-      wjobs.push(fsM.runTransaction(fb.db, async (tx) => {
+    if (season.at && want('meta', 'season')) {
+      jobs.push(fsM.runTransaction(fb.db, async (tx) => {
         const r = ref('meta', 'season');
         const snap = await tx.get(r);
         const remoteAt = snap.exists() ? snap.data().at : null;
         if (!remoteAt || remoteAt < season.at) tx.set(r, { start: season.start ?? null, at: season.at });
-      }).catch(() => {}));
+      }).catch(() => { failed.add('meta:season'); }));
     }
-    // week-clear markers: newest wins per week (max-merge in a transaction)
     const cleared = st.occCleared || {};
-    if (Object.keys(cleared).length) {
-      wjobs.push(fsM.runTransaction(fb.db, async (tx) => {
+    if (Object.keys(cleared).length && want('meta', 'occCleared')) {
+      jobs.push(fsM.runTransaction(fb.db, async (tx) => {
         const r = ref('meta', 'occCleared');
         const snap = await tx.get(r);
         const remote = snap.exists() ? snap.data() : {};
         const out = {};
         Object.keys(cleared).forEach((w) => { if ((remote[w] || '') < cleared[w]) out[w] = cleared[w]; });
         if (Object.keys(out).length) tx.set(r, out, { merge: true });
-      }).catch(() => {}));
+      }).catch(() => { failed.add('meta:occCleared'); }));
     }
-    await Promise.all(jobs.concat(wjobs));
+    await Promise.all(jobs); // setDoc promises resolve only once the server has the write
+    localStorage.setItem(LS_DATA + team, '1');
+    if (full) { Store.clearDirty(null); if (failed.size) Store.markDirty(...failed); }
+    else Store.clearDirty(marks.filter((m) => !failed.has(m)));
   }
 
   // Photos are the heavy part (base64 ~50–150 KB each). Re-uploading the whole
@@ -214,8 +227,8 @@ const Sync = (() => {
       attach();
       active = true;               // live mirroring from here — edits made during
                                    // catch-up must not fall into a silent gap
-      await pushData();            // small + fast — report online once data is up
       setStatus(navigator.onLine ? 'online' : 'offline');
+      pushData().catch(() => {});  // dirty marks only (usually nothing); in the background
       pushPhotos();                // heavy, once per device, in the background
     } catch (e) {
       console.warn('Team Sync failed to start:', e);
@@ -234,23 +247,25 @@ const Sync = (() => {
   }
 
   // mirror hooks called by the store on local mutations (no-op unless active)
-  const pushReading = (rec) => active && fb && fb.fsM.setDoc(ref('readings', rec.id), stripId(rec), { merge: true }).catch(() => {});
+  // (a rejected live push leaves a dirty mark, so the next catch-up retries it)
+  const dirty = (mark) => () => Store.markDirty(mark);
+  const pushReading = (rec) => active && fb && fb.fsM.setDoc(ref('readings', rec.id), stripId(rec), { merge: true }).catch(dirty('readings:' + rec.id));
   const removeReading = (id) => active && fb && fb.fsM.deleteDoc(ref('readings', id)).catch(() => {});
-  const pushVisit = (rec) => active && fb && fb.fsM.setDoc(ref('visits', rec.id), stripId(rec), { merge: true }).catch(() => {});
+  const pushVisit = (rec) => active && fb && fb.fsM.setDoc(ref('visits', rec.id), stripId(rec), { merge: true }).catch(dirty('visits:' + rec.id));
   const removeVisit = (id) => active && fb && fb.fsM.deleteDoc(ref('visits', id)).catch(() => {});
-  const pushNote = (rec) => active && fb && fb.fsM.setDoc(ref('notes', rec.id), stripId(rec), { merge: true }).catch(() => {});
+  const pushNote = (rec) => active && fb && fb.fsM.setDoc(ref('notes', rec.id), stripId(rec), { merge: true }).catch(dirty('notes:' + rec.id));
   const removeNote = (id) => active && fb && fb.fsM.deleteDoc(ref('notes', id)).catch(() => {});
   const pushPhoto = (rec) => active && fb && fb.fsM.setDoc(ref('photos', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removePhoto = (id) => active && fb && fb.fsM.deleteDoc(ref('photos', id)).catch(() => {});
-  const pushSeason = (rec) => active && fb && fb.fsM.setDoc(ref('meta', 'season'), { start: rec.start ?? null, at: rec.at }).catch(() => {});
-  const pushOccCleared = (week, at) => active && fb && fb.fsM.setDoc(ref('meta', 'occCleared'), { [week]: at }, { merge: true }).catch(() => {});
-  const pushOccupancy = (rec) => active && fb && fb.fsM.setDoc(ref('occupancy', rec.id), stripId(rec), { merge: true }).catch(() => {});
+  const pushSeason = (rec) => active && fb && fb.fsM.setDoc(ref('meta', 'season'), { start: rec.start ?? null, at: rec.at }).catch(dirty('meta:season'));
+  const pushOccCleared = (week, at) => active && fb && fb.fsM.setDoc(ref('meta', 'occCleared'), { [week]: at }, { merge: true }).catch(dirty('meta:occCleared'));
+  const pushOccupancy = (rec) => active && fb && fb.fsM.setDoc(ref('occupancy', rec.id), stripId(rec), { merge: true }).catch(dirty('occupancy:' + rec.id));
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
     ['lat', 'lng', 'note', 'sandDate', 'pumpNote', 'watering', 'wateringAt', 'winter', 'winterAt', 'dims', 'volM3', 'volEst', 'salt', 'electroNote', 'covered'].forEach((k) => { if (k in patch) f[k] = patch[k] ?? null; });
     if (!Object.keys(f).length) return;
-    fb.fsM.setDoc(ref('pools', poolId), f, { merge: true }).catch(() => {});
+    fb.fsM.setDoc(ref('pools', poolId), f, { merge: true }).catch(dirty('pools:' + poolId));
   }
 
   // resume sync automatically next session if it was on
