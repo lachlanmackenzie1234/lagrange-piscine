@@ -339,6 +339,8 @@ const Game = (() => {
     return out.length ? out : fallback;
   }
   function drawPoolBg(ctx, c, t, sc) {
+    const world = livingScene(sc);
+    if (world) { world.paint(ctx, c, t, [-100, -100], [], Motion.reduced()); return; }
     const key = JSON.stringify([c.state, c.sunk, c.s?.dirt, c.filtre > c.interval, Motion.status.revision]);
     if (sc.bgKey !== key) {
       sc.bgKey = key; sc.bgBuilds = (sc.bgBuilds || 0) + 1;
@@ -351,23 +353,35 @@ const Game = (() => {
     if (sc.lay.border === 'canal') Motion.water(ctx, 'calme', t * 1000, 240, 0, 16, 192);
     ctx.drawImage(sc.fg, 0, 0, 256, 192);
   }
-  function drawHero(ctx, sc, a, progress, options = {}) {
-    const g = load();
+  function livingScene(sc) {
+    if (!sc.world) {
+      sc.world = window.QuestWorld?.create(sc.lay);
+      if (sc.world) { sc.bg = sc.fg = null; sc.host.dataset.world = 'living-v5'; sc.host.dataset.backgroundBuilds = 1; sc.host.dataset.scenery = sc.world.scenery.length; }
+    }
+    return sc.world;
+  }
+  function placeHero(sc, a, progress) {
     if (a?.k === 'walk' && a.path?.length > 1) {
       const f = progress * (a.path.length - 1), i = Math.min(a.path.length - 2, Math.floor(f)), part = f - i;
       const [ax, ay] = cellPx(...a.path[i]), [bx, by] = cellPx(...a.path[i + 1]);
       sc.hx = Math.round((ax + (bx - ax) * part) * 2) / 2; sc.hy = Math.round((ay + (by - ay) * part) * 2) / 2; sc.hc = a.path[i].slice(); sc.moving = true;
       sc.direction = bx > ax ? 'east' : bx < ax ? 'west' : by < ay ? 'north' : 'south';
     } else { [sc.hx, sc.hy] = cellPx(...sc.hc); sc.moving = false; }
+    return [sc.hx + 8, sc.hy + 23];
+  }
+  function drawHero(ctx, sc, a, progress, options = {}) {
+    const g = load(), foot = options.foot || placeHero(sc, a, progress);
+    if (options.foot) { sc.hx = foot[0] - 8; sc.hy = foot[1] - 23; }
     const motion = options.motion || (sc.moving ? 'walk' : a && ['test', 'wash'].includes(a.k) ? 'crouch' : a && a.k !== 'walk' ? 'cast' : 'idle');
     const elapsed = options.elapsed ?? (motion === 'idle' || motion === 'walk' ? sc.time * 1000 : sc.timeline.elapsed * 1000);
-    const foot = [sc.hx + 8, sc.hy + 23], active = motion === 'idle' && options.alive !== false;
-    if (active) Motion.setAura(ctx, g.equip, 'back', sc.time * 1000, ...foot);
-    Motion.keeper(ctx, ...foot, g.avatar, g.equip, { motion, direction: options.direction || sc.direction, elapsed, offset: options.offset, applyOffset: !!options.applyOffset });
-    if (active) Motion.setAura(ctx, g.equip, 'front', sc.time * 1000, ...foot);
+    const active = motion === 'idle' && options.alive !== false;
+    const auraSize = { scale: (options.scale ?? Motion.humanStyle.scale) / Motion.humanStyle.scale };
+    if (active) Motion.setAura(ctx, g.equip, 'back', sc.time * 1000, ...foot, auraSize);
+    Motion.keeper(ctx, ...foot, g.avatar, g.equip, { motion, direction: options.direction || sc.direction, elapsed, offset: options.offset, scale: options.scale, applyOffset: !!options.applyOffset });
+    if (active) Motion.setAura(ctx, g.equip, 'front', sc.time * 1000, ...foot, auraSize);
   }
-  function drawMonster(ctx, t, sc, e) {
-    const mo = e?.monster; if (!mo) { sc.moPos = null; return; }
+  function placeMonster(t, sc, e) {
+    const mo = e?.monster; if (!mo) { sc.moPos = null; sc.moMoving = false; return null; }
     const L = sc.lay, hab = HABITAT[mo.id] || 'grass', cells = habitatCells(L, hab); if (!cells.length) return;
     if (!mo.cell || !cells.some(([x, y]) => x === mo.cell[0] && y === mo.cell[1])) { mo.cell = cells[Math.floor(Math.random() * cells.length)]; save(); }
     if (sc.monsterRef !== mo) { sc.monsterRef = mo; sc.moSpawnTime = t; sc.moFrom = null; sc.nextMove = t + 2 + Math.random() * 3; }
@@ -377,14 +391,25 @@ const Game = (() => {
     let x = cx * T + 8, y = cy * T + 15;
     if (hab === 'water') { const p = L.pool; x = Math.max(p.x * T + 14, Math.min((p.x + p.w) * T - 14, x)); y = Math.max(p.y * T + 23, Math.min((p.y + p.h) * T - 1, y)); }
     const motion = t - sc.moSpawnTime < .54 ? 'spawn' : 'idle';
-    const tier = Motion.tiers.includes(mo.tier) ? mo.tier : 'common', auraOptions = { moving, action: motion !== 'idle' };
+    const tier = Motion.tiers.includes(mo.tier) ? mo.tier : 'common';
+    sc.moPos = [x - 14, y - 23]; sc.moMoving = moving;
+    return { x, y, mo, motion, tier, moving };
+  }
+  function drawMonster(ctx, t, sc, e, pose = placeMonster(t, sc, e)) {
+    if (!pose) return;
+    const { x, y, mo, motion, tier, moving } = pose, auraOptions = { moving, action: motion !== 'idle' };
     Motion.aura(ctx, 'rarity-' + tier, 'back', t * 1000, x, y, auraOptions);
     Motion.monster(ctx, mo.id, motion, motion === 'spawn' ? (t - sc.moSpawnTime) * 1000 : t * 1000, x, y, { offset: [0, 0] });
     Motion.aura(ctx, 'rarity-' + tier, 'front', t * 1000, x, y, auraOptions);
-    sc.moPos = [x - 14, y - 23]; sc.moMoving = moving;
   }
   function drawPool(ctx, t, sc, a, progress, c, e) {
-    drawPoolBg(ctx, c, t, sc); drawMonster(ctx, t, sc, e); drawHero(ctx, sc, a, progress);
+    const world = livingScene(sc);
+    if (world) {
+      const foot = placeHero(sc, a, progress), monster = placeMonster(t, sc, e);
+      const actors = [{ x: foot[0], y: foot[1], draw: () => drawHero(ctx, sc, a, progress) }];
+      if (monster) actors.push({ x: monster.x, y: monster.y, shadow: 12, draw: () => drawMonster(ctx, t, sc, e, monster) });
+      world.paint(ctx, c, t, foot, actors, Motion.reduced());
+    } else { drawPoolBg(ctx, c, t, sc); drawMonster(ctx, t, sc, e); drawHero(ctx, sc, a, progress); }
     if (a?.k === 'heal') Motion.draw(ctx, 'fx/event/heal', sc.timeline.elapsed * 1000, sc.hx + 8, sc.hy + 10);
     if (a && a.k !== 'walk') {
       const pool = sc.lay.pool, anchor = a.k === 'wash' ? sc.lay.anchors.pu : a.k === 'test' ? sc.lay.anchors.la : a.k === 'drop' ? sc.lay.anchors.sk : null;
@@ -392,10 +417,12 @@ const Game = (() => {
       Motion.draw(ctx, 'fx/service/' + a.k, sc.timeline.elapsed * 1000, ...point);
     }
     if (a?.k === 'walk') { const [x, y] = a.path?.at(-1) || sc.hc; ctx.strokeStyle = '#fffbe9'; ctx.lineWidth = 1; ctx.strokeRect(x * T + 3, y * T + 3, 10, 10); }
+    sc.host.dataset.hero = `${sc.hx + 8},${sc.hy + 23}`;
   }
   function drawBattle(ctx, t, sc, c, mo, g, battle, a, progress) {
-    if (!mo) return; drawPoolBg(ctx, c, t, sc);
-    const p = sc.lay.pool, foot = [p.x * T + p.w * 8, p.y * T + p.h * 8 + 21], elapsed = sc.timeline.elapsed * 1000;
+    if (!mo) return;
+    const closeup = window.QuestWorld?.paintBattle(ctx); if (!closeup) drawPoolBg(ctx, c, t, sc);
+    const p = sc.lay.pool, foot = closeup ? [184, 94] : [p.x * T + p.w * 8, p.y * T + p.h * 8 + 21], elapsed = sc.timeline.elapsed * 1000;
     const k = a?.k;
     let enemyMotion = k === 'dissolve' ? 'defeat' : k === 'foe' ? 'attack' : battle.enemyHit != null && t - battle.enemyHit < .36 ? 'hit' : 'idle';
     const enemyTime = enemyMotion === 'hit' ? (t - battle.enemyHit) * 1000 : enemyMotion === 'idle' ? t * 1000 : elapsed;
@@ -408,7 +435,7 @@ const Game = (() => {
     if (battle.playerVisible) {
       const hit = battle.heroHit != null && t - battle.heroHit < .36;
       const motion = k === 'player-defeat' ? 'defeat' : k === 'flee' ? 'flee' : k === 'victory' ? 'victory' : hit ? 'hit' : k === 'heal' ? 'crouch' : k === 'player-action' ? 'cast' : 'idle';
-      drawHero(ctx, sc, null, 0, { motion, direction: k === 'flee' ? 'east' : 'north', elapsed: hit ? (t - battle.heroHit) * 1000 : motion === 'idle' ? t * 1000 : elapsed, applyOffset: true, alive: battle.php > 0 });
+      drawHero(ctx, sc, null, 0, { motion, direction: k === 'flee' ? 'east' : 'north', elapsed: hit ? (t - battle.heroHit) * 1000 : motion === 'idle' ? t * 1000 : elapsed, applyOffset: true, alive: battle.php > 0, foot: closeup ? [60, 166] : null, scale: closeup ? 1.6 : undefined });
     }
     if (k === 'player-action' && elapsed >= 80) Motion.draw(ctx, 'fx/action/' + a.move, elapsed - 80, foot[0], foot[1] - 23, { scale: 1 });
     if (k === 'foe' && elapsed >= 260 && elapsed < 680) Motion.draw(ctx, 'fx/event/impact', elapsed - 260, sc.hx + 8, sc.hy + 12);
@@ -518,11 +545,15 @@ const Game = (() => {
     const L = sc.lay, point = [mx, my], inRect = (x, y, w, h) => mx >= x && mx < x + w && my >= y && my < y + h;
     if (sc.context.e?.monster && sc.moPos && inRect(sc.moPos[0] - 3, sc.moPos[1] - 3, 34, 30)) { mapMenu(sc, 'monster', point); return; }
     const tx = Math.floor(mx / T), ty = Math.floor(my / T);
+    const visibleObject = sc.world?.hit(mx, my);
+    if (visibleObject && ['pump', 'shed', 'villa'].includes(visibleObject.kind)) { mapMenu(sc, visibleObject.kind === 'pump' ? 'filter' : visibleObject.kind, point); return; }
+    if (visibleObject?.plant != null && sc.world.rustle(visibleObject)) return;
     const object = L.objects.find((o) => ['pump', 'shed', 'villa'].includes(o.kind) && tx >= o.x && tx < o.x + o.w && ty >= o.y && ty < o.y + o.h);
     if (object) { mapMenu(sc, object.kind === 'pump' ? 'filter' : object.kind, point); return; }
-    const d = L.deck;
-    if (tx >= d.x && tx < d.x + d.w && ty >= d.y && ty < d.y + d.h) { mapMenu(sc, 'pool', point); return; }
-    if (L.coll[ty]?.[tx] === 0) queueWalk(sc, [tx, ty]);
+    const p = L.pool;
+    if (inRect(p.x * T - 3, p.y * T - 3, p.w * T + 6, p.h * T + 6)) { mapMenu(sc, 'pool', point); return; }
+    const to = PoolMaps.nearestReachable(L.coll, sc.hc, [tx, ty]);
+    if (to) queueWalk(sc, to);
   }
   function configurePoolStage(sc) {
     const depot = sc.kind === 'depot';
@@ -532,7 +563,7 @@ const Game = (() => {
       if (B || sc.disposed) return;
       if (event.key === 'Escape') { closeMapMenu(sc); return; }
       if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); const point = [sc.hc[0] * T + 8, sc.hc[1] * T]; if (depot) depotMenu(sc, 'root', point); else mapMenu(sc, 'pool', point); return; }
-      const d = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[event.key];
+      const d = { ArrowUp: [0, -1], w: [0, -1], ArrowDown: [0, 1], s: [0, 1], ArrowLeft: [-1, 0], a: [-1, 0], ArrowRight: [1, 0], d: [1, 0] }[event.key];
       if (d && !B) { event.preventDefault(); const to = [sc.hc[0] + d[0], sc.hc[1] + d[1]]; if (!sc.q.length && sc.lay.coll[to[1]]?.[to[0]] === 0) queueWalk(sc, to); }
     });
     // The shortcut handles its own toggle on click; closing on pointerdown would reopen it.
@@ -552,7 +583,7 @@ const Game = (() => {
       ctx.fillStyle = '#00000024'; ctx.fillRect(x - 7, y - 1, 14, 2);
       if (npc.id === 'partner') { const p = sc.context.partnerProfile; const avatar = p?.avatar || { skin: '#bea98f', hair: 1, hairColor: '#727987' }; const equip = p?.equip || {};
         Motion.setAura(ctx, equip, 'back', t * 1000, x, y); Motion.keeper(ctx, x, y, avatar, equip, { elapsed: t * 1000 }); Motion.setAura(ctx, equip, 'front', t * 1000, x, y);
-      } else Motion.draw(ctx, 'npc/' + npc.id + '/south', t * 1000, x, y);
+      } else Motion.npc(ctx, npc.id, 'south', t * 1000, x, y);
     } }));
     const heroY = action?.k === 'walk' && action.path?.length > 1 ? (() => { const f = progress * (action.path.length - 1), i = Math.min(action.path.length - 2, Math.floor(f)); return (action.path[i][1] + (action.path[i + 1][1] - action.path[i][1]) * (f - i)) * 16 + 15; })() : sc.hc[1] * 16 + 15;
     actors.push({ y: heroY, draw: () => drawHero(ctx, sc, action, progress) }); actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
@@ -594,8 +625,8 @@ const Game = (() => {
     const info = Q.NPCS.find(n => n.id === id), name = npcName(id), box = el(`<div class="q-npc-intro"><div><b>${esc(name)}</b><small>${esc(info.job)}</small></div></div>`);
     const c = Motion.portrait(48, 64, (ctx, elapsed) => {
       ctx.save(); ctx.scale(2, 2);
-      if (id === 'partner') { const p = window.QuestProfiles.get(Q.counterpart(Store.operator())); Motion.keeper(ctx, 12, 31.5, p?.avatar || Q.sanitizeAvatar(), p?.equip || {}, { elapsed }); }
-      else Motion.draw(ctx, `npc/${id}/south`, elapsed, 12, 31.5); ctx.restore();
+      if (id === 'partner') { const p = window.QuestProfiles.get(Q.counterpart(Store.operator())); Motion.keeper(ctx, 12, 25, p?.avatar || Q.sanitizeAvatar(), p?.equip || {}, { elapsed }); }
+      else Motion.npc(ctx, id, 'south', elapsed, 12, 25); ctx.restore();
     }); box.prepend(c); return box;
   }
   function npcMenu(sc, id, point) {

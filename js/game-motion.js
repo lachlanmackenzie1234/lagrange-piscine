@@ -4,6 +4,7 @@ const QuestMotion = (() => {
   const slots = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
   const sets = ['EC', 'AG', 'EP', 'EPP', 'GP'];
   const tiers = ['common', 'uncommon', 'rare', 'vrare', 'epic', 'legend'];
+  const humanStyle = Object.freeze({ scale: .8, body: .5, neck: 22 });
   let data = null, loaded = false, failure = null, revision = 0;
   const pages = new Map(), keeperCache = new Map(), keeperBases = new Map(), dressedBases = new Map();
   const reduced = () => !!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -56,6 +57,28 @@ const QuestMotion = (() => {
     return true;
   }
 
+  // Native art and equipment stay intact. Shorten only the region below the
+  // neck, then apply the common display scale; every pose keeps its foot anchor.
+  function humanGeometry(neck = humanStyle.neck, scale = humanStyle.scale, body = humanStyle.body) {
+    const width = Math.round(48 * scale), head = Math.round(neck * scale), torso = Math.max(1, Math.round((64 - neck) * scale * body));
+    return { width, head, torso, height: head + torso };
+  }
+  function human(ctx, source, rect, x, y, options = {}) {
+    const neck = options.neck ?? humanStyle.neck;
+    const size = humanGeometry(neck, options.scale ?? humanStyle.scale, options.body ?? humanStyle.body);
+    const [sx, sy] = rect, left = Math.round(x * 2 - size.width / 2) / 2, top = Math.round(y * 2 - size.height + 1) / 2;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(source, sx, sy, 48, neck, left, top, size.width / 2, size.head / 2);
+    ctx.drawImage(source, sx, sy + neck, 48, 64 - neck, left, top + size.head / 2, size.width / 2, size.torso / 2);
+  }
+  function npc(ctx, id, direction, elapsed, x, y, options = {}) {
+    const clip = data?.clips[`npc/${id}/${direction}`], page = clip && pages.get(clip.page); if (!page) return false;
+    const frame = frameAt(clip, elapsed, reduced());
+    // Shorter source characters have extra transparent rows above their heads.
+    const neck = ({ jojo: 31, karine: 29, matt: 24, jp: 21, pj: 23 })[id] || 22;
+    human(ctx, page, frame.r, x, y + frame.o[1] / 2, { neck, ...options }); return true;
+  }
+
   function aura(ctx, group, layer, elapsed, x, y, options = {}) {
     if (options.moving || options.action || options.alive === false) return false;
     const g = data?.auras[group]; return g ? draw(ctx, g[layer], elapsed, x, y, options) : false;
@@ -64,8 +87,9 @@ const QuestMotion = (() => {
   function setAura(ctx, equip, layer, elapsed, x, y, options = {}) {
     const state = setAuraState(equip); if (!state || options.moving || options.action || options.alive === false) return false;
     ctx.save(); ctx.globalAlpha *= [.35, .5, .65, .8, .9, 1][state.rank];
-    const shown = aura(ctx, 'set-' + state.set, layer, elapsed, x, y, options); ctx.restore();
-    if (state.rank >= 2) aura(ctx, 'rarity-' + state.rarity, layer, elapsed, x, y, options);
+    const fitted = { ...options, scale: (options.scale || 1) * humanStyle.scale * .8 };
+    const shown = aura(ctx, 'set-' + state.set, layer, elapsed, x, y, fitted); ctx.restore();
+    if (state.rank >= 2) aura(ctx, 'rarity-' + state.rarity, layer, elapsed, x, y, fitted);
     return shown;
   }
 
@@ -165,7 +189,8 @@ const QuestMotion = (() => {
     }
     const offset = options.offset || (options.applyOffset ? f.o : [0, 0]);
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(keeperCache.get(key), Math.round((x - 12 + offset[0]) * 2) / 2, Math.round((y - 31.5 + offset[1]) * 2) / 2, 24, 32);
+    const scale = options.scale ?? humanStyle.scale;
+    human(ctx, keeperCache.get(key), [0, 0], x + offset[0] * scale, y + offset[1] * scale, options);
   }
 
   function monster(ctx, id, motion, elapsed, x, y, options = {}) {
@@ -200,7 +225,7 @@ const QuestMotion = (() => {
     } catch (error) { failure = error.message; return false; }
   })();
   const tile = (ctx, kind, variant, x, y) => draw(ctx, `tile/${kind}/${Math.abs(variant || 0) % 4}`, 0, x, y);
-  return { ready, frameAt, Timeline, RenderClock, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, icon, tile, keeper, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size, revision, keeperFrames: keeperCache.size }; } };
+  return { ready, frameAt, Timeline, RenderClock, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, icon, tile, keeper, npc, humanGeometry, humanStyle, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size, revision, keeperFrames: keeperCache.size }; } };
 })();
 if (typeof window !== 'undefined') window.QuestMotion = QuestMotion;
 if (typeof module !== 'undefined') module.exports = QuestMotion;

@@ -101,6 +101,21 @@ const PoolMaps = (() => {
     return { id, res, arch, mirrored: !!mirrored, border, deckTile, pool: { x: pool[0], y: pool[1], w: pool[2], h: pool[3] }, deck: { x: deck[0], y: deck[1], w: deck[2], h: deck[3] }, arena: { x: arena[0], y: arena[1], w: arena[2], h: arena[3] }, anchors, objects, ground, coll, paths };
   }
   function nearestOpen(coll, a) { for (const [dx, dy] of [[0, 1], [0, -1], [-1, 0], [1, 0]]) { const x = a.x + dx, y = a.y + dy; if (x >= 0 && y >= 0 && x < W && y < H && !coll[y][x]) return [x, y]; } return [a.x, a.y]; }
+  function nearestReachable(coll, from, target) {
+    if (coll[from[1]]?.[from[0]] !== 0) return null;
+    const queue = [from.slice()], seen = new Set([key(...from)]);
+    let closest = queue[0], distance = Infinity;
+    for (let i = 0; i < queue.length; i++) {
+      const [x, y] = queue[i], d = (x - target[0]) ** 2 + (y - target[1]) ** 2;
+      if (d < distance) { closest = queue[i]; distance = d; if (!d) break; }
+      for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1]]) {
+        const nx = x + dx, ny = y + dy, k = key(nx, ny);
+        if (nx < 0 || nx >= W || ny < 0 || ny >= H || coll[ny][nx] || seen.has(k)) continue;
+        seen.add(k); queue.push([nx, ny]);
+      }
+    }
+    return closest;
+  }
   const cache = new Map();
   function get(id, res) {
     const k = id + '|' + res; if (cache.has(k)) return cache.get(k);
@@ -129,7 +144,7 @@ const PoolMaps = (() => {
       [{ kind: 'rewards', npc: 'pj', rect: [37, 47, 58, 31], anchor: 'rewards' }, { kind: 'quest', npc: 'jp', rect: [161, 47, 63, 31], anchor: 'quest' }],
       { rect: [181, 155, 40, 37], to: 'depot' }),
   };
-  return { get, route, depot: () => hubs.depot, hub: id => hubs[id] || hubs.depot, ids: () => M.map((m) => m[0]), W, H };
+  return { get, route, nearestReachable, depot: () => hubs.depot, hub: id => hubs[id] || hubs.depot, ids: () => M.map((m) => m[0]), W, H };
 
 })();
 window.PoolMaps = PoolMaps;
