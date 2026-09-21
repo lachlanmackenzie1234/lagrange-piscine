@@ -808,10 +808,39 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-bmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
 .q-bbtn { font: inherit; font-size: .95rem; min-height: 46px; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); cursor: pointer; }
 .q-bbtn.p { background: var(--brand-dark); color: #fff; } .q-bbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--px-shadow, var(--ink)); }
+.q-bbtn:disabled { opacity: .48; cursor: wait; transform: none; box-shadow: 2px 2px 0 var(--px-shadow, var(--ink)); }
+.q-busy { margin: 0; text-align: center; color: var(--muted); font-size: .8rem; }
 .q-stage { display: block; width: 100%; aspect-ratio: 4 / 3; image-rendering: pixelated; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--px-shadow, var(--ink)); margin: 10px 0; background: #e9d59a; }
 .q-battle .q-stage { margin: 0 auto; width: min(100%, 50vh); }
 .q-depot .q-stage { margin: 10px 0 6px; }
 .q-card .q-stage { cursor: pointer; } .q-maphint { margin: -4px 0 8px; }
+.q-map-stage { position: relative; isolation: isolate; margin: 10px 0; }
+.q-map-stage > .q-stage { margin: 0; }
+.q-map-stage > .q-stage:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+.q-maphint { display: flex; align-items: center; gap: 8px; }
+.q-maphint > span { flex: 1; }
+.q-map-shortcut { font: inherit; color: var(--ink); border: 2px solid var(--ink); background: var(--card); padding: 5px 7px; cursor: pointer; }
+.q-map-menu { position: absolute; z-index: 3; width: 204px; max-width: calc(100% - 10px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; color: var(--ink); background: var(--card); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); font: 14px/1.25 var(--font); }
+.q-map-menu:has(form) { width: 246px; }
+.q-map-menu-head { position: sticky; top: 0; display: flex; align-items: center; gap: 6px; background: var(--brand-dark); color: #fff; border-bottom: 2px solid var(--ink); padding-left: 8px; z-index: 1; min-height: 32px; }
+.q-map-menu-head > span { flex: 1; font-size: 13px; }
+.q-map-close { background: transparent; border: 0; color: #fff; width: 32px; min-height: 30px; font: 20px/1 var(--font); cursor: pointer; }
+.q-map-menu-body { padding: 3px; }
+.q-map-option { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; min-height: 35px; padding: 6px 8px; border: 0; border-bottom: 1px solid var(--na-bg); background: var(--card); color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+.q-map-option:hover, .q-map-option:focus-visible { outline: none; background: var(--brand-dark); color: #fff; }
+.q-map-option:disabled { opacity: .5; cursor: default; background: var(--card); color: var(--muted); }
+.q-map-quantity { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 7px; font-size: 13px; }
+.q-map-quantity input { width: 70px; min-width: 0; font: 16px var(--font); padding: 4px; border: 2px solid var(--ink); border-radius: 0; }
+.q-map-menu .reading-form, .q-map-form { margin: 0; padding: 5px; }
+.q-map-menu .reading-form .grid3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
+.q-map-menu .field, .q-map-form label { min-width: 0; font-size: 12px; color: var(--ink); }
+.q-map-menu input, .q-map-menu textarea { max-width: 100%; min-width: 0; font-size: 16px; border-radius: 0; }
+.q-map-menu .target-hint { font-size: 10px; line-height: 1.3; }
+.q-map-menu .reading-form .btn { font: inherit; margin: 6px 0 2px; min-height: 36px; padding: 5px; }
+.q-map-form label { display: grid; gap: 5px; padding-bottom: 8px; }
+.q-map-form input, .q-map-form textarea { width: 100%; font-family: var(--font); border: 2px solid var(--ink); padding: 4px; background: var(--input-bg); color: var(--ink); }
+.q-card.sunk .q-map-menu, .q-card.sunk .q-map-menu label { color: var(--ink); }
+:root[data-style="pixel"] .clean-btns { flex-wrap: wrap; }
 .q-qty { display: flex; align-items: center; gap: 10px; padding: 8px 4px; } .q-qty span { flex: 1; color: var(--muted); } .q-qty b { min-width: 24px; text-align: center; }
 .sheet-item.dis { opacity: .55; }
 .shake { animation: q-shake .35s; } @keyframes q-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }

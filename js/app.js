@@ -23,11 +23,18 @@
     },
     pixel: () => document.documentElement.dataset.style === 'pixel',
   };
-  // Pixel's game layer (js/game.js) is a sidecar: fetched once, only when the
-  // style is Pixel, so the other styles never pay for it.
+  // Pixel's game layer is a sidecar, executed only when the style is Pixel.
   function loadGame() {
     if (window.Game || document.getElementById('game-js') || loadGame.busy) return; loadGame.busy = true;
-    const chain = ['js/pixelart.js', 'js/maps.js', 'js/game.js']; const next = () => { const src = chain.shift(); if (!src) { render(); return; } const sc = document.createElement('script'); if (src.endsWith('game.js')) sc.id = 'game-js'; sc.src = src; sc.onload = next; document.head.appendChild(sc); };
+    const chain = [['js/pixelart.js', 'PixelArt'], ['js/maps.js', 'PoolMaps'], ['js/game-motion.js', 'QuestMotion'], ['js/game.js', 'Game']];
+    const next = () => {
+      const entry = chain.shift(); if (!entry) { loadGame.busy = false; render(); return; }
+      const [src, global] = entry; if (window[global]) { next(); return; }
+      const sc = document.createElement('script'); if (global === 'Game') sc.id = 'game-js';
+      sc.src = src; sc.onload = next;
+      sc.onerror = () => { sc.remove(); loadGame.busy = false; console.warn('Pixel assets could not load:', src); };
+      document.head.appendChild(sc);
+    };
     next();
   }
   // Pixel skin sidecar: photos go through a 48-px canvas and come back up
@@ -61,7 +68,7 @@
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.95'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.96'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -538,7 +545,7 @@
     const row = el('<div class="clean-btns"></div>');
     CLEAN_TASKS.forEach(({ k, icon }) => {
       const doneV = svc.find((v) => v.task === k && Store.localDate(v.at) === today);
-      const b = el(`<button class="btn clean-btn${doneV ? ' done' : ''}">${icon} ${esc(t('task_' + k))}${doneV ? ' ' + ico('check', 'ic-sm') : ''}</button>`);
+      const b = el(`<button class="btn clean-btn${doneV ? ' done' : ''}" data-task="${k}">${icon} ${esc(t('task_' + k))}${doneV ? ' ' + ico('check', 'ic-sm') : ''}</button>`);
       b.addEventListener('click', () => {
         if (doneV) Store.deleteVisit(doneV.id);
         else Store.addVisit(p.id, { type: 'service', task: k, weather: window.Weather && Weather.current() });
@@ -1280,9 +1287,9 @@
       const pumpOv = el('<div class="ov-stack"></div>');
       pumpOv.appendChild(el(`<div class="ov-sub">${esc(t('last_backwash', { date: lb ? fmtDateTime(lb.at) : t('never') }))}</div>`));
       const prow = el('<div class="ov-btns"></div>');
-      const bw = el(`<button class="btn ov-btn">${esc(t('log_backwash'))}</button>`);
+      const bw = el(`<button class="btn ov-btn" data-pool-action="backwash">${esc(t('log_backwash'))}</button>`);
       bw.addEventListener('click', () => { Store.addVisit(p.id, { type: 'backwash' }); render(); });
-      const sand = el(`<button class="btn ov-btn">${esc(t('sand_date'))} · ${p.sandDate ? esc(fmtDate(p.sandDate)) : esc(t('unknown'))}</button>`);
+      const sand = el(`<button class="btn ov-btn" data-pool-action="sand">${esc(t('sand_date'))} · ${p.sandDate ? esc(fmtDate(p.sandDate)) : esc(t('unknown'))}</button>`);
       sand.addEventListener('click', () => openSandSheet(p));
       prow.appendChild(bw); prow.appendChild(sand);
       pumpOv.appendChild(prow);
@@ -1479,7 +1486,7 @@
     const btns = el('<div class="treat-btns"></div>');
     ['hth-stick', 'hth-galet', 'hypomen-pro', 'hth-phminus', 'mareva-phplus', 'mareva-cya', 'acti-floc']
       .map(productById).filter(Boolean).forEach((prod) => {
-        const b = el(`<button class="btn treat-btn"><span>${esc(prod.name)}</span><small>${esc(prod.brand)}</small></button>`);
+        const b = el(`<button class="btn treat-btn" data-product-id="${prod.id}"><span>${esc(prod.name)}</span><small>${esc(prod.brand)}</small></button>`);
         b.addEventListener('click', () => {
           Store.addTreatment(p.id, { productId: prod.id, qty: qty.value, weather: window.Weather && Weather.current() });
           render();
