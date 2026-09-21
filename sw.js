@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v0.100';
+const VERSION = 'lp-v0.101';
 const ASSETS = [
   './',
   './index.html',
@@ -18,7 +18,10 @@ const ASSETS = [
   './js/maps.js',
   './js/game-motion.js',
   './js/living-world.js',
+  './js/hub-art.js',
   './js/game.js',
+  './assets/quest-hubs/props.png',
+  './assets/quest-hubs/manifest.json',
   './assets/quest-world/foliage.png',
   './assets/quest-world/foliage.json',
   './assets/quest-motion/manifest.json',

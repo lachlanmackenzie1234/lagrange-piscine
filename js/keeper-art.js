@@ -30,6 +30,9 @@ const KeeperArt = (() => {
     if (avatar.hair === 3) { ctx.fillStyle = shade(hair, .65); ctx.fillRect(13, 13, 23, 21); ctx.fillRect(15, 32, 19, 6); }
     const baseCanvas = document.createElement('canvas'); baseCanvas.width = 48; baseCanvas.height = 64;
     baseCanvas.getContext('2d').putImageData(image, 0, 0); ctx.drawImage(baseCanvas, 0, 0);
+    // A little shoulder/torso volume keeps the compact keeper rounded. Head,
+    // feet and the independent equipment/tool coordinates remain unchanged.
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(baseCanvas, 12, 23, 24, 21, 11, 23, 26, 21);
     const f = (c, x, y, w = 1, h = 1) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
     const ink = '#253044';
     const box = (c, x, y, w, h) => { f(ink, x + 1, y, w - 2, h); f(ink, x, y + 1, w, h - 2); f(c, x + 1, y + 1, w - 2, h - 2); };

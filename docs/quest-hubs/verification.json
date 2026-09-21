@@ -1,0 +1,284 @@
+{
+  "exit": "Changer de carte",
+  "grassWalk": {
+    "hero": "24,95",
+    "isGrass": true
+  },
+  "headBootComparisons": 48,
+  "logsUnchanged": true,
+  "maps": [
+    "EC-2",
+    "EC-5",
+    "EC-12",
+    "EC-18",
+    "EC-22",
+    "AG-7",
+    "AG-8",
+    "AG-9",
+    "AG-21",
+    "AG-32",
+    "EP-6B-75",
+    "EP-19B-90",
+    "EP-30B-63",
+    "EP-27B-94",
+    "EP-40B-52",
+    "EP-31B-96",
+    "EP-52B-46",
+    "EP-6E-99",
+    "EPP-3",
+    "EPP-4",
+    "EPP-7",
+    "GP-18",
+    "GP-39"
+  ],
+  "mobile": [
+    {
+      "fits": true,
+      "id": "bureau",
+      "npc": "pj",
+      "overflow": false
+    },
+    {
+      "fits": true,
+      "id": "bureau",
+      "npc": "jp",
+      "overflow": false
+    },
+    {
+      "fits": true,
+      "id": "bureau",
+      "npc": "partner",
+      "overflow": false
+    },
+    {
+      "fits": true,
+      "id": "depot",
+      "npc": "matt",
+      "overflow": false
+    },
+    {
+      "fits": true,
+      "id": "depot",
+      "npc": "karine",
+      "overflow": false
+    },
+    {
+      "fits": true,
+      "id": "depot",
+      "npc": "jojo",
+      "overflow": false
+    }
+  ],
+  "outsideCancels": true,
+  "sizes": [
+    [
+      "bureau",
+      384,
+      288
+    ],
+    [
+      "depot",
+      512,
+      384
+    ]
+  ],
+  "stations": [
+    {
+      "fits": true,
+      "npc": "pj",
+      "title": "PJ"
+    },
+    {
+      "fits": true,
+      "npc": "jp",
+      "title": "JP"
+    },
+    {
+      "fits": true,
+      "npc": "partner",
+      "title": "Coll\u00e8gue"
+    },
+    {
+      "fits": true,
+      "npc": "matt",
+      "title": "Matt \u00b7 Fourgon"
+    },
+    {
+      "fits": true,
+      "npc": "karine",
+      "title": "Karine \u00b7 Atelier"
+    },
+    {
+      "fits": true,
+      "npc": "jojo",
+      "title": "Jojo"
+    },
+    {
+      "title": "Matt \u00b7 Fourgon",
+      "van": "gardener-van"
+    },
+    {
+      "title": "Karine \u00b7 Atelier",
+      "van": "karine-van"
+    },
+    {
+      "title": "Jojo",
+      "van": "jojo-van"
+    }
+  ],
+  "walkSamples": [
+    {
+      "backgroundBuilds": "1",
+      "drawMs": "0.81",
+      "fps": "60",
+      "frameAt": "180551.9",
+      "frameCount": "2169",
+      "hero": "138,95",
+      "mapKind": "bureau",
+      "moving": "true",
+      "queued": "1",
+      "scenery": "6",
+      "world": "living-v5"
+    },
+    {
+      "backgroundBuilds": "1",
+      "drawMs": "0.56",
+      "fps": "60",
+      "frameAt": "181068.5",
+      "frameCount": "2200",
+      "hero": "104.5,95",
+      "mapKind": "bureau",
+      "moving": "true",
+      "queued": "1",
+      "scenery": "6",
+      "world": "living-v5"
+    },
+    {
+      "backgroundBuilds": "1",
+      "drawMs": "0.56",
+      "fps": "60",
+      "frameAt": "181068.5",
+      "frameCount": "2200",
+      "hero": "104,62.5",
+      "mapKind": "bureau",
+      "moving": "true",
+      "queued": "1",
+      "scenery": "6",
+      "world": "living-v5"
+    },
+    {
+      "backgroundBuilds": "1",
+      "drawMs": "0.38",
+      "fps": "60",
+      "frameAt": "181568.6",
+      "frameCount": "2230",
+      "hero": "102,31",
+      "mapKind": "bureau",
+      "moving": "true",
+      "queued": "1",
+      "scenery": "6",
+      "world": "living-v5"
+    },
+    {
+      "backgroundBuilds": "1",
+      "drawMs": "0.46",
+      "fps": "60",
+      "frameAt": "182085.2",
+      "frameCount": "2261",
+      "hero": "68.5,31",
+      "mapKind": "bureau",
+      "moving": "true",
+      "queued": "1",
+      "scenery": "6",
+      "world": "living-v5"
+    }
+  ],
+  "version": "v0.101",
+  "unitTests": 39,
+  "offline": {
+    "bureau": [
+      384,
+      288
+    ],
+    "depot": [
+      512,
+      384
+    ],
+    "cache": "lp-v0.101",
+    "sourceCached": false,
+    "spareExportsCached": false
+  },
+  "browserErrors": 0,
+  "bureau": {
+    "approach": "56,47",
+    "counterDepth": "136,63",
+    "exit": "Changer de carte",
+    "logsUnchanged": true,
+    "mobile": {
+      "overflow": false,
+      "rows": [
+        {
+          "fits": true,
+          "npc": "pj"
+        },
+        {
+          "fits": true,
+          "npc": "jp"
+        },
+        {
+          "fits": true,
+          "npc": "partner"
+        }
+      ]
+    },
+    "outsideCancels": true,
+    "size": [
+      384,
+      288
+    ],
+    "stations": [
+      {
+        "npc": "pj",
+        "title": "PJ"
+      },
+      {
+        "npc": "jp",
+        "title": "JP"
+      },
+      {
+        "npc": "partner",
+        "title": "Coll\u00e8gue"
+      },
+      {
+        "asset": "boss-desk",
+        "title": "PJ"
+      },
+      {
+        "asset": "reception-counter",
+        "title": "JP"
+      },
+      {
+        "asset": "sofa",
+        "title": "Coll\u00e8gue"
+      },
+      {
+        "asset": "coffee-table",
+        "title": "Coll\u00e8gue"
+      }
+    ]
+  },
+  "renderUpdatesPerSecond": 60,
+  "drawWorkMsRange": [
+    0.38,
+    0.81
+  ],
+  "runtimeHubProps": 11,
+  "combat": {
+    "before": 109,
+    "immediate": 109,
+    "after": 98,
+    "phase": "ready",
+    "turn": 1,
+    "doubleClickSingleTurn": true
+  }
+}

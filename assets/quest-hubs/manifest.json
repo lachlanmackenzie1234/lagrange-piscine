@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "page": "props.png",
+  "props": {
+    "boss-desk": {
+      "r": [
+        0,
+        0,
+        58,
+        94
+      ],
+      "anchor": [
+        29,
+        93
+      ]
+    },
+    "reception-counter": {
+      "r": [
+        58,
+        0,
+        112,
+        80
+      ],
+      "anchor": [
+        56,
+        79
+      ]
+    },
+    "cabinet": {
+      "r": [
+        170,
+        0,
+        40,
+        86
+      ],
+      "anchor": [
+        20,
+        85
+      ]
+    },
+    "sofa": {
+      "r": [
+        210,
+        0,
+        60,
+        104
+      ],
+      "anchor": [
+        30,
+        103
+      ]
+    },
+    "coffee-table": {
+      "r": [
+        270,
+        0,
+        46,
+        44
+      ],
+      "anchor": [
+        23,
+        43
+      ]
+    },
+    "gardener-van": {
+      "r": [
+        316,
+        0,
+        104,
+        94
+      ],
+      "anchor": [
+        52,
+        93
+      ]
+    },
+    "karine-van": {
+      "r": [
+        420,
+        0,
+        90,
+        80
+      ],
+      "anchor": [
+        45,
+        79
+      ]
+    },
+    "jojo-van": {
+      "r": [
+        0,
+        104,
+        90,
+        80
+      ],
+      "anchor": [
+        45,
+        79
+      ]
+    },
+    "workshop": {
+      "r": [
+        90,
+        104,
+        220,
+        152
+      ],
+      "anchor": [
+        110,
+        151
+      ]
+    },
+    "potions": {
+      "r": [
+        310,
+        104,
+        80,
+        84
+      ],
+      "anchor": [
+        40,
+        83
+      ]
+    },
+    "storage": {
+      "r": [
+        390,
+        104,
+        108,
+        86
+      ],
+      "anchor": [
+        54,
+        85
+      ]
+    }
+  },
+  "sourceSHA256": {
+    "bureau": "96a21e18a9f968a0ab10921d4561d0327fc17c74457e422d940a6ff82131a7be",
+    "depot": "86cf33b5545b53b2c40fdabc9099353f26c7539b7bfab623f393ae2db627f326",
+    "vehicles": "f974e8d67c1c6f1322bba0dc1a712d1865c52d45d56511861bb71503f02017a1",
+    "office": "8b46423446620a28b54eeb321f4fc68d2a9a23e9a25892fc85c0671964f1f6dd"
+  },
+  "pngBytes": 116149,
+  "decodedPixelBytes": 524288
+}

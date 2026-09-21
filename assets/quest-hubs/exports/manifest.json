@@ -1,0 +1,49 @@
+{
+  "vehicles": [
+    {
+      "id": "gardener-van",
+      "file": "gardener-van.png",
+      "size": [
+        104,
+        94
+      ],
+      "inUse": true
+    },
+    {
+      "id": "karine-van",
+      "file": "karine-van.png",
+      "size": [
+        90,
+        80
+      ],
+      "inUse": true
+    },
+    {
+      "id": "jojo-van",
+      "file": "jojo-van.png",
+      "size": [
+        90,
+        80
+      ],
+      "inUse": true
+    },
+    {
+      "id": "scenic-black",
+      "file": "scenic-black.png",
+      "size": [
+        96,
+        76
+      ],
+      "inUse": false
+    },
+    {
+      "id": "polo-white",
+      "file": "polo-white.png",
+      "size": [
+        86,
+        68
+      ],
+      "inUse": false
+    }
+  ]
+}

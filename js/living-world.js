@@ -1,4 +1,4 @@
-/* Living-world rendering from Pixel Lab v5, adapted to the 23 authored pool layouts.
+/* Living-world rendering from Pixel Lab v5, adapted to 23 pools and two NPC hubs.
  * Art, collision, gameplay, and maintenance records remain separate.
  */
 const QuestWorld = (() => {
@@ -117,9 +117,9 @@ function makeGrassSprite(size, variant) {
   function makeGround(layout) {
     const c = surface(W, H), g = c.getContext('2d'), rand = seeded(hash(layout.id));
     const shift = rand() * 4;
-    for (let y = 0; y < H; y += 8) for (let x = 0; x < W; x += 8) {
-      const v = Math.sin(x / 68 + y / 122 + shift) + Math.sin(y / 42 - x / 147) + Math.cos(x / 37) * .25;
-      box(g, ['#7aa378', '#8ab07a', '#9abb78', '#abc779', '#b5cc7d'][clamp(Math.floor(v + 2), 0, 4)], x, y, 8, 8);
+    for (let y = 0; y < H; y += 4) for (let x = 0; x < W; x += 4) {
+      const v = Math.sin(x / 68 + y / 122 + shift) + Math.sin(y / 42 - x / 147) + Math.cos(x / 37) * .25 + rand() * .2;
+      box(g, ['#84a97b', '#91b47b', '#9fbd7c', '#abc67e', '#b4cb83'][clamp(Math.floor(v + 2), 0, 4)], x, y, 4, 4);
     }
     for (let i = 0; i < 8000; i++) { g.globalAlpha = .05 + rand() * .09; box(g, rand() < .5 ? '#3e8368' : '#eff1a9', rand() * W, rand() * H, 1 + rand() * 2, 1); } g.globalAlpha = 1;
     // Soft edges join the authored sand cells into paths, rather than tile boxes.
@@ -177,7 +177,7 @@ function makeGrassSprite(size, variant) {
       return c;
     });
   }
-  let art = null, failure = null, battleBackdrop = null;
+  let art = null, failure = null, hubFailure = null, battleBackdrop = null;
   const ready = typeof document === 'undefined' ? Promise.resolve(false) : (async () => {
     try {
       const base = new URL('../assets/quest-world/', document.currentScript.src);
@@ -186,9 +186,19 @@ function makeGrassSprite(size, variant) {
       const grass = Array.from({ length: 4 }, (_, size) => Array.from({ length: 3 }, (_, variant) => makeGrassSprite(size, variant)));
       const props = Object.fromEntries(['pump', 'pot', 'sign', 'bench', 'lounger'].map(kind => [kind, makeProp(kind)]));
       props.villa = makeHouse(); props.shed = makePump();
-      const all = [...plants, ...grass.flat(), ...Object.values(props)];
+      const pot = props['interior-pot'] = surface(44, 58), pg = pot.getContext('2d'); pg.imageSmoothingEnabled = false;
+      polygon(pg, '#7c5543', [[10, 38], [34, 38], [31, 56], [14, 56]]); polygon(pg, '#b97c52', [[12, 39], [32, 39], [29, 54], [15, 54]]);
+      box(pg, '#ddae76', 10, 37, 24, 4); box(pg, '#ecd09a', 11, 37, 21, 1); box(pg, '#cf9b65', 16, 42, 3, 11);
+      pg.drawImage(plants[5], 2, 1, 40, 40);
+      const hubProps = {};
+      try {
+        const hubBase = new URL('../quest-hubs/', base);
+        const [page, manifest] = await Promise.all([loadImage(new URL('props.png', hubBase).href), fetch(new URL('manifest.json', hubBase)).then(r => { if (!r.ok) throw new Error('Hub manifest unavailable'); return r.json(); })]);
+        for (const [id, { r: [x, y, w, h] }] of Object.entries(manifest.props)) { const c = surface(w, h); c.getContext('2d').drawImage(page, x, y, w, h, 0, 0, w, h); hubProps[id] = c; }
+      } catch (error) { hubFailure = error.message; }
+      const all = [...plants, ...grass.flat(), ...Object.values(props), ...Object.values(hubProps)];
       const animated = new Set([...plants, ...grass.flat()]);
-      art = { plants, grass, props, frames: new Map(), shadows: new Map(), alpha: new Map() };
+      art = { plants, grass, props, hubProps, frames: new Map(), shadows: new Map(), alpha: new Map() };
       all.forEach(c => { if (animated.has(c)) art.frames.set(c, bendFrames(c)); art.shadows.set(c, shadowSprite(c)); art.alpha.set(c, c.getContext('2d').getImageData(0, 0, c.width, c.height).data); });
       return true;
     } catch (error) { failure = error.message; return false; }
@@ -213,13 +223,32 @@ function makeGrassSprite(size, variant) {
 
   class Scene {
     constructor(layout) {
-      this.layout = layout; this.pool = rect(layout.pool); this.time = 0; this.leaves = [];
-      const decoration = plan(layout); this.base = makeGround(layout);
-      this.props = decoration.props.map(o => ({ ...o, sprite: o.plant == null ? art.props[o.kind] : art.plants[o.plant] }));
+      this.layout = layout; this.pool = layout.pool ? rect(layout.pool) : null; this.time = 0; this.leaves = [];
+      [this.width, this.height] = layout.size || [W, H];
+      this.interior = layout.id === 'bureau';
+      const hub = !!layout.npcs, decoration = hub ? { props: layout.scenery, grass: window.QuestHubArt.grass(layout) } : plan(layout);
+      if (hub) { const room = window.QuestHubArt.build(layout.id, art.plants); this.base = room.base; this.foreground = room.foreground; } else this.base = makeGround(layout);
+      this.props = decoration.props.map((o, i) => ({ scale: 1, phase: i * 2.73, ...o, sprite: o.asset ? art.hubProps[o.asset] : o.plant == null ? art.props[o.kind] : art.plants[o.plant] }));
       this.scenery = [...this.props, ...decoration.grass.map(o => ({ ...o, scale: 1, sprite: art.grass[o.size][o.variant] }))].sort((a, b) => a.y - b.y);
       this.hitProps = this.props.slice().sort((a, b) => b.y - a.y);
-      this.shadows = surface(W, H); const g = this.shadows.getContext('2d');
-      this.props.forEach(o => { const sprite = art.shadows.get(o.sprite); g.save(); g.imageSmoothingEnabled = false; g.globalAlpha = o.plant != null ? .2 : .25; g.translate(Math.round(o.x), Math.round(o.y)); g.transform(1, 0, -.48, -.28, 0, 0); g.drawImage(sprite, -Math.round(sprite.width * o.scale / 2), -Math.round(sprite.height * o.scale), Math.round(sprite.width * o.scale), Math.round(sprite.height * o.scale)); g.restore(); });
+      this.shadows = surface(this.width, this.height); const g = this.shadows.getContext('2d');
+      this.props.forEach(o => { const sprite = art.shadows.get(o.sprite); g.save(); g.imageSmoothingEnabled = false; g.globalAlpha = this.interior ? .13 : o.plant != null ? .2 : .25; g.translate(Math.round(o.x), Math.round(o.y)); g.transform(1, 0, this.interior ? -.3 : -.58, this.interior ? .25 : -.3, 0, 0); g.drawImage(sprite, -Math.round(sprite.width * o.scale / 2), -Math.round(sprite.height * o.scale), Math.round(sprite.width * o.scale), Math.round(sprite.height * o.scale)); g.restore(); });
+      const pixels = g.getImageData(0, 0, this.width, this.height).data;
+      this.shade = new Uint8Array(this.width * this.height); for (let i = 0; i < this.shade.length; i++) this.shade[i] = pixels[i * 4 + 3];
+    }
+    lightAt(x, y) {
+      const shade = this.shade[clamp(Math.floor(y), 0, this.height - 1) * this.width + clamp(Math.floor(x), 0, this.width - 1)];
+      return shade > 40 ? 'shade' : this.interior && !window.QuestHubArt.sunlit(this.layout.id, x, y) ? 'interior' : 'sun';
+    }
+    grassAt(x, y) {
+      return this.pool ? this.layout.ground[Math.floor(y / T)]?.[Math.floor(x / T)] === 'grass' : window.QuestHubArt.isGrass(this.layout.id, x, y);
+    }
+    footGrass(g, actor, t) {
+      const x = Math.round(actor.x * 2), y = Math.round(actor.y * 2);
+      if (!this.grassAt(x, y) || actor.grass === false) return;
+      // A few rooted blades overlap the soles rather than drawing a green halo.
+      const sway = Math.round(Math.sin(t * 1.2 + x) * .5);
+      for (const [dx, h] of [[-6, 2], [-3, 4], [2, 3], [5, 2]]) { box(g, '#5d8c61', x + dx, y - h + 1, 1, h); box(g, '#b1c77c', x + dx + sway, y - h + 1, 1, 1); }
     }
     hit(x, y) {
       x *= 2; y *= 2;
@@ -265,29 +294,34 @@ function makeGrassSprite(size, variant) {
       const rustle = o.rustledAt == null ? 0 : Math.max(0, 1.6 - (this.time - o.rustledAt));
       const sway = quiet || o.plant == null && !grass ? 0 : Math.sin(t * .9 + o.phase) * .7 + brush + Math.sin(rustle * 20) * rustle;
       const frame = art.frames.get(o.sprite)?.[clamp(Math.round(sway), -2, 2) + 2] || o.sprite;
-      const behind = o.plant != null && o.plant < 4 && hero[1] < o.y && hero[1] > o.y - h && Math.abs(hero[0] - o.x) < w * .4;
+      const behind = (o.occludes || o.plant != null && o.plant < 4) && hero[1] < o.y && hero[1] > o.y - h && Math.abs(hero[0] - o.x) < w * .4;
       g.save(); if (behind) g.globalAlpha = .58;
       g.drawImage(frame, Math.round(o.x - w / 2 - (frame.width - o.sprite.width) / 2 * o.scale), Math.round(o.y - h), Math.round(frame.width * o.scale), h); g.restore();
     }
     paint(ctx, condition, time, hero, actors = [], quiet = false) {
       this.time = time; const t = quiet ? 0 : time, foot = hero.map(n => n * 2);
       ctx.save(); ctx.scale(.5, .5); ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.base, 0, 0); this.water(ctx, condition, t); ctx.drawImage(this.shadows, 0, 0);
+      ctx.drawImage(this.base, 0, 0); if (this.pool) this.water(ctx, condition, t); ctx.drawImage(this.shadows, 0, 0);
       actors = actors.slice().sort((a, b) => a.y - b.y);
-      for (const actor of actors) { ctx.globalAlpha = .25; ellipse(ctx, '#254e43', actor.x * 2 + 1, actor.y * 2 - 1, actor.shadow || 8, 3); } ctx.globalAlpha = 1;
-      const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw(); ctx.restore(); };
+      for (const actor of actors) {
+        if (actor.castShadow) { ctx.save(); ctx.globalAlpha = this.interior ? .15 : .22; ctx.scale(2, 2); ctx.translate(actor.x, actor.y); ctx.transform(1, 0, this.interior ? -.35 : -.72, this.interior ? .26 : -.36, 0, 0); actor.castShadow(); ctx.restore(); }
+        ctx.globalAlpha = this.interior ? .16 : .22; ellipse(ctx, '#254e43', actor.x * 2, actor.y * 2 - 1, actor.shadow || 7, 2);
+      } ctx.globalAlpha = 1;
+      const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw({ light: this.lightAt(a.x * 2, a.y * 2) }); ctx.restore(); this.footGrass(ctx, a, t); };
       let next = 0;
       for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= o.y) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); }
       while (next < actors.length) drawActor(actors[next++]);
-      if (condition.filtre > condition.interval) { const pump = this.props.find(o => o.kind === 'pump'); if (pump) box(ctx, '#e9ac6a', pump.x + 5, pump.y - 21, 3, 3); }
+      if (condition?.filtre > condition?.interval) { const pump = this.props.find(o => o.kind === 'pump'); if (pump) box(ctx, '#e9ac6a', pump.x + 5, pump.y - 21, 3, 3); }
       this.leaves = this.leaves.filter(e => time - e.start < 2.2);
       if (!quiet) for (const e of this.leaves) { const age = time - e.start; ctx.globalAlpha = Math.min(1, (2.2 - age) * 2); box(ctx, '#d5cf79', e.x + age * 11 + Math.sin(age * 4 + e.phase) * 4, e.y + age * 14, 2, 2); }
-      ctx.globalAlpha = .055; box(ctx, '#ffc566', 0, 0, W, H);
-      for (let i = 0; i < 4; i++) { ctx.globalAlpha = .03; const edge = i * 5; box(ctx, '#214e45', edge, edge, W - edge * 2, 5); box(ctx, '#214e45', edge, H - edge - 5, W - edge * 2, 5); box(ctx, '#214e45', edge, edge + 5, 5, H - edge * 2 - 10); box(ctx, '#214e45', W - edge - 5, edge + 5, 5, H - edge * 2 - 10); }
+      if (this.interior && !quiet) for (let i = 0; i < 7; i++) { const x = 72 + i * 30 + Math.sin(t * .25 + i) * 3, y = 74 + (i * 37 + t * 1.5) % 170; if (window.QuestHubArt.sunlit('bureau', x, y)) { ctx.globalAlpha = .18 + Math.sin(t * .5 + i) * .1; box(ctx, '#fff7d7', x, y); } }
+      ctx.globalAlpha = 1; if (this.foreground) ctx.drawImage(this.foreground, 0, 0);
+      ctx.globalAlpha = this.interior ? .025 : .045; box(ctx, '#ffc566', 0, 0, this.width, this.height);
+      for (let i = 0; i < 4; i++) { ctx.globalAlpha = .03; const edge = i * 5; box(ctx, '#214e45', edge, edge, this.width - edge * 2, 5); box(ctx, '#214e45', edge, this.height - edge - 5, this.width - edge * 2, 5); box(ctx, '#214e45', edge, edge + 5, 5, this.height - edge * 2 - 10); box(ctx, '#214e45', this.width - edge - 5, edge + 5, 5, this.height - edge * 2 - 10); }
       ctx.restore();
     }
   }
-  return { ready, plan, paintBattle, create: layout => art ? new Scene(layout) : null, get status() { return { loaded: !!art, failure }; } };
+  return { ready, plan, paintBattle, create: layout => art && (!layout.npcs || window.QuestHubArt && layout.scenery.every(p => !p.asset || art.hubProps[p.asset])) ? new Scene(layout) : null, get status() { return { loaded: !!art, hubsLoaded: !!art && !hubFailure && Object.keys(art.hubProps).length > 0, hubProps: art ? Object.keys(art.hubProps).length : 0, failure, hubFailure }; } };
 })();
 if (typeof window !== 'undefined') window.QuestWorld = QuestWorld;
 if (typeof module !== 'undefined') module.exports = QuestWorld;

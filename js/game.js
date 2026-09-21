@@ -321,6 +321,8 @@ const Game = (() => {
   }
   const T = 16;
   const cellPx = (cx, cy) => [cx * T, cy * T - 8];
+  // Stationary NPC art can be offset within its navigation cell, in native pixels.
+  const npcPoint = n => [n.cell[0] * T + 8 + (n.offset?.[0] || 0) / 2, n.cell[1] * T + 15 + (n.offset?.[1] || 0) / 2];
   function queueWalk(sc, to) {
     const job = { k: 'walk', to: to.slice(), dur: .08,
       onStart() { job.path = PoolMaps.route(sc.lay.coll, sc.hc, job.to); job.dur = Math.max(.08, (job.path.length - 1) * .16); },
@@ -369,15 +371,18 @@ const Game = (() => {
     } else { [sc.hx, sc.hy] = cellPx(...sc.hc); sc.moving = false; }
     return [sc.hx + 8, sc.hy + 23];
   }
-  function drawHero(ctx, sc, a, progress, options = {}) {
-    const g = load(), foot = options.foot || placeHero(sc, a, progress);
-    if (options.foot) { sc.hx = foot[0] - 8; sc.hy = foot[1] - 23; }
+  function heroFrame(sc, a, options = {}) {
     const motion = options.motion || (sc.moving ? 'walk' : a && ['test', 'wash'].includes(a.k) ? 'crouch' : a && a.k !== 'walk' ? 'cast' : 'idle');
     const elapsed = options.elapsed ?? (motion === 'idle' || motion === 'walk' ? sc.time * 1000 : sc.timeline.elapsed * 1000);
-    const active = motion === 'idle' && options.alive !== false;
+    return { motion, direction: options.direction || sc.direction, elapsed, offset: options.offset, scale: options.scale, applyOffset: !!options.applyOffset, light: options.light, shadow: !!options.shadow };
+  }
+  function drawHero(ctx, sc, a, progress, options = {}) {
+    const g = load(), foot = options.foot || placeHero(sc, a, progress), frame = heroFrame(sc, a, options);
+    if (options.foot) { sc.hx = foot[0] - 8; sc.hy = foot[1] - 23; }
+    const active = frame.motion === 'idle' && options.alive !== false;
     const auraSize = { scale: (options.scale ?? Motion.humanStyle.scale) / Motion.humanStyle.scale };
     if (active) Motion.setAura(ctx, g.equip, 'back', sc.time * 1000, ...foot, auraSize);
-    Motion.keeper(ctx, ...foot, g.avatar, g.equip, { motion, direction: options.direction || sc.direction, elapsed, offset: options.offset, scale: options.scale, applyOffset: !!options.applyOffset });
+    Motion.keeper(ctx, ...foot, g.avatar, g.equip, frame);
     if (active) Motion.setAura(ctx, g.equip, 'front', sc.time * 1000, ...foot, auraSize);
   }
   function placeMonster(t, sc, e) {
@@ -395,19 +400,19 @@ const Game = (() => {
     sc.moPos = [x - 14, y - 23]; sc.moMoving = moving;
     return { x, y, mo, motion, tier, moving };
   }
-  function drawMonster(ctx, t, sc, e, pose = placeMonster(t, sc, e)) {
+  function drawMonster(ctx, t, sc, e, pose = placeMonster(t, sc, e), lighting = {}) {
     if (!pose) return;
     const { x, y, mo, motion, tier, moving } = pose, auraOptions = { moving, action: motion !== 'idle' };
     Motion.aura(ctx, 'rarity-' + tier, 'back', t * 1000, x, y, auraOptions);
-    Motion.monster(ctx, mo.id, motion, motion === 'spawn' ? (t - sc.moSpawnTime) * 1000 : t * 1000, x, y, { offset: [0, 0] });
+    Motion.monster(ctx, mo.id, motion, motion === 'spawn' ? (t - sc.moSpawnTime) * 1000 : t * 1000, x, y, { offset: [0, 0], light: lighting.light });
     Motion.aura(ctx, 'rarity-' + tier, 'front', t * 1000, x, y, auraOptions);
   }
   function drawPool(ctx, t, sc, a, progress, c, e) {
     const world = livingScene(sc);
     if (world) {
-      const foot = placeHero(sc, a, progress), monster = placeMonster(t, sc, e);
-      const actors = [{ x: foot[0], y: foot[1], draw: () => drawHero(ctx, sc, a, progress) }];
-      if (monster) actors.push({ x: monster.x, y: monster.y, shadow: 12, draw: () => drawMonster(ctx, t, sc, e, monster) });
+      const foot = placeHero(sc, a, progress), monster = placeMonster(t, sc, e), g = load();
+      const actors = [{ x: foot[0], y: foot[1], draw: light => drawHero(ctx, sc, a, progress, light), castShadow: () => Motion.keeper(ctx, 0, 0, g.avatar, g.equip, heroFrame(sc, a, { shadow: true })) }];
+      if (monster) actors.push({ x: monster.x, y: monster.y, shadow: 12, draw: light => drawMonster(ctx, t, sc, e, monster, light), castShadow: () => Motion.monster(ctx, monster.mo.id, monster.motion, monster.motion === 'spawn' ? (t - sc.moSpawnTime) * 1000 : t * 1000, 0, 0, { shadow: true, offset: [0, 0] }) });
       world.paint(ctx, c, t, foot, actors, Motion.reduced());
     } else { drawPoolBg(ctx, c, t, sc); drawMonster(ctx, t, sc, e); drawHero(ctx, sc, a, progress); }
     if (a?.k === 'heal') Motion.draw(ctx, 'fx/event/heal', sc.timeline.elapsed * 1000, sc.hx + 8, sc.hy + 10);
@@ -450,7 +455,7 @@ const Game = (() => {
   function positionMenu(sc) {
     if (!sc.menu || !sc.c.isConnected) return;
     const canvas = sc.c.getBoundingClientRect(), host = sc.host.getBoundingClientRect();
-    const x = canvas.left - host.left + sc.menuPoint[0] / 256 * canvas.width, y = canvas.top - host.top + sc.menuPoint[1] / 192 * canvas.height;
+    const x = canvas.left - host.left + sc.menuPoint[0] / (sc.c.width / 2) * canvas.width, y = canvas.top - host.top + sc.menuPoint[1] / (sc.c.height / 2) * canvas.height;
     sc.menu.style.maxHeight = Math.max(100, canvas.height - 12) + 'px';
     const width = sc.menu.offsetWidth, height = sc.menu.offsetHeight;
     const left = Math.max(5, Math.min(canvas.width - width - 5, x + 8));
@@ -459,7 +464,7 @@ const Game = (() => {
   }
   function showMapMenu(sc, title, rows, point, back) {
     closeMapMenu(sc, false); if (sc.disposed) return;
-    sc.menuPoint = point || sc.menuPoint || [128, 96];
+    sc.menuPoint = point || sc.menuPoint || [sc.c.width / 4, sc.c.height / 4];
     const menu = sc.menu = el(`<div class="q-map-menu" role="dialog" aria-label="${esc(title)}"><div class="q-map-menu-head"><span>${esc(title)}</span><button type="button" class="q-map-close" aria-label="Fermer le menu">×</button></div><div class="q-map-menu-body"></div></div>`);
     menu.querySelector('.q-map-close').addEventListener('click', () => closeMapMenu(sc));
     const body = menu.querySelector('.q-map-menu-body');
@@ -541,7 +546,7 @@ const Game = (() => {
   function tapStage(sc, ev) {
     if (sc.menu) { closeMapMenu(sc); return; }
     if (B || sc.disposed) return;
-    const r = sc.c.getBoundingClientRect(), mx = (ev.clientX - r.left) / r.width * 256, my = (ev.clientY - r.top) / r.height * 192;
+    const r = sc.c.getBoundingClientRect(), mx = (ev.clientX - r.left) / r.width * sc.c.width / 2, my = (ev.clientY - r.top) / r.height * sc.c.height / 2;
     const L = sc.lay, point = [mx, my], inRect = (x, y, w, h) => mx >= x && mx < x + w && my >= y && my < y + h;
     if (sc.context.e?.monster && sc.moPos && inRect(sc.moPos[0] - 3, sc.moPos[1] - 3, 34, 30)) { mapMenu(sc, 'monster', point); return; }
     const tx = Math.floor(mx / T), ty = Math.floor(my / T);
@@ -574,19 +579,28 @@ const Game = (() => {
     sc.cleanup = () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); window.removeEventListener('resize', resize); observer?.disconnect(); };
   }
   function drawDepot(ctx, t, sc, action, progress) {
-    if (!Motion.draw(ctx, 'scene/' + sc.hubId, 0, 0, 0)) {
-      PA.lay(ctx, 'slab', 0, 0, 256, 192);
-      sc.lay.coll.forEach((row, y) => row.forEach((blocked, x) => { if (blocked) { ctx.fillStyle = '#527990'; ctx.fillRect(x * 16, y * 16, 16, 16); } }));
+    const world = livingScene(sc);
+    if (!world) {
+      ctx.save(); ctx.scale(sc.c.width / 512, sc.c.height / 384);
+      const shown = Motion.draw(ctx, 'scene/' + sc.hubId, 0, 0, 0); ctx.restore();
+      if (!shown) { PA.lay(ctx, 'slab', 0, 0, sc.c.width / 2, sc.c.height / 2); sc.lay.coll.forEach((row, y) => row.forEach((blocked, x) => { if (blocked) { ctx.fillStyle = '#527990'; ctx.fillRect(x * 16, y * 16, 16, 16); } })); }
     }
-    const actors = sc.lay.npcs.map(npc => ({ y: npc.cell[1] * 16 + 15, draw() {
-      const x = npc.cell[0] * 16 + 8, y = npc.cell[1] * 16 + 15;
-      ctx.fillStyle = '#00000024'; ctx.fillRect(x - 7, y - 1, 14, 2);
-      if (npc.id === 'partner') { const p = sc.context.partnerProfile; const avatar = p?.avatar || { skin: '#bea98f', hair: 1, hairColor: '#727987' }; const equip = p?.equip || {};
-        Motion.setAura(ctx, equip, 'back', t * 1000, x, y); Motion.keeper(ctx, x, y, avatar, equip, { elapsed: t * 1000 }); Motion.setAura(ctx, equip, 'front', t * 1000, x, y);
-      } else Motion.npc(ctx, npc.id, 'south', t * 1000, x, y);
-    } }));
-    const heroY = action?.k === 'walk' && action.path?.length > 1 ? (() => { const f = progress * (action.path.length - 1), i = Math.min(action.path.length - 2, Math.floor(f)); return (action.path[i][1] + (action.path[i + 1][1] - action.path[i][1]) * (f - i)) * 16 + 15; })() : sc.hc[1] * 16 + 15;
-    actors.push({ y: heroY, draw: () => drawHero(ctx, sc, action, progress) }); actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
+    const actors = sc.lay.npcs.map(npc => {
+      const [x, y] = npcPoint(npc), direction = npc.direction || 'south', p = sc.context.partnerProfile;
+      const avatar = p?.avatar || { skin: '#bea98f', hair: 1, hairColor: '#727987' }, equip = p?.equip || {};
+      return { x, y, draw(lighting = {}) {
+        if (!world) { ctx.fillStyle = '#00000024'; ctx.fillRect(x - 5, y - 1, 10, 2); }
+        if (npc.id === 'partner') { Motion.setAura(ctx, equip, 'back', t * 1000, x, y); Motion.keeper(ctx, x, y, avatar, equip, { elapsed: t * 1000, direction, ...lighting }); Motion.setAura(ctx, equip, 'front', t * 1000, x, y); }
+        else Motion.npc(ctx, npc.id, direction, t * 1000, x, y, lighting);
+      }, castShadow() {
+        if (npc.id === 'partner') Motion.keeper(ctx, 0, 0, avatar, equip, { elapsed: t * 1000, direction, shadow: true });
+        else Motion.npc(ctx, npc.id, direction, t * 1000, 0, 0, { shadow: true });
+      } };
+    });
+    const foot = placeHero(sc, action, progress), g = load();
+    actors.push({ x: foot[0], y: foot[1], draw: light => drawHero(ctx, sc, action, progress, light), castShadow: () => Motion.keeper(ctx, 0, 0, g.avatar, g.equip, heroFrame(sc, action, { shadow: true })) });
+    if (world) world.paint(ctx, {}, t, foot, actors, Motion.reduced()); else actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
+    sc.host.dataset.hero = foot.join(',');
     if (action?.k === 'reward') Motion.draw(ctx, 'loot/' + (action.rarity || 'common') + '/drop', sc.timeline.elapsed * 1000, sc.hx + 8, sc.hy - 6);
     if (action?.k === 'craft') Motion.draw(ctx, 'fx/event/critical', sc.timeline.elapsed * 1000, sc.hx + 8, sc.hy + 8);
     if (['sell', 'quest'].includes(action?.k)) Motion.draw(ctx, 'fx/event/coin', sc.timeline.elapsed * 1000, sc.hx + 8, sc.hy);
@@ -617,7 +631,7 @@ const Game = (() => {
     node.querySelector('button').addEventListener('click', () => {
       const health = Q.health(load());
       showMapMenu(sc, 'Se soigner', Q.POTIONS.map(p => ({ label: `${p.name} · +${p.heal} PV · ×${load().potions[p.id]}`, id: 'use-' + p.id, disabled: !load().potions[p.id] || health.hp >= health.max,
-        run: () => { if (!Q.usePotion(load(), p.id)) return; save(); closeMapMenu(sc, false); render(); if (!sc.disposed) sc.q.push({ k: 'heal', dur: .72 }); } })), [200, 150]);
+        run: () => { if (!Q.usePotion(load(), p.id)) return; save(); closeMapMenu(sc, false); render(); if (!sc.disposed) sc.q.push({ k: 'heal', dur: .72 }); } })), [sc.c.width / 2 - 30, sc.c.height / 2 - 30]);
     }); return node;
   }
   function npcName(id) { return id === 'partner' ? Q.playerName(Q.counterpart(Store.operator())) : Q.NPCS.find(n => n.id === id)?.name || ''; }
@@ -676,7 +690,7 @@ const Game = (() => {
       closeMapMenu(sc, false); location.hash = '#/quest/bag'; return;
     }
     if (!depotState.at) {
-      showMapMenu(sc, kind === 'craft' ? 'Karine · Atelier' : 'Matt · Remorque', [{ node: el('<p class="q-hint q-map-note">Vérifie ta position au dépôt réel pour fabriquer ou vendre.</p>') }, { label: 'Vérifier ma position', id: 'depot-check', run: () => control('[data-depot-check]') }], point, root); return;
+      showMapMenu(sc, kind === 'craft' ? 'Karine · Atelier' : 'Matt · Fourgon', [{ node: el('<p class="q-hint q-map-note">Vérifie ta position au dépôt réel pour fabriquer ou vendre.</p>') }, { label: 'Vérifier ma position', id: 'depot-check', run: () => control('[data-depot-check]') }], point, root); return;
     }
     if (kind === 'craft') {
       const form = document.querySelector('[data-depot-craft]'); if (form) { sc.menuPoint = point || sc.menuPoint; mapPanel(sc, 'Karine · Atelier', form, root); } return;
@@ -686,19 +700,22 @@ const Game = (() => {
       showMapMenu(sc, 'Récompenses', [{ node: el(`<p class="q-hint q-map-note">${n ? n + ' caisse' + (n > 1 ? 's' : '') + ' en attente · ' + room + ' place' + (room > 1 ? 's' : '') + ' libre' + (room > 1 ? 's' : '') : 'Aucune caisse en attente.'}</p>`) }, { label: 'Récupérer', id: 'depot-claim', disabled: !n || room <= 0, run: () => control('[data-depot-claim]') }], point, root); return;
     }
     const items = g.bag.filter(it => !it.crate);
-    showMapMenu(sc, 'Matt · Remorque', items.length ? items.map(it => ({ label: it.name + ' · ' + (SELL[it.rar] || 1) + ' pièces', id: 'sell-' + it.id, run: () => { const index = load().bag.findIndex(item => item.id === it.id); if (index < 0) return; const coins = sell(index); closeMapMenu(sc, false); if (coins) { sc.context.render(); depotCelebrate('sell'); } } })) : [{ node: el('<p class="q-hint q-map-note">Aucun équipement à vendre dans le sac.</p>') }], point, root);
+    showMapMenu(sc, 'Matt · Fourgon', items.length ? items.map(it => ({ label: it.name + ' · ' + (SELL[it.rar] || 1) + ' pièces', id: 'sell-' + it.id, run: () => { const index = load().bag.findIndex(item => item.id === it.id); if (index < 0) return; const coins = sell(index); closeMapMenu(sc, false); if (coins) { sc.context.render(); depotCelebrate('sell'); } } })) : [{ node: el('<p class="q-hint q-map-note">Aucun équipement à vendre dans le sac.</p>') }], point, root);
   }
 
   function tapDepotStage(sc, event) {
     if (sc.menu) { closeMapMenu(sc); return; } if (sc.disposed) return;
-    const r = sc.c.getBoundingClientRect(), x = (event.clientX - r.left) / r.width * 256, y = (event.clientY - r.top) / r.height * 192;
-    const npc = sc.lay.npcs.find(n => { const nx = n.cell[0] * 16 + 8, ny = n.cell[1] * 16 + 15; return x >= nx - 13 && x < nx + 13 && y >= ny - 32 && y < ny + 3; });
+    const r = sc.c.getBoundingClientRect(), x = (event.clientX - r.left) / r.width * sc.c.width / 2, y = (event.clientY - r.top) / r.height * sc.c.height / 2;
+    const npc = sc.lay.npcs.find(n => { const [nx, ny] = npcPoint(n); return x >= nx - 13 && x < nx + 13 && y >= ny - 32 && y < ny + 3; });
     if (npc) { npcMenu(sc, npc.id, [x, y]); return; }
+    const object = sc.world?.hit(x, y);
+    if (object?.npc) { npcMenu(sc, object.npc, [x, y]); return; }
+    if (object?.plant != null && sc.world.rustle(object)) return;
     const spot = sc.lay.hotspots.find(({ rect: [rx, ry, w, h] }) => x >= rx && x < rx + w && y >= ry && y < ry + h);
     if (spot) { npcMenu(sc, spot.npc, [x, y]); return; }
     const exit = sc.lay.exit, [ex, ey, ew, eh] = exit.rect;
     if (x >= ex && x < ex + ew && y >= ey && y < ey + eh) { const p = tourPool(); showMapMenu(sc, 'Changer de carte', [{ label: exit.to === 'bureau' ? 'Bureau ▸' : 'Dépôt ▸', run: () => { location.hash = '#/quest/' + exit.to; } }, ...(p ? [{ label: 'Tournée des piscines ▸', run: () => { location.hash = '#/pool/' + p.id; } }] : [])], [x, y]); return; }
-    const to = [Math.floor(x / 16), Math.floor(y / 16)]; if (sc.lay.coll[to[1]]?.[to[0]] === 0) queueWalk(sc, to);
+    const to = PoolMaps.nearestReachable(sc.lay.coll, sc.hc, [Math.floor(x / 16), Math.floor(y / 16)]); if (to) queueWalk(sc, to);
   }
 
   function monsterBanner(render) {
@@ -1026,6 +1043,7 @@ const Game = (() => {
     if (!depotStage || depotStage.disposed || depotStage.hubId !== id) {
       depotStage?.dispose(); depotStage = stage(drawDepot); depotStage.kind = 'depot'; depotStage.hubId = id;
       depotStage.host.dataset.mapKind = id; depotStage.lay = PoolMaps.hub(id);
+      [depotStage.c.width, depotStage.c.height] = depotStage.lay.size;
       const spawn = depotStage.lay.anchors.sp; depotStage.hc = [spawn.x, spawn.y]; configurePoolStage(depotStage);
     }
     const ds = depotStage, peer = Q.counterpart(Store.operator()), partnerProfile = peer && window.QuestProfiles.get(peer);
@@ -1033,7 +1051,7 @@ const Game = (() => {
     if (ds.revision !== revision) closeMapMenu(ds, false); ds.revision = revision; ds.context = { render, nCr, partnerProfile };
     dp.appendChild(worldLinks()); dp.appendChild(playerHUD(ds, render)); dp.appendChild(ds.host);
     const mapHint = el('<div class="q-hint q-maphint"><span>Touche un personnage pour lui parler. Touche le sol pour marcher.</span><button type="button" class="q-map-shortcut" aria-haspopup="dialog">Parler</button></div>');
-    ds.shortcut = mapHint.querySelector('button'); ds.shortcut.addEventListener('click', () => ds.menu ? closeMapMenu(ds) : depotMenu(ds, 'root', [200, 140])); dp.appendChild(mapHint);
+    ds.shortcut = mapHint.querySelector('button'); ds.shortcut.addEventListener('click', () => ds.menu ? closeMapMenu(ds) : depotMenu(ds, 'root', [ds.c.width / 2 - 30, ds.c.height / 2 - 30])); dp.appendChild(mapHint);
     const people = el('<div class="q-npc-list" aria-label="Personnages"></div>');
     ds.lay.npcs.forEach(n => { const info = Q.NPCS.find(p => p.id === n.id); const button = el(`<button type="button" data-npc="${n.id}" aria-haspopup="dialog"><b>${esc(npcName(n.id))}</b><small>${esc(info.job)}</small></button>`); button.addEventListener('click', () => npcMenu(ds, n.id, [n.cell[0] * 16 + 8, n.cell[1] * 16])); people.appendChild(button); }); dp.appendChild(people);
     if (id === 'bureau') { const q = Q.dailyQuest(g); if (q) dp.appendChild(el(`<p class="q-hint">Mission de JP · ${q.claimed ? 'récompense récupérée' : q.progress + '/3 algues vertes'}</p>`)); if (nCr) dp.appendChild(el(`<p class="q-hint">PJ garde ${nCr} caisse${nCr > 1 ? 's' : ''} pour toi.</p>`)); }

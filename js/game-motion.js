@@ -1,12 +1,13 @@
-/* Pocket Coast playback: 48×64 art over a stable 256×192 logical world. */
+/* Native 48×64 actor playback in half-resolution logical map coordinates. */
 const QuestMotion = (() => {
   const root = typeof window !== 'undefined' ? window : globalThis;
   const slots = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
   const sets = ['EC', 'AG', 'EP', 'EPP', 'GP'];
   const tiers = ['common', 'uncommon', 'rare', 'vrare', 'epic', 'legend'];
-  const humanStyle = Object.freeze({ scale: .8, body: .5, neck: 22 });
+  const humanStyle = Object.freeze({ scale: .8, body: .5, legs: .5, neck: 22, waist: 44, ankle: 57 });
   let data = null, loaded = false, failure = null, revision = 0;
   const pages = new Map(), keeperCache = new Map(), keeperBases = new Map(), dressedBases = new Map();
+  const variants = new Map(), sourceIds = new WeakMap(); let nextSourceId = 0;
   const reduced = () => !!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const fullSet = (equip = {}) => { const values = slots.map((slot) => equip[slot]?.res); return sets.includes(values[0]) && values.every((v) => v === values[0]) ? values[0] : null; };
   const setAuraState = (equip = {}) => { const set = fullSet(equip); if (!set) return null; const rank = Math.min(...slots.map(s => Math.max(0, tiers.indexOf(equip[s].rar)))); return { set, rank, rarity: tiers[rank] }; };
@@ -53,23 +54,45 @@ const QuestMotion = (() => {
     const f = frameAt(clip, elapsed, reduced()), scale = (options.scale || 1) / (clip.px || 1);
     const offset = options.offset || f.o;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(page, ...f.r, Math.round((x - clip.a[0] * scale + offset[0] * scale) * 2) / 2, Math.round((y - clip.a[1] * scale + offset[1] * scale) * 2) / 2, f.r[2] * scale, f.r[3] * scale);
+    const tone = options.shadow ? 'shadow' : options.light, source = tone ? variant(page, f.r, tone) : page;
+    const region = tone ? [0, 0, f.r[2], f.r[3]] : f.r;
+    ctx.drawImage(source, ...region, Math.round((x - clip.a[0] * scale + offset[0] * scale) * 2) / 2, Math.round((y - clip.a[1] * scale + offset[1] * scale) * 2) / 2, f.r[2] * scale, f.r[3] * scale);
     return true;
+  }
+
+  function variant(source, rect, tone) {
+    if (!sourceIds.has(source)) sourceIds.set(source, ++nextSourceId);
+    const [x, y, w = 48, h = 64] = rect, key = `${sourceIds.get(source)}|${x},${y},${w},${h}|${tone}`;
+    if (!variants.has(key)) {
+      const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+      g.imageSmoothingEnabled = false; g.drawImage(source, x, y, w, h, 0, 0, w, h);
+      g.globalCompositeOperation = tone === 'shadow' ? 'source-in' : 'source-atop';
+      g.globalAlpha = tone === 'shadow' ? 1 : tone === 'shade' ? .2 : tone === 'interior' ? .08 : .07;
+      g.fillStyle = tone === 'shadow' ? '#254c42' : tone === 'shade' ? '#4c796b' : tone === 'interior' ? '#ece7cf' : '#f5e2a0'; g.fillRect(0, 0, w, h);
+      variants.set(key, c); if (variants.size > 160) variants.delete(variants.keys().next().value);
+    }
+    return variants.get(key);
   }
 
   // Native art and equipment stay intact. Shorten only the region below the
   // neck, then apply the common display scale; every pose keeps its foot anchor.
-  function humanGeometry(neck = humanStyle.neck, scale = humanStyle.scale, body = humanStyle.body) {
-    const width = Math.round(48 * scale), head = Math.round(neck * scale), torso = Math.max(1, Math.round((64 - neck) * scale * body));
-    return { width, head, torso, height: head + torso };
+  function humanGeometry(neck = humanStyle.neck, scale = humanStyle.scale, body = humanStyle.body, legs = humanStyle.legs) {
+    const width = Math.round(48 * scale), head = Math.round(neck * scale);
+    const torso = Math.max(1, Math.round((humanStyle.waist - neck) * scale * body));
+    const shins = Math.max(1, Math.round((humanStyle.ankle - humanStyle.waist) * scale * body * legs));
+    const feet = Math.max(1, Math.round((64 - humanStyle.ankle) * scale * body));
+    return { width, head, torso, legs: shins, feet, height: head + torso + shins + feet };
   }
   function human(ctx, source, rect, x, y, options = {}) {
     const neck = options.neck ?? humanStyle.neck;
-    const size = humanGeometry(neck, options.scale ?? humanStyle.scale, options.body ?? humanStyle.body);
+    const size = humanGeometry(neck, options.scale ?? humanStyle.scale, options.body ?? humanStyle.body, options.legs ?? humanStyle.legs);
+    const tone = options.shadow ? 'shadow' : options.light;
+    if (tone) { source = variant(source, rect, tone); rect = [0, 0]; }
     const [sx, sy] = rect, left = Math.round(x * 2 - size.width / 2) / 2, top = Math.round(y * 2 - size.height + 1) / 2;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(source, sx, sy, 48, neck, left, top, size.width / 2, size.head / 2);
-    ctx.drawImage(source, sx, sy + neck, 48, 64 - neck, left, top + size.head / 2, size.width / 2, size.torso / 2);
+    const cuts = [0, neck, humanStyle.waist, humanStyle.ankle, 64], heights = [size.head, size.torso, size.legs, size.feet];
+    let dy = top;
+    for (let i = 0; i < heights.length; i++) { ctx.drawImage(source, sx, sy + cuts[i], 48, cuts[i + 1] - cuts[i], left, dy, size.width / 2, heights[i] / 2); dy += heights[i] / 2; }
   }
   function npc(ctx, id, direction, elapsed, x, y, options = {}) {
     const clip = data?.clips[`npc/${id}/${direction}`], page = clip && pages.get(clip.page); if (!page) return false;
@@ -195,7 +218,8 @@ const QuestMotion = (() => {
 
   function monster(ctx, id, motion, elapsed, x, y, options = {}) {
     if (draw(ctx, `monster/${id}/${motion}`, elapsed, x, y, options)) return;
-    const c = root.PixelArt.monster(id), scale = options.scale || 1; ctx.drawImage(c, x - 14 * scale, y - 23 * scale, 28 * scale, 24 * scale);
+    const base = root.PixelArt.monster(id), tone = options.shadow ? 'shadow' : options.light;
+    const c = tone ? variant(base, [0, 0, base.width, base.height], tone) : base, scale = options.scale || 1; ctx.drawImage(c, x - 14 * scale, y - 23 * scale, 28 * scale, 24 * scale);
   }
 
   function water(ctx, state, elapsed, x, y, w, h) {
@@ -221,11 +245,11 @@ const QuestMotion = (() => {
       });
       const results = await Promise.allSettled(jobs);
       loaded = jobs.length > 0 && manifests.every(r => r.status === 'fulfilled') && results.every((r) => r.status === 'fulfilled'); if (!loaded) failure = 'Some animation pages could not be loaded';
-      revision++; keeperCache.clear(); keeperBases.clear(); dressedBases.clear(); portraits.forEach(p => { p.dirty = true; }); return loaded;
+      revision++; keeperCache.clear(); keeperBases.clear(); dressedBases.clear(); variants.clear(); portraits.forEach(p => { p.dirty = true; }); return loaded;
     } catch (error) { failure = error.message; return false; }
   })();
   const tile = (ctx, kind, variant, x, y) => draw(ctx, `tile/${kind}/${Math.abs(variant || 0) % 4}`, 0, x, y);
-  return { ready, frameAt, Timeline, RenderClock, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, icon, tile, keeper, npc, humanGeometry, humanStyle, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size, revision, keeperFrames: keeperCache.size }; } };
+  return { ready, frameAt, Timeline, RenderClock, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, icon, tile, keeper, npc, humanGeometry, humanStyle, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size, revision, keeperFrames: keeperCache.size, litFrames: variants.size }; } };
 })();
 if (typeof window !== 'undefined') window.QuestMotion = QuestMotion;
 if (typeof module !== 'undefined') module.exports = QuestMotion;

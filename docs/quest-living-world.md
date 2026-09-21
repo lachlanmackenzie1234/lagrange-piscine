@@ -1,5 +1,8 @@
 # Quest v0.100 · Living world
 
+For the current hub artwork, vehicles and character proportions, see
+[Quest v0.101](quest-hubs.md).
+
 The existing characters and individual equipment layers now use the v5 study's
 requested proportions: 80% overall display scale and 50% height below the neck.
 The head is not compressed with the body. Original 48×64 art stays unchanged;
