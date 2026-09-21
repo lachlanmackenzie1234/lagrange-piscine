@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocket Coast natif</title>
+<meta name="description" content="The Quest's art redrawn in the Pocket Coast style at native sizes: the keeper with mix-and-match wardrobes, the five zone species, ten monsters, item icons, tiles and the courtyard.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap">
+<style>
+  :root { --ink: #20203a; --bg: #f6f1dc; --card: #fffbe9; --muted: #6b7a87; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14162a; --card: #1e2140; --ink: #eef0ff; --muted: #9aa3c0; } }
+  :root[data-theme="dark"] { --bg: #14162a; --card: #1e2140; --ink: #eef0ff; --muted: #9aa3c0; }
+  * { box-sizing: border-box; } body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.45 "Pixelify Sans", ui-monospace, monospace; padding: 16px 16px 60px; }
+  h1 { font-size: 2rem; margin: 8px 0 0; } h2 { font-size: 1.3rem; margin: 32px 0 8px; } p { max-width: 680px; margin: 6px 0; } .hint { color: var(--muted); font-size: .92rem; }
+  .card { background: var(--card); border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); padding: 14px; margin: 12px 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; } .fig { text-align: center; } .fig small { display: block; color: var(--muted); font-size: .78rem; margin-top: 4px; max-width: 120px; }
+  canvas { image-rendering: pixelated; display: block; } .dark { background: #2b2f45; padding: 6px; }
+  .items { display: grid; grid-template-columns: repeat(auto-fill, 44px); gap: 6px; } .items canvas { width: 40px; height: 40px; background: #3a4060; border: 2px solid #55608a; }
+</style>
+</head>
+<body>
+<h1>Pocket Coast, en natif</h1>
+<p class="hint">Tout ce qui suit est dessiné par <code>js/pixelart.js</code> aux tailles du jeu (dresseur 24×32, créatures 24×24, monstres 28×24, objets 16×16, tuiles 16×16, scène 128×96), agrandi ×4 sans lissage. Rien ne lit de données.</p>
+
+<h2>1 · Le gardien et ses garde-robes</h2>
+<p>Un seul personnage, la tenue vient de ce qui est équipé : chapeau, haut, bas, chaussures et outil viennent chacun de la panoplie de la pièce portée. On peut donc mélanger. La rareté vit dans le liseré.</p>
+<div class="card"><div class="row" id="heroes"></div></div>
+
+<h2>2 · Les cinq espèces</h2>
+<p>Une espèce par zone, trois individus chacune : la teinte et les taches viennent de l’identifiant de la piscine.</p>
+<div class="card"><div class="row" id="species"></div></div>
+
+<h2>3 · Les dix monstres</h2>
+<div class="card"><div class="row" id="monsters"></div></div>
+
+<h2>4 · Les objets</h2>
+<p>Huit emplacements × cinq panoplies. Le chapeau et l’outil changent de forme par panoplie, le reste change de couleur. Ligne du haut en commun, ligne du bas en légendaire (cadre et fermoir).</p>
+<div class="card"><div class="items" id="items"></div></div>
+
+<h2>5 · La cour</h2>
+<p>La scène 128×96 : l’océan à l’horizon, la haie de pins, le local bleu, le bassin à margelle crème, le transat, le skimmer sur la margelle proche, la pompe. Quatre états d’eau et la piscine sombrée.</p>
+<div class="card"><div class="row" id="yards"></div></div>
+<div class="card"><div class="row" id="shed"></div></div>
+
+<script src="../js/pixelart.js"></script>
+<script>
+(() => {
+  const P = PixelArt; const S = 4;
+  const cv = (w, h, s) => { const c = document.createElement('canvas'); c.width = w; c.height = h; c.style.width = w * (s || S) + 'px'; c.style.height = h * (s || S) + 'px'; return c; };
+  const fig = (parent, canvas, label, dark) => { const d = document.createElement('div'); d.className = 'fig' + (dark ? ' dark' : ''); d.appendChild(canvas); const s = document.createElement('small'); s.textContent = label; d.appendChild(s); parent.appendChild(d); };
+  const av = { skin: '#e8b88a', hairColor: '#4a2e1a', hair: 1 };
+  // heroes
+  const H = document.getElementById('heroes');
+  [[{}, 'kit de base · rien d’équipé'], [{ head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, 'Pool Boy · casquette à l’envers, polo, épuisette'], [{ head: 'AG', body: 'AG', legs: 'AG', feet: 'AG', tool: 'AG', toolKind: 'perche' }, 'Surfeur · bob, tee, bambou'], [{ head: 'EP', body: 'EP', legs: 'EP', feet: 'EP', tool: 'EP', toolKind: 'perche' }, 'Jardinier · paille, gilet, râteau'], [{ head: 'EPP', body: 'EPP', legs: 'EPP', feet: 'EPP', tool: 'EPP', toolKind: 'perche' }, 'Locataire · lunettes, chemise, haveneau'], [{ head: 'GP', body: 'GP', legs: 'GP', feet: 'GP', tool: 'GP', toolKind: 'perche' }, 'Gardien · visière, polo, gaffe'], [{ head: 'EP', body: 'AG', legs: 'EC', feet: 'EPP', tool: 'EC', toolKind: 'balai' }, 'mélange · paille, tee, short, sandales, balai']].forEach(([sets, l]) => { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, sets, { ...av, trim: { head: '#d82f2f', body: '#2f4fdf' } }); fig(H, c, l); });
+  [[1, 'marche 1'], [0, 'marche 2']].forEach(([w, l]) => { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, { ...av, walk: w + 0.5 }); fig(H, c, l); });
+  { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC' }, { ...av, crouch: true }); fig(H, c, 'accroupi (analyse)'); }
+  { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, { ...av, back: true }); fig(H, c, 'de dos'); }
+  // species
+  const SP = document.getElementById('species');
+  Object.entries(P.ZONE).forEach(([z, zz]) => ['EC-2', 'AG-7', 'EP-31B'].forEach((seed, i) => { const c = cv(24, 24); c.getContext('2d').drawImage(P.creature(z, z + '-' + seed + i), 0, 0); fig(SP, c, i === 0 ? zz.n + ' · ' + z : ''); }));
+  // monsters
+  const M = document.getElementById('monsters'); const NAMES = { algue: 'Algue verte', moutarde: 'Algue moutarde', feuilles: 'Nuée de feuilles', aiguille: 'Aiguille de pin', calcaire: 'Calcaire', moustique: 'Moustique-tigre', filtre: 'Filtre saturé', sable: 'Golem de sable', gland: 'Le Gland', locataire: 'Locataire nocturne' };
+  Object.keys(P.MON).forEach((id) => { const c = cv(28, 24); c.getContext('2d').drawImage(P.monster(id), 0, 0); fig(M, c, NAMES[id]); });
+  // items
+  const IT = document.getElementById('items'); const SLOTS = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
+  ['common', 'legend'].forEach((rar) => Object.keys(P.ZONE).forEach((z) => SLOTS.forEach((sl) => { const c = cv(16, 16, 2.5); c.getContext('2d').drawImage(P.item(sl, z, rar), 0, 0); c.title = sl + ' · ' + z + ' · ' + rar; IT.appendChild(c); })));
+  // yards
+  const Y = document.getElementById('yards');
+  [['calme', 0], ['traité', 0], ['sauvage', 2], ['critique', 3]].forEach(([st, dirt]) => { const c = cv(128, 96, 3); const g = c.getContext('2d'); P.courtyard(g, { state: st, dirt, t: 1.2, pumpLate: st === 'critique' }); P.trainer(g, 52, 58, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); if (st === 'sauvage') g.drawImage(P.monster('algue'), 50, 42); fig(Y, c, st + (dirt ? ' · saleté ' + dirt : '')); });
+  { const c = cv(128, 96, 3); const g = c.getContext('2d'); P.courtyard(g, { sunk: true, t: 0.4, pumpLate: true }); P.trainer(g, 52, 58, {}, av); fig(Y, c, 'sombrée'); }
+  const SH = document.getElementById('shed');
+  { const c = cv(128, 64, 3); const g = c.getContext('2d'); P.px(g, '#bfe3ff', 0, 0, 128, 40); P.px(g, '#e9d59a', 0, 40, 128, 24); P.shed(g, 30, 8, true, 6); P.trainer(g, 8, 30, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); fig(SH, c, 'le dépôt : local ouvert, six caisses du jour'); }
+})();
+</script>
+</body>
+</html>
