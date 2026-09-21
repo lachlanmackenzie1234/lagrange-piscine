@@ -14,7 +14,7 @@ const PixelArt = (() => {
     b: '#2f4fdf', B: '#1a1c5a', l: '#7ec8ff', g: '#2aa845', G: '#124d2a', L: '#b5f27a',
     a: '#e39b12', A: '#8a4a1e', y: '#f2c14e', p: '#7b3fc4', P: '#3a1a5a', v: '#c9b6e8',
     t: '#1f9e8a', T: '#0f4a42', m: '#8ee6d2', r: '#d82f2f', R: '#a81f1f', x: '#ff7aa8',
-    q: '#4aa8ff', Q: '#2f7fd6', n: '#7a7a90', N: '#4a4a60', h: '#b8c4d6', e: '#c9c0a8',
+    q: '#4aa8ff', Q: '#2f7fd6', n: '#7a7a90', N: '#4a4a60', h: '#b8c4d6', e: '#c9c0a8', j: '#c96a3a', J: '#9a4a2a', u: '#b9b4a6', U: '#9a9588',
   };
   const ZONE = { EC: { n: 'Écume', base: 'l', dark: 'b', hat: 'cap' }, AG: { n: 'Oyatin', base: 'g', dark: 'G', hat: 'bucket' }, EP: { n: 'Pignotte', base: 'y', dark: 'a', hat: 'straw' }, EPP: { n: 'Gouémitte', base: 'v', dark: 'p', hat: 'shades' }, GP: { n: 'Glapot', base: 't', dark: 'T', hat: 'visor' } };
   const RCOL = { common: '#8a94a8', uncommon: '#2aa845', rare: '#2f4fdf', vrare: '#7b3fc4', epic: '#e39b12', legend: '#d82f2f' };
@@ -29,7 +29,7 @@ const PixelArt = (() => {
   const cache = new Map();
   const cached = (key, w, h, draw) => { if (!cache.has(key)) { const c = canvas(w, h); draw(c.getContext('2d')); cache.set(key, c); } return cache.get(key); };
 
-  // ------------------------------------------------------------ the keeper (24×32, the figure itself 22×28: a 10×8 head, a 10×8 torso, arms set off the body, shorts straight onto the feet)
+  // ------------------------------------------------------------ the keeper (24×32, the figure itself 22×28: a 10×8 head, a 10×8 torso, arms at its sides, shorts straight onto the feet)
   // sets: { head, body, legs, feet, tool } → zone codes (or null for the plain kit); tool: 'perche' | 'balai' | null
   // o: { walk (number, alternates legs), crouch, back, skin, hair (1..4), hairColor, trim: { head, body, legs, feet } rarity colours }
   function trainer(g, x, y, sets, o) {
@@ -61,11 +61,10 @@ const PixelArt = (() => {
     px(g, I, x + 8, by + 7, 8, 3); px(g, C.c, x + 9, by + 8, 6, 1); px(g, trim.body || C.S, x + 11, by + 8, 2, 1);   // pouch on the belt
     // arms: a shoulder of sleeve, then skin, a gap from the torso
     const sleeve = bz === 'AG' || bz === 'GP' ? shirt : (bz === 'EP' ? C.w : shirt);
-    px(g, I, x + 1, by, 4, 8); px(g, I, x + 19, by, 4, 8); px(g, I, x + 5, by, 1, 1); px(g, I, x + 18, by, 1, 1);
-    px(g, sleeve, x + 2, by + 1, 5, 2); px(g, sleeve, x + 17, by + 1, 5, 2); px(g, I, x + 4, by + 3, 1, 5); px(g, I, x + 19, by + 3, 1, 5);
-    px(g, skin, x + 2, by + 3, 2, 4); px(g, skin, x + 20, by + 3, 2, 4); px(g, skinD, x + 21, by + 3, 1, 4);
-    if (bz === 'EP') { px(g, C.A, x + 7, by + 1, 2, 2); px(g, C.A, x + 15, by + 1, 2, 2); }
+    px(g, I, x + 3, by, 4, 8); px(g, I, x + 17, by, 4, 8); px(g, sleeve, x + 4, by + 1, 3, 2); px(g, sleeve, x + 17, by + 1, 3, 2);
+    px(g, skin, x + 4, by + 3, 2, 4); px(g, skin, x + 18, by + 3, 2, 4); px(g, skinD, x + 19, by + 3, 1, 4);
     px(g, I, x + 6, by + 3, 1, 7); px(g, I, x + 17, by + 3, 1, 7);
+    if (bz === 'EP') { px(g, C.A, x + 7, by + 1, 2, 2); px(g, C.A, x + 15, by + 1, 2, 2); }
     // head 10×8
     px(g, I, x + 6, hy, 12, 10); px(g, skin, x + 7, hy + 1, 10, 8); px(g, skinD, x + 15, hy + 2, 2, 7);
     if (!o.back) { px(g, I, x + 9, hy + 5, 1, 2); px(g, I, x + 14, hy + 5, 1, 2); px(g, skinD, x + 11, hy + 8, 2, 1); }
@@ -169,6 +168,8 @@ const PixelArt = (() => {
     grass: ['LLLLLLLLLLLLLLLL', 'LLGLLLLLLLLGLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLGLLLLLLLL', 'LLLLLLLLLLLLLLGL', 'LGLLLLLLLLLLLLLL', 'LLLLLLLLLLGLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLGLLL', 'LLLGLLLLLLLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LGLLLLLLLLLLLGLL', 'LLLLLLLLLLLLLLLL'],
     paving: ['cccccccccccccccc', 'cccccccScccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccccccccccccccSc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccSccccccccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'cccccccccccScccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS'],
     hedge: ['gGggggGgggggGggg', 'gggggggggggggggg', 'ggLgggggggLggggg', 'gggggggggggggggg', 'ggggggGggggggggg', 'GgggggggggggggGg', 'gggggLgggggggggg', 'gggggggggggggggg', 'ggggggggggLggggg', 'gGgggggggggggggg', 'ggggggggggggGggg', 'GGGGGGGGGGGGGGGG', 'GGGGGGGGGGGGGGGG', 'GGGGGGGGGGGGGGGG', 'iiiiiiiiiiiiiiii', 'ssssssssssssssss'],
+    slab: ['zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzSzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzSzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzSzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzSzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS'],
+    gravel: ['uuuuuuuuuuuuuuuu', 'uuUuuuuuuuuUuuuu', 'uuuuuuuUuuuuuuuu', 'uuuuuuuuuuuuuuUu', 'uUuuuuuuuuuuuuuu', 'uuuuuuuuuuUuuuuu', 'uuuuuUuuuuuuuuuu', 'uuuuuuuuuuuuuUuu', 'uuuuuuuUuuuuuuuu', 'uuUuuuuuuuuuuuuu', 'uuuuuuuuuuuuUuuu', 'uuuuuuUuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuUuuuuuuUuuuuu', 'uuuuuuuuuuuuuuuU', 'uuuuuuuUuuuuuuuu'],
     deck: ['OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo'],
   };
   const tile = (name) => cached('tile|' + name, 16, 16, (g) => rows(g, TILE[name] || TILE.sand, 0, 0));
@@ -177,6 +178,40 @@ const PixelArt = (() => {
   const LOUNGER = ['................', '..iiiiiiiiiiii..', '.ibwwbbwwbbwwbi.', '.ibwwbbwwbbwwbi.', '.ibwwbbwwbbwwbi.', '.iiiiiiiiiiiiii.', '..ibwwbbwwbbwbi.', '..ibwwbbwwbbwbi.', '..ibwwbbwwbbwbi.', '..ibwwbbwwbbwbi.', '..iiiiiiiiiiiii.', '...i.........i..', '...i.........i..', '................', '................', '................'];
   const POT = ['..iiii..', '.iLgLgi.', 'iGgLgGgi', '.iggGgi.', '..iiii..', '.iOOOOi.', '.iooooi.', '..iiii..'];
   const FENCE = ['.ii......ii.....', '.io......io.....', 'iiiiiiiiiiiiiiii', 'ioooooooooooooo', 'iiiiiiiiiiiiiiii', '.io......io.....', '.io......io.....', '.ii......ii.....'];
+  const PINE = ['.......ii.......', '......iGGi......', '.....iGLGGi.....', '.....iGGGGi.....', '....iGGLGGGi....', '...iGGGGGGGGi...', '....iGGGGGGi....', '...iGLGGGGGGi...', '..iGGGGGGLGGGi..', '.iGGGGGGGGGGGGi.', '...iGGGGGGGGi...', '..iGGLGGGGGGGi..', '.iGGGGGGGGGLGGi.', 'iGGGGGGGGGGGGGGi', 'iiiiiiiiiiiiiiii', '......iooi......', '......iooi......', '......iooi......', '.....ioooi......', '......iiii......'];
+  const pine = () => cached('pine', 16, 20, (gg) => rows(gg, PINE, 0, 0));
+  // a villa (56×40): white walls, terracotta roof, blue shutters, a door and a step
+  function villa(g, x, y) {
+    px(g, C.i, x, y + 14, 56, 26); px(g, C.c, x + 1, y + 15, 54, 24); px(g, C.e, x + 1, y + 34, 54, 5);
+    px(g, C.i, x - 2, y + 4, 60, 11); px(g, C.j, x - 1, y + 5, 58, 9); for (let ry = y + 6; ry < y + 14; ry += 2) for (let rx = x + (ry % 4 ? 0 : 3); rx < x + 57; rx += 6) px(g, C.J, rx, ry, 3, 1);
+    px(g, C.i, x + 22, y, 12, 5); px(g, C.J, x + 23, y + 1, 10, 3);                                                             // chimney
+    [[6, 18], [40, 18]].forEach(([wx, wy]) => { px(g, C.i, x + wx, y + wy, 12, 10); px(g, C.l, x + wx + 1, y + wy + 1, 10, 8); px(g, C.i, x + wx + 5, y + wy + 1, 2, 8); px(g, C.b, x + wx - 3, y + wy, 3, 10); px(g, C.b, x + wx + 12, y + wy, 3, 10); });
+    px(g, C.i, x + 23, y + 20, 10, 20); px(g, C.o, x + 24, y + 21, 8, 18); px(g, C.y, x + 30, y + 30, 1, 1); px(g, C.i, x + 20, y + 39, 16, 1);   // door & step
+  }
+  // the storage yard (256×192): gravel, a corrugated hangar with a roll-up gate and a door, a trailer in front; open when you are there
+  function storage(g, at, n, t) {
+    px(g, '#bfe3ff', 0, 0, 256, 100); px(g, '#d4ecff', 0, 60, 256, 40); [[20, 18], [150, 10], [210, 30], [90, 34]].forEach(([x, y]) => { px(g, C.w, x, y + 2, 18, 4); px(g, C.w, x + 4, y, 10, 2); });
+    for (let ty = 96; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('gravel'), tx, ty);
+    px(g, C.g, 0, 92, 256, 5); px(g, C.G, 0, 96, 256, 1); [[4, 76], [24, 72], [200, 74], [236, 78]].forEach(([x, y]) => g.drawImage(pine(), x, y));
+    // the hangar 40..200 × 36..108
+    px(g, C.i, 40, 36, 160, 72); px(g, C.h, 41, 37, 158, 70); for (let rx = 45; rx < 199; rx += 6) px(g, C.n, rx, 37, 1, 70);
+    px(g, C.i, 36, 30, 168, 8); px(g, C.N, 37, 31, 166, 6); px(g, C.n, 37, 31, 166, 1);                                            // roof
+    px(g, C.i, 58, 52, 64, 56);                                                                                                   // the gate frame
+    if (at) {
+      px(g, C.N, 59, 53, 62, 54); px(g, C.n, 59, 53, 62, 8); for (let rx = 60; rx < 120; rx += 4) px(g, C.h, rx, 55, 2, 1);            // rolled up
+      [[70, 88], [70, 104]].forEach(([sy]) => px(g, C.o, 62, sy, 56, 2));
+      for (let i = 0; i < 6; i++) { const dx = 63 + i * 9, dy = 78; px(g, C.i, dx, dy, 7, 10); px(g, i % 2 ? C.w : C.l, dx + 1, dy + 1, 5, 8); px(g, i % 2 ? C.b : C.r, dx + 2, dy + 4, 3, 2); }   // drums of chemicals
+      for (let i = 0; i < 4; i++) { const dx = 64 + i * 8; px(g, C.O, dx, 92, 1, 12); px(g, C.h, dx - 1, 92, 3, 3); }               // brooms and poles
+      px(g, C.i, 98, 96, 12, 8); px(g, C.b, 99, 97, 10, 6); px(g, C.w, 101, 98, 2, 2); px(g, C.i, 99, 103, 3, 1); px(g, C.i, 106, 103, 3, 1);   // the robot
+    } else { px(g, C.n, 59, 53, 62, 54); for (let ry = 56; ry < 106; ry += 5) px(g, C.N, 59, ry, 62, 1); px(g, C.h, 59, 54, 62, 1); px(g, C.i, 86, 80, 8, 2); }   // slats, a handle
+    px(g, C.i, 140, 68, 18, 40); px(g, C.b, 141, 69, 16, 38); px(g, C.i, 145, 73, 8, 8); px(g, C.l, 146, 74, 6, 6); px(g, C.y, 153, 90, 2, 2);   // the door
+    px(g, C.i, 160, 46, 30, 12); px(g, C.b, 161, 47, 28, 10); for (let i = 0; i < 5; i++) px(g, C.w, 164 + i * 5, 51, 3, 2);            // the sign
+    // the trailer, 150..232 × 116..152
+    px(g, C.i, 150, 120, 78, 26); px(g, C.n, 151, 121, 76, 24); px(g, C.h, 151, 121, 76, 4); for (let rx = 156; rx < 226; rx += 8) px(g, C.N, rx, 126, 1, 18);
+    px(g, C.i, 232, 138, 22, 4); px(g, C.i, 250, 134, 4, 8);                                                                       // tow bar and hitch
+    [[160, 144], [206, 144]].forEach(([wx, wy]) => { px(g, C.i, wx, wy, 12, 12); px(g, C.N, wx + 2, wy + 2, 8, 8); px(g, C.h, wx + 5, wy + 5, 2, 2); });
+    for (let i = 0; i < Math.min(n || 0, 6); i++) { const cx = 14 + (i % 3) * 11, cy = 128 - Math.floor(i / 3) * 11; px(g, C.i, cx, cy, 11, 11); px(g, C.o, cx + 1, cy + 1, 9, 9); px(g, C.O, cx + 1, cy + 1, 9, 1); px(g, C.y, cx + 4, cy + 4, 3, 3); }   // the day crates
+  }
   // the blue maintenance shed (32×32): roof, wall with planks, door (open shows shelves), hose ring
   function shed(g, x, y, open, crates) {
     px(g, C.i, x, y + 6, 32, 26); px(g, C.b, x + 1, y + 7, 30, 24); for (let py = y + 9; py < y + 30; py += 4) px(g, C.B, x + 1, py, 30, 1);
@@ -187,35 +222,38 @@ const PixelArt = (() => {
     for (let i = 0; i < Math.min(crates || 0, 6); i++) { const cx = x + 34 + (i % 3) * 9, cy = y + 24 - Math.floor(i / 3) * 9; px(g, C.i, cx, cy, 9, 9); px(g, C.o, cx + 1, cy + 1, 7, 7); px(g, C.O, cx + 1, cy + 1, 7, 1); px(g, C.y, cx + 3, cy + 3, 3, 3); }
   }
   const WATER = { calme: ['#4aa8ff', '#8ed4ff', '#2f7fd6'], 'traité': ['#39c9d6', '#9ff2f5', '#22a3b0'], sauvage: ['#5faa4a', '#a3d66e', '#3f7d2a'], critique: ['#35603a', '#4f8a4a', '#24422a'], sunk: ['#101828', '#1c2740', '#0a1020'] };
-  // the courtyard (256×192): sea at the horizon, pines, the shed top-right, the basin with cream coping (48..208 × 44..140),
-  // a lounger, pots, the skimmer on the near coping, the pump by the shed, the fence along the bottom
-  // opts: { state, sunk, dirt, t (seconds, for the ripples), pumpLate }
+  // the courtyard (256×192): sea at the horizon, grass with a villa and pines, a slab deck (32..224 × 40..160) around the basin
+  // with its cream coping (56..200 × 56..136), the shed and pump at the right, loungers, pots, the fence along the bottom
+  // opts: { state, sunk, dirt, t (seconds, for the ripples), pumpLate, creature (a 24×24 canvas swimming in the pool), seed }
   function courtyard(g, o) {
     o = o || {}; const t = o.t || 0;
-    for (let ty = 0; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('sand'), tx, ty);
+    for (let ty = 0; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('grass'), tx, ty);
+    for (let ty = 160; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('sand'), tx, ty);
     px(g, C.q, 0, 0, 256, 12); px(g, C.Q, 0, 10, 256, 2); for (let i = 0; i < 14; i++) px(g, C.w, (i * 19 + Math.floor(t * 6)) % 256, 2 + (i % 4) * 2, 5, 1);
-    for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('hedge'), tx, 12);
-    const tree = cached('tree', 16, 16, (gg) => rows(gg, TREE, 0, 0)); [[4, 8], [40, 6], [70, 9], [110, 5], [150, 8], [180, 10]].forEach(([x, y]) => g.drawImage(tree, x, y));
-    shed(g, 214, 4, false, 0);
+    for (let ty = 40; ty < 160; ty += 16) for (let tx = 32; tx < 224; tx += 16) g.drawImage(tile('slab'), tx, ty);
+    px(g, C.S, 32, 40, 192, 1); px(g, C.S, 32, 40, 1, 120); px(g, C.i, 32, 159, 192, 1);
+    villa(g, 6, 2); [[74, 14], [96, 8], [122, 16], [150, 10], [178, 15], [236, 12], [240, 60], [2, 96]].forEach(([x, y]) => g.drawImage(pine(), x, y));
+    shed(g, 222, 66, false, 0);
     const fence = cached('fence', 16, 8, (gg) => rows(gg, FENCE, 0, 0)); for (let tx = 0; tx < 256; tx += 16) g.drawImage(fence, tx, 184);
-    const lounger = cached('lounger', 16, 16, (gg) => rows(gg, LOUNGER, 0, 0)); g.drawImage(lounger, 12, 64); g.drawImage(lounger, 12, 88);
-    const pot = cached('pot', 8, 8, (gg) => rows(gg, POT, 0, 0)); [[30, 44], [226, 150], [14, 150], [236, 60]].forEach(([x, y]) => g.drawImage(pot, x, y));
-    for (let i = 0; i < 14; i++) rows(g, ['.G.', 'GLG'], [8, 24, 232, 200, 14, 240, 120, 90, 60, 170, 210, 36, 246, 140][i], [150, 170, 100, 172, 40, 176, 160, 174, 36, 36, 90, 130, 130, 44][i]);
-    for (let ty = 44; ty < 140; ty += 16) for (let tx = 48; tx < 208; tx += 16) g.drawImage(tile('paving'), tx, ty);
-    px(g, C.S, 48, 44, 160, 1); px(g, C.S, 48, 139, 160, 1); px(g, C.S, 48, 44, 1, 96); px(g, C.S, 207, 44, 1, 96);
+    const lounger = cached('lounger', 16, 16, (gg) => rows(gg, LOUNGER, 0, 0)); g.drawImage(lounger, 36, 66); g.drawImage(lounger, 36, 90);
+    const pot = cached('pot', 8, 8, (gg) => rows(gg, POT, 0, 0)); [[36, 44], [212, 44], [212, 148], [36, 148], [8, 150], [244, 150]].forEach(([x, y]) => g.drawImage(pot, x, y));
+    for (let i = 0; i < 10; i++) rows(g, ['.G.', 'GLG'], [8, 20, 236, 246, 14, 228, 4, 250, 12, 240][i], [120, 140, 100, 128, 168, 172, 176, 178, 60, 86][i]);
+    for (let ty = 56; ty < 136; ty += 16) for (let tx = 56; tx < 200; tx += 16) g.drawImage(tile('paving'), tx, ty);
+    px(g, C.S, 56, 56, 144, 1); px(g, C.S, 56, 135, 144, 1); px(g, C.S, 56, 56, 1, 80); px(g, C.S, 199, 56, 1, 80);
     const w = o.sunk ? WATER.sunk : WATER[o.state] || WATER.calme;
-    px(g, C.i, 53, 48, 150, 84); px(g, w[0], 54, 49, 148, 82); px(g, w[2], 54, 121, 148, 10); px(g, w[1], 54, 49, 148, 3);
-    for (let i = 0; i < 12; i++) px(g, w[1], 58 + ((i * 23 + Math.floor(t * 8)) % 136), 56 + (i * 11) % 60, 6, 1);
-    if (o.sunk) for (let i = 0; i < 10; i++) px(g, '#3a2a5a', 60 + ((i * 29 + Math.floor(t * 5)) % 130), 56 + ((i * 13 + Math.floor(t * 3)) % 60), 4, 2);
-    if (o.dirt) { let h = 7; for (let i = 0; i < o.dirt * 16; i++) { h = (h * 1103515245 + 12345) & 0x7fffffff; px(g, i % 3 ? C.A : C.O, 58 + (h % 136), 56 + ((h >> 8) % 60), 2, 1); } }
-    px(g, C.w, 60, 114, 2, 20); px(g, C.w, 68, 114, 2, 20); px(g, C.w, 60, 118, 10, 1); px(g, C.w, 60, 124, 10, 1); px(g, C.w, 60, 130, 10, 1);   // ladder
-    px(g, C.i, 156, 134, 16, 7); px(g, C.c, 157, 135, 14, 5); px(g, C.i, 159, 138, 10, 1);                                                          // skimmer on the near coping
-    px(g, C.i, 214, 116, 14, 14); px(g, C.n, 215, 117, 12, 12); px(g, C.w, 217, 119, 8, 6); px(g, o.pumpLate ? C.r : C.g, 220, 121, 2, 2); px(g, C.i, 216, 126, 10, 1); // pump
+    px(g, C.i, 60, 60, 136, 72); px(g, w[0], 61, 61, 134, 70); px(g, w[2], 61, 122, 134, 9); px(g, w[1], 61, 61, 134, 3);
+    for (let i = 0; i < 12; i++) px(g, w[1], 64 + ((i * 23 + Math.floor(t * 8)) % 124), 68 + (i * 11) % 50, 6, 1);
+    if (o.sunk) for (let i = 0; i < 10; i++) px(g, '#3a2a5a', 66 + ((i * 29 + Math.floor(t * 5)) % 118), 66 + ((i * 13 + Math.floor(t * 3)) % 52), 4, 2);
+    if (o.dirt) { let h = 7; for (let i = 0; i < o.dirt * 16; i++) { h = (h * 1103515245 + 12345) & 0x7fffffff; px(g, i % 3 ? C.A : C.O, 64 + (h % 124), 66 + ((h >> 8) % 52), 2, 1); } }
+    if (o.creature && !o.sunk) { let h = 2166136261; for (const ch of String(o.seed || '')) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } h >>>= 0; const cx = 70 + (h % 96) + Math.round(Math.sin(t * .6 + h % 7) * 6), cy = 66 + ((h >> 5) % 40) + Math.round(Math.sin(t * .9) * 2); px(g, w[1], cx - 4, cy + 20, 32, 1); g.drawImage(o.creature, cx, cy); }
+    px(g, C.w, 66, 112, 2, 20); px(g, C.w, 74, 112, 2, 20); px(g, C.w, 66, 116, 10, 1); px(g, C.w, 66, 122, 10, 1); px(g, C.w, 66, 128, 10, 1);   // ladder
+    px(g, C.i, 148, 130, 16, 7); px(g, C.c, 149, 131, 14, 5); px(g, C.i, 151, 134, 10, 1);                                                          // skimmer on the near coping
+    px(g, C.i, 226, 102, 14, 14); px(g, C.n, 227, 103, 12, 12); px(g, C.w, 229, 105, 8, 6); px(g, o.pumpLate ? C.r : C.g, 232, 107, 2, 2); px(g, C.i, 228, 112, 10, 1); // pump by the shed
   }
   // encounter backdrop for the fight (same courtyard, the basin bigger in frame)
   const heroSets = (equip) => ({ head: equip['tête'] ? equip['tête'].res : null, body: equip.torse ? equip.torse.res : null, legs: equip.jambes ? equip.jambes.res : null, feet: equip.pieds ? equip.pieds.res : null, tool: equip.perche ? equip.perche.res : (equip.balai ? equip.balai.res : null), toolKind: equip.perche ? 'perche' : (equip.balai ? 'balai' : null) });
   const heroTrim = (equip) => { const t = {}; [['tête', 'head'], ['torse', 'body'], ['jambes', 'legs'], ['pieds', 'feet']].forEach(([sl, k]) => { if (equip[sl] && equip[sl].rar !== 'common') t[k] = RCOL[equip[sl].rar]; }); return t; };
 
-  return { C, ZONE, RCOL, WATER, px, rows, mir, trainer, creature, monster, MON, SPECIES, item, ITEM, crate, tile, TILE, shed, courtyard, heroSets, heroTrim, TREE, LOUNGER, cached };
+  return { C, ZONE, RCOL, WATER, px, rows, mir, trainer, creature, monster, MON, SPECIES, item, ITEM, crate, tile, TILE, shed, storage, villa, pine, courtyard, heroSets, heroTrim, TREE, PINE, LOUNGER, cached };
 })();
 window.PixelArt = PixelArt;
