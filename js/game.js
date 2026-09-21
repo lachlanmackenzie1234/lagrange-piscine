@@ -5,7 +5,7 @@
  * page visit — the app's own buttons are the moves. Leaving the page settles
  * it: real actions logged during the visit earn XP, coins and a chance of a
  * loot crate. Game state (bag, coins, avatar) is device-local, game only.
- * A small pixel stage on the pool page, in the fight and at the dépôt
+ * A 128×96 pixel stage on the pool page, in the fight and at the dépôt
  * plays back what was recorded — the character wears what it has equipped.
  */
 const Game = (() => {
@@ -46,58 +46,78 @@ const Game = (() => {
   };
   const lineOf = (p) => LINES[p.res] || { n: p.res, pal: ['#c9c9c9', '#7a7a90', '#20203a'] };
   const spriteCache = new Map();
+  const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); const c = (v) => Math.min(255, Math.max(0, Math.round(v * f))); return '#' + ((c((n >> 16) & 255) << 16) | (c((n >> 8) & 255) << 8) | c(n & 255)).toString(16).padStart(6, '0'); };
+  // a mirrored blob of cells → three tones lit from the top-left, a 1-px outline, a wet glint
+  function blob(g, cells, W, H, pal) {
+    const half = W / 2; const dark = '#20203a';
+    const on = (x, y) => y >= 0 && y < H && x >= 0 && x < W && !!cells[y][x < half ? x : W - 1 - x];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (on(x, y)) {
+        const lit = !on(x - 1, y - 1) || !on(x, y - 1) || !on(x - 1, y); const shadow = !on(x + 1, y + 1) || !on(x, y + 1) || y > H * 0.7;
+        g.fillStyle = shadow && !lit ? pal[2] : lit ? pal[0] : pal[1]; if (!shadow && !lit && (x * 7 + y * 3) % 13 === 0) g.fillStyle = shade(pal[1], 1.15);
+        g.fillRect(x, y, 1, 1);
+      } else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = dark; g.fillRect(x, y, 1, 1); }
+    }
+  }
+  // one pass of smoothing: lone pixels drop, holes fill
+  function tidy(cells, W, H) {
+    const half = W / 2; const at = (x, y) => (y >= 0 && y < H && x >= 0 && x < half ? cells[y][x] : (x === half ? cells[y] && cells[y][half - 1] : 0)) ? 1 : 0;
+    for (let y = 0; y < H; y++) for (let x = 0; x < half; x++) { const n = at(x - 1, y) + at(x + 1, y) + at(x, y - 1) + at(x, y + 1); if (cells[y][x] && n <= 1) cells[y][x] = 0; else if (!cells[y][x] && n >= 3) cells[y][x] = 1; }
+  }
   function spriteCanvas(p) {
     const k = p.id;
     if (!spriteCache.has(k)) {
-      const r = rng(hash(p.id)); const W = 12, H = 12, half = 6; const cells = [];
-      for (let y = 0; y < H; y++) { cells[y] = []; for (let x = 0; x < half; x++) { const cy = Math.abs(y - 6) / 6, cx = (half - x) / half; cells[y][x] = r() < 0.72 - 0.45 * (cy * cy + cx * cx * .6) ? 1 : 0; } }
-      for (let y = 4; y < 9; y++) cells[y][half - 1] = 1;
-      // legs: two feet at the bottom row
-      cells[H - 1][1] = 1; cells[H - 1][2] = 1; cells[H - 2][1] = 1; cells[H - 1][4] = 0;
-      const eyeY = 3 + Math.floor(r() * 3), eyeX = 1 + Math.floor(r() * 3);
-      const pal = lineOf(p).pal, dark = '#20203a';
+      const r = rng(hash(p.id)); const W = 24, H = 24, half = 12; const cells = [];
+      for (let y = 0; y < H; y++) { cells[y] = []; for (let x = 0; x < half; x++) { const cy = (y - 11) / 11, cx = (half - x) / half; cells[y][x] = r() < 0.76 - 0.5 * (cy * cy + cx * cx * .6) ? 1 : 0; } }
+      for (let y = 6; y < 19; y++) { cells[y][half - 1] = 1; cells[y][half - 2] = 1; }
+      tidy(cells, W, H);
+      for (let y = H - 4; y < H; y++) for (let x = 0; x < half; x++) cells[y][x] = 0;
+      [2, 3, 4, 5].forEach((x) => { cells[H - 1][x] = 1; cells[H - 2][x] = 1; cells[H - 3][x] = 1; }); [4, 5].forEach((x) => { cells[H - 4][x] = 1; });
+      const eyeY = 7 + Math.floor(r() * 4), eyeX = 3 + Math.floor(r() * 4);
       const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-      const on = (x, y) => y >= 0 && y < H && x >= 0 && x < W && cells[y][x < half ? x : W - 1 - x];
-      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-        if (on(x, y)) { const sh = (y + (x < half ? x : W - 1 - x)) % 3; g.fillStyle = pal[sh === 1 ? 0 : 1]; if (y > 8) g.fillStyle = pal[2]; g.fillRect(x, y, 1, 1); }
-        else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = dark; g.fillRect(x, y, 1, 1); }
-      }
-      g.fillStyle = '#fff'; g.fillRect(eyeX, eyeY, 1, 1); g.fillRect(W - 1 - eyeX, eyeY, 1, 1);
-      g.fillStyle = dark; g.fillRect(eyeX, eyeY + 1, 1, 1); g.fillRect(W - 1 - eyeX, eyeY + 1, 1, 1);
+      blob(g, cells, W, H, lineOf(p).pal);
+      [[eyeX, eyeY], [W - 2 - eyeX, eyeY]].forEach(([x, y]) => { g.fillStyle = '#fff'; g.fillRect(x, y, 2, 2); g.fillStyle = '#20203a'; g.fillRect(x + 1, y + 1, 1, 1); });
       spriteCache.set(k, c);
     }
     return spriteCache.get(k);
   }
   function sprite(p) { const img = document.createElement('img'); img.src = spriteCanvas(p).toDataURL(); img.className = 'q-sprite'; img.alt = ''; return img; }
-  // the trainer: 12×16, from the avatar settings, wearing what's equipped
-  // (a hat, shirt, trousers and shoes take the colour of their rarity).
-  // Drawn onto any context so the stages can walk it around.
+  // the trainer: 24×32, from the avatar settings, wearing what's equipped
+  // (a hat, shirt, shorts and shoes take the colour of their rarity, the
+  // perche or balai is in hand). Drawn onto any context so the stages can walk it.
   function drawAvatar(g, ox, oy, a, equip, o) {
     o = o || {}; equip = equip || {};
     const dark = '#20203a'; const col = (sl, def) => equip[sl] ? RCOL[equip[sl].rar] : def;
-    const shirt = col('torse', '#2f4fdf'), pants = col('jambes', dark), shoes = col('pieds', dark);
-    const size = a.size || 1; const top = oy + (size === 0 ? 3 : size === 2 ? 0 : 1) + (o.crouch ? 2 : 0); const x = ox;
-    const legH = 4 - (size === 0 ? 1 : 0) - (o.crouch ? 2 : 0); const f = o.walk ? Math.floor(o.walk) % 2 : -1;
-    g.fillStyle = a.skin; g.fillRect(x + 4, top + 1, 4, 4);
-    g.fillStyle = a.eyes; g.fillRect(x + 5, top + 2, 1, 1); g.fillRect(x + 7, top + 2, 1, 1);
-    g.fillStyle = a.hairColor; const up = Math.max(oy, top - 1);
-    if (a.hair === 1) g.fillRect(x + 4, top, 4, 1);
-    if (a.hair === 2) { g.fillRect(x + 4, top, 4, 1); g.fillRect(x + 3, up, 1, 1); g.fillRect(x + 6, up, 1, 1); g.fillRect(x + 8, up, 1, 1); }
-    if (a.hair === 3) { g.fillRect(x + 4, top, 4, 1); g.fillRect(x + 3, top + 1, 1, 4); g.fillRect(x + 8, top + 1, 1, 4); }
-    if (a.hair === 4) { g.fillStyle = '#d82f2f'; g.fillRect(x + 3, top, 6, 1); g.fillRect(x + 4, up, 4, 1); }
-    if (equip['tête']) { g.fillStyle = RCOL[equip['tête'].rar]; g.fillRect(x + 3, top, 6, 1); g.fillRect(x + 4, up, 4, 1); }
-    g.fillStyle = shirt; g.fillRect(x + 3, top + 5, 6, 4);
-    if (equip.amulette) { g.fillStyle = '#ffd94a'; g.fillRect(x + 6, top + 6, 1, 1); }
-    g.fillStyle = a.skin; g.fillRect(x + 2, top + 5, 1, 3); g.fillRect(x + 9, top + 5, 1, 3);
-    g.fillStyle = pants; g.fillRect(x + 4, top + 9, 2, Math.max(1, legH - (f === 1 ? 1 : 0))); g.fillRect(x + 6, top + 9, 2, Math.max(1, legH - (f === 0 ? 1 : 0)));
-    g.fillStyle = shoes; const fy = top + 9 + legH; g.fillRect(x + 3, fy - (f === 1 ? 1 : 0), 3, 1); g.fillRect(x + 6, fy - (f === 0 ? 1 : 0), 3, 1);
+    const shirt = col('torse', '#2f4fdf'), pants = col('jambes', '#2a3a6a'), shoes = col('pieds', dark);
+    const size = a.size || 1; const top = oy + (size === 0 ? 6 : size === 2 ? 0 : 2) + (o.crouch ? 4 : 0); const x = ox;
+    const legH = 8 - (size === 0 ? 2 : 0) - (o.crouch ? 4 : 0); const f = o.walk ? Math.floor(o.walk) % 2 : -1;
+    const R = (c, px, py, w, h) => { g.fillStyle = c; g.fillRect(px, py, w, h); };
+    // head
+    R(dark, x + 7, top + 1, 10, 10); R(a.skin, x + 8, top + 2, 8, 8); R(shade(a.skin, .85), x + 15, top + 3, 1, 7); R(shade(a.skin, 1.08), x + 8, top + 3, 1, 3);
+    R(a.eyes, x + 10, top + 5, 1, 2); R(a.eyes, x + 13, top + 5, 1, 2); R('#fff', x + 10, top + 5, 1, 1); R('#fff', x + 13, top + 5, 1, 1);
+    R(shade(a.skin, .8), x + 11, top + 8, 2, 1);
+    // hair styles: 1 flat, 2 spiky, 3 long, 4 cap
+    const up = Math.max(oy, top - 2);
+    if (a.hair === 1) { R(a.hairColor, x + 8, top + 2, 8, 2); R(a.hairColor, x + 8, top + 4, 1, 2); R(a.hairColor, x + 15, top + 4, 1, 2); }
+    if (a.hair === 2) { R(a.hairColor, x + 8, top + 2, 8, 2); [7, 10, 13, 16].forEach((sx, i) => R(a.hairColor, x + sx, Math.max(oy, top - (i % 2 ? 1 : 0)), 1, 2 + (i % 2 ? 1 : 0))); }
+    if (a.hair === 3) { R(a.hairColor, x + 8, top + 2, 8, 2); R(a.hairColor, x + 7, top + 3, 2, 9); R(a.hairColor, x + 15, top + 3, 2, 9); }
+    if (a.hair === 4) { R('#d82f2f', x + 7, top + 2, 10, 2); R('#a81f1f', x + 8, up, 8, 2); R('#d82f2f', x + 16, top + 3, 3, 1); }
+    if (equip['tête']) { const hc = RCOL[equip['tête'].rar]; R(hc, x + 5, top + 3, 14, 1); R(shade(hc, .8), x + 5, top + 4, 14, 1); R(hc, x + 8, up, 8, 3); R(shade(hc, 1.2), x + 9, up, 2, 1); }
+    // body
+    R(dark, x + 5, top + 10, 14, 9); R(shirt, x + 6, top + 11, 12, 7); R(shade(shirt, .8), x + 16, top + 11, 2, 7); R(shade(shirt, 1.18), x + 7, top + 12, 1, 4);
+    if (equip.amulette) { R('#ffd94a', x + 11, top + 12, 2, 2); R('#e39b12', x + 10, top + 11, 1, 1); R('#e39b12', x + 13, top + 11, 1, 1); }
+    R(a.skin, x + 4, top + 11, 2, 5); R(a.skin, x + 18, top + 11, 2, 5); R(shade(a.skin, .85), x + 19, top + 11, 1, 5);
+    // legs & feet (walking alternates the two)
+    const ly = top + 18; const lh1 = Math.max(2, legH - (f === 1 ? 2 : 0)), lh2 = Math.max(2, legH - (f === 0 ? 2 : 0));
+    R(pants, x + 7, ly, 5, lh1); R(pants, x + 12, ly, 5, lh2); R(shade(pants, .8), x + 11, ly, 1, Math.min(lh1, lh2)); R(shade(pants, .8), x + 16, ly, 1, lh2);
+    R(shoes, x + 6, ly + lh1, 6, 2); R(shoes, x + 12, ly + lh2, 6, 2); R(shade(shoes, 1.4), x + 6, ly + lh1, 6, 1); R(shade(shoes, 1.4), x + 12, ly + lh2, 6, 1);
     if (o.tools) {
-      if (equip.perche) { g.fillStyle = RCOL[equip.perche.rar]; g.fillRect(x + 11, Math.max(oy, top - 2), 1, 14); }
-      else if (equip.balai) { g.fillStyle = RCOL[equip.balai.rar]; g.fillRect(x + 11, top + 1, 1, 11); g.fillRect(x + 10, top + 12, 3, 1); }
+      if (equip.perche) { const pc = RCOL[equip.perche.rar]; R(pc, x + 21, Math.max(oy, top - 3), 2, 26); R(shade(pc, .75), x + 22, Math.max(oy, top - 3), 1, 26); R(dark, x + 19, Math.max(oy, top - 4), 6, 2); R('#8ed4ff', x + 20, Math.max(oy, top - 3), 4, 1); }
+      else if (equip.balai) { const bc = RCOL[equip.balai.rar]; R(bc, x + 21, top + 2, 2, 22); R(shade(bc, .75), x + 22, top + 2, 1, 22); R(dark, x + 18, top + 24, 8, 3); R(shade(bc, .6), x + 19, top + 25, 6, 1); }
     }
   }
   function avatar(a) {
-    const c = document.createElement('canvas'); c.width = 12; c.height = 16; const g = c.getContext('2d');
+    const c = document.createElement('canvas'); c.width = 24; c.height = 32; const g = c.getContext('2d');
     drawAvatar(g, 0, 0, a, load().equip, {});
     const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'q-avatar'; img.alt = ''; return img;
   }
@@ -155,27 +175,32 @@ const Game = (() => {
     Object.entries(b.sets).forEach(([res, n]) => { if (n >= 2) b.xp += 5; if (n >= 4) b.gold += 10; if (n >= 6) b.drop += 10; if (n >= 8) { b.aura = res; b.xp += 25; b.gold += 25; b.drop += 25; b.luck += 25; } });
     return b;
   }
-  const GLYPH = { 'tête': ['..####..', '.######.', '########', '#.####.#', '........', '........', '........', '........'],
-    'torse': ['#.####.#', '########', '.######.', '.######.', '.######.', '.##..##.', '........', '........'],
-    'jambes': ['.######.', '.######.', '.##..##.', '.##..##.', '.##..##.', '........', '........', '........'],
-    'pieds': ['........', '.##..##.', '.##..##.', '###..###', '###..###', '........', '........', '........'],
-    'amulette': ['..#..#..', '.#....#.', '#......#', '.#....#.', '..####..', '..####..', '...##...', '........'],
-    'perche': ['#.......', '.#......', '..#.....', '...#....', '....#...', '.....#..', '......##', '......##'],
-    'robot': ['.######.', '#..##..#', '#.####.#', '#......#', '########', '.#....#.', '.#....#.', '........'],
-    'balai': ['......##', '.....##.', '....##..', '...##...', '.####...', '#####...', '####....', '........'] };
+  const GLYPH = {
+    'tête': ['................', '......####......', '.....##++##.....', '.....#++++#.....', '.....#++++#.....', '.....#++++#.....', '....########....', '..############..', '.##++++++++++##.', '.##############.', '..##########+#..', '................', '................', '................', '................', '................'],
+    'torse': ['................', '...##......##...', '..####++++####..', '.######++######.', '.##+##++++##+##.', '.##.###++###.##.', '.#...######...#.', '.....######.....', '.....##++##.....', '.....##++##.....', '.....##++##.....', '.....######.....', '.....++++++.....', '................', '................', '................'],
+    'jambes': ['................', '....########....', '....#++++++#....', '....########....', '....###..###....', '....###..###....', '....###..###....', '....###..###....', '....#+#..#+#....', '....###..###....', '....###..###....', '....+++..+++....', '................', '................', '................', '................'],
+    'pieds': ['................', '................', '................', '.....#....#.....', '....##....##....', '...###....###...', '..####....####..', '..#++#....#++#..', '..####....####..', '..####....####..', '..#++#....#++#..', '..####....####..', '..++++....++++..', '................', '................', '................'],
+    'amulette': ['................', '.......#........', '......#.#.......', '.....#...#......', '....#.....#.....', '....#.....#.....', '....#.....#.....', '.....#...#......', '....#######.....', '...##+++++##....', '...#+++#+++#....', '...#+++++++#....', '....#######.....', '.....#####......', '......###.......', '................'],
+    'perche': ['..........#####.', '.........##+++#.', '.........#+++##.', '.........#####..', '........#.......', '.......#........', '......#.........', '.....#..........', '....#...........', '...#............', '..#.............', '.#..............', '##..............', '#+..............', '................', '................'],
+    'robot': ['................', '................', '....########....', '...##++++++##...', '..##########++#.', '..#.#####.###+#.', '..#.#..#..#.#+#.', '..#############.', '..#++++++++++++.', '...##########...', '..#.#......#.#..', '..###......###..', '..#+#......#+#..', '...#........#...', '................', '................'],
+    'balai': ['..............##', '.............##.', '............##..', '...........##...', '..........##....', '.........##.....', '........##......', '.......##.......', '......##........', '.....##.........', '...####.........', '..##+###........', '.##++++##.......', '.#+++++##.......', '.+++++++........', '................'] };
+  const CRATE = ['................', '.##############.', '.#............#.', '.#.##########.#.', '.#.#........#.#.', '.#.#.######.#.#.', '.#.#.#++++#.#.#.', '.#.#.#+..+#.#.#.', '.#.#.#+..+#.#.#.', '.#.#.#++++#.#.#.', '.#.#.######.#.#.', '.#.#........#.#.', '.#.##########.#.', '.#............#.', '.##############.', '................'];
+  const glyphCache = new Map();
+  function drawRows(rows, col) {
+    const c = document.createElement('canvas'); c.width = 16; c.height = 16; const g = c.getContext('2d');
+    rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#' || ch === '+') { g.fillStyle = ch === '#' ? col : shade(col, .7); g.fillRect(x, y, 1, 1); } }));
+    return c;
+  }
   const RAR = [['common', 'Commun', .20], ['uncommon', 'Peu commun', .10], ['rare', 'Rare', .05], ['vrare', 'Très rare', .01], ['epic', 'Épique', .001], ['legend', 'Légendaire', .0001]];
   const RCOL = { common: '#6b7a87', uncommon: '#2aa845', rare: '#2f4fdf', vrare: '#7b3fc4', epic: '#e39b12', legend: '#d82f2f' };
   const rarName = (k) => (RAR.find((x) => x[0] === k) || RAR[0])[1];
   function glyph(slot, rar, cls) {
-    const rows = GLYPH[slot] || GLYPH['amulette']; const c = document.createElement('canvas'); c.width = 8; c.height = 8; const g = c.getContext('2d');
-    rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') { g.fillStyle = RCOL[rar] || RCOL.common; g.fillRect(x, y, 1, 1); } }));
-    const img = document.createElement('img'); img.src = c.toDataURL(); img.className = cls || 'q-glyph'; img.alt = ''; return img;
+    const k = slot + '|' + rar; if (!glyphCache.has(k)) glyphCache.set(k, drawRows(GLYPH[slot] || GLYPH['amulette'], RCOL[rar] || RCOL.common).toDataURL());
+    const img = document.createElement('img'); img.src = glyphCache.get(k); img.className = cls || 'q-glyph'; img.alt = ''; return img;
   }
   function crateGlyph(rar) {
-    const rows = ['########', '#......#', '#.####.#', '#.#..#.#', '#.####.#', '#......#', '########', '........'];
-    const c = document.createElement('canvas'); c.width = 8; c.height = 8; const g = c.getContext('2d');
-    rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') { g.fillStyle = RCOL[rar]; g.fillRect(x, y, 1, 1); } }));
-    const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'q-glyph'; img.alt = ''; return img;
+    const k = 'crate|' + rar; if (!glyphCache.has(k)) glyphCache.set(k, drawRows(CRATE, RCOL[rar]).toDataURL());
+    const img = document.createElement('img'); img.src = glyphCache.get(k); img.className = 'q-glyph'; img.alt = ''; return img;
   }
 
   // ---------------------------------------------------------------- bestiary: what haunts a neglected pool
@@ -229,17 +254,19 @@ const Game = (() => {
   const monCache = new Map();
   function monsterCanvas(id) {
     if (!monCache.has(id)) {
-      const m = MON[id]; const r = rng(hash('mon-' + id)); const W = 14, H = 12, half = 7; const cells = [];
-      for (let y = 0; y < H; y++) { cells[y] = []; for (let x = 0; x < half; x++) { const cy = (y - 5) / 6, cx = (half - x) / half; cells[y][x] = r() < 0.78 - 0.5 * (cy * cy + cx * cx * .7) ? 1 : 0; } }
-      for (let y = 3; y < 9; y++) cells[y][half - 1] = 1; for (let x = 3; x < half; x++) cells[5][x] = 1;
-      const eyeY = 3 + Math.floor(r() * 2), eyeX = 2 + Math.floor(r() * 2);
-      const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); const dark = '#20203a';
-      const on = (x, y) => y >= 0 && y < H && x >= 0 && x < W && cells[y][x < half ? x : W - 1 - x];
-      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-        if (on(x, y)) { const sh = (x + y) % 3; g.fillStyle = m.pal[sh === 0 ? 0 : 1]; if (y >= 9) g.fillStyle = m.pal[2]; g.fillRect(x, y, 1, 1); }
-        else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = dark; g.fillRect(x, y, 1, 1); }
-      }
-      g.fillStyle = '#d82f2f'; g.fillRect(eyeX, eyeY, 1, 1); g.fillRect(W - 1 - eyeX, eyeY, 1, 1);
+      const m = MON[id]; const r = rng(hash('mon-' + id)); const W = 28, H = 24, half = 14; const cells = [];
+      for (let y = 0; y < H; y++) { cells[y] = []; for (let x = 0; x < half; x++) { const cy = (y - 10) / 12, cx = (half - x) / half; cells[y][x] = r() < 0.8 - 0.55 * (cy * cy + cx * cx * .7) ? 1 : 0; } }
+      for (let y = 5; y < 18; y++) { cells[y][half - 1] = 1; cells[y][half - 2] = 1; } for (let x = 5; x < half; x++) { cells[10][x] = 1; cells[11][x] = 1; }
+      tidy(cells, W, H);
+      // spikes along the top edge, a jagged bottom
+      for (let x = 2; x < half; x += 3) { let y = 0; while (y < H && !cells[y][x]) y++; if (y > 1 && y < H && r() < .7) { cells[y - 1][x] = 1; cells[y - 2][x] = 1; } }
+      for (let x = 1; x < half; x += 2) { let y = H - 1; while (y > 0 && !cells[y][x]) y--; if (y < H - 2 && r() < .6) cells[y + 1][x] = 1; }
+      const eyeY = 6 + Math.floor(r() * 3), eyeX = 4 + Math.floor(r() * 3);
+      const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+      blob(g, cells, W, H, m.pal);
+      [[eyeX, eyeY], [W - 2 - eyeX, eyeY]].forEach(([x, y]) => { g.fillStyle = '#d82f2f'; g.fillRect(x, y, 2, 2); g.fillStyle = '#fff'; g.fillRect(x, y, 1, 1); });
+      // a mouth: a dark row with teeth
+      g.fillStyle = '#20203a'; g.fillRect(half - 4, eyeY + 6, 8, 2); g.fillStyle = '#fff'; for (let x = half - 3; x < half + 4; x += 2) g.fillRect(x, eyeY + 6, 1, 1);
       monCache.set(id, c);
     }
     return monCache.get(id);
@@ -323,71 +350,85 @@ const Game = (() => {
     draw();
   }
 
-  // ---------------------------------------------------------------- stages: a 64×48 pixel screen the real actions play on
+  // ---------------------------------------------------------------- stages: a 128×96 pixel screen the real actions play on
   // One canvas, redrawn ~12 times a second while it is on the page. A queue of
   // short animations plays what the app just recorded: sticks dropped in the
   // skimmer, a water test at the edge, a sweep, a backwash — and the fight.
   function stage(draw) {
-    const c = document.createElement('canvas'); c.width = 64; c.height = 48; c.className = 'q-stage';
-    const sc = { c, t0: performance.now(), q: [], hx: 26, hdir: 1, moving: 0 }; let last = 0;
+    const c = document.createElement('canvas'); c.width = 128; c.height = 96; c.className = 'q-stage';
+    const sc = { c, t0: performance.now(), q: [], hx: 52, hdir: 1, moving: 0 }; let last = 0;
     const loop = (now) => { if (!c.isConnected && now - sc.t0 > 3000) return; if (now - last > 80) { last = now; const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false; const t = (now - sc.t0) / 1000; const a = sc.q[0]; let p = 0; if (a) { if (a.t0 == null) { a.t0 = t; if (a.k === 'walk') { a.from = sc.hx; sc.hdir = a.x >= sc.hx ? 1 : -1; } } p = Math.min(1, (t - a.t0) / a.dur); } draw(ctx, t, sc, a, p); if (a && p >= 1) sc.q.shift(); } requestAnimationFrame(loop); };
     requestAnimationFrame(loop); return sc;
   }
-  const WATER = { calme: ['#4aa8ff', '#8ed4ff'], 'traité': ['#39c9d6', '#9ff2f5'], sauvage: ['#5faa4a', '#a3d66e'], critique: ['#35603a', '#4f8a4a'] };
+  const WATER = { calme: ['#4aa8ff', '#8ed4ff', '#2f7fd6'], 'traité': ['#39c9d6', '#9ff2f5', '#22a3b0'], sauvage: ['#5faa4a', '#a3d66e', '#3f7d2a'], critique: ['#35603a', '#4f8a4a', '#24422a'] };
   const px = (ctx, col, x, y, w, h) => { ctx.fillStyle = col; ctx.fillRect(x, y, w || 1, h || 1); };
+  const line = (ctx, col, x0, y0, x1, y1, w) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) px(ctx, col, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), w || 1, w || 1); };
+  // pool: hedge on top, the basin (rim 18..110 × 12..58), a ladder, the skimmer on the near rim, the pump on the deck
   function drawPoolBg(ctx, c, t) {
-    px(ctx, '#e9d59a', 0, 0, 64, 48);
-    for (let y = 0; y < 48; y += 4) for (let x = ((y / 4) % 2) * 4; x < 64; x += 8) px(ctx, '#dfc98c', x, y, 4, 4);
-    px(ctx, '#2aa845', 0, 0, 64, 4); for (let x = 0; x < 64; x += 3) px(ctx, '#124d2a', x, 2 + (x % 2), 1, 1);
-    const w = c.sunk ? ['#101828', '#1c2740'] : WATER[c.state] || WATER.calme;
-    px(ctx, '#20203a', 9, 6, 46, 23); px(ctx, w[0], 10, 7, 44, 21);
-    for (let i = 0; i < 7; i++) px(ctx, w[1], 11 + ((i * 9 + Math.floor(t * 5)) % 42), 9 + (i * 5) % 17, 3, 1);
-    if (c.sunk) for (let i = 0; i < 5; i++) px(ctx, '#3a2a5a', 14 + ((i * 11 + Math.floor(t * 3)) % 36), 10 + ((i * 7 + Math.floor(t * 2)) % 15), 2, 2);
-    if (c.s && c.s.dirt) { const r = rng(hash(c.id + 'd')); for (let i = 0; i < c.s.dirt * 6; i++) px(ctx, '#8a4a1e', 11 + Math.floor(r() * 42), 9 + Math.floor(r() * 17), 1, 1); }
-    px(ctx, '#e6e6ff', 12, 22, 1, 7); px(ctx, '#e6e6ff', 15, 22, 1, 7); px(ctx, '#e6e6ff', 12, 24, 4, 1); px(ctx, '#e6e6ff', 12, 27, 4, 1);   // ladder
-    px(ctx, '#c9c0a8', 44, 27, 7, 3); px(ctx, '#20203a', 45, 28, 5, 1);                                                                   // skimmer
-    px(ctx, '#7a7a90', 56, 38, 7, 8); px(ctx, '#20203a', 57, 44, 5, 1); px(ctx, c.filtre > c.interval ? '#d82f2f' : '#2aa845', 58, 40, 2, 2); // pump + its light
+    px(ctx, '#e9d59a', 0, 0, 128, 96);
+    for (let y = 0; y < 96; y += 8) for (let x = 0; x < 128; x += 8) { if (((x + y) / 8) % 2) px(ctx, '#e2cc90', x, y, 8, 8); px(ctx, '#d9c284', x, y, 8, 1); px(ctx, '#d9c284', x, y, 1, 8); }
+    px(ctx, '#2aa845', 0, 0, 128, 9); px(ctx, '#124d2a', 0, 8, 128, 1); for (let x = 0; x < 128; x += 5) { px(ctx, '#124d2a', x + (x % 2), 3 + (x % 3), 2, 2); px(ctx, '#7ee06a', x + 2, 1 + (x % 2), 1, 1); }
+    const w = c.sunk ? ['#101828', '#1c2740', '#0a1020'] : WATER[c.state] || WATER.calme;
+    px(ctx, '#20203a', 18, 12, 92, 47); px(ctx, '#c9c0a8', 19, 13, 90, 45); px(ctx, '#8a8aa0', 19, 57, 90, 1);
+    px(ctx, w[0], 20, 14, 88, 43); px(ctx, w[2], 20, 50, 88, 7); px(ctx, w[1], 20, 14, 88, 2);
+    for (let i = 0; i < 9; i++) px(ctx, w[1], 22 + ((i * 17 + Math.floor(t * 9)) % 84), 18 + (i * 9) % 36, 5, 1);
+    if (c.sunk) for (let i = 0; i < 8; i++) px(ctx, '#3a2a5a', 26 + ((i * 19 + Math.floor(t * 5)) % 76), 18 + ((i * 11 + Math.floor(t * 3)) % 34), 3, 2);
+    if (c.s && c.s.dirt) { const r = rng(hash(c.id + 'd')); for (let i = 0; i < c.s.dirt * 12; i++) px(ctx, i % 3 ? '#8a4a1e' : '#c9a55a', 22 + Math.floor(r() * 84), 18 + Math.floor(r() * 34), 2, 1); }
+    px(ctx, '#e6e6ff', 24, 44, 2, 15); px(ctx, '#e6e6ff', 32, 44, 2, 15); px(ctx, '#b8b8d8', 25, 44, 1, 15); px(ctx, '#b8b8d8', 33, 44, 1, 15); [48, 53].forEach((y) => px(ctx, '#e6e6ff', 24, y, 10, 2));   // ladder
+    px(ctx, '#20203a', 87, 54, 16, 8); px(ctx, '#c9c0a8', 88, 55, 14, 6); px(ctx, '#20203a', 90, 57, 10, 2); px(ctx, '#8a8aa0', 90, 59, 10, 1);          // skimmer
+    px(ctx, '#20203a', 111, 74, 16, 20); px(ctx, '#7a7a90', 112, 75, 14, 18); px(ctx, '#5a5a70', 112, 75, 14, 3); px(ctx, '#e6e6ff', 115, 80, 8, 8); px(ctx, '#20203a', 118, 83, 2, 2); // pump + gauge
+    line(ctx, '#d82f2f', 119, 84, 122 - (c.filtre > c.interval ? 0 : 3), 81 + (c.filtre > c.interval ? 3 : 0), 1); px(ctx, c.filtre > c.interval ? '#d82f2f' : '#2aa845', 114, 90, 3, 2);
   }
   function drawHero(ctx, sc, a, p, o) {
     const g = load(); o = o || {};
     if (a && a.k === 'walk') { sc.hx = Math.round(a.from + (a.x - a.from) * p); sc.moving = 1; } else sc.moving = 0;
-    drawAvatar(ctx, sc.hx + (o.dx || 0), 30 + (o.dy || 0), g.avatar, g.equip, { walk: sc.moving ? performance.now() / 120 : 0, tools: true, crouch: o.crouch });
+    drawAvatar(ctx, sc.hx + (o.dx || 0), 60 + (o.dy || 0), g.avatar, g.equip, { walk: sc.moving ? performance.now() / 120 : 0, tools: true, crouch: o.crouch });
   }
   function drawPool(ctx, t, sc, a, p, c, e) {
-    drawPoolBg(ctx, c, t); const g = load();
-    if (e && e.monster) { const mc = monsterCanvas(e.monster.id); ctx.drawImage(mc, 25, 11 + Math.round(Math.sin(t * 2))); }
-    if (e && e.escaped && !e.monster) px(ctx, '#7b3fc4', 26 + Math.floor(t * 2) % 3, 12, 1, 1);
+    drawPoolBg(ctx, c, t); const g = load(); const w = c.sunk ? ['#101828', '#1c2740'] : WATER[c.state] || WATER.calme;
+    if (e && e.monster) { const mc = monsterCanvas(e.monster.id); const my = 22 + Math.round(Math.sin(t * 2) * 2); px(ctx, w[1], 46, my + 22, 36, 1); ctx.drawImage(mc, 50, my); }
+    if (e && e.escaped && !e.monster) px(ctx, '#7b3fc4', 60 + Math.floor(t * 3) % 5, 26, 2, 2);
     const k = a && a.k; const hx = sc.hx;
-    if (k === 'test') { drawHero(ctx, sc, a, p, { crouch: true }); px(ctx, '#e6e6ff', hx + 11, 41, 2, 4); px(ctx, p < .5 ? '#ffd94a' : c.s.cl < 1 ? '#f2c14e' : '#ff7aa8', hx + 11, 43, 2, 2); if (p < .4) px(ctx, WATER[c.state][0], hx + 12, 30 + Math.round(p * 25), 1, 1); return; }
+    if (k === 'test') { drawHero(ctx, sc, a, p, { crouch: true }); px(ctx, '#20203a', hx + 22, 80, 6, 10); px(ctx, '#e6e6ff', hx + 23, 81, 4, 8); px(ctx, p < .5 ? '#ffd94a' : c.s.cl < 1 ? '#f2c14e' : '#ff7aa8', hx + 23, 85, 4, 4); if (p < .4) px(ctx, w[0], hx + 25, 58 + Math.round(p * 55), 2, 2); return; }
     drawHero(ctx, sc, a, p);
-    if (k === 'drop') { for (let i = 0; i < a.n; i++) { const q = Math.min(1, Math.max(0, p * 1.4 - i * 0.15)); if (q < 1) px(ctx, '#fff', hx + 10 + (i % 3), 35 - Math.round(q * 8), 1, 2); } }
-    if (k === 'scatter') { const r = rng(hash('sc')); for (let i = 0; i < 12; i++) { const q = Math.min(1, p * 1.3 + r() * .2); px(ctx, '#fff', hx + 10 + Math.round((r() * 20 - 4) * q), 34 - Math.round(q * (10 + r() * 12)), 1, 1); } }
-    if (k === 'sweep') { if (g.equip.robot) { px(ctx, RCOL[g.equip.robot.rar], 12 + Math.round(p * 36), 22, 4, 3); px(ctx, '#fff', 13 + Math.round(p * 36), 23, 1, 1); } else { const tx = hx + 4 + Math.round(Math.sin(p * 9) * 9), ty = 18; for (let i = 0; i <= 12; i++) { const q = i / 12; px(ctx, g.equip.balai ? RCOL[g.equip.balai.rar] : '#8a4a1e', Math.round(hx + 11 + (tx - hx - 11) * q), Math.round(34 + (ty - 34) * q), 1, 1); } px(ctx, WATER[c.state] ? WATER[c.state][1] : '#fff', tx - 1, ty, 3, 1); } }
-    if (k === 'wash') { for (let i = 0; i < 4; i++) px(ctx, '#8ed4ff', 57 + i * 2, 38 - ((Math.round(p * 20) + i * 4) % 14), 1, 2); px(ctx, '#2aa845', 58, 40, 2, 2); }
+    if (k === 'drop') { for (let i = 0; i < a.n; i++) { const q = Math.min(1, Math.max(0, p * 1.4 - i * 0.15)); if (q < 1) { px(ctx, '#20203a', hx + 19 + (i % 3) * 3, 69 - Math.round(q * 14), 3, 5); px(ctx, '#fff', hx + 20 + (i % 3) * 3, 70 - Math.round(q * 14), 1, 3); } } }
+    if (k === 'scatter') { const r = rng(hash('sc')); for (let i = 0; i < 24; i++) { const q = Math.min(1, p * 1.3 + r() * .2); px(ctx, i % 4 ? '#fff' : '#e6e6ff', hx + 20 + Math.round((r() * 40 - 8) * q), 68 - Math.round(q * (20 + r() * 24)), 1, 1); } }
+    if (k === 'sweep') {
+      if (g.equip.robot) { const rc = RCOL[g.equip.robot.rar]; const rx = 24 + Math.round(p * 72); px(ctx, '#20203a', rx - 1, 43, 10, 7); px(ctx, rc, rx, 44, 8, 5); px(ctx, shade(rc, 1.3), rx + 1, 44, 6, 1); px(ctx, '#20203a', rx + 1, 49, 2, 1); px(ctx, '#20203a', rx + 5, 49, 2, 1); px(ctx, w[1], rx - 3, 42, 2, 1); px(ctx, w[1], rx - 6, 40, 1, 1); }
+      else { const tx = hx + 8 + Math.round(Math.sin(p * 9) * 18), ty = 36; const pc = g.equip.balai ? RCOL[g.equip.balai.rar] : '#8a4a1e'; line(ctx, pc, hx + 22, 68, tx, ty, 2); px(ctx, '#20203a', tx - 3, ty - 1, 8, 3); px(ctx, w[1], tx - 5, ty + 2, 12, 1); }
+    }
+    if (k === 'wash') { for (let i = 0; i < 6; i++) px(ctx, i % 2 ? '#8ed4ff' : '#e6e6ff', 114 + i * 2, 74 - ((Math.round(p * 40) + i * 6) % 26), 2, 3); px(ctx, '#2aa845', 114, 90, 3, 2); }
   }
   function drawBattle(ctx, t, sc, c, mo, g) {
     const a = sc.q[0]; const p = a ? Math.min(1, (t - (a.t0 == null ? t : a.t0)) / a.dur) : 0; const k = a && a.k;
     drawPoolBg(ctx, c, t);
     const gone = !B || (B.won && k !== 'dissolve') || (B.fled && (k !== 'flee' || p > .5));
     if (mo && !gone) {
-      const mc = monsterCanvas(mo.id); const dy = k === 'foe' ? Math.round(Math.sin(p * Math.PI) * 8) : Math.round(Math.sin(t * 2)); const dx = k === 'hit' ? Math.round(Math.sin(p * Math.PI * 4) * 2) : 0;
-      if (k === 'dissolve') { ctx.globalAlpha = 1 - p; } ctx.drawImage(mc, 18 + dx, 4 + dy, 28, 24); ctx.globalAlpha = 1;
-      if (k === 'hit' && p < .2) { ctx.globalAlpha = .5; px(ctx, '#fff', 18 + dx, 4 + dy, 28, 24); ctx.globalAlpha = 1; }
+      const mc = monsterCanvas(mo.id); const dy = k === 'foe' ? Math.round(Math.sin(p * Math.PI) * 16) : Math.round(Math.sin(t * 2) * 2); const dx = k === 'hit' ? Math.round(Math.sin(p * Math.PI * 4) * 4) : 0;
+      const w = WATER[c.state] || WATER.calme; px(ctx, w[1], 40 + dx, 52 + dy, 48, 1);
+      if (k === 'dissolve') { ctx.globalAlpha = 1 - p; } ctx.drawImage(mc, 36 + dx, 4 + dy, 56, 48); ctx.globalAlpha = 1;
+      if (k === 'hit' && p < .2) { ctx.globalAlpha = .5; px(ctx, '#fff', 36 + dx, 4 + dy, 56, 48); ctx.globalAlpha = 1; }
     }
-    sc.hx = 26; const lunge = k === 'lunge' ? -Math.round(Math.sin(p * Math.PI) * 6) : 0;
-    drawHero(ctx, sc, null, 0, { dy: lunge, dx: k === 'flee' ? Math.round(p * 30) : 0 });
-    if (k === 'lunge' && a.move) { const col = { choc: '#fff', phm: '#ffd94a', floc: '#8ed4ff', lavage: '#8ed4ff', perche: '#8a4a1e', balai: '#8a4a1e', robot: '#7a7a90' }[a.move]; for (let i = 0; i < 6; i++) px(ctx, col, 30 + i * 2 - Math.round(p * 6), 28 - Math.round(p * 12) - i, 1, 1); }
-    if (k === 'foe' && p < .25) { ctx.globalAlpha = .35; px(ctx, '#d82f2f', 0, 0, 64, 48); ctx.globalAlpha = 1; }
+    sc.hx = 52; const lunge = k === 'lunge' ? -Math.round(Math.sin(p * Math.PI) * 12) : 0;
+    drawHero(ctx, sc, null, 0, { dy: lunge, dx: k === 'flee' ? Math.round(p * 60) : 0 });
+    if (k === 'lunge' && a.move) { const col = { choc: '#fff', phm: '#ffd94a', floc: '#8ed4ff', lavage: '#8ed4ff', perche: '#8a4a1e', balai: '#8a4a1e', robot: '#7a7a90' }[a.move]; for (let i = 0; i < 10; i++) px(ctx, col, 62 + i * 3 - Math.round(p * 12), 56 - Math.round(p * 24) - i * 2, 2, 2); }
+    if (k === 'foe' && p < .25) { ctx.globalAlpha = .35; px(ctx, '#d82f2f', 0, 0, 128, 96); ctx.globalAlpha = 1; }
   }
+  // a 3×5 pixel font for the sign
+  const FONT = { D: ['##.', '#.#', '#.#', '#.#', '##.'], E: ['###', '#..', '##.', '#..', '###'], P: ['##.', '#.#', '##.', '#..', '#..'], O: ['###', '#.#', '#.#', '#.#', '###'], T: ['###', '.#.', '.#.', '.#.', '.#.'] };
+  const text = (ctx, col, s, x, y) => { [...s].forEach((ch, i) => { (FONT[ch] || []).forEach((row, ry) => [...row].forEach((c, rx) => { if (c === '#') px(ctx, col, x + i * 4 + rx, y + ry, 1, 1); })); }); };
   function drawDepot(ctx, t, sc, n, at) {
-    px(ctx, '#bfe3ff', 0, 0, 64, 48); px(ctx, '#e9d59a', 0, 36, 64, 12); px(ctx, '#dfc98c', 0, 44, 64, 4);
-    px(ctx, '#c9c0a8', 14, 12, 46, 24); px(ctx, '#7a7a90', 12, 8, 50, 5); px(ctx, '#20203a', 12, 12, 50, 1);
-    px(ctx, '#2f4ffd', 36, 15, 20, 5); for (let i = 0; i < 5; i++) px(ctx, '#fff', 38 + i * 4, 17, 2, 1);        // the sign
-    if (at) { px(ctx, '#20203a', 22, 20, 12, 16); [24, 29].forEach((y) => { px(ctx, '#8a4a1e', 23, y, 10, 1); for (let i = 0; i < 3; i++) px(ctx, RCOL[RAR[(i + y) % 4][0]], 24 + i * 3, y - 2, 2, 2); }); }
-    else { px(ctx, '#8a4a1e', 22, 20, 12, 16); px(ctx, '#5a2a0a', 28, 20, 1, 16); px(ctx, '#ffd94a', 31, 28, 1, 1); }
-    for (let i = 0; i < Math.min(n, 8); i++) { const x = 38 + (i % 4) * 5, y = 32 - Math.floor(i / 4) * 5; px(ctx, '#8a4a1e', x, y, 4, 4); px(ctx, '#e39b12', x + 1, y + 1, 2, 2); }
-    const g = load(); const to = at ? 22 : 4; const q = Math.min(1, t / 1.6); const hx = Math.round(2 + (to - 2) * q);
-    drawAvatar(ctx, hx, 30, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0, tools: true });
+    px(ctx, '#bfe3ff', 0, 0, 128, 96); px(ctx, '#d4ecff', 0, 30, 128, 42); [[10, 12], [80, 8], [104, 18]].forEach(([x, y]) => { px(ctx, '#fff', x, y + 2, 14, 3); px(ctx, '#fff', x + 3, y, 8, 2); });
+    px(ctx, '#e9d59a', 0, 72, 128, 24); px(ctx, '#dfc98c', 0, 88, 128, 8); for (let x = 0; x < 128; x += 16) px(ctx, '#d9c284', x + 5, 78 + (x % 3), 3, 1);
+    px(ctx, '#20203a', 26, 24, 94, 49); px(ctx, '#c9c0a8', 28, 26, 90, 46); for (let y = 30; y < 72; y += 6) for (let x = 28 + ((y / 6) % 2) * 5; x < 118; x += 10) px(ctx, '#bdb39a', x, y, 8, 1);
+    px(ctx, '#5a5a70', 24, 16, 98, 4); px(ctx, '#7a7a90', 24, 20, 98, 6); px(ctx, '#20203a', 24, 26, 98, 1);
+    px(ctx, '#20203a', 71, 30, 32, 11); px(ctx, '#2f4fdf', 72, 31, 30, 9); text(ctx, '#fff', 'DEPOT', 77, 33);       // the sign
+    px(ctx, '#20203a', 42, 40, 26, 33);
+    if (at) { px(ctx, '#3a3a50', 44, 42, 22, 31); [50, 60, 70].forEach((y, i) => { px(ctx, '#8a4a1e', 45, y, 20, 2); for (let j = 0; j < 3; j++) { const col = RCOL[RAR[(i * 3 + j) % 6][0]]; px(ctx, '#20203a', 46 + j * 7, y - 6, 6, 6); px(ctx, col, 47 + j * 7, y - 5, 4, 4); } }); }
+    else { px(ctx, '#8a4a1e', 44, 42, 22, 31); for (let x = 48; x < 66; x += 6) px(ctx, '#5a2a0a', x, 42, 1, 31); px(ctx, '#ffd94a', 61, 57, 2, 2); }
+    for (let i = 0; i < Math.min(n, 8); i++) { const x = 76 + (i % 4) * 10, y = 63 - Math.floor(i / 4) * 10; px(ctx, '#20203a', x, y, 9, 9); px(ctx, '#8a4a1e', x + 1, y + 1, 7, 7); px(ctx, '#c9a55a', x + 1, y + 1, 7, 1); px(ctx, '#e39b12', x + 3, y + 3, 3, 3); }
+    const g = load(); const to = at ? 43 : 6; const q = Math.min(1, t / 1.6); const hx = Math.round(4 + (to - 4) * q);
+    drawAvatar(ctx, hx, 60, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0, tools: true });
   }
   function monsterBanner(render) {
     const g = load(); const e = g.enc; if (!e || !e.monster) return null;
@@ -603,10 +644,10 @@ const Game = (() => {
     const e = g.enc; const st = stage((ctx, t, sc, a, pp) => drawPool(ctx, t, sc, a, pp, c, e));
     if (e) {
       const seen = e.seen || { chem: 0, clean: 0, filt: 0, mes: 0 };
-      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', x: 34, dur: .8 }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
-      if (acts.mes > seen.mes) st.q.push({ k: 'walk', x: 16, dur: .8 }, { k: 'test', dur: 2 });
-      if (acts.clean > seen.clean) st.q.push({ k: 'walk', x: 26, dur: .6 }, { k: 'sweep', dur: 2.4 });
-      if (acts.filt > seen.filt) st.q.push({ k: 'walk', x: 44, dur: .9 }, { k: 'wash', dur: 1.8 });
+      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', x: 66, dur: .8 }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
+      if (acts.mes > seen.mes) st.q.push({ k: 'walk', x: 30, dur: .8 }, { k: 'test', dur: 2 });
+      if (acts.clean > seen.clean) st.q.push({ k: 'walk', x: 52, dur: .6 }, { k: 'sweep', dur: 2.4 });
+      if (acts.filt > seen.filt) st.q.push({ k: 'walk', x: 86, dur: .9 }, { k: 'wash', dur: 1.8 });
       e.seen = { ...acts }; save();
     }
     box.insertBefore(st.c, box.querySelector('.q-stats'));
