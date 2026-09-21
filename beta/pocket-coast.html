@@ -20,7 +20,7 @@
 </head>
 <body>
 <h1>Pocket Coast, en natif</h1>
-<p class="hint">Tout ce qui suit est dessiné par <code>js/pixelart.js</code> aux tailles du jeu (dresseur 24×32, créatures 24×24, monstres 28×24, objets 16×16, tuiles 16×16, scène 128×96), agrandi ×4 sans lissage. Rien ne lit de données.</p>
+<p class="hint">Tout ce qui suit est dessiné par <code>js/pixelart.js</code> aux tailles du jeu (dresseur 16×24, créatures 24×24, monstres 28×24, objets 16×16, tuiles 16×16, scène 128×96), agrandi ×4 sans lissage. Rien ne lit de données.</p>
 
 <h2>1 · Le gardien et ses garde-robes</h2>
 <p>Un seul personnage, la tenue vient de ce qui est équipé : chapeau, haut, bas, chaussures et outil viennent chacun de la panoplie de la pièce portée. On peut donc mélanger. La rareté vit dans le liseré.</p>
@@ -51,10 +51,10 @@
   const av = { skin: '#e8b88a', hairColor: '#4a2e1a', hair: 1 };
   // heroes
   const H = document.getElementById('heroes');
-  [[{}, 'kit de base · rien d’équipé'], [{ head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, 'Pool Boy · casquette à l’envers, polo, épuisette'], [{ head: 'AG', body: 'AG', legs: 'AG', feet: 'AG', tool: 'AG', toolKind: 'perche' }, 'Surfeur · bob, tee, bambou'], [{ head: 'EP', body: 'EP', legs: 'EP', feet: 'EP', tool: 'EP', toolKind: 'perche' }, 'Jardinier · paille, gilet, râteau'], [{ head: 'EPP', body: 'EPP', legs: 'EPP', feet: 'EPP', tool: 'EPP', toolKind: 'perche' }, 'Locataire · lunettes, chemise, haveneau'], [{ head: 'GP', body: 'GP', legs: 'GP', feet: 'GP', tool: 'GP', toolKind: 'perche' }, 'Gardien · visière, polo, gaffe'], [{ head: 'EP', body: 'AG', legs: 'EC', feet: 'EPP', tool: 'EC', toolKind: 'balai' }, 'mélange · paille, tee, short, sandales, balai']].forEach(([sets, l]) => { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, sets, { ...av, trim: { head: '#d82f2f', body: '#2f4fdf' } }); fig(H, c, l); });
-  [[1, 'marche 1'], [0, 'marche 2']].forEach(([w, l]) => { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, { ...av, walk: w + 0.5 }); fig(H, c, l); });
-  { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC' }, { ...av, crouch: true }); fig(H, c, 'accroupi (analyse)'); }
-  { const c = cv(28, 36); P.trainer(c.getContext('2d'), 2, 4, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, { ...av, back: true }); fig(H, c, 'de dos'); }
+  [[{}, 'kit de base · rien d’équipé'], [{ head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, 'Pool Boy · casquette à l’envers, polo, épuisette'], [{ head: 'AG', body: 'AG', legs: 'AG', feet: 'AG', tool: 'AG', toolKind: 'perche' }, 'Surfeur · bob, tee, bambou'], [{ head: 'EP', body: 'EP', legs: 'EP', feet: 'EP', tool: 'EP', toolKind: 'perche' }, 'Jardinier · paille, gilet, râteau'], [{ head: 'EPP', body: 'EPP', legs: 'EPP', feet: 'EPP', tool: 'EPP', toolKind: 'perche' }, 'Locataire · lunettes, chemise, haveneau'], [{ head: 'GP', body: 'GP', legs: 'GP', feet: 'GP', tool: 'GP', toolKind: 'perche' }, 'Gardien · visière, polo, gaffe'], [{ head: 'EP', body: 'AG', legs: 'EC', feet: 'EPP', tool: 'EC', toolKind: 'balai' }, 'mélange · paille, tee, short, sandales, balai']].forEach(([sets, l]) => { const c = cv(20, 28); P.trainer(c.getContext('2d'), 2, 2, sets, { ...av, trim: { head: '#d82f2f', body: '#2f4fdf' } }); fig(H, c, l); });
+  [[1, 'marche 1'], [0, 'marche 2']].forEach(([w, l]) => { const c = cv(20, 28); P.trainer(c.getContext('2d'), 2, 2, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, { ...av, walk: w + 0.5 }); fig(H, c, l); });
+  { const c = cv(20, 28); P.trainer(c.getContext('2d'), 2, 2, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC' }, { ...av, crouch: true }); fig(H, c, 'accroupi (analyse)'); }
+  { const c = cv(20, 28); P.trainer(c.getContext('2d'), 2, 2, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, { ...av, back: true }); fig(H, c, 'de dos'); }
   // species
   const SP = document.getElementById('species');
   Object.entries(P.ZONE).forEach(([z, zz]) => ['EC-2', 'AG-7', 'EP-31B'].forEach((seed, i) => { const c = cv(24, 24); c.getContext('2d').drawImage(P.creature(z, z + '-' + seed + i), 0, 0); fig(SP, c, i === 0 ? zz.n + ' · ' + z : ''); }));
@@ -66,10 +66,10 @@
   ['common', 'legend'].forEach((rar) => Object.keys(P.ZONE).forEach((z) => SLOTS.forEach((sl) => { const c = cv(16, 16, 2.5); c.getContext('2d').drawImage(P.item(sl, z, rar), 0, 0); c.title = sl + ' · ' + z + ' · ' + rar; IT.appendChild(c); })));
   // yards
   const Y = document.getElementById('yards');
-  [['calme', 0], ['traité', 0], ['sauvage', 2], ['critique', 3]].forEach(([st, dirt]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { state: st, dirt, t: 1.2, pumpLate: st === 'critique', creature: P.creature(['EC', 'AG', 'EP', 'GP'][dirt] || 'EC', 'x-' + st), seed: st }); P.trainer(g, 116, 140, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); if (st === 'sauvage') g.drawImage(P.monster('algue'), 112, 76); fig(Y, c, st + (dirt ? ' · saleté ' + dirt : '')); });
-  { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { sunk: true, t: 0.4, pumpLate: true }); P.trainer(g, 116, 140, {}, av); fig(Y, c, 'sombrée'); }
+  [['calme', 0], ['traité', 0], ['sauvage', 2], ['critique', 3]].forEach(([st, dirt]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { state: st, dirt, t: 1.2, pumpLate: st === 'critique', creature: P.creature(['EC', 'AG', 'EP', 'GP'][dirt] || 'EC', 'x-' + st), seed: st }); P.trainer(g, 120, 140, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); if (st === 'sauvage') g.drawImage(P.monster('algue'), 112, 76); fig(Y, c, st + (dirt ? ' · saleté ' + dirt : '')); });
+  { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { sunk: true, t: 0.4, pumpLate: true }); P.trainer(g, 120, 140, {}, av); fig(Y, c, 'sombrée'); }
   const SH = document.getElementById('shed');
-  [[true, 'le dépôt, rideau levé : bidons, balais, le robot, six caisses du jour'], [false, 'le dépôt, fermé']].forEach(([at, l]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.storage(g, at, 6, 1); P.trainer(g, at ? 140 : 8, 118, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); fig(SH, c, l); });
+  [[true, 'le dépôt, rideau levé : bidons, balais, le robot, six caisses du jour'], [false, 'le dépôt, fermé']].forEach(([at, l]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.storage(g, at, 6, 1); P.trainer(g, at ? 144 : 8, 118, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); fig(SH, c, l); });
 })();
 </script>
 </body>
