@@ -164,22 +164,32 @@ const PixelArt = (() => {
 
   // ------------------------------------------------------------ tiles (16×16) and the courtyard (128×96)
   const TILE = {
-    sand: ['ssssssssssssssss', 'ssssSsssssssssss', 'ssssssssssssSsss', 'ssssssssssssssss', 'sSssssssssssssss', 'ssssssssSsssssss', 'ssssssssssssssss', 'ssssssssssssssSs', 'ssssssssssssssss', 'ssSsssssssssssss', 'ssssssssssSsssss', 'ssssssssssssssss', 'ssssssSsssssssss', 'ssssssssssssssss', 'sssSsssssssssSss', 'ssssssssssssssss'],
-    grass: ['LLLLLLLLLLLLLLLL', 'LLGLLLLLLLLGLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLGLLLLLLLL', 'LLLLLLLLLLLLLLGL', 'LGLLLLLLLLLLLLLL', 'LLLLLLLLLLGLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLGLLL', 'LLLGLLLLLLLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LGLLLLLLLLLLLGLL', 'LLLLLLLLLLLLLLLL'],
-    paving: ['cccccccccccccccc', 'cccccccScccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccccccccccccccSc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccSccccccccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'cccccccccccScccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS'],
-    hedge: ['gGggggGgggggGggg', 'gggggggggggggggg', 'ggLgggggggLggggg', 'gggggggggggggggg', 'ggggggGggggggggg', 'GgggggggggggggGg', 'gggggLgggggggggg', 'gggggggggggggggg', 'ggggggggggLggggg', 'gGgggggggggggggg', 'ggggggggggggGggg', 'GGGGGGGGGGGGGGGG', 'GGGGGGGGGGGGGGGG', 'GGGGGGGGGGGGGGGG', 'iiiiiiiiiiiiiiii', 'ssssssssssssssss'],
-    slab: ['zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzSzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzSzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzSzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzSzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS'],
-    gravel: ['uuuuuuuuuuuuuuuu', 'uuUuuuuuuuuUuuuu', 'uuuuuuuUuuuuuuuu', 'uuuuuuuuuuuuuuUu', 'uUuuuuuuuuuuuuuu', 'uuuuuuuuuuUuuuuu', 'uuuuuUuuuuuuuuuu', 'uuuuuuuuuuuuuUuu', 'uuuuuuuUuuuuuuuu', 'uuUuuuuuuuuuuuuu', 'uuuuuuuuuuuuUuuu', 'uuuuuuUuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuUuuuuuuUuuuuu', 'uuuuuuuuuuuuuuuU', 'uuuuuuuUuuuuuuuu'],
-    deck: ['OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo'],
+    sand: [['ssssssssssssssss', 'ssssSsssssssssss', 'ssssssssssssSsss', 'ssssssssssssssss', 'sSssssssssssssss', 'ssssssssSsssssss', 'ssssssssssssssss', 'ssssssssssssssSs', 'ssssssssssssssss', 'ssSsssssssssssss', 'ssssssssssSsssss', 'ssssssssssssssss', 'ssssssSsssssssss', 'ssssssssssssssss', 'sssSsssssssssSss', 'ssssssssssssssss'],
+      ['ssssssssssssssss', 'ssssssssssSSssss', 'sSsssssssssssszs', 'ssssssssssssssss', 'sssssszzssssssss', 'ssssssssssssssss', 'ssssssssssssSsss', 'ssSSssssssssssss', 'ssssssssssssssss', 'ssssssssssSsssss', 'ssssssssssssssss', 'sSsssssszsssssss', 'ssssssssssssssSS', 'ssssssssssssssss', 'sssssSssssssssss', 'ssssssssssssssss'],
+      ['ssssssssssssssss', 'ssssssssssssssss', 'ssssssssSsssssss', 'ssszzsssssssssss', 'sssssssssssscsss', 'ssssssssssscccss', 'sSssssssssssSsss', 'ssssssssssssssss', 'ssssssssssssssss', 'sssssssSSsssssss', 'ssssssssssssssss', 'sszssssssssssSss', 'ssssssssssssssss', 'ssssssssssssssss', 'ssssSsssssssssss', 'ssssssssssssssss']],
+    grass: [['LLLLLLLLLLLLLLLL', 'LLGLLLLLLLLGLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLGLLLLLLLL', 'LLLLLLLLLLLLLLGL', 'LGLLLLLLLLLLLLLL', 'LLLLLLLLLLGLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLGLLL', 'LLLGLLLLLLLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LGLLLLLLLLLLLGLL', 'LLLLLLLLLLLLLLLL'],
+      ['LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLGgGLLLLLLLLL', 'LLLLLGLLLLLLLxLL', 'LLLLLLLLLLLLxwxL', 'LLLLLLLLLLLLLxLL', 'LLLLLLLLLLLLLGLL', 'LLGLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLGgGLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL'],
+      ['LLLLLLLLLLLLLLLL', 'LLLLLLLLggLLLLLL', 'LLLLLLLgggLLLLLL', 'LLLLLLLLggLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLyLLLLLLLLLLLL', 'LLywyLLLLLLLLLLL', 'LLLyLLLLLLLLLLLL', 'LLLLLLLLLLLLLggL', 'LLLLLLLLLLLLggLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLGgGLLLLLLLLL', 'LLLLLGLLLLLLLLLL']],
+    paving: [['cccccccccccccccc', 'cccccccScccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccccccccccccccSc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccSccccccccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'cccccccccccScccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS']],
+    slab: [['zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzSzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzSzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzSzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzSzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS'],
+      ['zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzSzzzS', 'zzzzzzzzzzSzzzzS', 'zzzzzzzzzSzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zSzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS', 'sssssssssssssssS', 'sssssssssssssssS', 'sssssssSsssssssS', 'sssssssssssssssS', 'sssssssssssssssS', 'ssssssssssssSssS', 'sssssssssssssssS', 'SSSSSSSSSSSSSSSS'],
+      ['sssssssssssssssS', 'sssssssssssssssS', 'sssSsssssssssssS', 'sssssssssssssssS', 'sssssssssssssssS', 'sssssssssssSsssS', 'sssssssssssssssS', 'SSSSSSSSSSSSSSSS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzSzzzzzzzzzzzS', 'zzzzSzzzzzzzzzzS', 'zzzzzSzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS']],
+    gravel: [['uuuuuuuuuuuuuuuu', 'uuUuuuuuuuuUuuuu', 'uuuuuuuUuuuuuuuu', 'uuuuuuuuuuuuuuUu', 'uUuuuuuuuuuuuuuu', 'uuuuuuuuuuUuuuuu', 'uuuuuUuuuuuuuuuu', 'uuuuuuuuuuuuuUuu', 'uuuuuuuUuuuuuuuu', 'uuUuuuuuuuuuuuuu', 'uuuuuuuuuuuuUuuu', 'uuuuuuUuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuUuuuuuuUuuuuu', 'uuuuuuuuuuuuuuuU', 'uuuuuuuUuuuuuuuu'],
+      ['uuuuuuuuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuNNuuuuuuuuuu', 'uuuuNNuuuuuuUuuu', 'uuuuuuuuuuuuuuuu', 'uuUuuuuuuuuuuuuu', 'uuuuuuuuuuhuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuuuuuuuNNuu', 'uUuuuuuuuuuuNNuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuhuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuuuuuUuuuuu', 'uuuuuuuuuuuuuuuu'],
+      ['uuuuuuuuuuuuuuuu', 'uuuuuuuuhuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uUuuuuuuuuuuuhuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuUuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuhuuuuuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuuuuuUuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuuuuuuuuuhu', 'uuuuUuuuuuuuuuuu', 'uuuuuuuuuuuuuuuu', 'uuuuuuuuuuuuuuuu']],
+    hedge: [['gGggggGgggggGggg', 'gggggggggggggggg', 'ggLgggggggLggggg', 'gggggggggggggggg', 'ggggggGggggggggg', 'GgggggggggggggGg', 'gggggLgggggggggg', 'gggggggggggggggg', 'ggggggggggLggggg', 'gGgggggggggggggg', 'ggggggggggggGggg', 'GGGGGGGGGGGGGGGG', 'GGGGGGGGGGGGGGGG', 'GGGGGGGGGGGGGGGG', 'iiiiiiiiiiiiiiii', 'ssssssssssssssss']],
+    deck: [['OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'OOOOOOOOOOOOOOOO', 'oooooooooooooooo']],
   };
-  const tile = (name) => cached('tile|' + name, 16, 16, (g) => rows(g, TILE[name] || TILE.sand, 0, 0));
+  // a tile by name; v picks one of its variants (the ground is laid with (tx*7 + ty*3) so the pattern never repeats in a row)
+  const tile = (name, v) => { const vs = TILE[name] || TILE.sand; const i = ((v || 0) % vs.length + vs.length) % vs.length; return cached('tile|' + name + '|' + i, 16, 16, (g) => rows(g, vs[i], 0, 0)); };
+  const lay = (g, name, x0, y0, x1, y1) => { for (let ty = y0; ty < y1; ty += 16) for (let tx = x0; tx < x1; tx += 16) { const ix = Math.floor(tx / 16), iy = Math.floor(ty / 16); g.drawImage(tile(name, ix * 7 + iy * 3 + (ix * iy) % 5), tx, ty); } };
   // objects
   const TREE = ['......iiii......', '....iiGGGGii....', '...iGGgggGGGi...', '..iGgggLggggGi..', '..iGggggggggGi..', '.iGgggLgggggggGi', '.iGggggggggLggGi', '.iGGgggggggggGGi', '..iGGgggggggGGi.', '...iGGGgggGGGi..', '....iiGGGGii....', '......iooi......', '......iooi......', '......iooi......', '.....ioooi......', '.....iiii.......'];
   const LOUNGER = ['................', '..iiiiiiiiiiii..', '.ibwwbbwwbbwwbi.', '.ibwwbbwwbbwwbi.', '.ibwwbbwwbbwwbi.', '.iiiiiiiiiiiiii.', '..ibwwbbwwbbwbi.', '..ibwwbbwwbbwbi.', '..ibwwbbwwbbwbi.', '..ibwwbbwwbbwbi.', '..iiiiiiiiiiiii.', '...i.........i..', '...i.........i..', '................', '................', '................'];
   const POT = ['..iiii..', '.iLgLgi.', 'iGgLgGgi', '.iggGgi.', '..iiii..', '.iOOOOi.', '.iooooi.', '..iiii..'];
   const FENCE = ['.ii......ii.....', '.io......io.....', 'iiiiiiiiiiiiiiii', 'ioooooooooooooo', 'iiiiiiiiiiiiiiii', '.io......io.....', '.io......io.....', '.ii......ii.....'];
-  const PINE = ['.......ii.......', '......iGGi......', '.....iGLGGi.....', '.....iGGGGi.....', '....iGGLGGGi....', '...iGGGGGGGGi...', '....iGGGGGGi....', '...iGLGGGGGGi...', '..iGGGGGGLGGGi..', '.iGGGGGGGGGGGGi.', '...iGGGGGGGGi...', '..iGGLGGGGGGGi..', '.iGGGGGGGGGLGGi.', 'iGGGGGGGGGGGGGGi', 'iiiiiiiiiiiiiiii', '......iooi......', '......iooi......', '......iooi......', '.....ioooi......', '......iiii......'];
-  const pine = () => cached('pine', 16, 20, (gg) => rows(gg, PINE, 0, 0));
+  const PINE = ['.......ii.......', '......iGGi......', '......iGLi......', '.....iGGGGi.....', '.....iLGGGi.....', '....iGGGGGGi....', '.....iGGLGi.....', '....iGGGGGGi....', '...iGLGGGGGGi...', '....iGGGGGGi....', '...iGGGGLGGGi...', '..iGGGGGGGGGGi..', '...iGGLGGGGGi...', '..iGGGGGGGGGGi..', '.iGGGGGGGGGLGGi.', '..iiiGGGGGGiii..', '.....iGGGGi.....', '......iooi......', '......iooi......', '......iOoi......', '......iooi......', '......iOoi......', '......iooi......', '......iooi......', '.....iOooi......', '.....ioooi......', '.....iiiii......', '................', '................', '................', '................', '................'];
+  const pine = () => cached('pine', 16, 32, (gg) => rows(gg, PINE, 0, 0));
   // a villa (56×40): white walls, terracotta roof, blue shutters, a door and a step
   function villa(g, x, y) {
     px(g, C.i, x, y + 14, 56, 26); px(g, C.c, x + 1, y + 15, 54, 24); px(g, C.e, x + 1, y + 34, 54, 5);
@@ -188,29 +198,30 @@ const PixelArt = (() => {
     [[6, 18], [40, 18]].forEach(([wx, wy]) => { px(g, C.i, x + wx, y + wy, 12, 10); px(g, C.l, x + wx + 1, y + wy + 1, 10, 8); px(g, C.i, x + wx + 5, y + wy + 1, 2, 8); px(g, C.b, x + wx - 3, y + wy, 3, 10); px(g, C.b, x + wx + 12, y + wy, 3, 10); });
     px(g, C.i, x + 23, y + 20, 10, 20); px(g, C.o, x + 24, y + 21, 8, 18); px(g, C.y, x + 30, y + 30, 1, 1); px(g, C.i, x + 20, y + 39, 16, 1);   // door & step
   }
-  // the storage yard (256×192): gravel, a corrugated hangar with a roll-up gate and a door, a trailer in front; open when you are there
+  // the storage yard (256×192): gravel, a corrugated hangar with the roll-up gate on the right and a door on the left,
+  // a trailer seen from behind in front, the day crates by the gate; open when you are there
   function storage(g, at, n, t) {
     px(g, '#bfe3ff', 0, 0, 256, 100); px(g, '#d4ecff', 0, 60, 256, 40); [[20, 18], [150, 10], [210, 30], [90, 34]].forEach(([x, y]) => { px(g, C.w, x, y + 2, 18, 4); px(g, C.w, x + 4, y, 10, 2); });
-    for (let ty = 96; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('gravel'), tx, ty);
-    px(g, C.g, 0, 92, 256, 5); px(g, C.G, 0, 96, 256, 1); [[4, 76], [24, 72], [200, 74], [236, 78]].forEach(([x, y]) => g.drawImage(pine(), x, y));
+    lay(g, 'gravel', 0, 96, 256, 192);
+    px(g, C.g, 0, 92, 256, 5); px(g, C.G, 0, 96, 256, 1); [[4, 62], [22, 56], [206, 60], [232, 54]].forEach(([x, y]) => g.drawImage(pine(), x, y));
     // the hangar 40..200 × 36..108
     px(g, C.i, 40, 36, 160, 72); px(g, C.h, 41, 37, 158, 70); for (let rx = 45; rx < 199; rx += 6) px(g, C.n, rx, 37, 1, 70);
     px(g, C.i, 36, 30, 168, 8); px(g, C.N, 37, 31, 166, 6); px(g, C.n, 37, 31, 166, 1);                                            // roof
-    px(g, C.i, 58, 52, 64, 56);                                                                                                   // the gate frame
+    px(g, C.i, 120, 52, 64, 56);                                                                                                  // the gate frame
     if (at) {
-      px(g, C.N, 59, 53, 62, 54); px(g, C.n, 59, 53, 62, 8); for (let rx = 60; rx < 120; rx += 4) px(g, C.h, rx, 55, 2, 1);            // rolled up
-      [[70, 88], [70, 104]].forEach(([sy]) => px(g, C.o, 62, sy, 56, 2));
-      for (let i = 0; i < 6; i++) { const dx = 63 + i * 9, dy = 78; px(g, C.i, dx, dy, 7, 10); px(g, i % 2 ? C.w : C.l, dx + 1, dy + 1, 5, 8); px(g, i % 2 ? C.b : C.r, dx + 2, dy + 4, 3, 2); }   // drums of chemicals
-      for (let i = 0; i < 4; i++) { const dx = 64 + i * 8; px(g, C.O, dx, 92, 1, 12); px(g, C.h, dx - 1, 92, 3, 3); }               // brooms and poles
-      px(g, C.i, 98, 96, 12, 8); px(g, C.b, 99, 97, 10, 6); px(g, C.w, 101, 98, 2, 2); px(g, C.i, 99, 103, 3, 1); px(g, C.i, 106, 103, 3, 1);   // the robot
-    } else { px(g, C.n, 59, 53, 62, 54); for (let ry = 56; ry < 106; ry += 5) px(g, C.N, 59, ry, 62, 1); px(g, C.h, 59, 54, 62, 1); px(g, C.i, 86, 80, 8, 2); }   // slats, a handle
-    px(g, C.i, 140, 68, 18, 40); px(g, C.b, 141, 69, 16, 38); px(g, C.i, 145, 73, 8, 8); px(g, C.l, 146, 74, 6, 6); px(g, C.y, 153, 90, 2, 2);   // the door
-    px(g, C.i, 160, 46, 30, 12); px(g, C.b, 161, 47, 28, 10); for (let i = 0; i < 5; i++) px(g, C.w, 164 + i * 5, 51, 3, 2);            // the sign
-    // the trailer, 150..232 × 116..152
-    px(g, C.i, 150, 120, 78, 26); px(g, C.n, 151, 121, 76, 24); px(g, C.h, 151, 121, 76, 4); for (let rx = 156; rx < 226; rx += 8) px(g, C.N, rx, 126, 1, 18);
-    px(g, C.i, 232, 138, 22, 4); px(g, C.i, 250, 134, 4, 8);                                                                       // tow bar and hitch
-    [[160, 144], [206, 144]].forEach(([wx, wy]) => { px(g, C.i, wx, wy, 12, 12); px(g, C.N, wx + 2, wy + 2, 8, 8); px(g, C.h, wx + 5, wy + 5, 2, 2); });
-    for (let i = 0; i < Math.min(n || 0, 6); i++) { const cx = 14 + (i % 3) * 11, cy = 128 - Math.floor(i / 3) * 11; px(g, C.i, cx, cy, 11, 11); px(g, C.o, cx + 1, cy + 1, 9, 9); px(g, C.O, cx + 1, cy + 1, 9, 1); px(g, C.y, cx + 4, cy + 4, 3, 3); }   // the day crates
+      px(g, C.N, 121, 53, 62, 54); px(g, C.n, 121, 53, 62, 8); for (let rx = 122; rx < 182; rx += 4) px(g, C.h, rx, 55, 2, 1);          // rolled up
+      [[88], [104]].forEach(([sy]) => px(g, C.o, 124, sy, 56, 2));
+      for (let i = 0; i < 6; i++) { const dx = 125 + i * 9, dy = 78; px(g, C.i, dx, dy, 7, 10); px(g, i % 2 ? C.w : C.l, dx + 1, dy + 1, 5, 8); px(g, i % 2 ? C.b : C.r, dx + 2, dy + 4, 3, 2); }   // drums of chemicals
+      for (let i = 0; i < 4; i++) { const dx = 126 + i * 8; px(g, C.O, dx, 92, 1, 12); px(g, C.h, dx - 1, 92, 3, 3); }               // brooms and poles
+      px(g, C.i, 162, 96, 12, 8); px(g, C.b, 163, 97, 10, 6); px(g, C.w, 165, 98, 2, 2); px(g, C.i, 163, 103, 3, 1); px(g, C.i, 170, 103, 3, 1);   // the robot
+    } else { px(g, C.n, 121, 53, 62, 54); for (let ry = 56; ry < 106; ry += 5) px(g, C.N, 121, ry, 62, 1); px(g, C.h, 121, 54, 62, 1); px(g, C.i, 148, 80, 8, 2); }   // slats, a handle
+    px(g, C.i, 60, 68, 18, 40); px(g, C.b, 61, 69, 16, 38); px(g, C.i, 65, 73, 8, 8); px(g, C.l, 66, 74, 6, 6); px(g, C.y, 63, 90, 2, 2);        // the door
+    px(g, C.i, 84, 46, 30, 12); px(g, C.b, 85, 47, 28, 10); for (let i = 0; i < 5; i++) px(g, C.w, 88 + i * 5, 51, 3, 2);              // the sign
+    // the trailer from behind, 56..110 × 112..152: rear doors, tail lights, wheels either side
+    px(g, C.i, 62, 112, 44, 30); px(g, C.n, 63, 113, 42, 28); px(g, C.h, 63, 113, 42, 3); px(g, C.i, 83, 116, 2, 25); px(g, C.N, 66, 118, 1, 20); px(g, C.N, 101, 118, 1, 20);
+    px(g, C.h, 79, 128, 3, 2); px(g, C.h, 86, 128, 3, 2); px(g, C.r, 64, 136, 4, 3); px(g, C.r, 100, 136, 4, 3); px(g, C.w, 79, 136, 10, 4); px(g, C.i, 81, 138, 6, 1);   // latches, lights, plate
+    px(g, C.i, 56, 138, 8, 4); px(g, C.i, 104, 138, 8, 4); [[54, 140], [102, 140]].forEach(([wx, wy]) => { px(g, C.i, wx, wy, 12, 12); px(g, C.N, wx + 2, wy + 2, 8, 8); px(g, C.h, wx + 5, wy + 5, 2, 2); });
+    for (let i = 0; i < Math.min(n || 0, 6); i++) { const cx = 200 + (i % 3) * 11, cy = 128 - Math.floor(i / 3) * 11; px(g, C.i, cx, cy, 11, 11); px(g, C.o, cx + 1, cy + 1, 9, 9); px(g, C.O, cx + 1, cy + 1, 9, 1); px(g, C.y, cx + 4, cy + 4, 3, 3); }   // the day crates
   }
   // the blue maintenance shed (32×32): roof, wall with planks, door (open shows shelves), hose ring
   function shed(g, x, y, open, crates) {
@@ -227,18 +238,17 @@ const PixelArt = (() => {
   // opts: { state, sunk, dirt, t (seconds, for the ripples), pumpLate, creature (a 24×24 canvas swimming in the pool), seed }
   function courtyard(g, o) {
     o = o || {}; const t = o.t || 0;
-    for (let ty = 0; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('grass'), tx, ty);
-    for (let ty = 160; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('sand'), tx, ty);
+    lay(g, 'grass', 0, 0, 256, 192); lay(g, 'sand', 0, 160, 256, 192);
     px(g, C.q, 0, 0, 256, 12); px(g, C.Q, 0, 10, 256, 2); for (let i = 0; i < 14; i++) px(g, C.w, (i * 19 + Math.floor(t * 6)) % 256, 2 + (i % 4) * 2, 5, 1);
-    for (let ty = 40; ty < 160; ty += 16) for (let tx = 32; tx < 224; tx += 16) g.drawImage(tile('slab'), tx, ty);
+    lay(g, 'slab', 32, 40, 224, 160);
     px(g, C.S, 32, 40, 192, 1); px(g, C.S, 32, 40, 1, 120); px(g, C.i, 32, 159, 192, 1);
-    villa(g, 6, 2); [[74, 14], [96, 8], [122, 16], [150, 10], [178, 15], [236, 12], [240, 60], [2, 96]].forEach(([x, y]) => g.drawImage(pine(), x, y));
+    villa(g, 6, 2); [[74, 6], [98, 0], [124, 8], [152, 2], [180, 7], [236, 4], [240, 52], [2, 88], [238, 124]].forEach(([x, y]) => g.drawImage(pine(), x, y));
     shed(g, 222, 66, false, 0);
     const fence = cached('fence', 16, 8, (gg) => rows(gg, FENCE, 0, 0)); for (let tx = 0; tx < 256; tx += 16) g.drawImage(fence, tx, 184);
     const lounger = cached('lounger', 16, 16, (gg) => rows(gg, LOUNGER, 0, 0)); g.drawImage(lounger, 36, 66); g.drawImage(lounger, 36, 90);
     const pot = cached('pot', 8, 8, (gg) => rows(gg, POT, 0, 0)); [[36, 44], [212, 44], [212, 148], [36, 148], [8, 150], [244, 150]].forEach(([x, y]) => g.drawImage(pot, x, y));
     for (let i = 0; i < 10; i++) rows(g, ['.G.', 'GLG'], [8, 20, 236, 246, 14, 228, 4, 250, 12, 240][i], [120, 140, 100, 128, 168, 172, 176, 178, 60, 86][i]);
-    for (let ty = 56; ty < 136; ty += 16) for (let tx = 56; tx < 200; tx += 16) g.drawImage(tile('paving'), tx, ty);
+    lay(g, 'paving', 56, 56, 200, 136);
     px(g, C.S, 56, 56, 144, 1); px(g, C.S, 56, 135, 144, 1); px(g, C.S, 56, 56, 1, 80); px(g, C.S, 199, 56, 1, 80);
     const w = o.sunk ? WATER.sunk : WATER[o.state] || WATER.calme;
     px(g, C.i, 60, 60, 136, 72); px(g, w[0], 61, 61, 134, 70); px(g, w[2], 61, 122, 134, 9); px(g, w[1], 61, 61, 134, 3);
@@ -254,6 +264,6 @@ const PixelArt = (() => {
   const heroSets = (equip) => ({ head: equip['tête'] ? equip['tête'].res : null, body: equip.torse ? equip.torse.res : null, legs: equip.jambes ? equip.jambes.res : null, feet: equip.pieds ? equip.pieds.res : null, tool: equip.perche ? equip.perche.res : (equip.balai ? equip.balai.res : null), toolKind: equip.perche ? 'perche' : (equip.balai ? 'balai' : null) });
   const heroTrim = (equip) => { const t = {}; [['tête', 'head'], ['torse', 'body'], ['jambes', 'legs'], ['pieds', 'feet']].forEach(([sl, k]) => { if (equip[sl] && equip[sl].rar !== 'common') t[k] = RCOL[equip[sl].rar]; }); return t; };
 
-  return { C, ZONE, RCOL, WATER, px, rows, mir, trainer, creature, monster, MON, SPECIES, item, ITEM, crate, tile, TILE, shed, storage, villa, pine, courtyard, heroSets, heroTrim, TREE, PINE, LOUNGER, cached };
+  return { C, ZONE, RCOL, WATER, px, rows, mir, trainer, creature, monster, MON, SPECIES, item, ITEM, crate, tile, lay, TILE, shed, storage, villa, pine, courtyard, heroSets, heroTrim, TREE, PINE, LOUNGER, cached };
 })();
 window.PixelArt = PixelArt;

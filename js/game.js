@@ -303,7 +303,7 @@ const Game = (() => {
   }
   function drawDepot(ctx, t, sc, n, at) {
     PA.storage(ctx, at, n, t);
-    const g = load(); const to = at ? 78 : 8; const q = Math.min(1, t / 2.4); const hx = Math.round(8 + (to - 8) * q);
+    const g = load(); const to = at ? 140 : 8; const q = Math.min(1, t / 2.8); const hx = Math.round(8 + (to - 8) * q);
     drawAvatar(ctx, hx, 118, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0 });
   }
   function monsterBanner(render) {
