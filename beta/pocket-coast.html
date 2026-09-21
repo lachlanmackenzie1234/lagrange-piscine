@@ -38,7 +38,7 @@
 <div class="card"><div class="items" id="items"></div></div>
 
 <h2>5 · La cour</h2>
-<p>La scène 128×96 : l’océan à l’horizon, la haie de pins, le local bleu, le bassin à margelle crème, le transat, le skimmer sur la margelle proche, la pompe. Quatre états d’eau et la piscine sombrée.</p>
+<p>La scène 256×192 (le personnage y fait la moitié de ce qu’il faisait) : l’océan à l’horizon, la haie de pins, le local bleu, le bassin à margelle crème, le transat, le skimmer sur la margelle proche, la pompe. Quatre états d’eau et la piscine sombrée.</p>
 <div class="card"><div class="row" id="yards"></div></div>
 <div class="card"><div class="row" id="shed"></div></div>
 
@@ -66,8 +66,8 @@
   ['common', 'legend'].forEach((rar) => Object.keys(P.ZONE).forEach((z) => SLOTS.forEach((sl) => { const c = cv(16, 16, 2.5); c.getContext('2d').drawImage(P.item(sl, z, rar), 0, 0); c.title = sl + ' · ' + z + ' · ' + rar; IT.appendChild(c); })));
   // yards
   const Y = document.getElementById('yards');
-  [['calme', 0], ['traité', 0], ['sauvage', 2], ['critique', 3]].forEach(([st, dirt]) => { const c = cv(128, 96, 3); const g = c.getContext('2d'); P.courtyard(g, { state: st, dirt, t: 1.2, pumpLate: st === 'critique' }); P.trainer(g, 52, 58, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); if (st === 'sauvage') g.drawImage(P.monster('algue'), 50, 42); fig(Y, c, st + (dirt ? ' · saleté ' + dirt : '')); });
-  { const c = cv(128, 96, 3); const g = c.getContext('2d'); P.courtyard(g, { sunk: true, t: 0.4, pumpLate: true }); P.trainer(g, 52, 58, {}, av); fig(Y, c, 'sombrée'); }
+  [['calme', 0], ['traité', 0], ['sauvage', 2], ['critique', 3]].forEach(([st, dirt]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { state: st, dirt, t: 1.2, pumpLate: st === 'critique' }); P.trainer(g, 116, 140, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); if (st === 'sauvage') g.drawImage(P.monster('algue'), 100, 74); fig(Y, c, st + (dirt ? ' · saleté ' + dirt : '')); });
+  { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { sunk: true, t: 0.4, pumpLate: true }); P.trainer(g, 116, 140, {}, av); fig(Y, c, 'sombrée'); }
   const SH = document.getElementById('shed');
   { const c = cv(128, 64, 3); const g = c.getContext('2d'); P.px(g, '#bfe3ff', 0, 0, 128, 40); P.px(g, '#e9d59a', 0, 40, 128, 24); P.shed(g, 30, 8, true, 6); P.trainer(g, 8, 30, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); fig(SH, c, 'le dépôt : local ouvert, six caisses du jour'); }
 })();

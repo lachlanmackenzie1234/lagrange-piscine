@@ -3,7 +3,7 @@
  * Chunky square pixels, a 1-px ink outline on everything alive, flat fills
  * with one shade step, light from the top-left. Sizes are the game's pixel
  * budget: trainer 24×32, creatures 24×24, monsters 28×24, items 16×16,
- * tiles 16×16, stage 128×96. Sprites are row strings (one letter per pixel,
+ * tiles 16×16, stage 256×192. Sprites are row strings (one letter per pixel,
  * see C for the letters); symmetric ones give the left half only.
  */
 const PixelArt = (() => {
@@ -186,30 +186,30 @@ const PixelArt = (() => {
     for (let i = 0; i < Math.min(crates || 0, 6); i++) { const cx = x + 34 + (i % 3) * 9, cy = y + 24 - Math.floor(i / 3) * 9; px(g, C.i, cx, cy, 9, 9); px(g, C.o, cx + 1, cy + 1, 7, 7); px(g, C.O, cx + 1, cy + 1, 7, 1); px(g, C.y, cx + 3, cy + 3, 3, 3); }
   }
   const WATER = { calme: ['#4aa8ff', '#8ed4ff', '#2f7fd6'], 'traité': ['#39c9d6', '#9ff2f5', '#22a3b0'], sauvage: ['#5faa4a', '#a3d66e', '#3f7d2a'], critique: ['#35603a', '#4f8a4a', '#24422a'], sunk: ['#101828', '#1c2740', '#0a1020'] };
-  // the courtyard: sea at the horizon, pines, the shed top-right, the basin with cream coping, a lounger, a pot, the fence
+  // the courtyard (256×192): sea at the horizon, pines, the shed top-right, the basin with cream coping (48..208 × 44..140),
+  // a lounger, pots, the skimmer on the near coping, the pump by the shed, the fence along the bottom
   // opts: { state, sunk, dirt, t (seconds, for the ripples), pumpLate }
   function courtyard(g, o) {
     o = o || {}; const t = o.t || 0;
-    for (let ty = 0; ty < 96; ty += 16) for (let tx = 0; tx < 128; tx += 16) g.drawImage(tile('sand'), tx, ty);
-    px(g, C.q, 0, 0, 128, 8); px(g, C.Q, 0, 6, 128, 2); for (let i = 0; i < 8; i++) px(g, C.w, (i * 17 + Math.floor(t * 6)) % 128, 2 + (i % 3), 4, 1);
-    for (let tx = 0; tx < 128; tx += 16) g.drawImage(tile('hedge'), tx, 8);
-    g.drawImage(cached('tree', 16, 16, (gg) => rows(gg, TREE, 0, 0)), 2, 4); g.drawImage(cached('tree', 16, 16, () => {}), 60, 3); g.drawImage(cached('tree', 16, 16, () => {}), 78, 5);
-    shed(g, 94, 2, false, 0);
-    for (let tx = 0; tx < 128; tx += 16) g.drawImage(cached('fence', 16, 8, (gg) => rows(gg, FENCE, 0, 0)), tx, 88);
-    g.drawImage(cached('lounger', 16, 16, (gg) => rows(gg, LOUNGER, 0, 0)), 4, 34); g.drawImage(cached('pot', 8, 8, (gg) => rows(gg, POT, 0, 0)), 110, 40); g.drawImage(cached('pot', 8, 8, () => {}), 6, 58);
-    for (let i = 0; i < 6; i++) rows(g, ['.G.', 'GLG'], [8, 24, 116, 100, 14, 120][i], [72, 78, 52, 82, 28, 74][i]);
-    // the basin: coping 22..106 × 24..68, water inside
-    for (let ty = 24; ty < 68; ty += 16) for (let tx = 22; tx < 106; tx += 16) g.drawImage(tile('paving'), tx, ty);
-    px(g, C.s, 22, 68, 84, 4);
-    px(g, C.S, 22, 24, 84, 1); px(g, C.S, 22, 67, 84, 1); px(g, C.S, 22, 24, 1, 44); px(g, C.S, 105, 24, 1, 44);
+    for (let ty = 0; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('sand'), tx, ty);
+    px(g, C.q, 0, 0, 256, 12); px(g, C.Q, 0, 10, 256, 2); for (let i = 0; i < 14; i++) px(g, C.w, (i * 19 + Math.floor(t * 6)) % 256, 2 + (i % 4) * 2, 5, 1);
+    for (let tx = 0; tx < 256; tx += 16) g.drawImage(tile('hedge'), tx, 12);
+    const tree = cached('tree', 16, 16, (gg) => rows(gg, TREE, 0, 0)); [[4, 8], [40, 6], [70, 9], [110, 5], [150, 8], [180, 10]].forEach(([x, y]) => g.drawImage(tree, x, y));
+    shed(g, 214, 4, false, 0);
+    const fence = cached('fence', 16, 8, (gg) => rows(gg, FENCE, 0, 0)); for (let tx = 0; tx < 256; tx += 16) g.drawImage(fence, tx, 184);
+    const lounger = cached('lounger', 16, 16, (gg) => rows(gg, LOUNGER, 0, 0)); g.drawImage(lounger, 12, 64); g.drawImage(lounger, 12, 88);
+    const pot = cached('pot', 8, 8, (gg) => rows(gg, POT, 0, 0)); [[30, 44], [226, 150], [14, 150], [236, 60]].forEach(([x, y]) => g.drawImage(pot, x, y));
+    for (let i = 0; i < 14; i++) rows(g, ['.G.', 'GLG'], [8, 24, 232, 200, 14, 240, 120, 90, 60, 170, 210, 36, 246, 140][i], [150, 170, 100, 172, 40, 176, 160, 174, 36, 36, 90, 130, 130, 44][i]);
+    for (let ty = 44; ty < 140; ty += 16) for (let tx = 48; tx < 208; tx += 16) g.drawImage(tile('paving'), tx, ty);
+    px(g, C.S, 48, 44, 160, 1); px(g, C.S, 48, 139, 160, 1); px(g, C.S, 48, 44, 1, 96); px(g, C.S, 207, 44, 1, 96);
     const w = o.sunk ? WATER.sunk : WATER[o.state] || WATER.calme;
-    px(g, C.i, 27, 28, 74, 36); px(g, w[0], 28, 29, 72, 34); px(g, w[2], 28, 57, 72, 6); px(g, w[1], 28, 29, 72, 2);
-    for (let i = 0; i < 7; i++) px(g, w[1], 30 + ((i * 13 + Math.floor(t * 8)) % 66), 33 + (i * 7) % 26, 4, 1);
-    if (o.sunk) for (let i = 0; i < 6; i++) px(g, '#3a2a5a', 32 + ((i * 17 + Math.floor(t * 5)) % 60), 33 + ((i * 9 + Math.floor(t * 3)) % 26), 3, 2);
-    if (o.dirt) { let h = 7; for (let i = 0; i < o.dirt * 8; i++) { h = (h * 1103515245 + 12345) & 0x7fffffff; px(g, i % 3 ? C.A : C.O, 30 + (h % 66), 33 + ((h >> 8) % 26), 2, 1); } }
-    px(g, C.w, 32, 52, 2, 12); px(g, C.w, 38, 52, 2, 12); px(g, C.w, 32, 55, 8, 1); px(g, C.w, 32, 59, 8, 1);   // ladder
-    px(g, C.i, 82, 64, 14, 6); px(g, C.c, 83, 65, 12, 4); px(g, C.i, 85, 67, 8, 1);                                  // skimmer on the near coping
-    px(g, C.i, 106, 54, 12, 12); px(g, C.n, 107, 55, 10, 10); px(g, C.w, 109, 57, 6, 5); px(g, o.pumpLate ? C.r : C.g, 111, 59, 2, 2); px(g, C.i, 108, 63, 8, 1); // pump by the shed
+    px(g, C.i, 53, 48, 150, 84); px(g, w[0], 54, 49, 148, 82); px(g, w[2], 54, 121, 148, 10); px(g, w[1], 54, 49, 148, 3);
+    for (let i = 0; i < 12; i++) px(g, w[1], 58 + ((i * 23 + Math.floor(t * 8)) % 136), 56 + (i * 11) % 60, 6, 1);
+    if (o.sunk) for (let i = 0; i < 10; i++) px(g, '#3a2a5a', 60 + ((i * 29 + Math.floor(t * 5)) % 130), 56 + ((i * 13 + Math.floor(t * 3)) % 60), 4, 2);
+    if (o.dirt) { let h = 7; for (let i = 0; i < o.dirt * 16; i++) { h = (h * 1103515245 + 12345) & 0x7fffffff; px(g, i % 3 ? C.A : C.O, 58 + (h % 136), 56 + ((h >> 8) % 60), 2, 1); } }
+    px(g, C.w, 60, 114, 2, 20); px(g, C.w, 68, 114, 2, 20); px(g, C.w, 60, 118, 10, 1); px(g, C.w, 60, 124, 10, 1); px(g, C.w, 60, 130, 10, 1);   // ladder
+    px(g, C.i, 156, 134, 16, 7); px(g, C.c, 157, 135, 14, 5); px(g, C.i, 159, 138, 10, 1);                                                          // skimmer on the near coping
+    px(g, C.i, 214, 116, 14, 14); px(g, C.n, 215, 117, 12, 12); px(g, C.w, 217, 119, 8, 6); px(g, o.pumpLate ? C.r : C.g, 220, 121, 2, 2); px(g, C.i, 216, 126, 10, 1); // pump
   }
   // encounter backdrop for the fight (same courtyard, the basin bigger in frame)
   const heroSets = (equip) => ({ head: equip['tête'] ? equip['tête'].res : null, body: equip.torse ? equip.torse.res : null, legs: equip.jambes ? equip.jambes.res : null, feet: equip.pieds ? equip.pieds.res : null, tool: equip.perche ? equip.perche.res : (equip.balai ? equip.balai.res : null), toolKind: equip.perche ? 'perche' : (equip.balai ? 'balai' : null) });
