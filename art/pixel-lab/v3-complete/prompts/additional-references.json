@@ -1,0 +1,15 @@
+[
+  {
+    "id": "06-missing-bestiary",
+    "references": [
+      "art/pixel-lab/v3-pocket-coast/exports/04-creatures-monsters.png",
+      "screenshots/screens/pokemon.webp"
+    ]
+  },
+  {
+    "id": "07-resources-and-utilities",
+    "references": [
+      "art/pixel-lab/v3-pocket-coast/exports/05-equipment-icons.png"
+    ]
+  }
+]

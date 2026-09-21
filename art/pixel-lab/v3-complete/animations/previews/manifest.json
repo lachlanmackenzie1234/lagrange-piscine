@@ -1,0 +1,223 @@
+{
+  "previews": [
+    {
+      "file": "previews/walk-sets.gif",
+      "width": 592,
+      "height": 676,
+      "frames": 8,
+      "frameDurationsMs": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "durationMs": 880,
+      "loop": true
+    },
+    {
+      "file": "previews/full-set-auras.gif",
+      "width": 812,
+      "height": 240,
+      "frames": 8,
+      "frameDurationsMs": [
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140
+      ],
+      "durationMs": 1120,
+      "loop": true
+    },
+    {
+      "file": "previews/rarity-auras.gif",
+      "width": 968,
+      "height": 238,
+      "frames": 8,
+      "frameDurationsMs": [
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140
+      ],
+      "durationMs": 1120,
+      "loop": true
+    },
+    {
+      "file": "previews/aura-idle-rule.gif",
+      "width": 560,
+      "height": 286,
+      "frames": 24,
+      "frameDurationsMs": [
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130
+      ],
+      "durationMs": 3120,
+      "loop": true
+    },
+    {
+      "file": "previews/combat-actions.gif",
+      "width": 1000,
+      "height": 744,
+      "frames": 10,
+      "frameDurationsMs": [
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80
+      ],
+      "durationMs": 800,
+      "loop": true
+    },
+    {
+      "file": "previews/monster-motion.gif",
+      "width": 900,
+      "height": 393,
+      "frames": 25,
+      "frameDurationsMs": [
+        280,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140
+      ],
+      "durationMs": 3640,
+      "loop": true
+    },
+    {
+      "file": "previews/pool-creatures.gif",
+      "width": 892,
+      "height": 636,
+      "frames": 6,
+      "frameDurationsMs": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "durationMs": 900,
+      "loop": true
+    },
+    {
+      "file": "previews/loot.gif",
+      "width": 724,
+      "height": 392,
+      "frames": 14,
+      "frameDurationsMs": [
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        260,
+        260,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130
+      ],
+      "durationMs": 2080,
+      "loop": true
+    },
+    {
+      "file": "previews/pool-service.gif",
+      "width": 844,
+      "height": 251,
+      "frames": 8,
+      "frameDurationsMs": [
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130
+      ],
+      "durationMs": 1040,
+      "loop": true
+    },
+    {
+      "file": "previews/water-loops.gif",
+      "width": 564,
+      "height": 528,
+      "frames": 8,
+      "frameDurationsMs": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "durationMs": 1200,
+      "loop": true
+    }
+  ]
+}

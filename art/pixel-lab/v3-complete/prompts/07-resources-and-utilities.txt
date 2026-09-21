@@ -1,0 +1,31 @@
+Use case: stylized-concept.
+Asset: a support icon sheet completing the supplied Pocket Coast v3 equipment set.
+Input image 1 is the exact style reference: chunky handheld pixel-art shapes, dark slate outlines, restrained colours, broad simple highlights. Match the practical pool-maintenance materials and scale. No proprietary icons or game logos.
+Create a RAW TRANSPARENT PNG with EXACTLY TWENTY isolated inventory icons in FIVE COLUMNS and FOUR ROWS. Equal-sized cells, consistent scale, generous transparent gutters, every icon complete. Genuine alpha background, no painted checkerboard or solid background. No text, letters, numbers, UI slots, grids, frames, labels or captions. No ground shadows.
+Each icon should be legible when reduced to a 16x16 logical-pixel canvas: bold silhouettes, 1 logical pixel outline, 2-3 tones per material, a few square highlights. No tiny textures, gradients or smooth vector curves.
+EXACT ROW/COLUMN order:
+ROW 1:
+1 dried green algae sprig tied in a small bundle;
+2 tiny ochre powder mound beside a folded mustard-yellow paper packet;
+3 two curled amber fallen leaves;
+4 small tied bundle of dark-green pine needles;
+5 one angular cream limestone scale/chip.
+ROW 2:
+1 single pale-lavender mosquito wing;
+2 small round rusty pressure gauge with cream dial and one red pointer;
+3 small open tan pouch with a little sand spilling;
+4 one polished brown acorn with a dark cap;
+5 cream-and-coral sunscreen tube with a blue cap and a simple sun symbol, no writing.
+ROW 3:
+1 one closed wooden loot crate with a large silver clasp and two metal straps;
+2 small cream shock-treatment bottle with cobalt cap and a simple yellow spark;
+3 small cream pH treatment bottle with coral cap and a simple coral droplet;
+4 pale-cyan flocculant sachet with a white water-drop emblem;
+5 two thick curved blue water arrows forming a backwash loop.
+ROW 4:
+1 one chunky gold coin with a simple square glint;
+2 a blue four-point XP sparkle with a small gold centre;
+3 a simple bright-red health heart;
+4 a clear cobalt action-point gem;
+5 a small green movement boot with one cream stripe.
+Row 1 and 2 are crafting resources, row 3 contains a crate and four spell icons, row 4 is rewards and status. Preserve exact order; no extras or duplicates. Format requested 1536x1228. Raw twenty-icon alpha sheet only.
