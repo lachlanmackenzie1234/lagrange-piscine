@@ -87,7 +87,57 @@ const Game = (() => {
     const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'q-avatar'; img.alt = ''; return img;
   }
   const SLOTS = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
-  const PIECE = { 'tête': 'Casquette', 'torse': 'Veste', 'jambes': 'Short', 'pieds': 'Bottes', 'amulette': 'Amulette', 'perche': 'Perche', 'robot': 'Robot', 'balai': 'Balai' };
+  // The catalogue. One panoplie per zone (the creature's line decides which
+  // set its crates hold), six rarities each, eight pieces: 240 items with a
+  // name and a line of flavour. Rarity is the epithet; the set is the wardrobe.
+  const ZSETS = {
+    EC: { n: 'Pool Boy', aura: '#2f4fdf', legend: 'du Pool Boy Éternel', epic: 'du Grand Skimmer', base: {
+      'tête': ['Casquette', 'f', 'vissée à l’envers depuis 2019.'], 'torse': ['Polo', 'm', 'col relevé, taches de chlore portées en médailles.'], 'jambes': ['Short cargo', 'm', 'douze poches, aucune ne ferme.'],
+      'pieds': ['Crocs', 'fp', 'mode sport enclenché, toujours.'], 'amulette': ['Sifflet', 'm', 'personne n’a jamais su pourquoi.'], 'perche': ['Perche télescopique', 'f', 'bloquée à 3,80 m depuis juin.'],
+      'robot': ['Robot Dolphin', 'm', 'il connaît le bassin mieux que toi.'], 'balai': ['Balai de fond', 'm', 'les poils penchent à gauche, comme son propriétaire.'] } },
+    AG: { n: 'Surfeur des dunes', aura: '#2aa845', legend: 'de la Vague Parfaite', epic: 'de l’Océan', base: {
+      'tête': ['Bob', 'm', 'délavé par trois étés de Lacanau.'], 'torse': ['Combinaison 3/2', 'f', 'sent la marée basse, même sèche.'], 'jambes': ['Boardshort', 'm', 'le cordon a rendu l’âme, pas lui.'],
+      'pieds': ['Chaussons néoprène', 'mp', 'sable garanti dans chaque orteil.'], 'amulette': ['Dent de requin', 'f', 'authentique, dit le vendeur de la plage.'], 'perche': ['Perche en bambou', 'f', 'coupée dans la dune, plie sans rompre.'],
+      'robot': ['Robot Longboard', 'm', 'glisse plus qu’il n’aspire.'], 'balai': ['Balai wax', 'm', 'laisse une trace brillante, bizarrement.'] } },
+    EP: { n: 'Jardinier du golf', aura: '#e39b12', legend: 'du Green Impeccable', epic: 'du Golfeur Fantôme', base: {
+      'tête': ['Chapeau de paille', 'm', 'un trou pile au-dessus de l’œil droit.'], 'torse': ['Gilet à poches', 'm', 'gants, tees, un sachet de floc oublié.'], 'jambes': ['Pantalon kaki', 'm', 'genoux verts à vie.'],
+      'pieds': ['Bottes de jardin', 'fp', 'boueuses à l’intérieur, mystère.'], 'amulette': ['Trèfle à quatre feuilles', 'm', 'plastifié, donc éternel.'], 'perche': ['Râteau-perche', 'm', 'ramasse feuilles ET balles perdues.'],
+      'robot': ['Robot tondeuse égaré', 'm', 'a pris le bassin pour un fairway.'], 'balai': ['Balai brosse', 'm', 'coupe l’algue au ras du gazon.'] } },
+    EPP: { n: 'Locataire', aura: '#7b3fc4', legend: 'du Locataire de la Semaine 33', epic: 'de la Caution Récupérée', base: {
+      'tête': ['Lunettes de soleil', 'fp', 'oubliées sur le transat, adoptées.'], 'torse': ['Marcel', 'm', 'blanc à l’origine.'], 'jambes': ['Slip de bain', 'm', 'le fameux. On ne pose pas de questions.'],
+      'pieds': ['Tongs', 'fp', 'échouées au skimmer, dépareillées.'], 'amulette': ['Bracelet all-inclusive', 'm', 'expiré depuis samedi, toujours porté.'], 'perche': ['Épuisette à crevettes', 'f', 'inefficace, mais quelle allure.'],
+      'robot': ['Robot gonflable', 'm', 'flotte. C’est tout.'], 'balai': ['Balai du placard', 'm', 'emprunté, jamais rendu.'] } },
+    GP: { n: 'Gardien du Green', aura: '#1f9e8a', legend: 'du Dernier Gardien', epic: 'des Clés Perdues', base: {
+      'tête': ['Visière', 'f', 'protège du soleil et des regards.'], 'torse': ['Coupe-vent', 'm', 'fait du bruit à chaque pas, on te sait là.'], 'jambes': ['Jogging', 'm', 'les poches sont pleines de galets, littéralement.'],
+      'pieds': ['Baskets', 'fp', 'lacées une fois, pour toujours.'], 'amulette': ['Clé du local', 'f', 'ouvre tout, sauf le local.'], 'perche': ['Perche du gardien', 'f', 'sert aussi à pointer.'],
+      'robot': ['Robot de garde', 'm', 'surveille la piscine la nuit, parle à personne.'], 'balai': ['Balai de ronde', 'm', 'un tour, pas deux.'] } },
+  };
+  const EPI = { common: { m: 'échoué', f: 'échouée', mp: 'échoués', fp: 'échouées' }, uncommon: { m: 'dépareillé', f: 'dépareillée', mp: 'dépareillés', fp: 'dépareillées' }, rare: 'de compétition', vrare: 'de la marée haute' };
+  const RLINE = { common: 'Ça fait le boulot. Parfois.', uncommon: 'Il en manque une partie, mais laquelle ?', rare: 'Vu une fois sur un vrai pro.', vrare: 'Remonté par la marée haute, sec en une heure.', epic: 'On en parle encore au dépôt.', legend: 'Une légende à Lacanau. Personne ne l’a jamais vu deux fois.' };
+  // affixes: what a piece does for the trainer, rolled at opening
+  const AFFIX = { xp: 'XP', gold: 'pièces', drop: 'caisses', luck: 'chance' };
+  const RANGE = { common: [3, 8], uncommon: [5, 12], rare: [8, 18], vrare: [12, 24], epic: [18, 30], legend: [25, 35] };
+  const NAFF = { common: 1, uncommon: 1, rare: 2, vrare: 2, epic: 3, legend: 3 };
+  const SELL = { common: 2, uncommon: 6, rare: 15, vrare: 50, epic: 200, legend: 1000 };
+  function makeItem(res, slot, rar, from) {
+    const set = ZSETS[res] || ZSETS.EC; const [base, gender, flavour] = set.base[slot];
+    const e = EPI[rar]; const epi = rar === 'legend' ? set.legend : rar === 'epic' ? set.epic : (typeof e === 'string' ? e : e[gender] || e.m);
+    const keys = Object.keys(AFFIX).sort(() => Math.random() - 0.5).slice(0, NAFF[rar]);
+    const [lo, hi] = RANGE[rar];
+    const affixes = keys.map((k) => ({ k, v: lo + Math.floor(Math.random() * (hi - lo + 1)) }));
+    // one piece in six from Peu commun up is cursed: one bonus doubled, another stat halved
+    let cursed = false;
+    if (rar !== 'common' && Math.random() < 1 / 6) { cursed = true; affixes[0].v *= 2; const other = Object.keys(AFFIX).filter((k) => !keys.includes(k))[0] || keys[keys.length - 1]; affixes.push({ k: other, v: -Math.round(affixes[0].v / 2) }); }
+    return { id: 'it-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), res: set === ZSETS[res] ? res : 'EC', slot, rar, name: `${base} ${epi}`, desc: `${flavour} ${RLINE[rar]}`, affixes, cursed, from, at: new Date().toISOString() };
+  }
+  const setName = (res) => (ZSETS[res] || ZSETS.EC).n;
+  // everything worn, summed: item affixes + set bonuses (2 / 4 / 6 / 8 pieces of one zone)
+  function bonuses() {
+    const g = load(); const b = { xp: 0, gold: 0, drop: 0, luck: 0, aura: null, sets: {} };
+    Object.values(g.equip).forEach((it) => { (it.affixes || []).forEach((a) => { b[a.k] += a.v; }); b.sets[it.res] = (b.sets[it.res] || 0) + 1; });
+    Object.entries(b.sets).forEach(([res, n]) => { if (n >= 2) b.xp += 5; if (n >= 4) b.gold += 10; if (n >= 6) b.drop += 10; if (n >= 8) { b.aura = res; b.xp += 25; b.gold += 25; b.drop += 25; b.luck += 25; } });
+    return b;
+  }
   const GLYPH = { 'tête': ['..####..', '.######.', '########', '#.####.#', '........', '........', '........', '........'],
     'torse': ['#.####.#', '########', '.######.', '.######.', '.######.', '.##..##.', '........', '........'],
     'jambes': ['.######.', '.######.', '.##..##.', '.##..##.', '.##..##.', '........', '........', '........'],
@@ -98,7 +148,6 @@ const Game = (() => {
     'balai': ['......##', '.....##.', '....##..', '...##...', '.####...', '#####...', '####....', '........'] };
   const RAR = [['common', 'Commun', .20], ['uncommon', 'Peu commun', .10], ['rare', 'Rare', .05], ['vrare', 'Très rare', .01], ['epic', 'Épique', .001], ['legend', 'Légendaire', .0001]];
   const RCOL = { common: '#6b7a87', uncommon: '#2aa845', rare: '#2f4fdf', vrare: '#7b3fc4', epic: '#e39b12', legend: '#d82f2f' };
-  const SETS = { common: "de l'Écumeur", uncommon: 'du Skimmer', rare: 'de la Marée', vrare: "de l'Électrolyseur", epic: 'des Dunes', legend: 'du Trident de Lacanau' };
   const rarName = (k) => (RAR.find((x) => x[0] === k) || RAR[0])[1];
   function glyph(slot, rar, cls) {
     const rows = GLYPH[slot] || GLYPH['amulette']; const c = document.createElement('canvas'); c.width = 8; c.height = 8; const g = c.getContext('2d');
@@ -129,7 +178,16 @@ const Game = (() => {
     const humeur = daysSince(lastVisit);
     const s = state(last, humeur, V, vol);
     const H = hp(s, filtre);
-    return { p, id: p.id, name: `${p.res} ${p.unit}`, line: lineOf(p), level: lvl, vol, last, humeur, faim, filtre, interval, sable, s, hp: H, wild: humeur > 5 || H < 60 };
+    // the state is a gradient of time: the last chlorine dose fades at the
+    // product's own pace (stick ~4 d, galet ~3 d, choc ~1.5 d), the visit
+    // ages, the filter overruns — the wilder it gets, the more it's worth
+    const lastCl = V.find((v) => v.type === 'treatment' && CL[v.productId]);
+    const life = lastCl ? ({ 'hth-stick': 4, 'hth-galet': 3, 'hypomen-pro': 1.5 })[lastCl.productId] : 3;
+    const fade = lastCl ? daysSince(lastCl.at) / life : 3;
+    const wild = Math.max(fade, humeur / 4, filtre / Math.max(interval, 1) / 1.5, (100 - H) / 30);
+    const st = wild < 0.8 ? 'calme' : wild < 1.3 ? 'agitée' : wild < 2.2 ? 'sauvage' : 'critique';
+    const mult = { calme: 1, agitée: 1.3, sauvage: 2, critique: 3 }[st];
+    return { p, id: p.id, name: `${p.res} ${p.unit}`, line: lineOf(p), level: lvl, vol, last, humeur, faim, filtre, interval, sable, s, hp: H, lastCl, fade, state: st, mult, wild: st === 'sauvage' || st === 'critique' };
   }
   function state(last, humeur, V, vol) {
     const d = Math.min(14, last ? daysSince(last.at) : 7);
@@ -170,13 +228,17 @@ const Game = (() => {
     g.fights++;
     let out = { pool: `${p.res} ${p.unit}`, n, xp: 0, coins: 0, crate: null };
     if (n) {
-      const c = creature(p);
-      out.xp = 8 + c.level + n * 2; out.coins = 3 + Math.floor(Math.random() * 6) + n * 2;
+      const c = creature(p); const b = bonuses();
+      out.state = c.state; out.mult = c.mult;
+      out.xp = Math.round((8 + c.level + n * 2) * c.mult * (1 + b.xp / 100));
+      out.coins = Math.round((3 + Math.floor(Math.random() * 6) + n * 2) * (1 + b.gold / 100));
       g.xp += out.xp; g.coins += out.coins; g.wins++; g.calmed[p.id] = new Date().toISOString();
-      const r = Math.random(); let acc = 0, tier = null;
-      for (let i = RAR.length - 1; i >= 0; i--) { acc += RAR[i][2]; if (r < acc) { tier = RAR[i][0]; break; } }
+      const r = Math.random() / (1 + b.drop / 100); let acc = 0, ti = -1;
+      for (let i = RAR.length - 1; i >= 0; i--) { acc += RAR[i][2]; if (r < acc) { ti = i; break; } }
+      if (ti >= 0 && ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++;
+      const tier = ti >= 0 ? RAR[ti][0] : null;
       if (tier) {
-        const crate = { id: 'cr-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), crate: true, rar: tier, from: out.pool, acts, at: new Date().toISOString() };
+        const crate = { id: 'cr-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), crate: true, rar: tier, res: p.res, from: out.pool, acts, at: new Date().toISOString() };
         if (g.bag.length < bagSize()) { g.bag.push(crate); out.crate = crate; } else out.crate = { lost: true, rar: tier };
       }
     }
@@ -188,12 +250,53 @@ const Game = (() => {
     const a = cr.acts || { chem: 0, clean: 0, filt: 0, mes: 0 };
     const pool = [].concat(Array(1 + a.mes * 3).fill('tête'), Array(1 + a.chem * 2).fill('amulette'), Array(1 + a.chem).fill('torse'), Array(1 + a.clean * 2).fill('balai'), Array(1 + a.clean).fill('pieds'), Array(1 + a.clean).fill('jambes'), Array(1 + a.filt * 2).fill('perche'), Array(1 + a.filt + a.clean).fill('robot'));
     const slot = pool[Math.floor(Math.random() * pool.length)];
-    // a crate opens at its own rarity, one tier better one time in ten
-    let ri = RAR.findIndex((x) => x[0] === cr.rar); if (Math.random() < 0.1 && ri < RAR.length - 1) ri++;
-    const rar = RAR[ri][0];
-    const it = { id: 'it-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), slot, rar, name: `${PIECE[slot]} ${SETS[rar]}`, from: cr.from, at: new Date().toISOString() };
+    // a crate opens at its own rarity, one tier better one time in ten (+ luck)
+    let ri = RAR.findIndex((x) => x[0] === cr.rar); if (Math.random() < 0.1 + bonuses().luck / 100 && ri < RAR.length - 1) ri++;
+    const res = cr.res || Object.keys(ZSETS)[Math.floor(Math.random() * 5)];
+    const it = makeItem(res, slot, RAR[ri][0], cr.from);
     g.bag[i] = it; g.coins += 1; save();
     return it;
+  }
+  // pre-catalogue items (v0.80) get a wardrobe and affixes on first load
+  function migrateItems() {
+    const g = load(); let changed = false;
+    const fix = (it) => { if (it && !it.crate && !it.affixes) { const n = makeItem(it.res || Object.keys(ZSETS)[Math.floor(Math.random() * 5)], it.slot, it.rar, it.from); Object.assign(it, n, { id: it.id }); changed = true; } };
+    g.bag.forEach(fix); Object.values(g.equip).forEach(fix);
+    if (changed) save();
+  }
+  // ---------------------------------------------------------------- the dépôt: the only place that buys
+  const depot = () => (Store.residences() || []).find((r) => r.poi && r.lat != null);
+  function distanceM(a, b) { const R = 6371000, toR = (x) => x * Math.PI / 180; const dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng); const h = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.sin(dLng / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
+  let depotState = { at: false, dist: null, checked: false, err: null };
+  function checkDepot(cb) {
+    const d = depot();
+    if (!d || !navigator.geolocation) { depotState = { at: false, dist: null, checked: true, err: 'nogps' }; cb(); return; }
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const dist = distanceM({ lat: pos.coords.latitude, lng: pos.coords.longitude }, d);
+      depotState = { at: dist <= 250, dist, checked: true, err: null }; cb();
+    }, () => { depotState = { at: false, dist: null, checked: true, err: 'denied' }; cb(); }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+  }
+  function sell(i) { const g = load(); const it = g.bag[i]; if (!it || it.crate || !depotState.at) return 0; const price = SELL[it.rar] || 1; g.bag.splice(i, 1); g.coins += price; save(); return price; }
+  // small bottom sheet (the app's classes, so the Pixel frames apply)
+  function sheet(title, nodes) {
+    const back = el('<div class="sheet-back"></div>'); const sh = el('<div class="sheet"></div>');
+    sh.appendChild(el(`<h3>${esc(title)}</h3>`)); nodes.filter(Boolean).forEach((n) => sh.appendChild(n)); back.appendChild(sh);
+    back.addEventListener('click', (e) => { if (e.target === back) back.remove(); }); document.body.appendChild(back); return back;
+  }
+  function itemSheet(it, i, render) {
+    const g = load(); const nodes = [];
+    const head = el(`<div class="q-item-head"></div>`); head.appendChild(glyph(it.slot, it.rar, 'q-glyph big'));
+    head.appendChild(el(`<div><b style="color:${RCOL[it.rar]}">${esc(it.name)}</b><div class="q-hint">${esc(rarName(it.rar))} · ${esc(it.slot)} · panoplie ${esc(setName(it.res))}${it.cursed ? ' · <span style="color:var(--high)">maudit</span>' : ''}</div><div class="q-hint">${esc(it.from ? 'tombé de ' + it.from : '')}</div></div>`));
+    nodes.push(head);
+    nodes.push(el(`<p class="q-desc">${esc(it.desc || '')}</p>`));
+    const aff = el('<div class="q-aff"></div>'); (it.affixes || []).forEach((a) => aff.appendChild(el(`<span class="${a.v < 0 ? 'neg' : ''}">${a.v > 0 ? '+' : ''}${a.v} % ${esc(AFFIX[a.k])}</span>`))); nodes.push(aff);
+    if (i != null) {
+      const eq = el(`<button class="sheet-item">${esc('Équiper')}</button>`); eq.addEventListener('click', () => { const prev = g.equip[it.slot]; g.equip[it.slot] = it; g.bag.splice(i, 1); if (prev) g.bag.push(prev); save(); back.remove(); render(); }); nodes.push(eq);
+      const sl = el(`<button class="sheet-item${depotState.at ? '' : ' dis'}">${depotState.at ? 'Vendre · ' + SELL[it.rar] + ' pièces' : 'Vendre — au dépôt seulement'}</button>`); if (depotState.at) sl.addEventListener('click', () => { sell(i); back.remove(); render(); }); nodes.push(sl);
+    } else {
+      const un = el('<button class="sheet-item">Ranger dans le sac</button>'); un.addEventListener('click', () => { if (g.bag.length < bagSize()) { g.bag.push(it); delete g.equip[it.slot]; save(); back.remove(); render(); } }); nodes.push(un);
+    }
+    const back = sheet(it.slot, nodes);
   }
 
   // ---------------------------------------------------------------- UI: pool section (the encounter card)
@@ -202,9 +305,9 @@ const Game = (() => {
     enter(p.id);
     const c = creature(p); const g = load(); const acts = kindsFor(p.id, g.enc ? g.enc.since : new Date().toISOString()); const n = acts.chem + acts.clean + acts.filt + acts.mes;
     const box = el(`<div class="q-card">
-      <div class="q-head"><div class="q-grow"><b>${esc(c.name)}</b> <span class="q-tag">${esc(c.line.n)}</span><span class="q-tag">Nv ${c.level}</span>${c.wild ? '<span class="q-tag wild">sauvage</span>' : (g.calmed[p.id] && daysSince(g.calmed[p.id]) < 5 ? '<span class="q-tag calm">apaisée</span>' : '')}
+      <div class="q-head"><div class="q-grow"><b>${esc(c.name)}</b> <span class="q-tag">${esc(c.line.n)}</span><span class="q-tag">Nv ${c.level}</span><span class="q-tag st-${c.state}">${c.state}${c.mult > 1 ? ' · XP ×' + c.mult : ''}</span>
         <div class="q-hp ${c.hp < 40 ? 'low' : c.hp < 75 ? 'mid' : ''}"><i style="width:${c.hp}%"></i></div>
-        <div class="q-hint">PV ${c.hp}/100 · ${n ? n + ' geste' + (n > 1 ? 's' : '') + ' ce passage' : 'aucun geste encore — chaque saisie compte'}</div></div>
+        <div class="q-hint">PV ${c.hp}/100 · ${c.lastCl ? 'dernier chlore il y a ' + daysSince(c.lastCl.at).toFixed(0) + ' j (' + (c.fade > 1 ? 'épuisé' : 'encore actif') + ')' : 'jamais dosé'} · ${n ? n + ' geste' + (n > 1 ? 's' : '') + ' ce passage' : 'aucun geste — chaque saisie compte'}</div></div>
       </div>
       <div class="q-stats">
         ${bar('Faim', c.faim, 40, c.faim.toFixed(0) + ' g/m³/sem')}
@@ -220,7 +323,7 @@ const Game = (() => {
   // toast after an encounter settles (shown on the next page)
   function toast() {
     const g = load(); const o = g.pending; if (!o) return; g.pending = null; save();
-    const parts = o.n ? [`${o.pool} apaisée`, `+${o.xp} XP`, `+${o.coins} pièces`] : [`${o.pool} reste sauvage — rien de saisi`];
+    const parts = o.n ? [`${o.pool} apaisée${o.mult > 1 ? ' (' + o.state + ' ×' + o.mult + ')' : ''}`, `+${o.xp} XP`, `+${o.coins} pièces`] : [`${o.pool} reste sauvage — rien de saisi`];
     if (o.crate) parts.push(o.crate.lost ? `caisse ${rarName(o.crate.rar).toLowerCase()} perdue (sac plein)` : `caisse ${rarName(o.crate.rar).toLowerCase()} !`);
     const tst = el(`<div class="q-toast ${o.n ? 'win' : ''}"><b>${o.n ? '★' : '…'}</b> ${esc(parts.join(' · '))}</div>`);
     document.body.appendChild(tst);
@@ -247,26 +350,29 @@ const Game = (() => {
     cs.forEach((c) => {
       const card = el(`<a class="q-crea${c.wild ? ' wild' : ''}" href="#/pool/${c.id}"></a>`);
       card.appendChild(sprite(c.p));
-      card.appendChild(el(`<div><b>${esc(c.name)}</b><small>Nv ${c.level} · ${esc(c.line.n)}</small>${c.wild ? '<small class="q-wild">sauvage</small>' : g.calmed[c.id] ? '<small class="q-calm">apaisée</small>' : '<small>&nbsp;</small>'}</div>`));
+      card.appendChild(el(`<div><b>${esc(c.name)}</b><small>Nv ${c.level} · ${esc(c.line.n)}</small><small class="q-st st-${c.state}">${c.state}${c.mult > 1 ? ' ×' + c.mult : ''}</small></div>`));
       grid.appendChild(card);
     });
     wrap.appendChild(grid);
   }
   function viewBag(wrap, render) {
-    const g = load();
-    const eq = el('<div class="q-card"><b>Équipement</b><div class="q-equip"></div></div>');
+    const g = load(); migrateItems(); const b = bonuses();
+    const eq = el(`<div class="q-card${b.aura ? ' aura' : ''}" ${b.aura ? `style="--aura:${ZSETS[b.aura].aura}"` : ''}><div class="q-head"><b class="q-grow">Équipement</b><span class="q-hint">${b.aura ? 'Aura ' + esc(setName(b.aura)) : ''}</span></div><div class="q-equip"></div>
+      <div class="q-bon">${['xp', 'gold', 'drop', 'luck'].map((k) => `<span class="${b[k] < 0 ? 'neg' : b[k] > 0 ? 'pos' : ''}">${b[k] > 0 ? '+' : ''}${b[k]} % ${esc(AFFIX[k])}</span>`).join('')}</div></div>`);
     SLOTS.forEach((sl) => {
       const it = g.equip[sl];
       const d = el(`<div class="q-slot${it ? '' : ' empty'}"><span>${sl}</span></div>`);
-      if (it) { d.insertBefore(glyph(it.slot, it.rar), d.firstChild); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = it.name;
-        d.addEventListener('click', () => { if (g.bag.length < bagSize()) { g.bag.push(it); delete g.equip[sl]; save(); render(); } }); }
+      if (it) { d.insertBefore(glyph(it.slot, it.rar), d.firstChild); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = it.name; d.addEventListener('click', () => itemSheet(it, null, render)); }
       eq.querySelector('.q-equip').appendChild(d);
     });
     wrap.appendChild(eq);
-    const counts = {}; Object.values(g.equip).forEach((it) => { counts[it.rar] = (counts[it.rar] || 0) + 1; });
-    const sets = el('<div class="q-card"><b>Panoplies</b><div class="q-sets"></div></div>');
-    RAR.forEach(([k, n, rate]) => sets.querySelector('.q-sets').appendChild(el(`<div><span style="color:${RCOL[k]}">${n}</span><br>${counts[k] || 0} / 8 portées<br><small class="q-hint">${(rate * 100).toFixed(2).replace('.', ',')} % par passage</small></div>`)));
+    const sets = el('<div class="q-card"><b>Panoplies</b><div class="q-hint">2 pièces : +5 % XP · 4 : +10 % pièces · 6 : +10 % caisses · 8 : aura, +25 % à tout</div><div class="q-sets"></div></div>');
+    Object.entries(ZSETS).forEach(([res, z]) => sets.querySelector('.q-sets').appendChild(el(`<div><span style="color:${z.aura}">${esc(z.n)}</span> <small class="q-hint">${res}</small><br>${b.sets[res] || 0} / 8 portées</div>`)));
     wrap.appendChild(sets);
+    // the dépôt buys — only when you're there
+    const dp = el(`<div class="q-card q-depot"><div class="q-head"><div class="q-grow"><b>Dépôt</b><div class="q-hint" id="q-dep-txt">${depotState.checked ? (depotState.at ? 'Tu es au dépôt — vente ouverte' : depotState.err === 'denied' ? 'Position refusée — la vente attend au dépôt' : depotState.err ? 'Pas de GPS ici' : 'À ' + (depotState.dist >= 1000 ? (depotState.dist / 1000).toFixed(1) + ' km' : Math.round(depotState.dist) + ' m') + ' du dépôt — reviens pour vendre') : 'La vente n’est possible qu’au dépôt produits'}</div></div><button type="button" class="btn q-up">Je suis là ?</button></div></div>`);
+    dp.querySelector('button').addEventListener('click', () => { dp.querySelector('#q-dep-txt').textContent = 'Position…'; checkDepot(render); });
+    wrap.appendChild(dp);
     const size = bagSize(); const cost = upgradeCost();
     const bag = el(`<div class="q-card"><div class="q-head"><b>Sac</b> <span class="q-hint">${g.bag.length} / ${size}</span><span class="q-grow"></span>${g.bagTier < BAG_SIZES.length - 1 ? `<button type="button" class="btn q-up${g.coins >= cost ? '' : ' dis'}">+${BAG_SIZES[g.bagTier + 1] - size} places · ${cost} pièces</button>` : ''}</div><div class="q-slots"></div></div>`);
     const up = bag.querySelector('.q-up'); if (up) up.addEventListener('click', () => { if (g.coins >= cost) { g.coins -= cost; g.bagTier++; save(); render(); } });
@@ -276,16 +382,16 @@ const Game = (() => {
       if (it && it.crate) { d.appendChild(crateGlyph(it.rar)); d.appendChild(el('<span>caisse</span>')); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = `Caisse ${rarName(it.rar).toLowerCase()} · ${it.from}`;
         d.addEventListener('click', () => { const got = openCrate(i); if (got) { render(); const tst = el(`<div class="q-toast win show"><b>📦</b> ${esc(got.name)} · ${esc(rarName(got.rar))} · +1 pièce</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500); } }); }
       else if (it) { d.appendChild(glyph(it.slot, it.rar)); d.appendChild(el(`<span>${esc(it.slot)}</span>`)); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = `${it.name} · ${it.from}`;
-        d.addEventListener('click', () => { const prev = g.equip[it.slot]; g.equip[it.slot] = it; g.bag.splice(i, 1); if (prev) g.bag.push(prev); save(); render(); }); }
+        d.addEventListener('click', () => itemSheet(it, i, render)); }
       bag.querySelector('.q-slots').appendChild(d);
     }
     wrap.appendChild(bag);
-    wrap.appendChild(el('<p class="q-hint">Une caisse tombe après un passage où quelque chose a été saisi ; tape-la pour l\'ouvrir. Tape un objet pour l\'équiper, une pièce portée pour la ranger. Le sac grandit avec les pièces : 8 · 16 · 32 · 64 · 128.</p>'));
+    wrap.appendChild(el('<p class="q-hint">Une caisse tombe après un passage où quelque chose a été saisi ; tape-la pour l\'ouvrir — elle contient une pièce de la panoplie de sa zone. Tape un objet pour le voir, l\'équiper ou le vendre au dépôt. Le sac grandit avec les pièces : 8 · 16 · 32 · 64 · 128.</p>'));
   }
   function viewMe(wrap, render) {
     const g = load(); const a = g.avatar;
     const card = el(`<div class="q-card"><div class="q-head"><div class="q-grow"><b style="font-size:1.2rem">${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hint">${g.xp} XP · ${g.coins} pièces · ${g.wins} apaisées / ${g.fights} passages</div></div></div></div>`);
-    card.querySelector('.q-head').appendChild(avatar(a));
+    const av = avatar(a); const bb = bonuses(); if (bb.aura) { av.classList.add('aura'); av.style.setProperty('--aura', ZSETS[bb.aura].aura); } card.querySelector('.q-head').appendChild(av);
     wrap.appendChild(card);
     // avatar settings
     const set = el('<div class="q-card"><b>Personnage</b><div class="q-opts"></div></div>');
@@ -319,6 +425,6 @@ const Game = (() => {
   }
   window.addEventListener('pagehide', () => { if (load().enc) settle(); });
 
-  return { poolSection, view, onRoute, settle, creature, sprite, get state() { return load(); } };
+  return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, get state() { return load(); } };
 })();
 window.Game = Game;
