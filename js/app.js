@@ -68,7 +68,7 @@
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.97'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.98'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -194,8 +194,8 @@
     '': viewPools, 'today': viewToday, 'pools': viewPools, 'pool': viewPool,
     'map': viewMap, 'weather': viewWeather, 'log': viewLog, 'settings': viewSettings, 'bilan': viewBilan, 'quest': viewQuest,
   };
-  function viewQuest() {
-    if (window.Game && Theme.pixel()) return Game.view(render);
+  function viewQuest(page) {
+    if (window.Game && Theme.pixel()) return Game.view(render, page);
     const w = document.createElement('div'); w.appendChild(header(t('tab_quest'))); w.appendChild(emptyNote(t('quest_pixel_only'))); return w;
   }
 

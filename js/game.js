@@ -541,7 +541,7 @@ const Game = (() => {
       showMapMenu(sc, 'Dépôt', [{ label: 'Atelier', next: true, id: 'depot-craft', run: () => depotMenu(sc, 'craft') }, { label: 'Récompenses', next: true, id: 'depot-rewards', run: () => depotMenu(sc, 'rewards') }, { label: 'Vendre un objet', next: true, id: 'depot-sale', run: () => depotMenu(sc, 'sale') }, { label: 'Mon équipement', next: true, id: 'depot-bag', run: () => depotMenu(sc, 'bag') }], point); return;
     }
     if (kind === 'bag') {
-      closeMapMenu(sc); const card = document.querySelector('.q-equip')?.closest('.q-card'); card?.scrollIntoView({ behavior: Motion.reduced() ? 'instant' : 'smooth', block: 'start' }); return;
+      closeMapMenu(sc, false); location.hash = '#/quest/bag'; return;
     }
     if (!depotState.at) {
       showMapMenu(sc, 'Dépôt', [{ node: el('<p class="q-hint q-map-note">Rends-toi au dépôt pour récupérer, fabriquer ou vendre.</p>') }, { label: 'Vérifier ma position', id: 'depot-check', run: () => control('[data-depot-check]') }], point, root); return;
@@ -820,16 +820,17 @@ const Game = (() => {
     setTimeout(() => tst.classList.add('show'), 20); setTimeout(() => { tst.classList.remove('show'); setTimeout(() => tst.remove(), 400); }, 4200);
   }
 
-  // ---------------------------------------------------------------- UI: Quête tab (créatures · sac · dresseur)
-  let sub = 'dex';
-  function view(render) {
+  // ---------------------------------------------------------------- UI: Quête pages
+  const QUEST_PAGES = [['depot', 'Dépôt'], ['best', 'Bestiaire'], ['bag', 'Sac'], ['me', 'Dresseur']];
+  const questPage = key => QUEST_PAGES.some(([id]) => id === key) ? key : 'depot';
+  function view(render, page) {
+    const sub = questPage(page);
     const g = load();
-    const wrap = document.createElement('div');
+    const wrap = document.createElement('div'); wrap.dataset.questPage = sub;
     wrap.appendChild(el(`<div class="page-head"><h1>Quête</h1><p class="sub">Nv ${level()} · ${g.xp} XP · ${g.coins} pièces · ${g.wins} apaisées</p></div>`));
-    const seg = el(`<div class="q-seg">${[['dex', 'Créatures'], ['best', 'Bestiaire'], ['bag', 'Sac'], ['me', 'Dresseur']].map(([k, l]) => `<button type="button" data-k="${k}" class="${sub === k ? 'on' : ''}">${l}</button>`).join('')}</div>`);
-    seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { sub = b.dataset.k; render(); }));
+    const seg = el(`<nav class="q-seg" aria-label="Pages de Quête">${QUEST_PAGES.map(([k, l]) => `<a href="#/quest/${k}" data-k="${k}" class="${sub === k ? 'on' : ''}"${sub === k ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`);
     wrap.appendChild(seg);
-    ({ dex: viewDex, best: viewBest, bag: viewBag, me: viewMe })[sub](wrap, render);
+    ({ depot: viewDepot, best: viewBest, bag: viewBag, me: viewMe })[sub](wrap, render);
     return wrap;
   }
   function viewBest(wrap) {
@@ -840,19 +841,6 @@ const Game = (() => {
       card.querySelector('.q-head').appendChild(monsterSprite(id));
       wrap.appendChild(card);
     });
-  }
-  function viewDex(wrap) {
-    const g = load();
-    const cs = maintained().map(creature).sort((a, b) => b.level - a.level);
-    wrap.appendChild(el(`<p class="q-hint">${cs.filter((c) => c.wild).length} sauvages sur ${cs.length} · ouvrir une piscine = la rencontrer</p>`));
-    const grid = el('<div class="q-grid"></div>');
-    cs.forEach((c) => {
-      const card = el(`<a class="q-crea${c.wild ? ' wild' : ''}" href="#/pool/${c.id}"></a>`);
-      card.appendChild(sprite(c.p));
-      card.appendChild(el(`<div><b>${esc(c.name)}</b><small>Nv ${c.level} · ${esc(c.line.n)}</small><small class="q-st st-${c.state}">${c.state}${c.mult > 1 ? ' ×' + c.mult : ''}</small></div>`));
-      grid.appendChild(card);
-    });
-    wrap.appendChild(grid);
   }
   function viewBag(wrap, render) {
     const g = load(); migrateItems(); const b = bonuses();
@@ -872,6 +860,25 @@ const Game = (() => {
     const resEntries = Object.entries(g.res || {}).filter(([, n]) => n > 0);
     const rc = el(`<div class="q-card"><b>Ressources</b> <span class="q-hint">${resEntries.reduce((a, [, n]) => a + n, 0)} au total</span><div class="q-res">${resEntries.length ? resEntries.map(([k, n]) => `<span><i style="background:${RESCOL[k]}"></i>${n} × ${esc(RES[k])}</span>`).join('') : '<span class="q-hint">Vaincs un monstre : il laisse toujours quelque chose.</span>'}</div></div>`);
     wrap.appendChild(rc);
+
+    const size = bagSize(); const cost = upgradeCost();
+    const bag = el(`<div class="q-card"><div class="q-head"><b>Sac</b> <span class="q-hint">${g.bag.length} / ${size}</span><span class="q-grow"></span>${g.bagTier < BAG_SIZES.length - 1 ? `<button type="button" class="btn q-up${g.coins >= cost ? '' : ' dis'}">+${BAG_SIZES[g.bagTier + 1] - size} places · ${cost} pièces</button>` : ''}</div><div class="q-slots"></div></div>`);
+    const up = bag.querySelector('.q-up'); if (up) up.addEventListener('click', () => { if (g.coins >= cost) { g.coins -= cost; g.bagTier++; save(); render(); } });
+    for (let i = 0; i < size; i++) {
+      const it = g.bag[i];
+      const d = el(`<div class="q-slot${it ? '' : ' empty'}"></div>`);
+      if (it && it.crate) { d.appendChild(crateGlyph(it.rar)); d.appendChild(el('<span>caisse</span>')); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = `Caisse ${rarName(it.rar).toLowerCase()} · ${it.from}`;
+        d.addEventListener('click', () => { const got = openCrate(i); if (got) { render(); const tst = el(`<div class="q-toast win show"><b>📦</b> ${esc(got.name)} · ${esc(rarName(got.rar))} · +1 pièce</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500); } }); }
+      else if (it) { d.appendChild(glyph(it.slot, it.rar, null, it.res)); d.appendChild(el(`<span>${esc(it.slot)}</span>`)); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = `${it.name} · ${it.from}`;
+        d.addEventListener('click', () => itemSheet(it, i, render)); }
+      bag.querySelector('.q-slots').appendChild(d);
+    }
+    wrap.appendChild(bag);
+    wrap.appendChild(el('<p class="q-hint">Une caisse tombe après un passage où quelque chose a été saisi ; tape-la pour l\'ouvrir — elle contient une pièce de la panoplie de sa zone. Tape un objet pour le voir, l\'équiper ou le vendre au dépôt. Le sac grandit avec les pièces : 8 · 16 · 32 · 64 · 128.</p>'));
+  }
+  function viewDepot(wrap, render) {
+    const g = load(); migrateItems();
+    const resEntries = Object.entries(g.res || {}).filter(([, n]) => n > 0);
     // the dépôt buys and crafts — only when you're there
     const dp = el(`<div class="q-card q-depot"><div class="q-head"><div class="q-grow"><b>Dépôt</b><div class="q-hint" id="q-dep-txt">${depotState.checked ? (depotState.at ? 'Tu es au dépôt — vente ouverte' : depotState.err === 'denied' ? 'Position refusée — la vente attend au dépôt' : depotState.err ? 'Pas de GPS ici' : 'À ' + (depotState.dist >= 1000 ? (depotState.dist / 1000).toFixed(1) + ' km' : Math.round(depotState.dist) + ' m') + ' du dépôt — reviens pour vendre') : 'La vente n’est possible qu’au dépôt produits'}</div></div><button type="button" class="btn q-up" data-depot-check>Je suis là ?</button></div></div>`);
     dp.querySelector('button').addEventListener('click', () => { dp.querySelector('#q-dep-txt').textContent = 'Position…'; checkDepot(render); });
@@ -905,20 +912,6 @@ const Game = (() => {
       dp.appendChild(cf);
     }
     wrap.appendChild(dp);
-    const size = bagSize(); const cost = upgradeCost();
-    const bag = el(`<div class="q-card"><div class="q-head"><b>Sac</b> <span class="q-hint">${g.bag.length} / ${size}</span><span class="q-grow"></span>${g.bagTier < BAG_SIZES.length - 1 ? `<button type="button" class="btn q-up${g.coins >= cost ? '' : ' dis'}">+${BAG_SIZES[g.bagTier + 1] - size} places · ${cost} pièces</button>` : ''}</div><div class="q-slots"></div></div>`);
-    const up = bag.querySelector('.q-up'); if (up) up.addEventListener('click', () => { if (g.coins >= cost) { g.coins -= cost; g.bagTier++; save(); render(); } });
-    for (let i = 0; i < size; i++) {
-      const it = g.bag[i];
-      const d = el(`<div class="q-slot${it ? '' : ' empty'}"></div>`);
-      if (it && it.crate) { d.appendChild(crateGlyph(it.rar)); d.appendChild(el('<span>caisse</span>')); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = `Caisse ${rarName(it.rar).toLowerCase()} · ${it.from}`;
-        d.addEventListener('click', () => { const got = openCrate(i); if (got) { render(); const tst = el(`<div class="q-toast win show"><b>📦</b> ${esc(got.name)} · ${esc(rarName(got.rar))} · +1 pièce</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500); } }); }
-      else if (it) { d.appendChild(glyph(it.slot, it.rar, null, it.res)); d.appendChild(el(`<span>${esc(it.slot)}</span>`)); d.appendChild(el(`<span class="q-rr" style="background:${RCOL[it.rar]}"></span>`)); d.title = `${it.name} · ${it.from}`;
-        d.addEventListener('click', () => itemSheet(it, i, render)); }
-      bag.querySelector('.q-slots').appendChild(d);
-    }
-    wrap.appendChild(bag);
-    wrap.appendChild(el('<p class="q-hint">Une caisse tombe après un passage où quelque chose a été saisi ; tape-la pour l\'ouvrir — elle contient une pièce de la panoplie de sa zone. Tape un objet pour le voir, l\'équiper ou le vendre au dépôt. Le sac grandit avec les pièces : 8 · 16 · 32 · 64 · 128.</p>'));
   }
   function viewMe(wrap, render) {
     const g = load(); const a = g.avatar;
@@ -954,7 +947,7 @@ const Game = (() => {
     const g = load();
     if (B && !(name === 'pool' && g.enc && poolId === g.enc.poolId)) abandon();
     if (poolStage && (name !== 'pool' || poolStage.poolId !== poolId || document.documentElement.dataset.style !== 'pixel')) { poolStage.dispose(); poolStage = null; }
-    if (depotStage && (name !== 'quest' || sub !== 'bag' || document.documentElement.dataset.style !== 'pixel')) { depotStage.dispose(); depotStage = null; }
+    if (depotStage && (name !== 'quest' || questPage(poolId) !== 'depot' || document.documentElement.dataset.style !== 'pixel')) { depotStage.dispose(); depotStage = null; }
     if (g.enc && !(name === 'pool' && poolId === g.enc.poolId)) settle();
     if (name !== 'pool') setTimeout(toast, 50);
   }

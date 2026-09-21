@@ -7,7 +7,7 @@ pixels and binary transparency. The seven pages and manifest total 266,911 bytes
 and include 168 clips/scenes.
 
 The live map uses monster idle/spawn clips, idle rarity and full-set auras,
-animated water, and service effects. All 23 pool creatures and the bestiary have
+animated water, and service effects. Pool status cards and the bestiary have
 animated portraits. Combat plays tool/spell effects, monster
 attacks/hits/defeat and keeper cast/hit/flee/victory/defeat motion. Extra event
 and loot clips are included for subsequent reward screens.
@@ -26,6 +26,9 @@ provides its floor collision and interaction anchors. Menus lead to the existing
 workshop, reward and sale rules; the real depot location check still gates those
 transactions. Walking and menu drafts survive ordinary page re-renders. Partial
 reward collections are recorded per day so a full bag does not discard crates.
+The depot is the default Quête page (`#/quest/depot`), alongside Bestiaire, Sac
+and Dresseur. These pages have their own URLs and support refresh/back navigation.
+The depot's lockers open Sac; pool navigation remains in Aperçu and Piscines.
 
 ## Rebuild
 

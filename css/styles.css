@@ -762,13 +762,10 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-bar { height: 8px; border: 2px solid var(--ink); background: var(--na-bg); } .q-bar i { display: block; height: 100%; background: var(--brand); }
 .q-v { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; font-size: .8rem; }
 .q-seg { display: flex; gap: 8px; margin: 0 0 14px; }
-.q-seg button { flex: 1; font: inherit; font-size: .9rem; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); padding: 8px; cursor: pointer; }
-.q-seg button.on { background: var(--brand-dark); color: #fff; }
-.q-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.q-crea { background: var(--card); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); padding: 8px 4px; text-align: center; font-size: .8rem; color: var(--ink); text-decoration: none; }
-.q-crea .q-sprite { width: 48px; height: 48px; margin: 0 auto 4px; display: block; }
-.q-crea.wild { border-color: var(--high); }
-.q-crea small { display: block; color: var(--muted); font-size: .7rem; } .q-crea .q-wild { color: var(--high); } .q-crea .q-calm, .q-calm { color: var(--ok); }
+.q-seg a { flex: 1; min-width: 0; font: inherit; font-size: .9rem; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); padding: 8px 4px; text-align: center; text-decoration: none; }
+.q-seg a.on { background: var(--brand-dark); color: #fff; }
+.q-seg a:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+.q-calm { color: var(--ok); }
 .q-equip, .q-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
 .q-slot { aspect-ratio: 1; border: 3px solid var(--ink); background: var(--na-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: .64rem; padding: 3px; cursor: pointer; position: relative; overflow: hidden; }
 .q-slot.empty { opacity: .5; cursor: default; }
@@ -827,7 +824,7 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-map-menu .q-craftrow select { min-width: 0; width: 100%; font-size: 16px; }
 .q-map-menu .q-craft { border: 0; margin: 0; padding: 5px; }
 .q-map-note { padding: 5px 8px; }
-@media (max-width: 360px) { .q-seg { flex-wrap: wrap; } .q-seg button { flex-basis: calc(50% - 8px); } }
+@media (max-width: 360px) { .q-seg { flex-wrap: wrap; } .q-seg a { flex-basis: calc(50% - 8px); } }
 .q-map-menu-head { position: sticky; top: 0; display: flex; align-items: center; gap: 6px; background: var(--brand-dark); color: #fff; border-bottom: 2px solid var(--ink); padding-left: 8px; z-index: 1; min-height: 32px; }
 .q-map-menu-head > span { flex: 1; font-size: 13px; }
 .q-map-close { background: transparent; border: 0; color: #fff; width: 32px; min-height: 30px; font: 20px/1 var(--font); cursor: pointer; }
