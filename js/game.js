@@ -523,7 +523,8 @@ const Game = (() => {
     const from = (g.rewardFrom || '') > weekAgo ? g.rewardFrom : weekAgo; const days = {}; const D = Store.load();
     const add = (r) => { if (r.deleted) return; const d = day(r.at); if (d >= from && d < today) { days[d] = days[d] || new Set(); days[d].add(r.poolId); } };
     D.visits.forEach(add); D.readings.forEach(add);
-    return Object.entries(days).filter(([, s]) => s.size >= 4).map(([d, s]) => ({ d, n: s.size, crates: s.size >= 12 ? 2 : 1 })).sort((a, b) => (a.d < b.d ? -1 : 1));
+    // a bigger day leaves a better crate: 8 pools → at least peu commun, 12 → at least rare (and two crates)
+    return Object.entries(days).filter(([, s]) => s.size >= 4).map(([d, s]) => ({ d, n: s.size, crates: s.size >= 12 ? 2 : 1, floor: s.size >= 12 ? 2 : s.size >= 8 ? 1 : 0 })).sort((a, b) => (a.d < b.d ? -1 : 1));
   }
   function claimRewards() {
     const g = load(); if (!depotState.at) return []; const got = []; const b = bonuses();
@@ -532,6 +533,7 @@ const Game = (() => {
       if (g.bag.length >= bagSize()) return;
       const r = Math.random() / (0.7 + 0.6 * avg / 100) / (1 + b.drop / 100); let acc = 0, ti = 0;
       for (let k = RAR.length - 1; k >= 1; k--) { acc += RAR[k][2]; if (r < acc) { ti = k; break; } }
+      ti = Math.max(ti, dd.floor || 0);
       const crate = { id: 'cr-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), crate: true, rar: RAR[ti][0], res: Object.keys(ZSETS)[Math.floor(Math.random() * 5)], from: 'dépôt · ' + dd.d, acts: { chem: 1, clean: 1, filt: 1, mes: 1 }, at: new Date().toISOString() };
       g.bag.push(crate); got.push(crate);
     } });
@@ -682,7 +684,7 @@ const Game = (() => {
     dp.querySelector('button').addEventListener('click', () => { dp.querySelector('#q-dep-txt').textContent = 'Position…'; checkDepot(render); });
     const rd = rewardDays(); const nCr = rd.reduce((a, d) => a + d.crates, 0);
     dp.appendChild(stage((ctx, t, sc) => drawDepot(ctx, t, sc, nCr, depotState.at)).c);
-    const rw = el(`<div class="q-craft"><div class="q-head"><div class="q-grow"><b>Récompenses</b><div class="q-hint">${nCr ? nCr + ' caisse' + (nCr > 1 ? 's' : '') + ' — ' + rd.map((d) => d.d.slice(5) + ' : ' + d.n + ' piscines').join(' · ') : 'Une journée à 4 piscines ou plus laisse une caisse ici (deux dès 12). Le dépôt en garde une semaine.'}</div></div>${nCr ? `<button type="button" class="btn q-up${depotState.at ? '' : ' dis'}">Récupérer</button>` : ''}</div></div>`);
+    const rw = el(`<div class="q-craft"><div class="q-head"><div class="q-grow"><b>Récompenses</b><div class="q-hint">${nCr ? nCr + ' caisse' + (nCr > 1 ? 's' : '') + ' — ' + rd.map((d) => d.d.slice(5) + ' : ' + d.n + ' piscines' + (d.floor ? ' (' + rarName(RAR[d.floor][0]).toLowerCase() + ' min.)' : '')).join(' · ') : 'Une journée à 4 piscines ou plus laisse une caisse ici : peu commun dès 8 piscines, rare et deux caisses dès 12. Le dépôt en garde une semaine.'}</div></div>${nCr ? `<button type="button" class="btn q-up${depotState.at ? '' : ' dis'}">Récupérer</button>` : ''}</div></div>`);
     const rb = rw.querySelector('button'); if (rb && depotState.at) rb.addEventListener('click', () => { const got = claimRewards(); render(); if (got.length) { const tst = el(`<div class="q-toast win show"><b>📦</b> ${got.length} caisse${got.length > 1 ? 's' : ''} : ${esc(got.map((x) => rarName(x.rar).toLowerCase()).join(', '))}</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500); } });
     dp.appendChild(rw);
     if (depotState.at) {
