@@ -61,7 +61,7 @@
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.81'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.82'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -1230,7 +1230,7 @@
     }
 
     // Pixel: the pool page is the encounter — the creature card reads the log live
-    if (pool && window.Game && Theme.pixel()) wrap.appendChild(Game.poolSection(p));
+    if (pool && window.Game && Theme.pixel()) wrap.appendChild(Game.poolSection(p, render));
     if (p.note) wrap.appendChild(el(`<p class="pool-note">ℹ︎ ${esc(p.note)}</p>`));
     if (pool) {
       const lastV = Store.lastService(p.id);

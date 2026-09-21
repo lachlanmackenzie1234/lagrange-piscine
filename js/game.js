@@ -161,6 +161,118 @@ const Game = (() => {
     const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'q-glyph'; img.alt = ''; return img;
   }
 
+  // ---------------------------------------------------------------- bestiary: what haunts a neglected pool
+  // Each monster is a real pool problem. It spawns from the pool's actual
+  // condition (low chlorine breeds Algue, high pH grows Calcaire…), and the
+  // move that hurts it most is the real remedy. The fight itself is game-only.
+  const MON = {
+    algue: { n: 'Algue verte', el: 'Algue', pal: ['#b5f27a', '#2aa845', '#124d2a'], hp: 60, when: (c) => (c.s.cl < 1 ? 3 : 0) + (c.fade > 1 ? 2 : 0), weak: { choc: 2.2, balai: 1.4, robot: 1.2, phm: .6, floc: .8, perche: .6 },
+      atk: [['BLOOM', 9, 'le bassin verdit à vue d’œil'], ['PAROI GLUANTE', 6, 'le fond glisse sous tes bottes']], desc: 'Naît d’un chlore qui a rendu l’âme. Vert le matin, olive le soir, propriétaire de la piscine dès le troisième jour.' },
+    feuilles: { n: 'Nuée de feuilles', el: 'Air', pal: ['#f2c14e', '#e39b12', '#8a4a1e'], hp: 45, when: (c) => c.s.dirt * 1.5, weak: { perche: 2.2, balai: 1.6, robot: 1.5, choc: .5, phm: .4, floc: .7 },
+      atk: [['TOURBILLON', 7, 'les paniers se remplissent en une rafale'], ['DÉPÔT', 5, 'une couche de plus au fond']], desc: 'Les pins de Lacanau ne perdent jamais leurs aiguilles, sauf dans les skimmers. Elle revient chaque vent d’ouest.' },
+    calcaire: { n: 'Calcaire', el: 'Terre', pal: ['#f4efe0', '#c9c0a8', '#7a7a90'], hp: 70, when: (c) => (c.s.ph > 7.7 ? 3 : 0) + (c.s.ph > 8 ? 2 : 0), weak: { phm: 2.4, balai: 1.3, robot: 1.1, choc: .5, perche: .6, floc: .6 },
+      atk: [['CROÛTE', 8, 'la ligne d’eau blanchit'], ['pH+', 6, 'l’eau vire au basique, doucement, sûrement']], desc: 'Un pH qui monte et ne redescend pas. Il s’installe sur la ligne d’eau et considère que c’est chez lui.' },
+    moustique: { n: 'Moustique-tigre', el: 'Air', pal: ['#c9b6e8', '#7b3fc4', '#20203a'], hp: 35, when: (c) => (c.filtre > c.interval * 1.5 ? 3 : 0) + (c.humeur > 5 ? 1 : 0), weak: { robot: 2.0, floc: 1.6, choc: 1.3, perche: .8, balai: .8, phm: .5 },
+      atk: [['PIQÛRE', 10, 'trois sur la cheville, une sur la nuque'], ['LARVES', 5, 'l’eau stagnante lui plaît beaucoup']], desc: 'Adore une filtration en retard et une eau qui ne bouge plus. Repart dès que la pompe reprend son souffle.' },
+    sable: { n: 'Golem de sable', el: 'Terre', pal: ['#e9d59a', '#c9a55a', '#8a4a1e'], hp: 80, when: (c) => (c.sable != null && c.sable > 3 ? 3 : 0) + (c.s.dirt >= 2 ? 1 : 0), weak: { robot: 2.0, balai: 1.8, floc: 1.4, perche: .9, choc: .4, phm: .4 },
+      atk: [['VENT DE DUNE', 8, 'le fond se couvre d’une pellicule fine'], ['FILTRE COLMATÉ', 7, 'la pression grimpe, le débit tombe']], desc: 'Le vieux sable du filtre qui rêve de redevenir dune. Un lavage l’assomme, un sable neuf l’exile.' },
+    locataire: { n: 'Locataire nocturne', el: 'Feu', pal: ['#ffb3a7', '#d82f2f', '#5a1a1a'], hp: 55, when: (c) => (c.humeur > 4 ? 2 : 0) + (c.s.cl < 0.6 ? 2 : 0), weak: { choc: 1.8, floc: 1.5, phm: 1.2, perche: .9, balai: .9, robot: .8 },
+      atk: [['BAIGNADE DE 14 H', 12, 'douze personnes, une bouée licorne, zéro douche'], ['CRÈME SOLAIRE', 6, 'un film gras sur toute la surface']], desc: 'On ne le voit jamais, on ne voit que ses traces : le chlore plonge, l’eau mousse, la bouée reste.' },
+  };
+  const SPAWN = { calme: .06, agitée: .22, sauvage: .48, critique: .78 };
+  function spawn(c) {
+    const g = load(); const e = g.enc; if (!e || e.monster !== undefined) return;
+    e.monster = null;
+    if (Math.random() < SPAWN[c.state]) {
+      const w = Object.entries(MON).map(([k, m]) => [k, 0.3 + m.when(c)]); const tot = w.reduce((a, x) => a + x[1], 0);
+      let r = Math.random() * tot, id = w[0][0]; for (const [k, v] of w) { r -= v; if (r <= 0) { id = k; break; } }
+      const lvl = Math.max(1, Math.round(c.level * (0.6 + Math.random() * 0.8) * c.mult / 1.5));
+      const hp = Math.round(MON[id].hp * (1 + lvl / 25));
+      e.monster = { id, lvl, hp, maxHp: hp, pool: c.name };
+      g.bestiary = g.bestiary || {}; g.bestiary[id] = g.bestiary[id] || { seen: 0, beaten: 0 }; g.bestiary[id].seen++;
+    }
+    save();
+  }
+  const monCache = new Map();
+  function monsterSprite(id) {
+    if (!monCache.has(id)) {
+      const m = MON[id]; const r = rng(hash('mon-' + id)); const W = 14, H = 12, half = 7; const cells = [];
+      for (let y = 0; y < H; y++) { cells[y] = []; for (let x = 0; x < half; x++) { const cy = (y - 5) / 6, cx = (half - x) / half; cells[y][x] = r() < 0.78 - 0.5 * (cy * cy + cx * cx * .7) ? 1 : 0; } }
+      for (let y = 3; y < 9; y++) cells[y][half - 1] = 1; for (let x = 3; x < half; x++) cells[5][x] = 1;
+      const eyeY = 3 + Math.floor(r() * 2), eyeX = 2 + Math.floor(r() * 2);
+      const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); const dark = '#20203a';
+      const on = (x, y) => y >= 0 && y < H && x >= 0 && x < W && cells[y][x < half ? x : W - 1 - x];
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        if (on(x, y)) { const sh = (x + y) % 3; g.fillStyle = m.pal[sh === 0 ? 0 : 1]; if (y >= 9) g.fillStyle = m.pal[2]; g.fillRect(x, y, 1, 1); }
+        else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = dark; g.fillRect(x, y, 1, 1); }
+      }
+      g.fillStyle = '#d82f2f'; g.fillRect(eyeX, eyeY, 1, 1); g.fillRect(W - 1 - eyeX, eyeY, 1, 1);
+      monCache.set(id, c.toDataURL());
+    }
+    const img = document.createElement('img'); img.src = monCache.get(id); img.className = 'q-sprite mon'; img.alt = ''; return img;
+  }
+  // moves: your tools (a worn piece of the tool makes it hit harder) and the chemistry you'd actually reach for
+  const MOVES = { perche: ['Perche', 14], balai: ['Balai', 13], robot: ['Robot', 12], choc: ['Choc', 16], phm: ['pH−', 12], floc: ['Floc', 11] };
+  const RTIER = { common: 1, uncommon: 2, rare: 3, vrare: 4, epic: 5, legend: 6 };
+  function toolBonus(k) { const it = load().equip[k]; return it ? 1 + RTIER[it.rar] * 0.1 : 1; }
+  let B = null; // the open fight
+  function openBattle(render) {
+    const g = load(); const e = g.enc; if (!e || !e.monster) return;
+    const m = MON[e.monster.id]; const c = creature(Store.pool(e.poolId));
+    B = { e, m, c, php: 100, maxP: 100, log: [{ k: 'foe', t: `${m.n} (Nv ${e.monster.lvl}) surgit de ${c.name} !` }], over: false, menu: 'main', turn: 0 };
+    const ov = el('<div class="q-battle"></div>'); document.body.appendChild(ov);
+    const draw = () => {
+      const mo = e.monster || B.lastMo; const hpP = Math.round(mo.hp / mo.maxHp * 100);
+      ov.innerHTML = '';
+      const foe = el(`<div class="q-bside foe"><div class="q-bname"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${mo.lvl}</span><span class="q-tag">${esc(m.el)}</span><div class="q-hp ${hpP < 40 ? 'low' : hpP < 75 ? 'mid' : ''}"><i style="width:${hpP}%"></i></div><div class="q-hint">${mo.hp}/${mo.maxHp}</div></div></div>`);
+      foe.appendChild(monsterSprite(mo.id)); ov.appendChild(foe);
+      const me = el(`<div class="q-bside me"><div class="q-bname"><b>${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hp ${B.php < 40 ? 'low' : B.php < 75 ? 'mid' : ''}"><i style="width:${B.php}%"></i></div><div class="q-hint">${B.php}/${B.maxP}</div></div></div>`);
+      me.insertBefore(avatar(g.avatar), me.firstChild); ov.appendChild(me);
+      const log = el('<div class="q-card q-blog"></div>'); B.log.slice(-3).forEach((l) => log.appendChild(el(`<p class="${l.k}">${esc(l.t)}</p>`))); ov.appendChild(log);
+      const menu = el('<div class="q-bmenu"></div>');
+      const btn = (label, fn, cls) => { const x = el(`<button type="button" class="q-bbtn ${cls || ''}">${label}</button>`); x.addEventListener('click', fn); return x; };
+      if (B.over) { menu.appendChild(btn('Continuer', () => { ov.remove(); B = null; render(); }, 'p')); }
+      else if (B.menu === 'main') {
+        ['perche', 'balai', 'robot'].forEach((k) => menu.appendChild(btn(`${MOVES[k][0]}${toolBonus(k) > 1 ? ' ★' : ''}`, () => act(k))));
+        menu.appendChild(btn('Chimie ▸', () => { B.menu = 'chem'; draw(); }));
+        menu.appendChild(btn('Fuir', () => { B.log.push({ k: 'foe', t: `Tu files. ${m.n} reste dans ${c.name}.` }); B.over = true; B.fled = true; draw(); }));
+      } else { ['choc', 'phm', 'floc'].forEach((k) => menu.appendChild(btn(MOVES[k][0], () => act(k)))); menu.appendChild(btn('◂ retour', () => { B.menu = 'main'; draw(); })); }
+      ov.appendChild(menu);
+    };
+    const act = (k) => {
+      const mo = e.monster; B.turn++; B.menu = 'main';
+      const eff = m.weak[k] || 1; const dmg = Math.round(MOVES[k][1] * eff * toolBonus(k) * (0.85 + Math.random() * 0.3));
+      mo.hp = Math.max(0, mo.hp - dmg);
+      B.log.push({ k: 'me', t: `${MOVES[k][0].toUpperCase()} · −${dmg}${eff >= 1.8 ? ' — c’est super efficace !' : eff <= .6 ? ' — ça ne lui fait pas grand-chose.' : ''}` });
+      if (mo.hp <= 0) { win(); save(); draw(); return; }
+      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 30) * (0.85 + Math.random() * 0.3));
+      B.php = Math.max(0, B.php - ad); B.log.push({ k: 'foe', t: `${m.n} utilise ${a[0]} — ${a[2]} · −${ad}` });
+      if (B.php <= 0) { B.over = true; B.lost = true; g.coins = Math.max(0, g.coins - 3); B.log.push({ k: 'foe', t: 'Tu es assommé. Il reste là jusqu’au prochain passage. −3 pièces' }); }
+      save(); draw();
+      const sp = ov.querySelector('.q-sprite.mon'); if (sp) { sp.classList.add('shake'); }
+    };
+    const win = () => {
+      const mo = e.monster; const b = bonuses(); B.over = true; B.won = true;
+      const xp = Math.round(mo.lvl * 4 * c.mult * (1 + b.xp / 100)), coins = Math.round((2 + Math.floor(Math.random() * 5) + Math.round(mo.lvl / 4)) * (1 + b.gold / 100));
+      g.xp += xp; g.coins += coins; g.bestiary[mo.id].beaten++;
+      let crateTxt = '';
+      const r = Math.random() / (1 + b.drop / 100) / 0.8; let acc = 0, ti = -1; for (let i = RAR.length - 1; i >= 0; i--) { acc += RAR[i][2]; if (r < acc) { ti = i; break; } }
+      if (ti >= 0) { if (ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++; const crate = { id: 'cr-' + Date.now(), crate: true, rar: RAR[ti][0], res: Store.pool(e.poolId).res, from: m.n, acts: { chem: k2(m, 'choc'), clean: k2(m, 'balai'), filt: k2(m, 'robot'), mes: 0 }, at: new Date().toISOString() }; if (g.bag.length < bagSize()) { g.bag.push(crate); crateTxt = ` · caisse ${rarName(crate.rar).toLowerCase()} !`; } else crateTxt = ' · caisse perdue (sac plein)'; }
+      B.log.push({ k: 'win', t: `${m.n} se dissout ! +${xp} XP · +${coins} pièces${crateTxt}` });
+      B.lastMo = { ...mo, hp: 0 }; e.monster = null;
+    };
+    const k2 = (m, k) => (m.weak[k] >= 1.5 ? 2 : 0);
+    draw();
+  }
+  function monsterBanner(render) {
+    const g = load(); const e = g.enc; if (!e || !e.monster) return null;
+    const m = MON[e.monster.id];
+    const b = el(`<div class="q-card q-mon"><div class="q-head"><div class="q-grow"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${e.monster.lvl}</span><span class="q-tag">${esc(m.el)}</span><div class="q-hint">rôde dans le bassin — ${esc(m.desc.split('.')[0])}.</div></div></div><button type="button" class="btn q-fight">⚔ Combattre</button></div>`);
+    b.querySelector('.q-head').appendChild(monsterSprite(e.monster.id));
+    b.querySelector('.q-fight').addEventListener('click', () => openBattle(render));
+    return b;
+  }
+
   // ---------------------------------------------------------------- creature from the log
   function creature(p) {
     const R = Store.readingsFor(p.id), V = Store.visitsFor(p.id);
@@ -217,11 +329,12 @@ const Game = (() => {
   function enter(poolId) {
     const g = load();
     if (g.enc && g.enc.poolId !== poolId) settle();
-    if (!g.enc) { g.enc = { poolId, since: new Date().toISOString() }; save(); }
+    if (!g.enc) { g.enc = { poolId, since: new Date().toISOString() }; if (g.lurk && g.lurk[poolId]) { g.enc.monster = g.lurk[poolId]; delete g.lurk[poolId]; } save(); }
   }
   // Settle the open encounter: real actions → XP, coins, maybe a crate. Nothing done → the creature stays wild, no loot.
   function settle() {
     const g = load(); const e = g.enc; if (!e) return null;
+    if (e.monster) { g.bestiary = g.bestiary || {}; g.lurk = g.lurk || {}; g.lurk[e.poolId] = e.monster; } else if (g.lurk) delete g.lurk[e.poolId];
     g.enc = null;
     const p = Store.pool(e.poolId); if (!p) { save(); return null; }
     const acts = kindsFor(e.poolId, e.since); const n = acts.chem + acts.clean + acts.filt + acts.mes;
@@ -301,9 +414,10 @@ const Game = (() => {
 
   // ---------------------------------------------------------------- UI: pool section (the encounter card)
   const bar = (label, v, max, txt) => `<div class="q-stat"><span>${esc(label)}</span><span class="q-bar"><i style="width:${Math.min(100, Math.round(v / max * 100))}%"></i></span><span class="q-v">${esc(txt)}</span></div>`;
-  function poolSection(p) {
+  function poolSection(p, render) {
     enter(p.id);
-    const c = creature(p); const g = load(); const acts = kindsFor(p.id, g.enc ? g.enc.since : new Date().toISOString()); const n = acts.chem + acts.clean + acts.filt + acts.mes;
+    const c = creature(p);
+    spawn(c); const g = load(); const acts = kindsFor(p.id, g.enc ? g.enc.since : new Date().toISOString()); const n = acts.chem + acts.clean + acts.filt + acts.mes;
     const box = el(`<div class="q-card">
       <div class="q-head"><div class="q-grow"><b>${esc(c.name)}</b> <span class="q-tag">${esc(c.line.n)}</span><span class="q-tag">Nv ${c.level}</span><span class="q-tag st-${c.state}">${c.state}${c.mult > 1 ? ' · XP ×' + c.mult : ''}</span>
         <div class="q-hp ${c.hp < 40 ? 'low' : c.hp < 75 ? 'mid' : ''}"><i style="width:${c.hp}%"></i></div>
@@ -318,6 +432,8 @@ const Game = (() => {
         ${c.sable != null ? bar('Sable', c.sable, 6, c.sable.toFixed(1) + ' ans') : ''}
       </div></div>`);
     box.querySelector('.q-head').appendChild(sprite(p));
+    const mb = monsterBanner(render || (() => window.dispatchEvent(new Event('hashchange'))));
+    if (mb) { const w = document.createElement('div'); w.appendChild(box); w.appendChild(mb); return w; }
     return box;
   }
   // toast after an encounter settles (shown on the next page)
@@ -336,11 +452,20 @@ const Game = (() => {
     const g = load();
     const wrap = document.createElement('div');
     wrap.appendChild(el(`<div class="page-head"><h1>Quête</h1><p class="sub">Nv ${level()} · ${g.xp} XP · ${g.coins} pièces · ${g.wins} apaisées</p></div>`));
-    const seg = el(`<div class="q-seg">${[['dex', 'Créatures'], ['bag', 'Sac'], ['me', 'Dresseur']].map(([k, l]) => `<button type="button" data-k="${k}" class="${sub === k ? 'on' : ''}">${l}</button>`).join('')}</div>`);
+    const seg = el(`<div class="q-seg">${[['dex', 'Créatures'], ['best', 'Bestiaire'], ['bag', 'Sac'], ['me', 'Dresseur']].map(([k, l]) => `<button type="button" data-k="${k}" class="${sub === k ? 'on' : ''}">${l}</button>`).join('')}</div>`);
     seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { sub = b.dataset.k; render(); }));
     wrap.appendChild(seg);
-    ({ dex: viewDex, bag: viewBag, me: viewMe })[sub](wrap, render);
+    ({ dex: viewDex, best: viewBest, bag: viewBag, me: viewMe })[sub](wrap, render);
     return wrap;
+  }
+  function viewBest(wrap) {
+    const g = load(); const bs = g.bestiary || {};
+    wrap.appendChild(el('<p class="q-hint">Ce qui hante une piscine négligée. Chacun naît d’un vrai problème et craint le vrai remède.</p>'));
+    Object.entries(MON).forEach(([id, m]) => {
+      const seen = bs[id] && bs[id].seen; const card = el(`<div class="q-card q-monrow${seen ? '' : ' unseen'}"><div class="q-head"><div class="q-grow"><b>${seen ? esc(m.n) : '???'}</b> <span class="q-tag">${esc(m.el)}</span><div class="q-hint">${seen ? esc(m.desc) : 'Pas encore rencontré.'}</div>${seen ? `<div class="q-hint">faible contre ${Object.entries(m.weak).filter(([, v]) => v >= 1.5).map(([k]) => MOVES[k][0]).join(', ')} · vu ${bs[id].seen}× · vaincu ${bs[id].beaten}×</div>` : ''}</div></div></div>`);
+      card.querySelector('.q-head').appendChild(monsterSprite(id));
+      wrap.appendChild(card);
+    });
   }
   function viewDex(wrap) {
     const g = load();
@@ -425,6 +550,6 @@ const Game = (() => {
   }
   window.addEventListener('pagehide', () => { if (load().enc) settle(); });
 
-  return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, get state() { return load(); } };
+  return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, MON, openBattle, get state() { return load(); } };
 })();
 window.Game = Game;

@@ -794,3 +794,17 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-desc { margin: 0 0 8px; font-size: .92rem; }
 .q-aff { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; } .q-aff span { border: 2px solid var(--ink); padding: 2px 8px; font-size: .8rem; color: var(--ok); } .q-aff span.neg { color: var(--high); }
 .sheet-item.dis { opacity: .45; pointer-events: none; }
+/* monsters + the fight overlay */
+.q-sprite.mon { width: 84px; height: 72px; }
+.q-mon { border-color: var(--high) !important; margin-top: -6px; }
+.q-mon .q-fight { margin: 8px 0 0; width: 100%; background: var(--high); color: #fff; border-color: var(--ink); }
+.q-monrow.unseen { opacity: .55; } .q-monrow.unseen .q-sprite { filter: brightness(0); }
+.q-battle { position: fixed; inset: 0; z-index: 70; background: var(--bg); padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px); display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+.q-bside { display: flex; align-items: center; gap: 12px; background: var(--card); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--px-shadow, var(--ink)); padding: 10px 12px; }
+.q-bside.foe { flex-direction: row-reverse; } .q-bside .q-bname { flex: 1; min-width: 0; } .q-bside .q-sprite.mon { width: 96px; height: 82px; } .q-bside .q-avatar { width: 54px; height: 72px; }
+.q-blog { min-height: 84px; font-size: .92rem; margin: 0; } .q-blog p { margin: 0 0 4px; } .q-blog p.me { color: var(--brand); } .q-blog p.foe { color: var(--high); } .q-blog p.win { color: var(--ok); font-weight: 700; }
+.q-bmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
+.q-bbtn { font: inherit; font-size: .95rem; min-height: 46px; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); cursor: pointer; }
+.q-bbtn.p { background: var(--brand-dark); color: #fff; } .q-bbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--px-shadow, var(--ink)); }
+.shake { animation: q-shake .35s; } @keyframes q-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
