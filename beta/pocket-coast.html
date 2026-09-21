@@ -69,7 +69,7 @@
   [['calme', 0], ['traité', 0], ['sauvage', 2], ['critique', 3]].forEach(([st, dirt]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { state: st, dirt, t: 1.2, pumpLate: st === 'critique', creature: P.creature(['EC', 'AG', 'EP', 'GP'][dirt] || 'EC', 'x-' + st), seed: st }); P.trainer(g, 116, 140, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); if (st === 'sauvage') g.drawImage(P.monster('algue'), 112, 76); fig(Y, c, st + (dirt ? ' · saleté ' + dirt : '')); });
   { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.courtyard(g, { sunk: true, t: 0.4, pumpLate: true }); P.trainer(g, 116, 140, {}, av); fig(Y, c, 'sombrée'); }
   const SH = document.getElementById('shed');
-  [[true, 'le dépôt, rideau levé : bidons, balais, le robot, six caisses du jour'], [false, 'le dépôt, fermé']].forEach(([at, l]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.storage(g, at, 6, 1); P.trainer(g, at ? 78 : 8, 118, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); fig(SH, c, l); });
+  [[true, 'le dépôt, rideau levé : bidons, balais, le robot, six caisses du jour'], [false, 'le dépôt, fermé']].forEach(([at, l]) => { const c = cv(256, 192, 1.6); const g = c.getContext('2d'); P.storage(g, at, 6, 1); P.trainer(g, at ? 140 : 8, 118, { head: 'EC', body: 'EC', legs: 'EC', feet: 'EC', tool: 'EC', toolKind: 'perche' }, av); fig(SH, c, l); });
 })();
 </script>
 </body>
