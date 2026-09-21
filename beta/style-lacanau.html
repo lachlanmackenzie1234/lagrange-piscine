@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="fr" data-style="pixel">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lacanau Retro</title>
+<meta name="description" content="Style sheet for the Quest: a character with Dofus proportions and three wardrobes, monster families, a Dofus-style Sac, a FireRed battle frame, overworld tiles and an isometric arena — beside what v0.87 draws today.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap">
+<style>
+  :root { --ink: #1b1f3a; --bg: #f7f0dc; --card: #fffbee; --muted: #6b7a87; --brand: #2f4fdf; --high: #d82f2f; --ok: #2aa845; --slate: #2b2f45; --slate2: #3a4060; --sand: #e9d59a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14162a; --card: #1e2140; --ink: #eef0ff; --muted: #9aa3c0; --slate: #0f1120; --slate2: #23264a; } }
+  :root[data-theme="dark"] { --bg: #14162a; --card: #1e2140; --ink: #eef0ff; --muted: #9aa3c0; --slate: #0f1120; --slate2: #23264a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.45 "Pixelify Sans", ui-monospace, monospace; padding: 16px 16px 60px; }
+  h1 { font-size: 2rem; margin: 8px 0 0; } h2 { font-size: 1.3rem; margin: 36px 0 8px; } h3 { font-size: 1rem; margin: 14px 0 6px; color: var(--muted); }
+  p { max-width: 680px; margin: 6px 0; } .hint { color: var(--muted); font-size: .92rem; }
+  .card { background: var(--card); border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); padding: 14px; margin: 12px 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .fig { text-align: center; } .fig small { display: block; color: var(--muted); font-size: .8rem; margin-top: 4px; }
+  canvas.px { image-rendering: pixelated; display: block; }
+  .pal { display: flex; flex-wrap: wrap; gap: 6px; } .pal span { width: 40px; height: 40px; border: 2px solid var(--ink); display: block; position: relative; } .pal span i { position: absolute; left: 0; right: 0; bottom: -18px; font-size: .62rem; color: var(--muted); font-style: normal; text-align: center; }
+  .pal { padding-bottom: 20px; }
+  /* Dofus-style Sac */
+  .plate { background: var(--slate); color: #eef0ff; border: 3px solid #0f1120; box-shadow: 4px 4px 0 #0f1120; padding: 12px; max-width: 360px; }
+  .plate .grid { display: grid; grid-template-columns: 48px 1fr 48px; gap: 8px; align-items: center; }
+  .plate .col { display: flex; flex-direction: column; gap: 8px; }
+  .slot { width: 48px; height: 48px; background: var(--slate2); border: 2px solid #55608a; display: flex; align-items: center; justify-content: center; position: relative; }
+  .slot.r-common { border-color: #8a94a8; } .slot.r-uncommon { border-color: #2aa845; } .slot.r-rare { border-color: #4a6dff; } .slot.r-vrare { border-color: #9b5fe0; } .slot.r-epic { border-color: #e39b12; } .slot.r-legend { border-color: #ff5a5a; box-shadow: 0 0 8px #ff5a5a80; }
+  .slot.empty { border-style: dashed; } .slot small { position: absolute; bottom: -16px; left: 0; right: 0; font-size: .6rem; text-align: center; color: #9aa3c0; }
+  .slot canvas { width: 32px; height: 32px; }
+  .portrait { background: #1a1d33; border: 2px solid #55608a; display: flex; align-items: flex-end; justify-content: center; height: 176px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-top: 18px; font-size: .9rem; } .stats b { color: #ffd94a; } .stats .pos { color: #7ee06a; } .stats .neg { color: #ff7a7a; }
+  .setline { margin-top: 12px; padding-top: 8px; border-top: 1px solid #55608a; font-size: .9rem; } .setline b { color: #7ec8ff; }
+  .item-card { background: var(--slate); color: #eef0ff; border: 3px solid #0f1120; box-shadow: 4px 4px 0 #0f1120; padding: 12px; max-width: 360px; display: grid; grid-template-columns: 64px 1fr; gap: 12px; }
+  .item-card .slot { width: 64px; height: 64px; } .item-card .slot canvas { width: 48px; height: 48px; }
+  .item-card h4 { margin: 0; color: #e39b12; font-size: 1.05rem; } .item-card .hint { color: #9aa3c0; } .item-card .aff { margin-top: 6px; } .item-card .aff span { display: block; } .item-card .pos { color: #7ee06a; } .item-card .neg { color: #ff7a7a; }
+  .item-card .desc { grid-column: 1 / -1; font-style: italic; color: #c9d0f0; font-size: .92rem; border-top: 1px solid #55608a; padding-top: 6px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } @media (max-width: 560px) { .two { grid-template-columns: 1fr; } }
+  .rule { list-style: none; padding: 0; margin: 6px 0; } .rule li { margin: 3px 0; padding-left: 14px; position: relative; } .rule li::before { content: "▸"; position: absolute; left: 0; color: var(--brand); }
+</style>
+</head>
+<body>
+<h1>Lacanau Retro</h1>
+<p class="hint">Une proposition de style pour la Quête, à réagir avant de toucher au live. Trois sources, chacune un rôle : Pokémon FireRed pour l’écran de jeu, Dofus pour l’inventaire et le personnage, et notre sujet — la piscine — pour tout le reste. Rien ici ne lit de données.</p>
+
+<h2>1 · Palette et règles</h2>
+<div class="card">
+  <div class="pal" id="pal"></div>
+  <ul class="rule">
+    <li>24 couleurs, pas une de plus. Chaque matière a 3 tons : lumière, base, ombre. Lumière en haut à gauche, toujours.</li>
+    <li>Contour 1 px encre sur tout ce qui vit (personnage, monstres, objets) ; les décors n’ont pas de contour, ils ont une ombre.</li>
+    <li>Pas de dégradé, pas de transparence en jeu (les flashs de combat exceptés).</li>
+    <li>Le personnage a une tête de Dofus : 40 % de sa hauteur. Les monstres ont une famille par élément, pas une recette pour dix.</li>
+    <li>Les cadres : crème, bord 3 px encre, ombre portée 4 px pleine. Les plaques d’inventaire : ardoise sombre, bord de la rareté.</li>
+  </ul>
+</div>
+
+<h2>2 · Le personnage et trois garde-robes</h2>
+<p>À gauche ce que v0.87 dessine (24×32, proportions humaines). À droite la proposition : 32×40, grosse tête, corps court, vue de trois-quarts, et la panoplie change la <b>forme</b> — pas seulement la couleur.</p>
+<div class="card"><div class="row" id="heroes"></div></div>
+
+<h2>3 · Trois familles de monstres</h2>
+<p>Une silhouette par élément. Algue : une masse ronde qui goutte. Air : un essaim hérissé. Terre : un bloc fissuré. Le Feu (le Locataire) serait une bouée à lunettes de soleil. Les yeux rouges et la bouche dentée restent la signature commune.</p>
+<div class="card"><div class="row" id="monsters"></div></div>
+
+<h2>4 · Le Sac, façon Dofus</h2>
+<p>Les emplacements autour du portrait au lieu d’une grille : la tête au-dessus, amulette et torse à gauche, les outils à droite, les pieds en bas. Plaque ardoise, bord à la couleur de la rareté, chiffres en jaune, bonus en vert, malus en rouge.</p>
+<div class="two">
+  <div class="plate">
+    <div class="grid">
+      <div class="col">
+        <div class="slot r-legend"><canvas id="g-tete"></canvas><small>tête</small></div>
+        <div class="slot r-rare"><canvas id="g-amu"></canvas><small>amulette</small></div>
+        <div class="slot r-rare"><canvas id="g-torse"></canvas><small>torse</small></div>
+        <div class="slot r-epic"><canvas id="g-jambes"></canvas><small>jambes</small></div>
+      </div>
+      <div class="portrait" id="portrait"></div>
+      <div class="col">
+        <div class="slot r-vrare"><canvas id="g-perche"></canvas><small>perche</small></div>
+        <div class="slot empty"><small>robot</small></div>
+        <div class="slot r-common"><canvas id="g-balai"></canvas><small>balai</small></div>
+        <div class="slot r-uncommon"><canvas id="g-pieds"></canvas><small>pieds</small></div>
+      </div>
+    </div>
+    <div class="stats"><span><b>Nv 18</b> · 3666 XP</span><span><b>38</b> pièces</span><span class="pos">+31 % XP</span><span class="pos">+18 % pièces</span><span class="pos">+6 % caisses</span><span class="neg">−4 % chance</span></div>
+    <div class="setline"><b>Panoplie Pool Boy</b> · 4 / 8 · +5 % XP · +10 % pièces</div>
+  </div>
+  <div class="item-card">
+    <div class="slot r-legend"><canvas id="g-tete2"></canvas></div>
+    <div><h4 style="color:#ff5a5a">Bob du Pool Boy Éternel</h4><div class="hint">Légendaire · tête · panoplie Pool Boy</div><div class="aff"><span class="pos">+28 % XP</span><span class="pos">+31 % chance</span><span class="pos">+26 % caisses</span></div></div>
+    <div class="desc">Sent le chlore et l’été 1998. Personne n’a jamais vu son propriétaire sans.</div>
+  </div>
+</div>
+
+<h2>5 · L’écran de combat, façon FireRed</h2>
+<p>Une vraie résolution Game Boy Advance : 240×160, affichée ×2. Le monstre sur sa plateforme en haut à droite, toi en bas à gauche, les plaques de nom avec la capsule HP, et la boîte de dialogue qui porte les quatre coups. Le combat au tour par tour actuel rentre là-dedans sans changer une règle.</p>
+<div class="card"><div class="fig"><canvas id="battle" class="px"></canvas><small>240×160 · 2 plaques · 4 coups · Fuir garde son pourcentage</small></div></div>
+
+<h2>6 · Le monde vu de dessus, façon Ruby</h2>
+<p>La piscine comme une case d’eau dans un monde à tuiles de 16 px : l’océan à l’ouest avec son écume, les haies de pins, le sable, le local technique. Le personnage vu de trois-quarts dos quand il marche vers le bassin. C’est l’écran de la page piscine, en plus grand que la scène actuelle.</p>
+<div class="card"><div class="fig"><canvas id="world" class="px"></canvas><small>240×160 · tuiles 16 px · le bassin, le skimmer, la pompe, la haie, la dune</small></div></div>
+
+<h2>7 · L’arène 2.5D (si on est ambitieux)</h2>
+<p>La terrasse en grille isométrique 9×7 autour du bassin. Chaque tour : 6 PA, 3 PM, 90 secondes. Les coups ont une portée et une forme — Perche en ligne de 3, Balai au contact, Robot une zone de 2 cases dans l’eau, Choc et Floc en jet à distance, Lavage depuis la case de la pompe seulement. Le monstre avance vers toi à son tour et frappe au contact. Vert : où tu peux aller. Bleu : où porte la Perche.</p>
+<div class="card"><div class="fig"><canvas id="arena" class="px"></canvas><small>grille iso · PA 6 · PM 3 · 90 s · portée de la Perche en bleu</small></div></div>
+
+<script>
+(() => {
+  // ------------------------------------------------------------ palette
+  const P = { ink: '#1b1f3a', cream: '#f7f0dc', creamD: '#dccfa8', sand: '#e9d59a', sandD: '#d9c284', sandL: '#f3e6b8', water: '#4aa8ff', waterL: '#8ed4ff', waterD: '#2f7fd6', hedge: '#2aa845', hedgeD: '#124d2a', hedgeL: '#7ee06a', sun: '#ffd94a', coral: '#d82f2f', coralD: '#a81f1f', purple: '#7b3fc4', slate: '#5a6b8a', slateL: '#b8c4d6', wood: '#8a4a1e', woodL: '#c98a4a', skin: '#e8b88a', skinD: '#c68d5a', white: '#ffffff', sea: '#2f6fd6', foam: '#dff4ff' };
+  const NAMES = { ink: 'encre', cream: 'crème', creamD: 'crème ombre', sand: 'sable', sandD: 'sable ombre', sandL: 'sable lumière', water: 'eau', waterL: 'eau lumière', waterD: 'eau ombre', hedge: 'haie', hedgeD: 'haie ombre', hedgeL: 'haie lumière', sun: 'soleil', coral: 'corail', coralD: 'corail ombre', purple: 'violet', slate: 'ardoise', slateL: 'ardoise lumière', wood: 'bois', woodL: 'bois lumière', skin: 'peau', skinD: 'peau ombre', white: 'blanc', sea: 'océan', foam: 'écume' };
+  const pal = document.getElementById('pal'); Object.entries(P).forEach(([k, v]) => { const s = document.createElement('span'); s.style.background = v; s.innerHTML = `<i>${NAMES[k]}</i>`; pal.appendChild(s); });
+  const RC = { common: '#8a94a8', uncommon: '#2aa845', rare: '#4a6dff', vrare: '#9b5fe0', epic: '#e39b12', legend: '#ff5a5a' };
+  const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); const c = (v) => Math.min(255, Math.max(0, Math.round(v * f))); return '#' + ((c((n >> 16) & 255) << 16) | (c((n >> 8) & 255) << 8) | c(n & 255)).toString(16).padStart(6, '0'); };
+  const cv = (w, h, scale, cls) => { const c = document.createElement('canvas'); c.width = w; c.height = h; c.style.width = w * scale + 'px'; c.style.height = h * scale + 'px'; c.className = 'px ' + (cls || ''); return c; };
+  const R = (g, c, x, y, w, h) => { g.fillStyle = c; g.fillRect(x, y, w || 1, h || 1); };
+  const fig = (parent, canvas, label) => { const d = document.createElement('div'); d.className = 'fig'; d.appendChild(canvas); const s = document.createElement('small'); s.textContent = label; d.appendChild(s); parent.appendChild(d); };
+
+  // ------------------------------------------------------------ 2 · the character: today (24×32) and proposed (32×40)
+  function heroToday(g, x, y) {
+    const a = { skin: P.skin, eyes: '#2f4fdf', hair: P.wood }; const dark = P.ink;
+    R(g, dark, x + 7, y + 3, 10, 10); R(g, a.skin, x + 8, y + 4, 8, 8); R(g, a.eyes, x + 10, y + 7, 1, 2); R(g, a.eyes, x + 13, y + 7, 1, 2); R(g, a.hair, x + 8, y + 4, 8, 2);
+    R(g, dark, x + 5, y + 12, 14, 9); R(g, '#2f4fdf', x + 6, y + 13, 12, 7); R(g, a.skin, x + 4, y + 13, 2, 5); R(g, a.skin, x + 18, y + 13, 2, 5);
+    R(g, '#2a3a6a', x + 7, y + 20, 5, 8); R(g, '#2a3a6a', x + 12, y + 20, 5, 8); R(g, dark, x + 6, y + 28, 6, 2); R(g, dark, x + 12, y + 28, 6, 2);
+  }
+  // proposed: 32×40, head 16×14, three-quarter view, wardrobe shapes
+  function hero(g, x, y, w, opt) {
+    opt = opt || {}; const dark = P.ink; const skin = opt.skin || P.skin, skinD = shade(skin, .82), skinL = shade(skin, 1.1); const hair = opt.hair || P.wood;
+    const f = opt.walk ? Math.floor(opt.walk) % 2 : -1; const back = !!opt.back;
+    // feet & legs first (behind)
+    const ly = y + 30;
+    const legs = { EC: { c: P.coral, len: 5 }, AG: { c: dark, len: 7 }, EP: { c: '#6b7a87', len: 7 }, EPP: { c: P.sun, len: 4 }, GP: { c: '#3a4060', len: 7 } }[w] || { c: P.coral, len: 5 };
+    const l1 = legs.len - (f === 1 ? 1 : 0), l2 = legs.len - (f === 0 ? 1 : 0);
+    R(g, dark, x + 9, ly, 7, l1 + 1); R(g, dark, x + 16, ly, 7, l2 + 1); R(g, legs.c, x + 10, ly, 5, l1); R(g, legs.c, x + 17, ly, 5, l2); R(g, shade(legs.c, .8), x + 14, ly, 1, l1); R(g, shade(legs.c, .8), x + 21, ly, 1, l2);
+    if (w === 'EC') { R(g, P.white, x + 10, ly + 2, 5, 1); } if (w === 'AG') { R(g, P.hedgeL, x + 12, ly, 1, l1); R(g, P.hedgeL, x + 19, ly, 1, l2); }
+    if (legs.len < 7) { R(g, skin, x + 10, ly + l1, 5, 7 - l1); R(g, skin, x + 17, ly + l2, 5, 7 - l2); }
+    const fy = y + 37;
+    const feet = { EC: [skin, dark], AG: [P.hedge, P.hedgeD], EP: [P.wood, P.ink], EPP: [P.sun, P.woodL], GP: [P.white, P.coral] }[w] || [skin, dark];
+    R(g, dark, x + 8, fy - (f === 1 ? 1 : 0), 8, 3); R(g, dark, x + 16, fy - (f === 0 ? 1 : 0), 8, 3); R(g, feet[0], x + 9, fy + 1 - (f === 1 ? 1 : 0), 6, 1); R(g, feet[0], x + 17, fy + 1 - (f === 0 ? 1 : 0), 6, 1); R(g, feet[1], x + 11, fy - (f === 1 ? 1 : 0), 2, 1); R(g, feet[1], x + 19, fy - (f === 0 ? 1 : 0), 2, 1);
+    // body
+    const by = y + 18; const shirt = { EC: P.water, AG: dark, EP: '#a8672a', EPP: P.coral, GP: P.slate }[w] || P.water;
+    R(g, dark, x + 7, by, 18, 13); R(g, shirt, x + 8, by + 1, 16, 11); R(g, shade(shirt, .78), x + 21, by + 1, 3, 11); R(g, shade(shirt, 1.2), x + 9, by + 2, 1, 6);
+    if (w === 'EC') { R(g, skin, x + 8, by + 1, 3, 3); R(g, skin, x + 21, by + 1, 3, 3); R(g, P.white, x + 12, by + 5, 8, 2); }            // tank top with a stripe
+    if (w === 'AG') { R(g, P.hedgeL, x + 15, by + 1, 2, 11); R(g, '#3a4060', x + 8, by + 8, 16, 1); }                                      // wetsuit zip + seam
+    if (w === 'EP') { R(g, P.white, x + 13, by + 1, 6, 11); R(g, '#7a4a1a', x + 9, by + 6, 3, 3); R(g, '#7a4a1a', x + 20, by + 6, 3, 3); R(g, P.sun, x + 10, by + 7, 1, 1); } // vest over a tee, pockets
+    if (w === 'EPP') { for (let i = 0; i < 5; i++) R(g, P.sun, x + 9 + i * 3, by + 2 + (i % 2) * 5, 2, 2); R(g, P.white, x + 15, by + 1, 1, 11); }   // hawaiian shirt
+    if (w === 'GP') { R(g, P.white, x + 8, by + 4, 16, 1); R(g, P.sun, x + 10, by + 9, 3, 2); }
+    // arms
+    R(g, dark, x + 4, by + 1, 4, 8); R(g, dark, x + 24, by + 1, 4, 8); const sleeve = w === 'AG' || w === 'GP' ? shirt : skin;
+    R(g, sleeve, x + 5, by + 2, 2, 6); R(g, sleeve, x + 25, by + 2, 2, 6); R(g, skin, x + 5, by + 8, 2, 1); R(g, skin, x + 25, by + 8, 2, 1);
+    if (opt.amulet) { R(g, P.sun, x + 15, by + 3, 2, 2); R(g, '#e39b12', x + 14, by + 2, 1, 1); R(g, '#e39b12', x + 17, by + 2, 1, 1); }
+    // head: 16×14, three-quarter — the face sits right of centre
+    const hy = y + 4;
+    R(g, dark, x + 7, hy, 18, 15); R(g, skin, x + 8, hy + 1, 16, 13); R(g, skinD, x + 22, hy + 2, 2, 12); R(g, skinL, x + 9, hy + 2, 1, 6);
+    if (!back) { R(g, P.white, x + 13, hy + 6, 2, 3); R(g, P.white, x + 19, hy + 6, 2, 3); R(g, opt.eyes || '#2f4fdf', x + 14, hy + 7, 1, 2); R(g, opt.eyes || '#2f4fdf', x + 20, hy + 7, 1, 2); R(g, skinD, x + 17, hy + 9, 1, 2); R(g, shade(skin, .7), x + 15, hy + 11, 4, 1); R(g, P.coral, x + 16, hy + 11, 3, 1); }
+    // hair (a cap of colour, then the hat over it)
+    R(g, hair, x + 8, hy + 1, 16, 3); R(g, hair, x + 8, hy + 4, 2, 4); R(g, shade(hair, .8), x + 22, hy + 4, 2, 3);
+    if (w === 'EC') { R(g, dark, x + 4, hy - 1, 24, 4); R(g, P.cream, x + 5, hy, 22, 2); R(g, P.creamD, x + 5, hy + 1, 22, 1); R(g, dark, x + 8, hy - 6, 16, 6); R(g, P.cream, x + 9, hy - 5, 14, 5); R(g, P.water, x + 9, hy - 2, 14, 1); R(g, P.white, x + 10, hy - 4, 3, 1); }        // bob hat with a band
+    if (w === 'AG') { R(g, dark, x + 7, hy - 5, 18, 7); R(g, P.water, x + 8, hy - 4, 16, 5); R(g, P.waterD, x + 8, hy - 1, 16, 1); R(g, dark, x + 22, hy - 2, 8, 4); R(g, P.water, x + 23, hy - 1, 6, 2); R(g, P.white, x + 10, hy - 3, 2, 1); }   // cap worn backwards
+    if (w === 'EP') { R(g, dark, x + 2, hy - 1, 28, 4); R(g, '#e6c35c', x + 3, hy, 26, 2); R(g, '#c9a227', x + 3, hy + 1, 26, 1); R(g, dark, x + 9, hy - 7, 14, 7); R(g, '#e6c35c', x + 10, hy - 6, 12, 6); R(g, P.wood, x + 10, hy - 2, 12, 1); }  // straw hat
+    if (w === 'EPP') { R(g, dark, x + 6, hy - 1, 20, 3); R(g, P.coral, x + 7, hy, 18, 1); R(g, dark, x + 24, hy, 6, 3); R(g, P.coralD, x + 25, hy + 1, 4, 1); }   // sun visor
+    if (w === 'GP') { R(g, dark, x + 7, hy - 4, 18, 6); R(g, '#3a4060', x + 8, hy - 3, 16, 4); R(g, dark, x + 22, hy, 7, 3); R(g, '#3a4060', x + 23, hy + 1, 5, 1); R(g, P.white, x + 11, hy - 2, 4, 1); }
+    // tool in the right hand
+    if (opt.tool === 'perche') { R(g, dark, x + 28, y - 2, 4, 40); R(g, '#9b5fe0', x + 29, y - 1, 2, 38); R(g, dark, x + 25, y - 4, 10, 3); R(g, P.waterL, x + 26, y - 3, 8, 1); }
+    if (opt.tool === 'balai') { R(g, dark, x + 28, y + 4, 4, 34); R(g, P.woodL, x + 29, y + 5, 2, 32); R(g, dark, x + 24, y + 36, 12, 4); R(g, P.wood, x + 25, y + 37, 10, 2); }
+  }
+  const heroes = document.getElementById('heroes');
+  { const c = cv(24, 32, 4); heroToday(c.getContext('2d'), 0, 0); fig(heroes, c, 'v0.87 · 24×32'); }
+  [['EC', 'Pool Boy · bob, débardeur, boardshort, tongs', { tool: 'perche', amulet: true }], ['AG', 'Surfeur des dunes · casquette à l’envers, combinaison 3/2, crocs', { tool: 'balai' }], ['EP', 'Jardinier du golf · chapeau de paille, gilet, jogging, bottes', {}], ['EPP', 'Locataire · visière, chemise hawaïenne, slip de bain, sandales', { walk: 1 }], ['GP', 'Gardien du Green · casquette, coupe-vent, jogging, baskets', { walk: 0 }]].forEach(([w, l, o]) => { const c = cv(36, 48, 4); hero(c.getContext('2d'), 2, 8, w, o); fig(heroes, c, l); });
+
+  // ------------------------------------------------------------ 3 · monster families (left half + mirror)
+  // legend: . none, o outline, 1 light, 2 base, 3 shadow, e eye, w white, m mouth, t tooth
+  const ALGUE = ['......oooo', '....oo1111', '...o111122', '..o1112222', '.o11122222', '.o11222222', 'o112222222', 'o1122ee222', 'o11222w222', 'o112222222', 'o1122mmmmm', 'o1122mtmtm', 'o112222222', 'o113222222', '.o33322222', '.o33333333', '..o3333333', '...o333333', '....o33o33', '.....o3.o3', '.....o3..o', '......o...'];
+  const AIR = ['..........', '.......o..', '......o1o.', '...o..o1o.', '..o1oo112.', '.o1111122o', 'o111112222', '.o1112e222', '..o1122w22', '...o112222', '..o1122222', '.o11222222', 'o112222mmm', '.o112222tm', '..o1322222', '...o333222', '..o33.o332', '.o33...o33', 'o33.....o3', '.o.......o'];
+  const TERRE = ['..oooooooo', '.o11111111', '.o11111111', 'o1111o1111', 'o111o11111', 'o1112222ee', 'o1122222w2', 'o112222222', 'o11222o222', 'o11222o222', 'o1122222mm', 'o1122222tm', 'o113322222', 'o113332222', 'o133333222', 'o133333322', '.o3333o333', '.o3333o333', '.oo33333oo', '...oo333..', '.....ooo..'];
+  function monster(g, rows, pal, x, y) {
+    const W = rows[0].length * 2; const col = { o: P.ink, 1: pal[0], 2: pal[1], 3: pal[2], e: P.coral, w: P.white, m: P.ink, t: P.white };
+    rows.forEach((row, ry) => [...row].forEach((ch, rx) => { if (ch === '.') return; R(g, col[ch], x + rx, y + ry, 1, 1); R(g, col[ch], x + W - 1 - rx, y + ry, 1, 1); }));
+  }
+  const monsters = document.getElementById('monsters');
+  [[ALGUE, ['#b5f27a', '#2aa845', '#124d2a'], 'Algue — famille des masses : ronde, elle goutte'], [AIR, ['#f2c14e', '#e39b12', '#8a4a1e'], 'Air — famille des essaims : hérissée, elle vole'], [TERRE, ['#f4efe0', '#c9c0a8', '#7a7a90'], 'Terre — famille des blocs : fissurée, elle tient']].forEach(([rows, pal, l]) => { const c = cv(rows[0].length * 2 + 4, rows.length + 4, 5); monster(c.getContext('2d'), rows, pal, 2, 2); fig(monsters, c, l); });
+
+  // ------------------------------------------------------------ 4 · Sac icons (16×16, # main + shaded)
+  const GLYPH = {
+    tete: ['................', '......####......', '.....##++##.....', '.....#++++#.....', '.....#++++#.....', '.....#++++#.....', '....########....', '..############..', '.##++++++++++##.', '.##############.', '..##########+#..', '................', '................', '................', '................', '................'],
+    torse: ['................', '...##......##...', '..####++++####..', '.######++######.', '.##+##++++##+##.', '.##.###++###.##.', '.#...######...#.', '.....######.....', '.....##++##.....', '.....##++##.....', '.....##++##.....', '.....######.....', '.....++++++.....', '................', '................', '................'],
+    jambes: ['................', '....########....', '....#++++++#....', '....########....', '....###..###....', '....###..###....', '....###..###....', '....###..###....', '....#+#..#+#....', '....###..###....', '....###..###....', '....+++..+++....', '................', '................', '................', '................'],
+    pieds: ['................', '................', '................', '.....#....#.....', '....##....##....', '...###....###...', '..####....####..', '..#++#....#++#..', '..####....####..', '..####....####..', '..#++#....#++#..', '..####....####..', '..++++....++++..', '................', '................', '................'],
+    amu: ['................', '.......#........', '......#.#.......', '.....#...#......', '....#.....#.....', '....#.....#.....', '....#.....#.....', '.....#...#......', '....#######.....', '...##+++++##....', '...#+++#+++#....', '...#+++++++#....', '....#######.....', '.....#####......', '......###.......', '................'],
+    perche: ['..........#####.', '.........##+++#.', '.........#+++##.', '.........#####..', '........#.......', '.......#........', '......#.........', '.....#..........', '....#...........', '...#............', '..#.............', '.#..............', '##..............', '#+..............', '................', '................'],
+    balai: ['..............##', '.............##.', '............##..', '...........##...', '..........##....', '.........##.....', '........##......', '.......##.......', '......##........', '.....##.........', '...####.........', '..##+###........', '.##++++##.......', '.#+++++##.......', '.+++++++........', '................'] };
+  const glyph = (id, rows, col) => { const c = document.getElementById(id); c.width = 16; c.height = 16; c.className = 'px'; const g = c.getContext('2d'); rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#' || ch === '+') R(g, ch === '#' ? col : shade(col, .7), x, y, 1, 1); })); };
+  glyph('g-tete', GLYPH.tete, RC.legend); glyph('g-tete2', GLYPH.tete, RC.legend); glyph('g-amu', GLYPH.amu, RC.rare); glyph('g-torse', GLYPH.torse, RC.rare); glyph('g-jambes', GLYPH.jambes, RC.epic); glyph('g-perche', GLYPH.perche, RC.vrare); glyph('g-balai', GLYPH.balai, RC.common); glyph('g-pieds', GLYPH.pieds, RC.uncommon);
+  { const c = cv(36, 48, 3.5); hero(c.getContext('2d'), 2, 8, 'EC', { tool: 'perche', amulet: true }); document.getElementById('portrait').appendChild(c); }
+
+  // ------------------------------------------------------------ 5 · FireRed battle frame at 240×160
+  function frame(g, x, y, w, h) { R(g, P.ink, x, y, w, h); R(g, P.white, x + 1, y + 1, w - 2, h - 2); R(g, P.ink, x + 2, y + 2, w - 4, h - 4); R(g, P.cream, x + 3, y + 3, w - 6, h - 6); }
+  function txt(g, s, x, y, col, size) { g.font = `${size || 8}px "Pixelify Sans", monospace`; g.fillStyle = col || P.ink; g.textBaseline = 'top'; g.fillText(s, x, y); }
+  function hpBar(g, x, y, w, pct, col) { R(g, P.ink, x, y, w, 5); R(g, P.slateL, x + 1, y + 1, w - 2, 3); R(g, col, x + 1, y + 1, Math.round((w - 2) * pct), 3); }
+  function platform(g, cx, cy, rx, ry, col) { for (let dy = -ry; dy <= ry; dy++) { const dx = Math.round(rx * Math.sqrt(1 - (dy * dy) / (ry * ry))); R(g, col, cx - dx, cy + dy, dx * 2, 1); } }
+  {
+    const c = document.getElementById('battle'); c.width = 240; c.height = 160; c.style.width = '480px'; c.style.height = '320px'; const g = c.getContext('2d');
+    R(g, P.waterL, 0, 0, 240, 112); R(g, P.sand, 0, 112, 240, 48); R(g, P.sandD, 0, 110, 240, 2);
+    for (let i = 0; i < 6; i++) R(g, P.white, 10 + i * 40, 8 + (i % 3) * 9, 14, 3);
+    platform(g, 172, 78, 44, 9, P.sandL); platform(g, 172, 76, 44, 9, P.sand); R(g, P.water, 132, 76, 80, 1);
+    platform(g, 64, 132, 44, 9, P.sandD); platform(g, 64, 130, 44, 9, P.sandL);
+    { const t = cv(24, 22, 1); monster(t.getContext('2d'), ALGUE, ['#b5f27a', '#2aa845', '#124d2a'], 2, 0); g.imageSmoothingEnabled = false; g.drawImage(t, 148, 34, 48, 44); }
+    { const t = cv(36, 48, 1); hero(t.getContext('2d'), 2, 8, 'EC', { tool: 'perche', amulet: true, back: true }); g.imageSmoothingEnabled = false; g.drawImage(t, 36, 62, 54, 72); }
+    frame(g, 8, 10, 104, 30); txt(g, 'ALGUE VERTE', 14, 14); txt(g, 'Nv12', 82, 14); txt(g, 'HP', 14, 26, P.coral, 7); hpBar(g, 30, 27, 74, .71, P.hedge);
+    frame(g, 128, 82, 104, 36); txt(g, 'LOKI', 134, 86); txt(g, 'Nv18', 200, 86); txt(g, 'HP', 134, 98, P.coral, 7); hpBar(g, 150, 99, 74, .93, P.hedge); txt(g, '200 / 212', 178, 106, P.ink, 7);
+    frame(g, 0, 120, 240, 40); R(g, P.ink, 122, 123, 2, 34);
+    txt(g, 'Que fait', 8, 128, P.ink, 9); txt(g, 'LOKI ?', 8, 140, P.ink, 9);
+    [['PERCHE ★', 130, 126], ['BALAI', 186, 126], ['ROBOT', 130, 142], ['AUTRE ▸', 186, 142]].forEach(([s, x, y]) => txt(g, s, x, y, P.ink, 9)); txt(g, '▶', 122, 126, P.coral, 9);
+    txt(g, 'FUIR 33 %', 184, 4, P.ink, 7);
+  }
+
+  // ------------------------------------------------------------ 6 · overworld tiles at 240×160
+  {
+    const c = document.getElementById('world'); c.width = 240; c.height = 160; c.style.width = '480px'; c.style.height = '320px'; const g = c.getContext('2d');
+    for (let y = 0; y < 160; y += 16) for (let x = 0; x < 240; x += 16) { R(g, ((x + y) / 16) % 2 ? P.sand : P.sandL, x, y, 16, 16); R(g, P.sandD, x + 3 + (y % 5), y + 6 + (x % 7), 2, 1); }
+    // the ocean to the west, with foam
+    R(g, P.sea, 0, 0, 40, 160); R(g, P.waterD, 40, 0, 8, 160); for (let y = 0; y < 160; y += 4) { R(g, P.foam, 44 + ((y / 4) % 3), y, 4, 2); R(g, P.waterL, 8 + (y % 12), y + 1, 6, 1); }
+    // dune grass & pine hedge
+    for (let x = 48; x < 240; x += 16) { R(g, P.hedge, x, 0, 16, 16); R(g, P.hedgeD, x + 2, 10, 5, 4); R(g, P.hedgeD, x + 9, 3, 4, 5); R(g, P.hedgeL, x + 5, 2, 3, 2); R(g, P.hedgeL, x + 12, 9, 2, 2); }
+    for (let x = 48; x < 240; x += 24) { R(g, P.hedgeD, x + 3, 22 + (x % 3), 2, 6); R(g, P.hedge, x + 2, 20 + (x % 3), 4, 3); }
+    // the pool: rim, water, depth, ladder, skimmer, pump house
+    R(g, P.ink, 80, 48, 128, 80); R(g, P.slateL, 82, 50, 124, 76); R(g, P.water, 84, 52, 120, 72); R(g, P.waterD, 84, 108, 120, 16); R(g, P.waterL, 84, 52, 120, 3);
+    for (let i = 0; i < 12; i++) R(g, P.waterL, 90 + (i * 23) % 108, 60 + (i * 13) % 44, 6, 1);
+    R(g, P.white, 88, 100, 2, 26); R(g, P.white, 96, 100, 2, 26); R(g, P.white, 88, 106, 10, 2); R(g, P.white, 88, 114, 10, 2);
+    R(g, P.ink, 176, 124, 20, 8); R(g, P.slateL, 178, 126, 16, 4); R(g, P.ink, 180, 128, 12, 1);
+    R(g, P.ink, 210, 128, 26, 26); R(g, P.slate, 212, 130, 22, 22); R(g, P.slateL, 212, 130, 22, 4); R(g, P.ink, 218, 140, 10, 14); R(g, P.hedgeL, 214, 150, 3, 2);
+    // the trainer, walking to the pool, seen from behind
+    { const t = cv(36, 48, 1); hero(t.getContext('2d'), 2, 8, 'EC', { tool: 'perche', back: true, walk: 1 }); g.imageSmoothingEnabled = false; g.drawImage(t, 120, 124, 36, 48); }
+    // a monster lurking
+    { const t = cv(24, 20, 1); monster(t.getContext('2d'), AIR, ['#f2c14e', '#e39b12', '#8a4a1e'], 2, 0); g.imageSmoothingEnabled = false; g.drawImage(t, 150, 66, 24, 20); }
+  }
+
+  // ------------------------------------------------------------ 7 · the isometric arena
+  {
+    const c = document.getElementById('arena'); c.width = 240; c.height = 160; c.style.width = '480px'; c.style.height = '320px'; const g = c.getContext('2d');
+    R(g, P.sandL, 0, 0, 240, 160); R(g, P.hedge, 0, 0, 240, 12); for (let x = 0; x < 240; x += 6) R(g, P.hedgeD, x + (x % 2), 6 + (x % 3), 2, 2);
+    const CW = 24, CH = 12, ox = 120, oy = 28; const cell = (i, j) => [ox + (i - j) * CW / 2, oy + (i + j) * CH / 2];
+    const diamond = (cx, cy, col, inset) => { inset = inset || 0; for (let dy = -CH / 2 + inset; dy <= CH / 2 - inset; dy++) { const w = Math.round((CW / 2 - inset) * (1 - Math.abs(dy) / (CH / 2 - inset + .0001))); R(g, col, cx - w, cy + dy, w * 2 || 1, 1); } };
+    const water = (i, j) => i >= 3 && i <= 5 && j >= 1 && j <= 5; const hero_ = [2, 5], mon = [4, 2];
+    const dist = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+    for (let j = 0; j < 7; j++) for (let i = 0; i < 9; i++) {
+      const [cx, cy] = cell(i, j); let col = ((i + j) % 2) ? P.sand : P.sandL;
+      if (water(i, j)) col = (i + j) % 2 ? P.water : P.waterD;
+      else if (dist([i, j], hero_) <= 3) col = (i + j) % 2 ? '#a8e29a' : '#c4efb6';
+      diamond(cx, cy, P.ink); diamond(cx, cy, col, 1);
+      if (!water(i, j) && j === hero_[1] && i > hero_[0] && i <= hero_[0] + 3) diamond(cx, cy, '#8ed4ff', 1);
+      if (water(i, j) && j === hero_[1] && i > hero_[0] && i <= hero_[0] + 3) diamond(cx, cy, '#a8e2ff', 2);
+    }
+    { const [cx, cy] = cell(hero_[0], hero_[1]); const t = cv(36, 48, 1); hero(t.getContext('2d'), 2, 8, 'EC', { tool: 'perche' }); g.imageSmoothingEnabled = false; g.drawImage(t, cx - 13, cy - 38, 27, 36); }
+    { const [cx, cy] = cell(mon[0], mon[1]); const t = cv(24, 22, 1); monster(t.getContext('2d'), ALGUE, ['#b5f27a', '#2aa845', '#124d2a'], 2, 0); g.imageSmoothingEnabled = false; g.drawImage(t, cx - 14, cy - 22, 28, 26); }
+    frame(g, 4, 124, 232, 32); txt(g, 'PA 6', 12, 130, P.ink, 9); txt(g, 'PM 3', 52, 130, P.ink, 9); txt(g, '90 s', 92, 130, P.coral, 9); txt(g, 'Tour de LOKI', 140, 130, P.ink, 9);
+    txt(g, 'PERCHE  ligne 3 · 3 PA', 12, 142, P.brand || '#2f4fdf', 8); txt(g, 'CHOC  jet 5 · 4 PA', 130, 142, '#2f4fdf', 8);
+  }
+})();
+</script>
+</body>
+</html>
