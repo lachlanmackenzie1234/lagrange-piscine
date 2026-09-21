@@ -806,6 +806,9 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-bmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
 .q-bbtn { font: inherit; font-size: .95rem; min-height: 46px; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); cursor: pointer; }
 .q-bbtn.p { background: var(--brand-dark); color: #fff; } .q-bbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--px-shadow, var(--ink)); }
+.q-stage { display: block; width: 100%; aspect-ratio: 4 / 3; image-rendering: pixelated; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--px-shadow, var(--ink)); margin: 10px 0; background: #e9d59a; }
+.q-battle .q-stage { margin: 0 auto; width: min(100%, 50vh); }
+.q-depot .q-stage { margin: 10px 0 6px; }
 .shake { animation: q-shake .35s; } @keyframes q-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
 /* Vie + État bars, the sunk pool, resources, the workshop */

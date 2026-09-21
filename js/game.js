@@ -5,6 +5,8 @@
  * page visit — the app's own buttons are the moves. Leaving the page settles
  * it: real actions logged during the visit earn XP, coins and a chance of a
  * loot crate. Game state (bag, coins, avatar) is device-local, game only.
+ * A small pixel stage on the pool page, in the fight and at the dépôt
+ * plays back what was recorded — the character wears what it has equipped.
  */
 const Game = (() => {
   const KEY = 'lagrange-piscine.quest';
@@ -44,7 +46,7 @@ const Game = (() => {
   };
   const lineOf = (p) => LINES[p.res] || { n: p.res, pal: ['#c9c9c9', '#7a7a90', '#20203a'] };
   const spriteCache = new Map();
-  function sprite(p) {
+  function spriteCanvas(p) {
     const k = p.id;
     if (!spriteCache.has(k)) {
       const r = rng(hash(p.id)); const W = 12, H = 12, half = 6; const cells = [];
@@ -62,29 +64,41 @@ const Game = (() => {
       }
       g.fillStyle = '#fff'; g.fillRect(eyeX, eyeY, 1, 1); g.fillRect(W - 1 - eyeX, eyeY, 1, 1);
       g.fillStyle = dark; g.fillRect(eyeX, eyeY + 1, 1, 1); g.fillRect(W - 1 - eyeX, eyeY + 1, 1, 1);
-      spriteCache.set(k, c.toDataURL());
+      spriteCache.set(k, c);
     }
-    const img = document.createElement('img'); img.src = spriteCache.get(k); img.className = 'q-sprite'; img.alt = ''; return img;
+    return spriteCache.get(k);
   }
-  // the trainer: 12×16, from the avatar settings
+  function sprite(p) { const img = document.createElement('img'); img.src = spriteCanvas(p).toDataURL(); img.className = 'q-sprite'; img.alt = ''; return img; }
+  // the trainer: 12×16, from the avatar settings, wearing what's equipped
+  // (a hat, shirt, trousers and shoes take the colour of their rarity).
+  // Drawn onto any context so the stages can walk it around.
+  function drawAvatar(g, ox, oy, a, equip, o) {
+    o = o || {}; equip = equip || {};
+    const dark = '#20203a'; const col = (sl, def) => equip[sl] ? RCOL[equip[sl].rar] : def;
+    const shirt = col('torse', '#2f4fdf'), pants = col('jambes', dark), shoes = col('pieds', dark);
+    const size = a.size || 1; const top = oy + (size === 0 ? 3 : size === 2 ? 0 : 1) + (o.crouch ? 2 : 0); const x = ox;
+    const legH = 4 - (size === 0 ? 1 : 0) - (o.crouch ? 2 : 0); const f = o.walk ? Math.floor(o.walk) % 2 : -1;
+    g.fillStyle = a.skin; g.fillRect(x + 4, top + 1, 4, 4);
+    g.fillStyle = a.eyes; g.fillRect(x + 5, top + 2, 1, 1); g.fillRect(x + 7, top + 2, 1, 1);
+    g.fillStyle = a.hairColor; const up = Math.max(oy, top - 1);
+    if (a.hair === 1) g.fillRect(x + 4, top, 4, 1);
+    if (a.hair === 2) { g.fillRect(x + 4, top, 4, 1); g.fillRect(x + 3, up, 1, 1); g.fillRect(x + 6, up, 1, 1); g.fillRect(x + 8, up, 1, 1); }
+    if (a.hair === 3) { g.fillRect(x + 4, top, 4, 1); g.fillRect(x + 3, top + 1, 1, 4); g.fillRect(x + 8, top + 1, 1, 4); }
+    if (a.hair === 4) { g.fillStyle = '#d82f2f'; g.fillRect(x + 3, top, 6, 1); g.fillRect(x + 4, up, 4, 1); }
+    if (equip['tête']) { g.fillStyle = RCOL[equip['tête'].rar]; g.fillRect(x + 3, top, 6, 1); g.fillRect(x + 4, up, 4, 1); }
+    g.fillStyle = shirt; g.fillRect(x + 3, top + 5, 6, 4);
+    if (equip.amulette) { g.fillStyle = '#ffd94a'; g.fillRect(x + 6, top + 6, 1, 1); }
+    g.fillStyle = a.skin; g.fillRect(x + 2, top + 5, 1, 3); g.fillRect(x + 9, top + 5, 1, 3);
+    g.fillStyle = pants; g.fillRect(x + 4, top + 9, 2, Math.max(1, legH - (f === 1 ? 1 : 0))); g.fillRect(x + 6, top + 9, 2, Math.max(1, legH - (f === 0 ? 1 : 0)));
+    g.fillStyle = shoes; const fy = top + 9 + legH; g.fillRect(x + 3, fy - (f === 1 ? 1 : 0), 3, 1); g.fillRect(x + 6, fy - (f === 0 ? 1 : 0), 3, 1);
+    if (o.tools) {
+      if (equip.perche) { g.fillStyle = RCOL[equip.perche.rar]; g.fillRect(x + 11, Math.max(oy, top - 2), 1, 14); }
+      else if (equip.balai) { g.fillStyle = RCOL[equip.balai.rar]; g.fillRect(x + 11, top + 1, 1, 11); g.fillRect(x + 10, top + 12, 3, 1); }
+    }
+  }
   function avatar(a) {
     const c = document.createElement('canvas'); c.width = 12; c.height = 16; const g = c.getContext('2d');
-    const dark = '#20203a', shirt = '#2f4fdf', pants = '#20203a';
-    const size = a.size || 1; const top = size === 0 ? 3 : size === 2 ? 0 : 1;
-    // head
-    g.fillStyle = a.skin; g.fillRect(4, top + 1, 4, 4);
-    g.fillStyle = a.eyes; g.fillRect(5, top + 2, 1, 1); g.fillRect(7, top + 2, 1, 1);
-    // hair styles: 1 flat, 2 spiky, 3 long, 4 cap
-    g.fillStyle = a.hairColor;
-    if (a.hair === 1) g.fillRect(4, top, 4, 1);
-    if (a.hair === 2) { g.fillRect(4, top, 4, 1); g.fillRect(3, top - 1 < 0 ? 0 : top - 1, 1, 1); g.fillRect(6, top - 1 < 0 ? 0 : top - 1, 1, 1); g.fillRect(8, top - 1 < 0 ? 0 : top - 1, 1, 1); }
-    if (a.hair === 3) { g.fillRect(4, top, 4, 1); g.fillRect(3, top + 1, 1, 4); g.fillRect(8, top + 1, 1, 4); }
-    if (a.hair === 4) { g.fillStyle = '#d82f2f'; g.fillRect(3, top, 6, 1); g.fillRect(4, top - 1 < 0 ? 0 : top - 1, 4, 1); }
-    // body
-    g.fillStyle = shirt; g.fillRect(3, top + 5, 6, 4);
-    g.fillStyle = a.skin; g.fillRect(2, top + 5, 1, 3); g.fillRect(9, top + 5, 1, 3);
-    g.fillStyle = pants; g.fillRect(4, top + 9, 2, 4 - (size === 0 ? 1 : 0)); g.fillRect(6, top + 9, 2, 4 - (size === 0 ? 1 : 0));
-    g.fillStyle = dark; g.fillRect(3, top + 13 - (size === 0 ? 1 : 0), 3, 1); g.fillRect(6, top + 13 - (size === 0 ? 1 : 0), 3, 1);
+    drawAvatar(g, 0, 0, a, load().equip, {});
     const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'q-avatar'; img.alt = ''; return img;
   }
   const SLOTS = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
@@ -169,17 +183,25 @@ const Game = (() => {
   // condition (low chlorine breeds Algue, high pH grows Calcaire…), and the
   // move that hurts it most is the real remedy. The fight itself is game-only.
   const MON = {
-    algue: { n: 'Algue verte', el: 'Algue', pal: ['#b5f27a', '#2aa845', '#124d2a'], hp: 60, when: (c) => (c.s.cl < 1 ? 3 : 0) + (c.fade > 1 ? 2 : 0), weak: { choc: 2.2, balai: 1.4, robot: 1.2, phm: .6, floc: .8, perche: .6 },
+    algue: { n: 'Algue verte', el: 'Algue', pal: ['#b5f27a', '#2aa845', '#124d2a'], hp: 60, when: (c) => (c.s.cl < 1 ? 3 : 0) + (c.fade > 1 ? 2 : 0), weak: { choc: 2.2, balai: 1.4, robot: 1.2, phm: .6, floc: .8, perche: .6, lavage: .5 },
       atk: [['BLOOM', 9, 'le bassin verdit à vue d’œil'], ['PAROI GLUANTE', 6, 'le fond glisse sous tes bottes']], desc: 'Naît d’un chlore qui a rendu l’âme. Vert le matin, olive le soir, propriétaire de la piscine dès le troisième jour.' },
-    feuilles: { n: 'Nuée de feuilles', el: 'Air', pal: ['#f2c14e', '#e39b12', '#8a4a1e'], hp: 45, when: (c) => c.s.dirt * 1.5, weak: { perche: 2.2, balai: 1.6, robot: 1.5, choc: .5, phm: .4, floc: .7 },
+    moutarde: { n: 'Algue moutarde', el: 'Algue', pal: ['#f5e27a', '#c9a227', '#6b4e10'], hp: 65, when: (c) => (c.s.cl < 1.2 ? 2 : 0) + (c.s.dirt >= 1 ? 1 : 0) + (c.s.ph > 7.6 ? 1 : 0), weak: { balai: 2.2, choc: 1.8, phm: 1.1, robot: .7, perche: .5, floc: .6, lavage: .8 },
+      atk: [['DOUTE', 8, 'du sable ? du pollen ? … non'], ['REPOUSSE', 6, 'brossée le matin, revenue le soir']], desc: 'Son plus grand pouvoir est le doute. Es-tu sûr que c’est elle ? Non, car elle sème le doute.' },
+    feuilles: { n: 'Nuée de feuilles', el: 'Air', pal: ['#f2c14e', '#e39b12', '#8a4a1e'], hp: 45, when: (c) => c.s.dirt * 1.5, weak: { perche: 2.2, balai: 1.6, robot: 1.5, choc: .5, phm: .4, floc: .7, lavage: .5 },
       atk: [['TOURBILLON', 7, 'les paniers se remplissent en une rafale'], ['DÉPÔT', 5, 'une couche de plus au fond']], desc: 'Les pins de Lacanau ne perdent jamais leurs aiguilles, sauf dans les skimmers. Elle revient chaque vent d’ouest.' },
-    calcaire: { n: 'Calcaire', el: 'Terre', pal: ['#f4efe0', '#c9c0a8', '#7a7a90'], hp: 70, when: (c) => (c.s.ph > 7.7 ? 3 : 0) + (c.s.ph > 8 ? 2 : 0), weak: { phm: 2.4, balai: 1.3, robot: 1.1, choc: .5, perche: .6, floc: .6 },
+    aiguille: { n: 'Aiguille de pin', el: 'Air', pal: ['#9fd36a', '#3f7d2a', '#2a3a1a'], hp: 40, when: (c) => (c.s.dirt >= 1 ? 2 : 0) + (c.filtre > c.interval ? 1 : 0), weak: { robot: 2.2, perche: 1.7, balai: .4, choc: .4, phm: .4, floc: .8, lavage: 1.2 },
+      atk: [['PIQUE', 9, 'aïe aïe, ça pique !'], ['PANIER', 6, 'le skimmer déborde en silence']], desc: 'Sa proie ? Ton skimmer. Aïe aïe, ça pique ! Balai ? Tu parles. Seul le robot y tentera sa chance, ou une perche dextre et patiente.' },
+    calcaire: { n: 'Calcaire', el: 'Terre', pal: ['#f4efe0', '#c9c0a8', '#7a7a90'], hp: 70, when: (c) => (c.s.ph > 7.7 ? 3 : 0) + (c.s.ph > 8 ? 2 : 0), weak: { phm: 2.4, balai: 1.3, robot: 1.1, choc: .5, perche: .6, floc: .6, lavage: .5 },
       atk: [['CROÛTE', 8, 'la ligne d’eau blanchit'], ['pH+', 6, 'l’eau vire au basique, doucement, sûrement']], desc: 'Un pH qui monte et ne redescend pas. Il s’installe sur la ligne d’eau et considère que c’est chez lui.' },
-    moustique: { n: 'Moustique-tigre', el: 'Air', pal: ['#c9b6e8', '#7b3fc4', '#20203a'], hp: 35, when: (c) => (c.filtre > c.interval * 1.5 ? 3 : 0) + (c.humeur > 5 ? 1 : 0), weak: { robot: 2.0, floc: 1.6, choc: 1.3, perche: .8, balai: .8, phm: .5 },
+    moustique: { n: 'Moustique-tigre', el: 'Air', pal: ['#c9b6e8', '#7b3fc4', '#20203a'], hp: 35, when: (c) => (c.filtre > c.interval * 1.5 ? 3 : 0) + (c.humeur > 5 ? 1 : 0), weak: { robot: 2.0, floc: 1.6, choc: 1.3, lavage: 1.4, perche: .8, balai: .8, phm: .5 },
       atk: [['PIQÛRE', 10, 'trois sur la cheville, une sur la nuque'], ['LARVES', 5, 'l’eau stagnante lui plaît beaucoup']], desc: 'Adore une filtration en retard et une eau qui ne bouge plus. Repart dès que la pompe reprend son souffle.' },
-    sable: { n: 'Golem de sable', el: 'Terre', pal: ['#e9d59a', '#c9a55a', '#8a4a1e'], hp: 80, when: (c) => (c.sable != null && c.sable > 3 ? 3 : 0) + (c.s.dirt >= 2 ? 1 : 0), weak: { robot: 2.0, balai: 1.8, floc: 1.4, perche: .9, choc: .4, phm: .4 },
+    filtre: { n: 'Filtre saturé', el: 'Terre', pal: ['#b8c4d6', '#5a6b8a', '#26304a'], hp: 90, when: (c) => (c.filtre > c.interval * 1.3 ? 3 : 0) + (c.filtre > c.interval * 2 ? 2 : 0), weak: { lavage: 2.6, robot: .9, floc: .8, balai: .5, perche: .5, choc: .4, phm: .4 },
+      atk: [['PRESSION', 11, 'le manomètre grimpe dans le rouge'], ['NIVEAU BAS', 7, 'la pompe aspire de l’air et tousse']], desc: 'Hélas. Ou le niveau d’eau ou ton skimmer est tombé dans les ténèbres, mon ami. À toi d’affronter les conséquences !' },
+    sable: { n: 'Golem de sable', el: 'Terre', pal: ['#e9d59a', '#c9a55a', '#8a4a1e'], hp: 80, when: (c) => (c.sable != null && c.sable > 3 ? 3 : 0) + (c.s.dirt >= 2 ? 1 : 0), weak: { robot: 2.0, balai: 1.8, lavage: 1.7, floc: 1.4, perche: .9, choc: .4, phm: .4 },
       atk: [['VENT DE DUNE', 8, 'le fond se couvre d’une pellicule fine'], ['FILTRE COLMATÉ', 7, 'la pression grimpe, le débit tombe']], desc: 'Le vieux sable du filtre qui rêve de redevenir dune. Un lavage l’assomme, un sable neuf l’exile.' },
-    locataire: { n: 'Locataire nocturne', el: 'Feu', pal: ['#ffb3a7', '#d82f2f', '#5a1a1a'], hp: 55, when: (c) => (c.humeur > 4 ? 2 : 0) + (c.s.cl < 0.6 ? 2 : 0), weak: { choc: 1.8, floc: 1.5, phm: 1.2, perche: .9, balai: .9, robot: .8 },
+    gland: { n: 'Le Gland', el: 'Terre', pal: ['#c98a4a', '#8a5a2a', '#3a2a1a'], hp: 50, when: (c) => (c.s.dirt >= 1 ? 1.5 : 0) + (c.level > 10 ? .5 : 0), weak: { perche: 2.5, robot: 1.3, balai: 1.1, choc: .3, phm: .3, floc: .5, lavage: .4 },
+      atk: [['CHUTE', 7, 'un ploc, puis un deuxième'], ['TACHE', 5, 'un rond brun au fond, en souvenir']], desc: 'Au nom d’une piscine verte ! Un gland est tombé dans la piscine, pisciniste. Ne panique pas. Demande-toi plutôt qui est le vrai gland dans l’histoire ?' },
+    locataire: { n: 'Locataire nocturne', el: 'Feu', pal: ['#ffb3a7', '#d82f2f', '#5a1a1a'], hp: 55, when: (c) => (c.humeur > 4 ? 2 : 0) + (c.s.cl < 0.6 ? 2 : 0), weak: { choc: 1.8, floc: 1.5, phm: 1.2, perche: .9, balai: .9, robot: .8, lavage: .7 },
       atk: [['BAIGNADE DE 14 H', 12, 'douze personnes, une bouée licorne, zéro douche'], ['CRÈME SOLAIRE', 6, 'un film gras sur toute la surface']], desc: 'On ne le voit jamais, on ne voit que ses traces : le chlore plonge, l’eau mousse, la bouée reste.' },
   };
   const SPAWN = { calme: .06, 'traité': .10, sauvage: .48, critique: .78 };
@@ -187,8 +209,8 @@ const Game = (() => {
   const MTIER = [['common', 'commun', .60, 1, 1], ['uncommon', 'peu commun', .25, 1.3, 1.15], ['rare', 'rare', .10, 1.7, 1.3], ['vrare', 'très rare', .04, 2.2, 1.5], ['epic', 'épique', .009, 3, 1.8], ['legend', 'légendaire', .001, 4, 2.2]];
   const mtierIdx = (t) => Math.max(0, MTIER.findIndex((x) => x[0] === t));
   // what a beaten monster leaves behind — the raw material of the dépôt's workshop
-  const RES = { algue: 'Algue séchée', feuilles: 'Aiguilles de pin', calcaire: 'Écaille de calcaire', moustique: 'Aile de moustique', sable: 'Sable fin', locataire: 'Tube de crème solaire' };
-  const RESCOL = { algue: '#2aa845', feuilles: '#e39b12', calcaire: '#c9c0a8', moustique: '#7b3fc4', sable: '#c9a55a', locataire: '#d82f2f' };
+  const RES = { algue: 'Algue séchée', moutarde: 'Poudre moutarde', feuilles: 'Feuilles mortes', aiguille: 'Aiguilles de pin', calcaire: 'Écaille de calcaire', moustique: 'Aile de moustique', filtre: 'Manomètre rouillé', sable: 'Sable fin', gland: 'Gland verni', locataire: 'Tube de crème solaire' };
+  const RESCOL = { algue: '#2aa845', moutarde: '#c9a227', feuilles: '#e39b12', aiguille: '#3f7d2a', calcaire: '#c9c0a8', moustique: '#7b3fc4', filtre: '#5a6b8a', sable: '#c9a55a', gland: '#8a5a2a', locataire: '#d82f2f' };
   function spawn(c) {
     const g = load(); const e = g.enc; if (!e || e.monster !== undefined) return;
     e.monster = null;
@@ -205,7 +227,7 @@ const Game = (() => {
     save();
   }
   const monCache = new Map();
-  function monsterSprite(id) {
+  function monsterCanvas(id) {
     if (!monCache.has(id)) {
       const m = MON[id]; const r = rng(hash('mon-' + id)); const W = 14, H = 12, half = 7; const cells = [];
       for (let y = 0; y < H; y++) { cells[y] = []; for (let x = 0; x < half; x++) { const cy = (y - 5) / 6, cx = (half - x) / half; cells[y][x] = r() < 0.78 - 0.5 * (cy * cy + cx * cx * .7) ? 1 : 0; } }
@@ -218,51 +240,69 @@ const Game = (() => {
         else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = dark; g.fillRect(x, y, 1, 1); }
       }
       g.fillStyle = '#d82f2f'; g.fillRect(eyeX, eyeY, 1, 1); g.fillRect(W - 1 - eyeX, eyeY, 1, 1);
-      monCache.set(id, c.toDataURL());
+      monCache.set(id, c);
     }
-    const img = document.createElement('img'); img.src = monCache.get(id); img.className = 'q-sprite mon'; img.alt = ''; return img;
+    return monCache.get(id);
   }
+  function monsterSprite(id) { const img = document.createElement('img'); img.src = monsterCanvas(id).toDataURL(); img.className = 'q-sprite mon'; img.alt = ''; return img; }
   // moves: your tools (a worn piece of the tool makes it hit harder) and the chemistry you'd actually reach for
-  const MOVES = { perche: ['Perche', 14], balai: ['Balai', 13], robot: ['Robot', 12], choc: ['Choc', 16], phm: ['pH−', 12], floc: ['Floc', 11] };
+  const MOVES = { perche: ['Perche', 14], balai: ['Balai', 13], robot: ['Robot', 12], choc: ['Choc', 16], phm: ['pH−', 12], floc: ['Floc', 11], lavage: ['Lavage', 13] };
   const RTIER = { common: 1, uncommon: 2, rare: 3, vrare: 4, epic: 5, legend: 6 };
   function toolBonus(k) { const it = load().equip[k]; return it ? 1 + RTIER[it.rar] * 0.1 : 1; }
   let B = null; // the open fight
+  // Flight: sure against a weaker monster, one in three at your level, down
+  // to one in five when it outlevels you by a lot. Leaving a fight any other
+  // way (closing the app, changing page) lets the monster escape with its loot.
+  const fleeOdds = (mo) => { const d = mo.lvl - level(); return d < 0 ? 1 : Math.max(.2, 1 / 3 - d / 75); };
+  function abandon() {
+    if (!B) return; const ov = document.querySelector('.q-battle'); if (ov) ov.remove();
+    const e = B.e; if (!B.over && e && e.monster) { e.escaped = MON[e.monster.id].n; e.monster = null; save(); }
+    B = null;
+  }
   function openBattle(render) {
     const g = load(); const e = g.enc; if (!e || !e.monster) return;
     const m = MON[e.monster.id]; const c = creature(Store.pool(e.poolId));
     const armour = ['tête', 'torse', 'jambes', 'pieds'].reduce((a, sl) => a + (g.equip[sl] ? 8 + RTIER[g.equip[sl].rar] * 4 : 0), 0);
     const maxP = 100 + 4 * (level() - 1) + armour;
+    e.monster.engaged = true; save();
     B = { e, m, c, php: maxP, maxP, log: [{ k: 'foe', t: `${m.n} (Nv ${e.monster.lvl}) surgit de ${c.name} !` }], over: false, menu: 'main', turn: 0 };
     const ov = el('<div class="q-battle"></div>'); document.body.appendChild(ov);
+    const st = stage((ctx, t, sc) => { if (B) drawBattle(ctx, t, sc, c, e.monster || B.lastMo, g); });
     const draw = () => {
       const mo = e.monster || B.lastMo; const hpP = Math.round(mo.hp / mo.maxHp * 100);
       ov.innerHTML = '';
-      const foe = el(`<div class="q-bside foe"><div class="q-bname"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${mo.lvl}</span><span class="q-tag">${esc(m.el)}</span>${mo.tier && mo.tier !== 'common' ? `<span class="q-tag" style="background:${RCOL[mo.tier]};color:#fff">${esc(mo.tierN)}</span>` : ''}<div class="q-hp ${hpP < 40 ? 'low' : hpP < 75 ? 'mid' : ''}"><i style="width:${hpP}%"></i></div><div class="q-hint">${mo.hp}/${mo.maxHp}</div></div></div>`);
-      foe.appendChild(monsterSprite(mo.id)); ov.appendChild(foe);
-      const me = el(`<div class="q-bside me"><div class="q-bname"><b>${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hp ${B.php < 40 ? 'low' : B.php < 75 ? 'mid' : ''}"><i style="width:${B.php}%"></i></div><div class="q-hint">${B.php}/${B.maxP}</div></div></div>`);
-      me.insertBefore(avatar(g.avatar), me.firstChild); ov.appendChild(me);
+      ov.appendChild(el(`<div class="q-bside foe"><div class="q-bname"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${mo.lvl}</span><span class="q-tag">${esc(m.el)}</span>${mo.tier && mo.tier !== 'common' ? `<span class="q-tag" style="background:${RCOL[mo.tier]};color:#fff">${esc(mo.tierN)}</span>` : ''}<div class="q-hp ${hpP < 40 ? 'low' : hpP < 75 ? 'mid' : ''}"><i style="width:${hpP}%"></i></div><div class="q-hint">${mo.hp}/${mo.maxHp}</div></div></div>`));
+      ov.appendChild(st.c);
+      ov.appendChild(el(`<div class="q-bside me"><div class="q-bname"><b>${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hp ${B.php / B.maxP < .4 ? 'low' : B.php / B.maxP < .75 ? 'mid' : ''}"><i style="width:${Math.round(B.php / B.maxP * 100)}%"></i></div><div class="q-hint">${B.php}/${B.maxP}</div></div></div>`));
       const log = el('<div class="q-card q-blog"></div>'); B.log.slice(-3).forEach((l) => log.appendChild(el(`<p class="${l.k}">${esc(l.t)}</p>`))); ov.appendChild(log);
       const menu = el('<div class="q-bmenu"></div>');
       const btn = (label, fn, cls) => { const x = el(`<button type="button" class="q-bbtn ${cls || ''}">${label}</button>`); x.addEventListener('click', fn); return x; };
       if (B.over) { menu.appendChild(btn('Continuer', () => { ov.remove(); B = null; render(); }, 'p')); }
       else if (B.menu === 'main') {
         ['perche', 'balai', 'robot'].forEach((k) => menu.appendChild(btn(`${MOVES[k][0]}${toolBonus(k) > 1 ? ' ★' : ''}`, () => act(k))));
-        menu.appendChild(btn('Chimie ▸', () => { B.menu = 'chem'; draw(); }));
-        menu.appendChild(btn('Fuir', () => { B.log.push({ k: 'foe', t: `Tu files. ${m.n} reste dans ${c.name}.` }); B.over = true; B.fled = true; draw(); }));
-      } else { ['choc', 'phm', 'floc'].forEach((k) => menu.appendChild(btn(MOVES[k][0], () => act(k)))); menu.appendChild(btn('◂ retour', () => { B.menu = 'main'; draw(); })); }
+        menu.appendChild(btn('Autre ▸', () => { B.menu = 'chem'; draw(); }));
+        menu.appendChild(btn(`Fuir · ${Math.round(fleeOdds(mo) * 100)} %`, () => {
+          B.turn++;
+          if (Math.random() < fleeOdds(mo)) { B.over = true; B.fled = true; B.lastMo = { ...mo }; e.monster = null; B.log.push({ k: 'foe', t: `Tu files. ${m.n} disparaît dans ${c.name} — son butin avec.` }); st.q.push({ k: 'flee', dur: .8 }); }
+          else { B.log.push({ k: 'foe', t: 'Impossible de fuir !' }); foeTurn(mo); }
+          save(); draw();
+        }));
+      } else { ['choc', 'phm', 'floc', 'lavage'].forEach((k) => menu.appendChild(btn(MOVES[k][0], () => act(k)))); menu.appendChild(btn('◂ retour', () => { B.menu = 'main'; draw(); })); }
       ov.appendChild(menu);
+    };
+    const foeTurn = (mo) => {
+      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 60) * (mo.dmg || 1) * (0.85 + Math.random() * 0.3));
+      B.php = Math.max(0, B.php - ad); B.log.push({ k: 'foe', t: `${m.n} utilise ${a[0]} — ${a[2]} · −${ad}` }); st.q.push({ k: 'foe', dur: .5 });
+      if (B.php <= 0) { B.over = true; B.lost = true; g.coins = Math.max(0, g.coins - 3); mo.hp = mo.maxHp; mo.engaged = false; B.log.push({ k: 'foe', t: 'Tu es assommé. Il reste là, remis à neuf, jusqu’au prochain passage. −3 pièces' }); }
     };
     const act = (k) => {
       const mo = e.monster; B.turn++; B.menu = 'main';
       const eff = m.weak[k] || 1; const dmg = Math.round(MOVES[k][1] * eff * toolBonus(k) * (0.85 + Math.random() * 0.3));
-      mo.hp = Math.max(0, mo.hp - dmg);
+      mo.hp = Math.max(0, mo.hp - dmg); st.q.push({ k: 'lunge', dur: .4, move: k }, { k: 'hit', dur: .4 });
       B.log.push({ k: 'me', t: `${MOVES[k][0].toUpperCase()} · −${dmg}${eff >= 1.8 ? ' — c’est super efficace !' : eff <= .6 ? ' — ça ne lui fait pas grand-chose.' : ''}` });
       if (mo.hp <= 0) { win(); save(); draw(); return; }
-      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 60) * (mo.dmg || 1) * (0.85 + Math.random() * 0.3));
-      B.php = Math.max(0, B.php - ad); B.log.push({ k: 'foe', t: `${m.n} utilise ${a[0]} — ${a[2]} · −${ad}` });
-      if (B.php <= 0) { B.over = true; B.lost = true; g.coins = Math.max(0, g.coins - 3); B.log.push({ k: 'foe', t: 'Tu es assommé. Il reste là jusqu’au prochain passage. −3 pièces' }); }
+      foeTurn(mo);
       save(); draw();
-      const sp = ov.querySelector('.q-sprite.mon'); if (sp) { sp.classList.add('shake'); }
     };
     const win = () => {
       const mo = e.monster; const b = bonuses(); const ti0 = mtierIdx(mo.tier); B.over = true; B.won = true;
@@ -273,14 +313,81 @@ const Game = (() => {
       let crateTxt = ` · ${qty} × ${RES[mo.id]}`;
       if (Math.random() < 0.12 * (1 + ti0 * 0.6) * (1 + b.drop / 100)) {
         let ti = ti0; if (ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++;
-        const crate = { id: 'cr-' + Date.now(), crate: true, rar: RAR[ti][0], res: Store.pool(e.poolId).res, from: m.n, acts: { chem: k2(m, 'choc'), clean: k2(m, 'balai'), filt: k2(m, 'robot'), mes: 0 }, at: new Date().toISOString() };
+        const crate = { id: 'cr-' + Date.now(), crate: true, rar: RAR[ti][0], res: Store.pool(e.poolId).res, from: m.n, acts: { chem: k2(m, 'choc'), clean: k2(m, 'balai'), filt: k2(m, 'lavage'), mes: 0 }, at: new Date().toISOString() };
         if (g.bag.length < bagSize()) { g.bag.push(crate); crateTxt += ` · caisse ${rarName(crate.rar).toLowerCase()} !`; } else crateTxt += ' · caisse perdue (sac plein)';
       }
-      B.log.push({ k: 'win', t: `${m.n} se dissout ! +${xp} XP · +${coins} pièces${crateTxt}` });
+      B.log.push({ k: 'win', t: `${m.n} se dissout ! +${xp} XP · +${coins} pièces${crateTxt}` }); st.q.push({ k: 'dissolve', dur: 1 });
       B.lastMo = { ...mo, hp: 0 }; e.monster = null;
     };
     const k2 = (m, k) => (m.weak[k] >= 1.5 ? 2 : 0);
     draw();
+  }
+
+  // ---------------------------------------------------------------- stages: a 64×48 pixel screen the real actions play on
+  // One canvas, redrawn ~12 times a second while it is on the page. A queue of
+  // short animations plays what the app just recorded: sticks dropped in the
+  // skimmer, a water test at the edge, a sweep, a backwash — and the fight.
+  function stage(draw) {
+    const c = document.createElement('canvas'); c.width = 64; c.height = 48; c.className = 'q-stage';
+    const sc = { c, t0: performance.now(), q: [], hx: 26, hdir: 1, moving: 0 }; let last = 0;
+    const loop = (now) => { if (!c.isConnected && now - sc.t0 > 3000) return; if (now - last > 80) { last = now; const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false; const t = (now - sc.t0) / 1000; const a = sc.q[0]; let p = 0; if (a) { if (a.t0 == null) { a.t0 = t; if (a.k === 'walk') { a.from = sc.hx; sc.hdir = a.x >= sc.hx ? 1 : -1; } } p = Math.min(1, (t - a.t0) / a.dur); } draw(ctx, t, sc, a, p); if (a && p >= 1) sc.q.shift(); } requestAnimationFrame(loop); };
+    requestAnimationFrame(loop); return sc;
+  }
+  const WATER = { calme: ['#4aa8ff', '#8ed4ff'], 'traité': ['#39c9d6', '#9ff2f5'], sauvage: ['#5faa4a', '#a3d66e'], critique: ['#35603a', '#4f8a4a'] };
+  const px = (ctx, col, x, y, w, h) => { ctx.fillStyle = col; ctx.fillRect(x, y, w || 1, h || 1); };
+  function drawPoolBg(ctx, c, t) {
+    px(ctx, '#e9d59a', 0, 0, 64, 48);
+    for (let y = 0; y < 48; y += 4) for (let x = ((y / 4) % 2) * 4; x < 64; x += 8) px(ctx, '#dfc98c', x, y, 4, 4);
+    px(ctx, '#2aa845', 0, 0, 64, 4); for (let x = 0; x < 64; x += 3) px(ctx, '#124d2a', x, 2 + (x % 2), 1, 1);
+    const w = c.sunk ? ['#101828', '#1c2740'] : WATER[c.state] || WATER.calme;
+    px(ctx, '#20203a', 9, 6, 46, 23); px(ctx, w[0], 10, 7, 44, 21);
+    for (let i = 0; i < 7; i++) px(ctx, w[1], 11 + ((i * 9 + Math.floor(t * 5)) % 42), 9 + (i * 5) % 17, 3, 1);
+    if (c.sunk) for (let i = 0; i < 5; i++) px(ctx, '#3a2a5a', 14 + ((i * 11 + Math.floor(t * 3)) % 36), 10 + ((i * 7 + Math.floor(t * 2)) % 15), 2, 2);
+    if (c.s && c.s.dirt) { const r = rng(hash(c.id + 'd')); for (let i = 0; i < c.s.dirt * 6; i++) px(ctx, '#8a4a1e', 11 + Math.floor(r() * 42), 9 + Math.floor(r() * 17), 1, 1); }
+    px(ctx, '#e6e6ff', 12, 22, 1, 7); px(ctx, '#e6e6ff', 15, 22, 1, 7); px(ctx, '#e6e6ff', 12, 24, 4, 1); px(ctx, '#e6e6ff', 12, 27, 4, 1);   // ladder
+    px(ctx, '#c9c0a8', 44, 27, 7, 3); px(ctx, '#20203a', 45, 28, 5, 1);                                                                   // skimmer
+    px(ctx, '#7a7a90', 56, 38, 7, 8); px(ctx, '#20203a', 57, 44, 5, 1); px(ctx, c.filtre > c.interval ? '#d82f2f' : '#2aa845', 58, 40, 2, 2); // pump + its light
+  }
+  function drawHero(ctx, sc, a, p, o) {
+    const g = load(); o = o || {};
+    if (a && a.k === 'walk') { sc.hx = Math.round(a.from + (a.x - a.from) * p); sc.moving = 1; } else sc.moving = 0;
+    drawAvatar(ctx, sc.hx + (o.dx || 0), 30 + (o.dy || 0), g.avatar, g.equip, { walk: sc.moving ? performance.now() / 120 : 0, tools: true, crouch: o.crouch });
+  }
+  function drawPool(ctx, t, sc, a, p, c, e) {
+    drawPoolBg(ctx, c, t); const g = load();
+    if (e && e.monster) { const mc = monsterCanvas(e.monster.id); ctx.drawImage(mc, 25, 11 + Math.round(Math.sin(t * 2))); }
+    if (e && e.escaped && !e.monster) px(ctx, '#7b3fc4', 26 + Math.floor(t * 2) % 3, 12, 1, 1);
+    const k = a && a.k; const hx = sc.hx;
+    if (k === 'test') { drawHero(ctx, sc, a, p, { crouch: true }); px(ctx, '#e6e6ff', hx + 11, 41, 2, 4); px(ctx, p < .5 ? '#ffd94a' : c.s.cl < 1 ? '#f2c14e' : '#ff7aa8', hx + 11, 43, 2, 2); if (p < .4) px(ctx, WATER[c.state][0], hx + 12, 30 + Math.round(p * 25), 1, 1); return; }
+    drawHero(ctx, sc, a, p);
+    if (k === 'drop') { for (let i = 0; i < a.n; i++) { const q = Math.min(1, Math.max(0, p * 1.4 - i * 0.15)); if (q < 1) px(ctx, '#fff', hx + 10 + (i % 3), 35 - Math.round(q * 8), 1, 2); } }
+    if (k === 'scatter') { const r = rng(hash('sc')); for (let i = 0; i < 12; i++) { const q = Math.min(1, p * 1.3 + r() * .2); px(ctx, '#fff', hx + 10 + Math.round((r() * 20 - 4) * q), 34 - Math.round(q * (10 + r() * 12)), 1, 1); } }
+    if (k === 'sweep') { if (g.equip.robot) { px(ctx, RCOL[g.equip.robot.rar], 12 + Math.round(p * 36), 22, 4, 3); px(ctx, '#fff', 13 + Math.round(p * 36), 23, 1, 1); } else { const tx = hx + 4 + Math.round(Math.sin(p * 9) * 9), ty = 18; for (let i = 0; i <= 12; i++) { const q = i / 12; px(ctx, g.equip.balai ? RCOL[g.equip.balai.rar] : '#8a4a1e', Math.round(hx + 11 + (tx - hx - 11) * q), Math.round(34 + (ty - 34) * q), 1, 1); } px(ctx, WATER[c.state] ? WATER[c.state][1] : '#fff', tx - 1, ty, 3, 1); } }
+    if (k === 'wash') { for (let i = 0; i < 4; i++) px(ctx, '#8ed4ff', 57 + i * 2, 38 - ((Math.round(p * 20) + i * 4) % 14), 1, 2); px(ctx, '#2aa845', 58, 40, 2, 2); }
+  }
+  function drawBattle(ctx, t, sc, c, mo, g) {
+    const a = sc.q[0]; const p = a ? Math.min(1, (t - (a.t0 == null ? t : a.t0)) / a.dur) : 0; const k = a && a.k;
+    drawPoolBg(ctx, c, t);
+    const gone = !B || (B.won && k !== 'dissolve') || (B.fled && (k !== 'flee' || p > .5));
+    if (mo && !gone) {
+      const mc = monsterCanvas(mo.id); const dy = k === 'foe' ? Math.round(Math.sin(p * Math.PI) * 8) : Math.round(Math.sin(t * 2)); const dx = k === 'hit' ? Math.round(Math.sin(p * Math.PI * 4) * 2) : 0;
+      if (k === 'dissolve') { ctx.globalAlpha = 1 - p; } ctx.drawImage(mc, 18 + dx, 4 + dy, 28, 24); ctx.globalAlpha = 1;
+      if (k === 'hit' && p < .2) { ctx.globalAlpha = .5; px(ctx, '#fff', 18 + dx, 4 + dy, 28, 24); ctx.globalAlpha = 1; }
+    }
+    sc.hx = 26; const lunge = k === 'lunge' ? -Math.round(Math.sin(p * Math.PI) * 6) : 0;
+    drawHero(ctx, sc, null, 0, { dy: lunge, dx: k === 'flee' ? Math.round(p * 30) : 0 });
+    if (k === 'lunge' && a.move) { const col = { choc: '#fff', phm: '#ffd94a', floc: '#8ed4ff', lavage: '#8ed4ff', perche: '#8a4a1e', balai: '#8a4a1e', robot: '#7a7a90' }[a.move]; for (let i = 0; i < 6; i++) px(ctx, col, 30 + i * 2 - Math.round(p * 6), 28 - Math.round(p * 12) - i, 1, 1); }
+    if (k === 'foe' && p < .25) { ctx.globalAlpha = .35; px(ctx, '#d82f2f', 0, 0, 64, 48); ctx.globalAlpha = 1; }
+  }
+  function drawDepot(ctx, t, sc, n, at) {
+    px(ctx, '#bfe3ff', 0, 0, 64, 48); px(ctx, '#e9d59a', 0, 36, 64, 12); px(ctx, '#dfc98c', 0, 44, 64, 4);
+    px(ctx, '#c9c0a8', 14, 12, 46, 24); px(ctx, '#7a7a90', 12, 8, 50, 5); px(ctx, '#20203a', 12, 12, 50, 1);
+    px(ctx, '#2f4ffd', 36, 15, 20, 5); for (let i = 0; i < 5; i++) px(ctx, '#fff', 38 + i * 4, 17, 2, 1);        // the sign
+    if (at) { px(ctx, '#20203a', 22, 20, 12, 16); [24, 29].forEach((y) => { px(ctx, '#8a4a1e', 23, y, 10, 1); for (let i = 0; i < 3; i++) px(ctx, RCOL[RAR[(i + y) % 4][0]], 24 + i * 3, y - 2, 2, 2); }); }
+    else { px(ctx, '#8a4a1e', 22, 20, 12, 16); px(ctx, '#5a2a0a', 28, 20, 1, 16); px(ctx, '#ffd94a', 31, 28, 1, 1); }
+    for (let i = 0; i < Math.min(n, 8); i++) { const x = 38 + (i % 4) * 5, y = 32 - Math.floor(i / 4) * 5; px(ctx, '#8a4a1e', x, y, 4, 4); px(ctx, '#e39b12', x + 1, y + 1, 2, 2); }
+    const g = load(); const to = at ? 22 : 4; const q = Math.min(1, t / 1.6); const hx = Math.round(2 + (to - 2) * q);
+    drawAvatar(ctx, hx, 30, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0, tools: true });
   }
   function monsterBanner(render) {
     const g = load(); const e = g.enc; if (!e || !e.monster) return null;
@@ -351,7 +458,9 @@ const Game = (() => {
   function enter(poolId) {
     const g = load();
     if (g.enc && g.enc.poolId !== poolId) settle();
-    if (!g.enc) { const c0 = creature(Store.pool(poolId)); g.enc = { poolId, since: new Date().toISOString(), state: c0 ? c0.state : 'calme', mult: c0 ? c0.mult : 1, vie: c0 ? c0.vie : 100 }; if (g.lurk && g.lurk[poolId]) { g.enc.monster = g.lurk[poolId]; delete g.lurk[poolId]; } save(); }
+    if (!g.enc) { const c0 = creature(Store.pool(poolId)); g.enc = { poolId, since: new Date().toISOString(), state: c0 ? c0.state : 'calme', mult: c0 ? c0.mult : 1, vie: c0 ? c0.vie : 100, seen: { chem: 0, clean: 0, filt: 0, mes: 0 } }; if (g.lurk && g.lurk[poolId]) { g.enc.monster = g.lurk[poolId]; delete g.lurk[poolId]; } save(); }
+    // a fight left open (app closed, page changed) — the monster slipped away with its loot
+    if (g.enc.monster && g.enc.monster.engaged && !B) { g.enc.escaped = MON[g.enc.monster.id].n; g.enc.monster = null; save(); }
   }
   // Settle the open encounter: real actions → XP, coins, maybe a crate. Nothing done → the creature stays wild, no loot.
   function settle() {
@@ -381,6 +490,7 @@ const Game = (() => {
       }
     }
     if (!n && g.calmed[p.id] && daysSince(g.calmed[p.id]) < 0.1) out.quiet = true; // just calmed, came back — no nag
+    if (e.escaped) { out.escaped = e.escaped; out.quiet = false; }
     g.pending = out; save();
     return out;
   }
@@ -402,6 +512,30 @@ const Game = (() => {
     const fix = (it) => { if (it && !it.crate && !it.affixes) { const n = makeItem(it.res || Object.keys(ZSETS)[Math.floor(Math.random() * 5)], it.slot, it.rar, it.from); Object.assign(it, n, { id: it.id }); changed = true; } };
     g.bag.forEach(fix); Object.values(g.equip).forEach(fix);
     if (changed) save();
+  }
+  // ---------------------------------------------------------------- daily rewards: steady maintenance pays out at the dépôt
+  // Every past day with four or more pools seen (a visit or a reading, by
+  // anyone) leaves one crate at the dépôt, two from twelve pools. The dépôt
+  // keeps a week of them; the fleet's average Vie on the day you collect
+  // decides how good they are.
+  function rewardDays() {
+    const g = load(); const today = day(new Date().toISOString()); const weekAgo = day(new Date(Date.now() - 7 * 864e5).toISOString());
+    const from = (g.rewardFrom || '') > weekAgo ? g.rewardFrom : weekAgo; const days = {}; const D = Store.load();
+    const add = (r) => { if (r.deleted) return; const d = day(r.at); if (d >= from && d < today) { days[d] = days[d] || new Set(); days[d].add(r.poolId); } };
+    D.visits.forEach(add); D.readings.forEach(add);
+    return Object.entries(days).filter(([, s]) => s.size >= 4).map(([d, s]) => ({ d, n: s.size, crates: s.size >= 12 ? 2 : 1 })).sort((a, b) => (a.d < b.d ? -1 : 1));
+  }
+  function claimRewards() {
+    const g = load(); if (!depotState.at) return []; const got = []; const b = bonuses();
+    const cs = maintained().map(creature); const avg = cs.length ? cs.reduce((a, c) => a + c.vie, 0) / cs.length : 50;
+    rewardDays().forEach((dd) => { for (let i = 0; i < dd.crates; i++) {
+      if (g.bag.length >= bagSize()) return;
+      const r = Math.random() / (0.7 + 0.6 * avg / 100) / (1 + b.drop / 100); let acc = 0, ti = 0;
+      for (let k = RAR.length - 1; k >= 1; k--) { acc += RAR[k][2]; if (r < acc) { ti = k; break; } }
+      const crate = { id: 'cr-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), crate: true, rar: RAR[ti][0], res: Object.keys(ZSETS)[Math.floor(Math.random() * 5)], from: 'dépôt · ' + dd.d, acts: { chem: 1, clean: 1, filt: 1, mes: 1 }, at: new Date().toISOString() };
+      g.bag.push(crate); got.push(crate);
+    } });
+    g.rewardFrom = day(new Date().toISOString()); save(); return got;
   }
   // ---------------------------------------------------------------- the dépôt: the only place that buys
   const depot = () => (Store.residences() || []).find((r) => r.poi && r.lat != null);
@@ -463,6 +597,18 @@ const Game = (() => {
         ${c.sable != null ? bar('Sable', c.sable, 6, c.sable.toFixed(1) + ' ans') : ''}
       </div></div>`);
     box.querySelector('.q-head').appendChild(sprite(p));
+    // the screen: what was just recorded plays out (sticks in the skimmer, a test, a sweep, a wash)
+    const e = g.enc; const st = stage((ctx, t, sc, a, pp) => drawPool(ctx, t, sc, a, pp, c, e));
+    if (e) {
+      const seen = e.seen || { chem: 0, clean: 0, filt: 0, mes: 0 };
+      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', x: 34, dur: .8 }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
+      if (acts.mes > seen.mes) st.q.push({ k: 'walk', x: 16, dur: .8 }, { k: 'test', dur: 2 });
+      if (acts.clean > seen.clean) st.q.push({ k: 'walk', x: 26, dur: .6 }, { k: 'sweep', dur: 2.4 });
+      if (acts.filt > seen.filt) st.q.push({ k: 'walk', x: 44, dur: .9 }, { k: 'wash', dur: 1.8 });
+      e.seen = { ...acts }; save();
+    }
+    box.insertBefore(st.c, box.querySelector('.q-stats'));
+    if (e && e.escaped && !e.monster) box.insertBefore(el(`<div class="q-hint">${esc(e.escaped)} s’est enfui pendant que tu avais le dos tourné — son butin avec.</div>`), box.querySelector('.q-stats'));
     const mb = monsterBanner(render || (() => window.dispatchEvent(new Event('hashchange'))));
     if (mb) { const w = document.createElement('div'); w.appendChild(box); w.appendChild(mb); return w; }
     return box;
@@ -473,6 +619,7 @@ const Game = (() => {
     if (o.quiet) return;
     const parts = o.n ? [`${o.pool} ${o.resurrected ? 'ressuscitée ! (×4)' : 'apaisée' + (o.mult > 1 ? ' (' + o.state + ' ×' + o.mult + ')' : '')}`, `+${o.xp} XP`, `+${o.coins} pièces`] : [o.sunk ? `${o.pool} reste dans les ténèbres — il faut au moins deux gestes` : `${o.pool} reste sauvage — rien de saisi`];
     if (o.crate) parts.push(o.crate.lost ? `caisse ${rarName(o.crate.rar).toLowerCase()} perdue (sac plein)` : `caisse ${rarName(o.crate.rar).toLowerCase()} !`);
+    if (o.escaped) parts.push(`${o.escaped} s’est enfui — son butin avec`);
     const tst = el(`<div class="q-toast ${o.n ? 'win' : ''}"><b>${o.n ? '★' : '…'}</b> ${esc(parts.join(' · '))}</div>`);
     document.body.appendChild(tst);
     setTimeout(() => tst.classList.add('show'), 20); setTimeout(() => { tst.classList.remove('show'); setTimeout(() => tst.remove(), 400); }, 4200);
@@ -533,6 +680,11 @@ const Game = (() => {
     // the dépôt buys and crafts — only when you're there
     const dp = el(`<div class="q-card q-depot"><div class="q-head"><div class="q-grow"><b>Dépôt</b><div class="q-hint" id="q-dep-txt">${depotState.checked ? (depotState.at ? 'Tu es au dépôt — vente ouverte' : depotState.err === 'denied' ? 'Position refusée — la vente attend au dépôt' : depotState.err ? 'Pas de GPS ici' : 'À ' + (depotState.dist >= 1000 ? (depotState.dist / 1000).toFixed(1) + ' km' : Math.round(depotState.dist) + ' m') + ' du dépôt — reviens pour vendre') : 'La vente n’est possible qu’au dépôt produits'}</div></div><button type="button" class="btn q-up">Je suis là ?</button></div></div>`);
     dp.querySelector('button').addEventListener('click', () => { dp.querySelector('#q-dep-txt').textContent = 'Position…'; checkDepot(render); });
+    const rd = rewardDays(); const nCr = rd.reduce((a, d) => a + d.crates, 0);
+    dp.appendChild(stage((ctx, t, sc) => drawDepot(ctx, t, sc, nCr, depotState.at)).c);
+    const rw = el(`<div class="q-craft"><div class="q-head"><div class="q-grow"><b>Récompenses</b><div class="q-hint">${nCr ? nCr + ' caisse' + (nCr > 1 ? 's' : '') + ' — ' + rd.map((d) => d.d.slice(5) + ' : ' + d.n + ' piscines').join(' · ') : 'Une journée à 4 piscines ou plus laisse une caisse ici (deux dès 12). Le dépôt en garde une semaine.'}</div></div>${nCr ? `<button type="button" class="btn q-up${depotState.at ? '' : ' dis'}">Récupérer</button>` : ''}</div></div>`);
+    const rb = rw.querySelector('button'); if (rb && depotState.at) rb.addEventListener('click', () => { const got = claimRewards(); render(); if (got.length) { const tst = el(`<div class="q-toast win show"><b>📦</b> ${got.length} caisse${got.length > 1 ? 's' : ''} : ${esc(got.map((x) => rarName(x.rar).toLowerCase()).join(', '))}</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500); } });
+    dp.appendChild(rw);
     if (depotState.at) {
       const totalRes = resEntries.reduce((a, [, n]) => a + n, 0);
       const cf = el(`<div class="q-craft"><b>Atelier</b><div class="q-craftrow"><select id="q-cz">${Object.entries(ZSETS).map(([k, z]) => `<option value="${k}">${esc(z.n)}</option>`).join('')}</select><select id="q-cs">${SLOTS.map((sl) => `<option value="${sl}">${sl}</option>`).join('')}</select><select id="q-cr">${RAR.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></div><div class="q-hint" id="q-ccost"></div><button type="button" class="btn q-up" id="q-cbtn">Fabriquer</button></div>`);
@@ -594,11 +746,12 @@ const Game = (() => {
   // settle an open encounter when the pool page is left (route change) or the app is hidden
   function onRoute(name, poolId) {
     const g = load();
+    if (B && !(name === 'pool' && g.enc && poolId === g.enc.poolId)) abandon();
     if (g.enc && !(name === 'pool' && poolId === g.enc.poolId)) settle();
     if (name !== 'pool') setTimeout(toast, 50);
   }
-  window.addEventListener('pagehide', () => { if (load().enc) settle(); });
+  window.addEventListener('pagehide', () => { abandon(); if (load().enc) settle(); });
 
-  return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, MON, MTIER, RES, openBattle, get state() { return load(); } };
+  return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, MON, MTIER, RES, openBattle, rewardDays, get state() { return load(); } };
 })();
 window.Game = Game;
