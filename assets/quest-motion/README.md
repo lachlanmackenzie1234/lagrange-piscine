@@ -1,5 +1,9 @@
 # Pocket Coast runtime motion
 
+This is the retained v3 effect/aura/fallback pack. The live game now overlays
+the [HD pack](../quest-hires/README.md), with 48×64 character art and a 512×384
+canvas. The descriptions below record the original v3 integration.
+
 Seven PNG pages and a compact manifest, generated from the original
 [v3 complete animation pack](https://github.com/lachlanmackenzie1234/lagrange-piscine/tree/245ef598c7b2b6a4362886bce6762f28ef6e7dce/art/pixel-lab/v3-complete/animations).
 The manifest records the source manifest's SHA-256. PNGs retain exact integer

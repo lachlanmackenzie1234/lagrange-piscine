@@ -761,7 +761,7 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-stat { display: grid; grid-template-columns: 62px 1fr auto; gap: 6px; align-items: center; font-size: .84rem; padding: 2px 0; }
 .q-bar { height: 8px; border: 2px solid var(--ink); background: var(--na-bg); } .q-bar i { display: block; height: 100%; background: var(--brand); }
 .q-v { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; font-size: .8rem; }
-.q-seg { display: flex; gap: 8px; margin: 0 0 14px; }
+.q-seg { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 0 0 14px; }
 .q-seg a { flex: 1; min-width: 0; font: inherit; font-size: .9rem; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); padding: 8px 4px; text-align: center; text-decoration: none; }
 .q-seg a.on { background: var(--brand-dark); color: #fff; }
 .q-seg a:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
@@ -824,7 +824,18 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-map-menu .q-craftrow select { min-width: 0; width: 100%; font-size: 16px; }
 .q-map-menu .q-craft { border: 0; margin: 0; padding: 5px; }
 .q-map-note { padding: 5px 8px; }
-@media (max-width: 360px) { .q-seg { flex-wrap: wrap; } .q-seg a { flex-basis: calc(50% - 8px); } }
+@media (max-width: 540px) { .q-seg { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.q-world-nav, .q-player-hud { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 8px 0; font-size: .8rem; }
+.q-world-nav a, .q-player-hud button { border: 2px solid var(--ink); padding: 4px 7px; background: var(--card); color: var(--ink); font: inherit; text-decoration: none; cursor: pointer; }
+.q-pool-cycle { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; }
+.q-player-hud { justify-content: space-between; padding-top: 6px; border-top: 2px dotted var(--na-bg); }
+.q-npc-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+.q-npc-list button { min-width: 0; border: 2px solid var(--ink); padding: 7px 3px; color: var(--ink); background: var(--card); font: inherit; cursor: pointer; }
+.q-npc-list small { display: block; font-size: .65rem; color: var(--muted); }
+.q-npc-intro { display: flex; gap: 8px; align-items: center; padding: 4px 8px; }
+.q-npc-intro canvas { width: 36px; height: 48px; flex: none; image-rendering: pixelated; }
+.q-npc-intro small { display: block; color: var(--muted); }
+.q-workshop-details { border-top: 2px dotted var(--na-bg); padding-top: 8px; font-size: .8rem; }
 .q-map-menu-head { position: sticky; top: 0; display: flex; align-items: center; gap: 6px; background: var(--brand-dark); color: #fff; border-bottom: 2px solid var(--ink); padding-left: 8px; z-index: 1; min-height: 32px; }
 .q-map-menu-head > span { flex: 1; font-size: 13px; }
 .q-map-close { background: transparent; border: 0; color: #fff; width: 32px; min-height: 30px; font: 20px/1 var(--font); cursor: pointer; }

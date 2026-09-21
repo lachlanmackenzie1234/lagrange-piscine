@@ -107,23 +107,29 @@ const PoolMaps = (() => {
     const m = byId[id] || M.find((x) => x[1] === res) || M[0];
     const L = expand(m); L.borrowed = !byId[id]; cache.set(k, L); return L;
   }
-  // Foot collision for the exported 256×192 depot interior. Shelves, tools,
-  // lockers and drums are solid; the southern doorway opens onto the floor.
-  const depotLayout = (() => {
-    const coll = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => +(x === 0 || x === W - 1 || y === 0 || y === H - 1)));
-    [[1, 1, 14, 3], [1, 4, 4, 4], [13, 4, 2, 2], [12, 6, 3, 3], [1, 9, 1, 2], [14, 9, 1, 2]].forEach(([x, y, w, h]) => {
-      for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) coll[yy][xx] = 1;
-    });
-    coll[11][7] = coll[11][8] = 0;
-    return { id: 'depot', coll, anchors: { sp: { x: 8, y: 10 }, bench: { x: 6, y: 4 }, rewards: { x: 10, y: 4 }, lockers: { x: 11, y: 4 }, sale: { x: 12, y: 5 } },
-      hotspots: [
-        { kind: 'craft', label: 'Atelier', rect: [77, 24, 59, 42], anchor: 'bench' },
-        { kind: 'rewards', label: 'Récompenses', rect: [139, 10, 39, 55], anchor: 'rewards' },
-        { kind: 'bag', label: 'Équipement', rect: [179, 10, 42, 54], anchor: 'lockers' },
-        { kind: 'craft', label: 'Atelier', rect: [9, 17, 65, 119], anchor: 'bench' },
-        { kind: 'sale', label: 'Revente', rect: [202, 68, 37, 35], anchor: 'sale' },
-      ] };
-  })();
-  return { get, route, depot: () => depotLayout, ids: () => M.map((m) => m[0]), W, H };
+  // Hub collision uses logical 16px cells; source backgrounds are native 512×384.
+  function makeHub(id, open, blocked, anchors, npcs, hotspots, exit) {
+    const coll = Array.from({ length: H }, () => Array(W).fill(1));
+    const fill = (rect, value) => { const [x, y, w, h] = rect; for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) coll[yy][xx] = value; };
+    open.forEach(r => fill(r, 0)); blocked.forEach(r => fill(r, 1));
+    npcs.forEach(n => { coll[n.cell[1]][n.cell[0]] = 1; });
+    return { id, coll, anchors, npcs, hotspots, exit };
+  }
+  const hubs = {
+    depot: makeHub('depot', [[1, 4, 14, 7], [5, 3, 3, 1], [6, 11, 4, 1]],
+      [[1, 4, 1, 7], [2, 6, 1, 5], [13, 4, 2, 1], [12, 5, 3, 4], [1, 9, 5, 2], [10, 9, 5, 2]],
+      { sp: { x: 8, y: 10 }, bench: { x: 11, y: 4 }, sale: { x: 3, y: 5 }, potions: { x: 10, y: 8 }, lockers: { x: 8, y: 9 } },
+      [{ id: 'matt', cell: [3, 4] }, { id: 'karine', cell: [12, 4] }, { id: 'jojo', cell: [11, 8] }],
+      [{ kind: 'sale', npc: 'matt', rect: [28, 26, 50, 45], anchor: 'sale' }, { kind: 'craft', npc: 'karine', rect: [136, 50, 108, 28], anchor: 'bench' }, { kind: 'potions', npc: 'jojo', rect: [191, 90, 55, 54], anchor: 'potions' }],
+      { rect: [98, 165, 67, 27], to: 'bureau' }),
+    bureau: makeHub('bureau', [[1, 3, 14, 7]],
+      [[1, 3, 1, 7], [2, 3, 4, 2], [10, 3, 4, 2], [14, 8, 1, 2]],
+      { sp: { x: 12, y: 8 }, rewards: { x: 4, y: 6 }, quest: { x: 11, y: 6 }, partner: { x: 7, y: 8 } },
+      [{ id: 'pj', cell: [4, 5] }, { id: 'jp', cell: [11, 5] }, { id: 'partner', cell: [6, 8] }],
+      [{ kind: 'rewards', npc: 'pj', rect: [37, 47, 58, 31], anchor: 'rewards' }, { kind: 'quest', npc: 'jp', rect: [161, 47, 63, 31], anchor: 'quest' }],
+      { rect: [181, 155, 40, 37], to: 'depot' }),
+  };
+  return { get, route, depot: () => hubs.depot, hub: id => hubs[id] || hubs.depot, ids: () => M.map((m) => m[0]), W, H };
+
 })();
 window.PoolMaps = PoolMaps;

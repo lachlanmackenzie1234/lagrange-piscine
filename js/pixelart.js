@@ -349,17 +349,20 @@ const PixelArt = (() => {
   const BENCH = ['iiiiiiiiiiiiii', 'iOOOOOOOOOOOOi', 'iooooooooooooi', 'iiiiiiiiiiiiii', '.io........oi.', '.io........oi.', '.ii........ii.'];
   function map(g, L, o) {
     o = o || {}; const t = o.t || 0; const T = 16;
-    for (let y = 0; y < L.ground.length; y++) for (let x = 0; x < L.ground[y].length; x++) { const k = L.ground[y][x]; if (k === 'water') continue; g.drawImage(tile(k, x * 7 + y * 3 + (x * y) % 5), x * T, y * T); }
+    const w = o.sunk ? WATER.sunk : WATER[o.state] || WATER.calme; const P = L.pool; const bx = P.x * T, by = P.y * T, bw = P.w * T, bh = P.h * T;
+    if (o.layer !== 'features') {
+    for (let y = 0; y < L.ground.length; y++) for (let x = 0; x < L.ground[y].length; x++) { const k = L.ground[y][x]; if (k === 'water') continue; const variation = x * 7 + y * 3 + (x * y) % 5; if (!o.drawTile?.(g, k, variation, x * T, y * T)) g.drawImage(tile(k, variation), x * T, y * T); }
     // the border: a hedge along the top, the fence along the bottom; pines for a forest; the canal down the right
     if (L.border !== 'canal') { for (let x = 0; x < 16; x++) { if (L.border === 'forest') g.drawImage(pine(), x * T, -14); else g.drawImage(tile('hedge'), x * T, 0); } }
     else { for (let x = 0; x < 16; x++) g.drawImage(tile('hedge'), x * T, 0); px(g, C.Q, 240, 0, 16, 192); px(g, C.q, 242, 0, 12, 192); for (let i = 0; i < 12; i++) px(g, C.l, 244 + (i % 2) * 4, (i * 16 + Math.floor(t * 6)) % 192, 4, 1); px(g, C.S, 239, 0, 1, 192); }
     if (L.border !== 'canal') { const fence = cached('fence', 16, 8, (gg) => rows(gg, FENCE, 0, 0)); for (let x = 0; x < 16; x++) g.drawImage(fence, x * T, 184); }
     // the basin
-    const w = o.sunk ? WATER.sunk : WATER[o.state] || WATER.calme; const P = L.pool; const bx = P.x * T, by = P.y * T, bw = P.w * T, bh = P.h * T;
     px(g, C.i, bx - 1, by - 1, bw + 2, bh + 2); px(g, w[0], bx, by, bw, bh); px(g, w[2], bx, by + bh - 8, bw, 8); px(g, w[1], bx, by, bw, 2);
     const animatedWater = !o.sunk && o.drawWater?.(g, o.state, t * 1000, bx, by, bw, bh);
     if (!animatedWater) for (let ry = 0; ry < bh / 8; ry++) for (let rx = 0; rx < bw / 16 + 1; rx++) { const wx = bx + 2 + rx * 16 + (ry % 2) * 8 + (Math.floor(t * 2) % 4) * 2, wy = by + 5 + ry * 8; if (wx + 6 < bx + bw && wy < by + bh - 2) { px(g, w[1], wx, wy, 4, 1); px(g, w[1], wx + 4, wy + 1, 2, 1); } }
     if (o.sunk) for (let i = 0; i < 8; i++) px(g, '#3a2a5a', bx + 4 + ((i * 29 + Math.floor(t * 5)) % (bw - 8)), by + 4 + ((i * 13 + Math.floor(t * 3)) % (bh - 8)), 3, 2);
+    if (o.layer === 'ground') return;
+    }
     if (o.dirt) { let h = 7; for (let i = 0; i < o.dirt * 10; i++) { h = (h * 1103515245 + 12345) & 0x7fffffff; px(g, i % 3 ? C.A : C.O, bx + 3 + (h % (bw - 6)), by + 3 + ((h >> 8) % (bh - 6)), 2, 1); } }
     // ladder on the pool edge nearest its anchor, skimmer on its coping cell
     const la = L.anchors.la; const sk = L.anchors.sk;

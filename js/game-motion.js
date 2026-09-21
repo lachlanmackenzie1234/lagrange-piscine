@@ -1,11 +1,11 @@
-/* Pocket Coast animation playback and composable 24×32 keeper. */
+/* Pocket Coast playback: 48×64 art over a stable 256×192 logical world. */
 const QuestMotion = (() => {
   const root = typeof window !== 'undefined' ? window : globalThis;
   const slots = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
   const sets = ['EC', 'AG', 'EP', 'EPP', 'GP'];
   const tiers = ['common', 'uncommon', 'rare', 'vrare', 'epic', 'legend'];
-  let data = null, loaded = false, failure = null;
-  const pages = new Map(), keeperCache = new Map();
+  let data = null, loaded = false, failure = null, revision = 0;
+  const pages = new Map(), keeperCache = new Map(), keeperBases = new Map(), dressedBases = new Map();
   const reduced = () => !!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const fullSet = (equip = {}) => { const values = slots.map((slot) => equip[slot]?.res); return sets.includes(values[0]) && values.every((v) => v === values[0]) ? values[0] : null; };
   const setAuraState = (equip = {}) => { const set = fullSet(equip); if (!set) return null; const rank = Math.min(...slots.map(s => Math.max(0, tiers.indexOf(equip[s].rar)))); return { set, rank, rarity: tiers[rank] }; };
@@ -36,13 +36,23 @@ const QuestMotion = (() => {
     finish() { const a = this.current; if (a && this.jobs[0] === a && this.elapsed >= (a.dur || .001)) { this.jobs.shift(); this.current = null; a.onEnd?.(); } }
     cancel() { this.jobs.length = 0; this.current = null; this.elapsed = 0; }
   }
+  class RenderClock {
+    constructor() { this.since = 0; this.credit = 0; }
+    reset() { this.since = this.credit = 0; }
+    tick(dt, fps) {
+      this.since += dt; this.credit += dt; const interval = 1 / fps;
+      if (this.credit + .001 < interval) return null;
+      this.credit = Math.max(0, this.credit - interval) % interval;
+      const elapsed = this.since; this.since = 0; return elapsed;
+    }
+  }
 
   function draw(ctx, id, elapsed, x, y, options = {}) {
     const clip = data?.clips[id], page = clip && pages.get(clip.page); if (!page) return false;
-    const f = frameAt(clip, elapsed, reduced()), scale = options.scale || 1;
+    const f = frameAt(clip, elapsed, reduced()), scale = (options.scale || 1) / (clip.px || 1);
     const offset = options.offset || f.o;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(page, ...f.r, Math.round(x - clip.a[0] * scale + offset[0] * scale), Math.round(y - clip.a[1] * scale + offset[1] * scale), f.r[2] * scale, f.r[3] * scale);
+    ctx.drawImage(page, ...f.r, Math.round((x - clip.a[0] * scale + offset[0] * scale) * 2) / 2, Math.round((y - clip.a[1] * scale + offset[1] * scale) * 2) / 2, f.r[2] * scale, f.r[3] * scale);
     return true;
   }
 
@@ -59,7 +69,7 @@ const QuestMotion = (() => {
     return shown;
   }
 
-  // One clock for all visible portraits, including the 23 Dex cards. Detached
+  // One clock for all visible portraits. Detached
   // cards are collected after renders; offscreen/hidden cards do not repaint.
   const portraits = new Map(); let portraitRAF = 0, portraitTime = 0, portraitPrevious = 0;
   const portraitObserver = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => entries.forEach(entry => { const p = portraits.get(entry.target); if (p) { p.visible = entry.isIntersecting; p.dirty = true; } }));
@@ -81,17 +91,32 @@ const QuestMotion = (() => {
     if (!portraitRAF) portraitPrevious = 0;
   }
   function creaturePortrait(poolId, zone) {
-    return portrait(24, 24, (ctx, elapsed) => {
+    return portrait(48, 48, (ctx, elapsed) => {
       const id = data?.clips['pool-creature/' + poolId + '/idle'] ? 'pool-creature/' + poolId + '/idle' : 'species/' + zone + '/idle';
       const clip = data?.clips[id];
-      if (!clip || !draw(ctx, id, elapsed, ...clip.a, { offset: [0, 0] })) ctx.drawImage(root.PixelArt.creature(zone, poolId), 0, 0);
+      ctx.save(); ctx.scale(2, 2);
+      if (!clip || !draw(ctx, id, elapsed, ...clip.a.map(v => v / (clip.px || 1)), { offset: [0, 0] })) ctx.drawImage(root.PixelArt.creature(zone, poolId), 0, 0);
+      ctx.restore();
     });
   }
   function monsterPortrait(id) {
-    return portrait(28, 24, (ctx, elapsed) => {
+    return portrait(56, 48, (ctx, elapsed) => {
       const clip = data?.clips[`monster/${id}/idle`];
-      if (!clip || !draw(ctx, `monster/${id}/idle`, elapsed, ...clip.a, { offset: [0, 0] })) ctx.drawImage(root.PixelArt.monster(id), 0, 0);
+      ctx.save(); ctx.scale(2, 2);
+      if (!clip || !draw(ctx, `monster/${id}/idle`, elapsed, ...clip.a.map(v => v / (clip.px || 1)), { offset: [0, 0] })) ctx.drawImage(root.PixelArt.monster(id), 0, 0);
+      ctx.restore();
     });
+  }
+  function icon(id, fallback) {
+    const c = document.createElement('canvas'); c.width = c.height = 32; c.setAttribute('aria-hidden', 'true');
+    const paint = () => { const ctx = c.getContext('2d'); ctx.clearRect(0, 0, 32, 32); ctx.imageSmoothingEnabled = false; ctx.save(); ctx.scale(2, 2); if (!draw(ctx, id, 0, 0, 0) && fallback) ctx.drawImage(fallback, 0, 0, 16, 16); ctx.restore(); };
+    paint(); ready.then(paint); return c;
+  }
+  function keeperBase(direction) {
+    if (keeperBases.has(direction)) return keeperBases.get(direction);
+    const clip = data?.clips['keeper/base/' + direction], page = clip && pages.get(clip.page); if (!page) return null;
+    const c = document.createElement('canvas'); c.width = 48; c.height = 64; const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(page, ...clip.f[0].r, 0, 0, 48, 64); const pixels = ctx.getImageData(0, 0, 48, 64); keeperBases.set(direction, pixels); return pixels;
   }
 
   const fallback = {
@@ -109,31 +134,38 @@ const QuestMotion = (() => {
     const direction = options.direction || 'south', motion = options.motion || 'idle';
     const f = frameAt(keeperClip(direction, motion), options.elapsed || 0, reduced());
     const look = slots.map((s) => equip?.[s] ? [equip[s].res, equip[s].rar, !!equip[s].cursed] : null);
-    const key = JSON.stringify([avatar.skin, avatar.hair, avatar.hairColor, look, direction, motion, f.index]);
+    const styleKey = JSON.stringify([avatar.skin, avatar.hair, avatar.hairColor, look, direction]);
+    const key = styleKey + '|' + motion + '|' + f.index;
     if (!keeperCache.has(key)) {
-      const c = document.createElement('canvas'); c.width = 24; c.height = 32; const g = c.getContext('2d');
-      root.PixelArt.keeper(g, 0, 0, equip || {}, avatar, direction);
-      const src = g.getImageData(0, 0, 24, 32), out = g.createImageData(24, 32);
+      const c = document.createElement('canvas'); c.width = 48; c.height = 64; const g = c.getContext('2d', { willReadFrequently: true });
+      const base = keeperBase(direction);
+      if (!dressedBases.has(styleKey)) {
+        if (base) root.KeeperArt.paint(g, base, equip || {}, root.QuestCore.sanitizeAvatar(avatar), direction);
+        else { g.save(); g.scale(2, 2); root.PixelArt.keeper(g, 0, 0, equip || {}, avatar, direction); g.restore(); }
+        dressedBases.set(styleKey, g.getImageData(0, 0, 48, 64)); if (dressedBases.size > 24) dressedBases.delete(dressedBases.keys().next().value);
+      }
+      const src = dressedBases.get(styleKey), out = g.createImageData(48, 64);
       const kind = motion === 'flee' ? 'walk' : motion;
-      const stride = kind === 'walk' ? [0, 1, 1, 0, 0, -1, -1, 0][f.index % 8] : 0;
+      const stride = kind === 'walk' ? [0, 2, 2, 0, 0, -2, -2, 0][f.index % 8] : 0;
       const bob = kind === 'idle' && f.index === 2 || kind === 'walk' && ![0, 4].includes(f.index % 8) || kind === 'victory' && [1, 2].includes(f.index) ? -1 : 0;
       const lean = kind === 'cast' ? [0, -1, 0, 1, 1, 0][f.index % 6] : 0;
-      for (let yy = 0; yy < 32; yy++) for (let xx = 0; xx < 24; xx++) {
-        const i = (yy * 24 + xx) * 4; if (!src.data[i + 3]) continue;
-        let dx = 0, dy = 0; const leg = yy >= 25 && xx >= 7 && xx <= 17;
-        if (kind === 'walk' && leg) { const side = xx < 12 ? -1 : 1; if (direction === 'east' || direction === 'west') { dx = side * stride; dy = side * stride < 0 ? -1 : 0; } else { dy = side * stride; if ([2, 6].includes(f.index)) dx = side; } }
+      for (let yy = 0; yy < 64; yy++) for (let xx = 0; xx < 48; xx++) {
+        const i = (yy * 48 + xx) * 4; if (!src.data[i + 3]) continue;
+        let dx = 0, dy = 0; const leg = yy >= 50 && (base ? base.data[i + 3] > 0 : xx >= 12 && xx <= 35);
+        if (kind === 'walk' && leg) { const side = xx < 24 ? -1 : 1; if (direction === 'east' || direction === 'west') { dx = side * stride; dy = side * stride < 0 ? -1 : 0; } else { dy = side * Math.sign(stride); if ([2, 6].includes(f.index)) dx = side; } }
         else if (!leg) { dy = bob; dx = lean * (direction === 'west' ? -1 : 1); if (kind === 'crouch' && [1, 2].includes(f.index)) dy = 1; }
-        const px = xx + dx, py = yy + dy; if (px < 0 || px >= 24 || py < 0 || py >= 32) continue;
-        const j = (py * 24 + px) * 4; out.data.set(src.data.subarray(i, i + 4), j);
+        const px = xx + dx, py = yy + dy; if (px < 0 || px >= 48 || py < 0 || py >= 64) continue;
+        const j = (py * 48 + px) * 4; out.data.set(src.data.subarray(i, i + 4), j);
         if (kind === 'hit' && [1, 2].includes(f.index) && src.data[i] + src.data[i + 1] + src.data[i + 2] > 190) for (let k = 0; k < 3; k++) out.data[j + k] = Math.round(src.data[i + k] * .3 + [255, 241, 214][k] * .7);
       }
-      if (bob) for (let xx = 7; xx <= 17; xx++) { const below = (25 * 24 + xx) * 4, gap = (24 * 24 + xx) * 4; if (src.data[below + 3] && !out.data[gap + 3]) out.data.set(src.data.subarray(below, below + 4), gap); }
-      if (kind === 'spawn' || kind === 'defeat') { const levels = kind === 'spawn' ? [0, .2, .4, .65, .85, 1] : [1, .85, .65, .4, .2, 0]; for (let yy = 0; yy < 32; yy++) for (let xx = 0; xx < 24; xx++) if ((xx * 13 + yy * 7) % 20 / 20 >= levels[f.index]) out.data.fill(0, (yy * 24 + xx) * 4, (yy * 24 + xx) * 4 + 4); }
-      g.clearRect(0, 0, 24, 32); g.putImageData(out, 0, 0); keeperCache.set(key, c);
+      if (bob) for (let xx = 12; xx <= 35; xx++) { const below = (50 * 48 + xx) * 4, gap = (49 * 48 + xx) * 4; if (src.data[below + 3] && !out.data[gap + 3]) out.data.set(src.data.subarray(below, below + 4), gap); }
+      if (kind === 'spawn' || kind === 'defeat') { const levels = kind === 'spawn' ? [0, .2, .4, .65, .85, 1] : [1, .85, .65, .4, .2, 0]; for (let yy = 0; yy < 64; yy++) for (let xx = 0; xx < 48; xx++) if ((xx * 13 + yy * 7) % 20 / 20 >= levels[f.index]) out.data.fill(0, (yy * 48 + xx) * 4, (yy * 48 + xx) * 4 + 4); }
+      g.clearRect(0, 0, 48, 64); g.putImageData(out, 0, 0); keeperCache.set(key, c);
       if (keeperCache.size > 256) keeperCache.delete(keeperCache.keys().next().value);
     }
     const offset = options.offset || (options.applyOffset ? f.o : [0, 0]);
-    ctx.drawImage(keeperCache.get(key), Math.round(x - 12 + offset[0]), Math.round(y - 31 + offset[1]));
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(keeperCache.get(key), Math.round((x - 12 + offset[0]) * 2) / 2, Math.round((y - 31.5 + offset[1]) * 2) / 2, 24, 32);
   }
 
   function monster(ctx, id, motion, elapsed, x, y, options = {}) {
@@ -151,14 +183,24 @@ const QuestMotion = (() => {
 
   const ready = typeof document === 'undefined' ? Promise.resolve(false) : (async () => {
     try {
-      const base = new URL('../assets/quest-motion/', document.currentScript.src);
-      const response = await fetch(new URL('manifest.json', base)); if (!response.ok) throw new Error('Animation manifest unavailable'); data = await response.json();
-      const results = await Promise.allSettled(data.pages.map(async (name) => { const image = new Image(); image.src = new URL(name, base).href; await image.decode(); pages.set(name, image); }));
-      loaded = results.every((r) => r.status === 'fulfilled'); if (!loaded) failure = 'Some animation pages could not be loaded';
-      portraits.forEach(p => { p.dirty = true; }); return loaded;
+      const script = document.currentScript.src;
+      const packs = [{ base: new URL('../assets/quest-motion/', script), prefix: 'v3/' }, { base: new URL('../assets/quest-hires/', script), prefix: 'hd/' }];
+      const manifests = await Promise.allSettled(packs.map(async pack => { const response = await fetch(new URL('manifest.json', pack.base)); if (!response.ok) throw new Error('Animation manifest unavailable'); return response.json(); }));
+      data = { clips: {}, keeper: {}, auras: {} }; const jobs = [];
+      manifests.forEach((result, i) => {
+        if (result.status !== 'fulfilled') { failure = 'Some animation packs could not be loaded'; return; }
+        const pack = packs[i], manifest = result.value;
+        if (manifest.keeper) data.keeper = manifest.keeper; if (manifest.auras) data.auras = manifest.auras;
+        Object.entries(manifest.clips).forEach(([id, clip]) => { data.clips[id] = { ...clip, page: pack.prefix + clip.page }; });
+        manifest.pages.forEach(name => jobs.push((async () => { const image = new Image(); image.src = new URL(name, pack.base).href; await image.decode(); pages.set(pack.prefix + name, image); })()));
+      });
+      const results = await Promise.allSettled(jobs);
+      loaded = jobs.length > 0 && manifests.every(r => r.status === 'fulfilled') && results.every((r) => r.status === 'fulfilled'); if (!loaded) failure = 'Some animation pages could not be loaded';
+      revision++; keeperCache.clear(); keeperBases.clear(); dressedBases.clear(); portraits.forEach(p => { p.dirty = true; }); return loaded;
     } catch (error) { failure = error.message; return false; }
   })();
-  return { ready, frameAt, Timeline, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, keeper, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size }; } };
+  const tile = (ctx, kind, variant, x, y) => draw(ctx, `tile/${kind}/${Math.abs(variant || 0) % 4}`, 0, x, y);
+  return { ready, frameAt, Timeline, RenderClock, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, icon, tile, keeper, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size, revision, keeperFrames: keeperCache.size }; } };
 })();
 if (typeof window !== 'undefined') window.QuestMotion = QuestMotion;
 if (typeof module !== 'undefined') module.exports = QuestMotion;

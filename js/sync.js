@@ -55,6 +55,13 @@ const Sync = (() => {
 
   function attach() {
     const { fsM } = fb;
+    const profileTeam = team;
+    unsubs.push(fsM.onSnapshot(col('players'), (snapshot) => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'removed') window.QuestProfiles?.remove(profileTeam, change.doc.id);
+        else window.QuestProfiles?.ingest(profileTeam, change.doc.id, change.doc.data());
+      });
+    }, (error) => console.warn('Quest appearance sync unavailable:', error.code || error.message)));
     unsubs.push(fsM.onSnapshot(col('readings'), (s) => applyLog(s, 'reading'),
       () => setStatus('error')));
     unsubs.push(fsM.onSnapshot(col('visits'), (s) => applyLog(s, 'visit'),
@@ -230,6 +237,7 @@ const Sync = (() => {
       setStatus(navigator.onLine ? 'online' : 'offline');
       pushData().catch(() => {});  // dirty marks only (usually nothing); in the background
       pushPhotos();                // heavy, once per device, in the background
+      window.QuestProfiles?.flush();
     } catch (e) {
       console.warn('Team Sync failed to start:', e);
       active = false;
@@ -258,6 +266,19 @@ const Sync = (() => {
   const pushPhoto = (rec) => active && fb && fb.fsM.setDoc(ref('photos', rec.id), stripId(rec), { merge: true }).catch(() => {});
   const removePhoto = (id) => active && fb && fb.fsM.deleteDoc(ref('photos', id)).catch(() => {});
   const pushSeason = (rec) => active && fb && fb.fsM.setDoc(ref('meta', 'season'), { start: rec.start ?? null, at: rec.at }).catch(dirty('meta:season'));
+  function pushPlayerProfile(raw, expectedTeam) {
+    if (!active || !fb || team !== expectedTeam) return Promise.reject(new Error('Quest sync is not connected to this team'));
+    const packet = window.QuestCore.sanitizeProfile(raw, raw.operator);
+    if (!packet) return Promise.reject(new Error('Invalid public player profile'));
+    const target = ref('players', packet.operator);
+    // A late offline outfit must not replace a newer outfit from another device.
+    // Transactions retry after reconnect through QuestProfiles' small outbox.
+    return fb.fsM.runTransaction(fb.db, async transaction => {
+      const snapshot = await transaction.get(target);
+      const previous = snapshot.exists() ? window.QuestCore.sanitizeProfile(snapshot.data(), packet.operator) : null;
+      if (!previous || previous.updatedAt < packet.updatedAt) transaction.set(target, packet);
+    });
+  }
   function pushPool(poolId, patch) {
     if (!(active && fb)) return;
     const f = {};
@@ -273,7 +294,7 @@ const Sync = (() => {
 
   return {
     enable, disable, maybeAutoStart,
-    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushSeason,
+    pushReading, removeReading, pushVisit, removeVisit, pushNote, removeNote, pushPhoto, removePhoto, pushPool, pushSeason, pushPlayerProfile,
     get active() { return active; },
     get status() { return status; },
     get team() { return team; },

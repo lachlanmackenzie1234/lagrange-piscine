@@ -26,7 +26,7 @@
   // Pixel's game layer is a sidecar, executed only when the style is Pixel.
   function loadGame() {
     if (window.Game || document.getElementById('game-js') || loadGame.busy) return; loadGame.busy = true;
-    const chain = [['js/pixelart.js', 'PixelArt'], ['js/maps.js', 'PoolMaps'], ['js/game-motion.js', 'QuestMotion'], ['js/game.js', 'Game']];
+    const chain = [['js/pixelart.js', 'PixelArt'], ['js/maps.js', 'PoolMaps'], ['js/keeper-art.js', 'KeeperArt'], ['js/game-motion.js', 'QuestMotion'], ['js/game.js', 'Game']];
     const next = () => {
       const entry = chain.shift(); if (!entry) { loadGame.busy = false; render(); return; }
       const [src, global] = entry; if (window[global]) { next(); return; }
@@ -68,7 +68,7 @@
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.98'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.99'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
@@ -215,12 +215,14 @@
   // bottom tab) keeps your place in the list; in-place edits don't jump to top.
   const scrollMem = {};
   const hashKey = () => location.hash || '#/today';
+  let lastRenderedHash = '';
   window.addEventListener('scroll', () => { scrollMem[hashKey()] = window.scrollY; }, { passive: true });
 
   function render() {
     // a render means state changed — any open bottom sheet is stale, drop it
     document.querySelectorAll('.sheet-back').forEach((x) => x.remove());
     const { name, args } = parseHash();
+    const entered = lastRenderedHash !== hashKey(); lastRenderedHash = hashKey();
     const view = routes[name] || viewPools;
     if (window.Game) Game.onRoute(name, args[0]);
     app.innerHTML = '';
@@ -232,6 +234,7 @@
     });
     applyChrome();
     window.scrollTo(0, scrollMem[hashKey()] || 0);
+    if (entered && Theme.pixel() && name === 'pool' && args[1] === 'play') { const map = app.querySelector('.q-map-stage'); if (map) map.scrollIntoView({ block: 'center' }); else lastRenderedHash = ''; }
   }
   window.addEventListener('hashchange', render);
 
