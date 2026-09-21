@@ -44,6 +44,9 @@ const Store = (() => {
       readings: [], // chemistry readings
       visits: [],   // maintenance visits / checks
       notes: [],    // chronological notes / to-dos (the "preventive layer")
+      season: { start: null, at: '' },
+      dirty: [],
+      dirtyAll: false,
       coordsSeedVersion: COORDS_SEED,
       occSeedVersion: OCC_SEED,
       occAdopted: true,

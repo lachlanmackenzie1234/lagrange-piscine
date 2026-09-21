@@ -177,201 +177,342 @@ const Game = (() => {
   const MOVES = { perche: ['Perche', 14], balai: ['Balai', 13], robot: ['Robot', 12], choc: ['Choc', 16], phm: ['pH−', 12], floc: ['Floc', 11], lavage: ['Lavage', 13] };
   const RTIER = { common: 1, uncommon: 2, rare: 3, vrare: 4, epic: 5, legend: 6 };
   function toolBonus(k) { const it = load().equip[k]; return it ? 1 + RTIER[it.rar] * 0.1 : 1; }
-  let B = null; // the open fight
-  // Flight: sure against a weaker monster, one in three at your level, down
-  // to one in five when it outlevels you by a lot. Leaving a fight any other
-  // way (closing the app, changing page) lets the monster escape with its loot.
+  let B = null;
+  let poolStage = null;
+  const Motion = window.QuestMotion;
   const fleeOdds = (mo) => { const d = mo.lvl - level(); return d < 0 ? 1 : Math.max(.2, 1 / 3 - d / 75); };
+  function releaseBattle(battle) {
+    battle.st?.dispose(); battle.ov?.remove();
+    (battle.inert || []).forEach(([node, was]) => { node.inert = was; });
+  }
   function abandon() {
-    if (!B) return; const ov = document.querySelector('.q-battle'); if (ov) ov.remove();
-    const e = B.e; if (!B.over && e && e.monster) { e.escaped = MON[e.monster.id].n; e.monster = null; save(); }
-    B = null;
+    if (!B) return;
+    const battle = B; B = null; releaseBattle(battle);
+    if (!battle.over && battle.e?.monster) { battle.e.escaped = MON[battle.e.monster.id].n; battle.e.monster = null; save(); }
   }
   function openBattle(render) {
-    const g = load(); const e = g.enc; if (!e || !e.monster) return;
-    const m = MON[e.monster.id]; const c = creature(Store.pool(e.poolId));
-    const armour = ['tête', 'torse', 'jambes', 'pieds'].reduce((a, sl) => a + (g.equip[sl] ? 8 + RTIER[g.equip[sl].rar] * 4 : 0), 0);
+    if (B) return;
+    const g = load(), e = g.enc; if (!e?.monster) return;
+    closeMapMenu(poolStage);
+    const m = MON[e.monster.id], c = creature(Store.pool(e.poolId));
+    const armour = ['tête', 'torse', 'jambes', 'pieds'].reduce((n, slot) => n + (g.equip[slot] ? 8 + RTIER[g.equip[slot].rar] * 4 : 0), 0);
     const maxP = 100 + 4 * (level() - 1) + armour;
+    const battle = B = { e, m, c, php: maxP, maxP, log: [{ k: 'foe', t: `${m.n} (Nv ${e.monster.lvl}) surgit de ${c.name} !` }], over: false, busy: false, menu: 'main', turn: 0, enemyVisible: true, playerVisible: true };
     e.monster.engaged = true; save();
-    B = { e, m, c, php: maxP, maxP, log: [{ k: 'foe', t: `${m.n} (Nv ${e.monster.lvl}) surgit de ${c.name} !` }], over: false, menu: 'main', turn: 0 };
-    const ov = el('<div class="q-battle"></div>'); document.body.appendChild(ov);
-    const st = stage((ctx, t, sc) => { if (B) drawBattle(ctx, t, sc, c, e.monster || B.lastMo, g); });
-    st.lay = PoolMaps.get(c.p.id, c.p.res); st.hc = [st.lay.anchors.sp.x, st.lay.anchors.sp.y];
+    battle.ov = el('<div class="q-battle" role="dialog" aria-modal="true" aria-label="Combat" tabindex="-1"></div>'); document.body.appendChild(battle.ov);
+    battle.inert = [...document.querySelectorAll('#app, .tabbar')].map((node) => { const was = node.inert; node.inert = true; return [node, was]; });
+    const st = battle.st = stage((ctx, t, sc, a, progress) => drawBattle(ctx, t, sc, c, e.monster || battle.lastMo, g, battle, a, progress));
+    st.lay = PoolMaps.get(c.p.id, c.p.res);
+    st.hc = poolStage?.poolId === e.poolId ? poolStage.hc.slice() : [st.lay.anchors.sp.x, st.lay.anchors.sp.y];
+    const valid = () => B === battle && !st.disposed;
     const draw = () => {
-      const mo = e.monster || B.lastMo; const hpP = Math.round(mo.hp / mo.maxHp * 100);
-      ov.innerHTML = '';
-      ov.appendChild(el(`<div class="q-bside foe"><div class="q-bname"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${mo.lvl}</span><span class="q-tag">${esc(m.el)}</span>${mo.tier && mo.tier !== 'common' ? `<span class="q-tag" style="background:${RCOL[mo.tier]};color:#fff">${esc(mo.tierN)}</span>` : ''}<div class="q-hp ${hpP < 40 ? 'low' : hpP < 75 ? 'mid' : ''}"><i style="width:${hpP}%"></i></div><div class="q-hint">${mo.hp}/${mo.maxHp}</div></div></div>`));
-      ov.appendChild(st.c);
-      ov.appendChild(el(`<div class="q-bside me"><div class="q-bname"><b>${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hp ${B.php / B.maxP < .4 ? 'low' : B.php / B.maxP < .75 ? 'mid' : ''}"><i style="width:${Math.round(B.php / B.maxP * 100)}%"></i></div><div class="q-hint">${B.php}/${B.maxP}</div></div></div>`));
-      const log = el('<div class="q-card q-blog"></div>'); B.log.slice(-3).forEach((l) => log.appendChild(el(`<p class="${l.k}">${esc(l.t)}</p>`))); ov.appendChild(log);
+      if (!valid()) return;
+      const mo = e.monster || battle.lastMo; if (!mo) return;
+      battle.ov.replaceChildren(); battle.ov.dataset.phase = battle.busy ? 'resolving' : battle.over ? 'finished' : 'ready';
+      battle.ov.dataset.turn = battle.turn; battle.ov.setAttribute('aria-busy', String(battle.busy));
+      const hpP = Math.round(mo.hp / mo.maxHp * 100);
+      battle.ov.appendChild(el(`<div class="q-bside foe"><div class="q-bname"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${mo.lvl}</span><span class="q-tag">${esc(m.el)}</span>${mo.tier && mo.tier !== 'common' ? `<span class="q-tag" style="background:${RCOL[mo.tier]};color:#fff">${esc(mo.tierN)}</span>` : ''}<div class="q-hp ${hpP < 40 ? 'low' : hpP < 75 ? 'mid' : ''}"><i style="width:${hpP}%"></i></div><div class="q-hint" data-enemy-hp>${mo.hp}/${mo.maxHp}</div></div></div>`));
+      battle.ov.appendChild(st.c);
+      battle.ov.appendChild(el(`<div class="q-bside me"><div class="q-bname"><b>${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hp ${battle.php / maxP < .4 ? 'low' : battle.php / maxP < .75 ? 'mid' : ''}"><i style="width:${Math.round(battle.php / maxP * 100)}%"></i></div><div class="q-hint" data-player-hp>${battle.php}/${maxP}</div></div></div>`));
+      const log = el('<div class="q-card q-blog" role="log" aria-live="polite"></div>'); battle.log.slice(-3).forEach((l) => log.appendChild(el(`<p class="${l.k}">${esc(l.t)}</p>`))); battle.ov.appendChild(log);
       const menu = el('<div class="q-bmenu"></div>');
-      const btn = (label, fn, cls) => { const x = el(`<button type="button" class="q-bbtn ${cls || ''}">${label}</button>`); x.addEventListener('click', fn); return x; };
-      if (B.over) { menu.appendChild(btn('Continuer', () => { ov.remove(); B = null; render(); }, 'p')); }
-      else if (B.menu === 'main') {
+      const btn = (label, fn, cls = '') => { const node = el(`<button type="button" class="q-bbtn ${cls}">${label}</button>`); node.disabled = battle.busy; node.addEventListener('click', () => { if (valid() && !battle.busy) fn(); }); return node; };
+      if (battle.over && !battle.busy) menu.appendChild(btn('Continuer', () => { B = null; releaseBattle(battle); render(); poolStage?.c.focus({ preventScroll: true }); }, 'p'));
+      else if (battle.menu === 'main') {
         ['perche', 'balai', 'robot'].forEach((k) => menu.appendChild(btn(`${MOVES[k][0]}${toolBonus(k) > 1 ? ' ★' : ''}`, () => act(k))));
-        menu.appendChild(btn('Autre ▸', () => { B.menu = 'chem'; draw(); }));
-        menu.appendChild(btn(`Fuir · ${Math.round(fleeOdds(mo) * 100)} %`, () => {
-          B.turn++;
-          if (Math.random() < fleeOdds(mo)) { B.over = true; B.fled = true; B.lastMo = { ...mo }; e.monster = null; B.log.push({ k: 'foe', t: `Tu files. ${m.n} disparaît dans ${c.name} — son butin avec.` }); st.q.push({ k: 'flee', dur: .8 }); }
-          else { B.log.push({ k: 'foe', t: 'Impossible de fuir !' }); foeTurn(mo); }
-          save(); draw();
-        }));
-      } else { ['choc', 'phm', 'floc', 'lavage'].forEach((k) => menu.appendChild(btn(MOVES[k][0], () => act(k)))); menu.appendChild(btn('◂ retour', () => { B.menu = 'main'; draw(); })); }
-      ov.appendChild(menu);
+        menu.appendChild(btn('Autre ▸', () => { battle.menu = 'chem'; draw(); }));
+        menu.appendChild(btn(`Fuir · ${Math.round(fleeOdds(mo) * 100)} %`, flee));
+      } else { ['choc', 'phm', 'floc', 'lavage'].forEach((k) => menu.appendChild(btn(MOVES[k][0], () => act(k)))); menu.appendChild(btn('◂ retour', () => { battle.menu = 'main'; draw(); })); }
+      battle.ov.appendChild(menu);
+      if (battle.busy) battle.ov.appendChild(el('<p class="q-busy" role="status">Tour en cours…</p>'));
     };
-    const foeTurn = (mo) => {
-      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 60) * (mo.dmg || 1) * (0.85 + Math.random() * 0.3));
-      B.php = Math.max(0, B.php - ad); B.log.push({ k: 'foe', t: `${m.n} utilise ${a[0]} — ${a[2]} · −${ad}` }); st.q.push({ k: 'foe', dur: .5 });
-      if (B.php <= 0) { B.over = true; B.lost = true; g.coins = Math.max(0, g.coins - 3); mo.hp = mo.maxHp; mo.engaged = false; B.log.push({ k: 'foe', t: 'Tu es assommé. Il reste là, remis à neuf, jusqu’au prochain passage. −3 pièces' }); }
-    };
-    const act = (k) => {
-      const mo = e.monster; B.turn++; B.menu = 'main';
-      const eff = m.weak[k] || 1; const dmg = Math.round(MOVES[k][1] * eff * toolBonus(k) * (0.85 + Math.random() * 0.3));
-      mo.hp = Math.max(0, mo.hp - dmg); st.q.push({ k: 'lunge', dur: .4, move: k }, { k: 'hit', dur: .4 });
-      B.log.push({ k: 'me', t: `${MOVES[k][0].toUpperCase()} · −${dmg}${eff >= 1.8 ? ' — c’est super efficace !' : eff <= .6 ? ' — ça ne lui fait pas grand-chose.' : ''}` });
-      if (mo.hp <= 0) { win(); save(); draw(); return; }
-      foeTurn(mo);
-      save(); draw();
-    };
-    const win = () => {
-      const mo = e.monster; const b = bonuses(); const ti0 = mtierIdx(mo.tier); B.over = true; B.won = true;
-      const xp = Math.round(mo.lvl * 4 * (1 + ti0 * 0.5) * c.mult * (1 + b.xp / 100)), coins = Math.round((2 + Math.floor(Math.random() * 5) + Math.round(mo.lvl / 4)) * (1 + ti0 * 0.3) * (1 + b.gold / 100));
-      g.xp += xp; g.coins += coins; g.bestiary[mo.id].beaten++;
-      // resources always; equipment rarely — the dépôt turns the one into the other
-      const qty = 1 + ti0 + Math.floor(mo.lvl / 15); g.res[mo.id] = (g.res[mo.id] || 0) + qty;
-      let crateTxt = ` · ${qty} × ${RES[mo.id]}`;
-      if (Math.random() < 0.12 * (1 + ti0 * 0.6) * (1 + b.drop / 100)) {
-        let ti = ti0; if (ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++;
-        const crate = { id: 'cr-' + Date.now(), crate: true, rar: RAR[ti][0], res: Store.pool(e.poolId).res, from: m.n, acts: { chem: k2(m, 'choc'), clean: k2(m, 'balai'), filt: k2(m, 'lavage'), mes: 0 }, at: new Date().toISOString() };
-        if (g.bag.length < bagSize()) { g.bag.push(crate); crateTxt += ` · caisse ${rarName(crate.rar).toLowerCase()} !`; } else crateTxt += ' · caisse perdue (sac plein)';
+    function finishTurn() { if (!valid()) return; battle.busy = false; draw(); battle.ov.querySelector('.q-bbtn:not(:disabled)')?.focus({ preventScroll: true }); }
+    function rewardWin(mo) {
+      if (battle.over) return;
+      const b = bonuses(), tier = mtierIdx(mo.tier); battle.over = true; battle.won = true;
+      const xp = Math.round(mo.lvl * 4 * (1 + tier * .5) * c.mult * (1 + b.xp / 100));
+      const coins = Math.round((2 + Math.floor(Math.random() * 5) + Math.round(mo.lvl / 4)) * (1 + tier * .3) * (1 + b.gold / 100));
+      g.xp += xp; g.coins += coins; g.bestiary ||= {}; g.bestiary[mo.id] ||= { seen: 1, beaten: 0 }; g.bestiary[mo.id].beaten++;
+      const qty = 1 + tier + Math.floor(mo.lvl / 15); g.res[mo.id] = (g.res[mo.id] || 0) + qty;
+      let text = ` · ${qty} × ${RES[mo.id]}`;
+      if (Math.random() < .12 * (1 + tier * .6) * (1 + b.drop / 100)) {
+        let ti = tier; if (ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++;
+        const crate = { id: 'cr-' + Date.now(), crate: true, rar: RAR[ti][0], res: c.p.res, from: m.n, acts: { chem: m.weak.choc >= 1.5 ? 2 : 0, clean: m.weak.balai >= 1.5 ? 2 : 0, filt: m.weak.lavage >= 1.5 ? 2 : 0, mes: 0 }, at: new Date().toISOString() };
+        if (g.bag.length < bagSize()) { g.bag.push(crate); text += ` · caisse ${rarName(crate.rar).toLowerCase()} !`; } else text += ' · caisse perdue (sac plein)';
       }
-      B.log.push({ k: 'win', t: `${m.n} se dissout ! +${xp} XP · +${coins} pièces${crateTxt}` }); st.q.push({ k: 'dissolve', dur: 1 });
-      B.lastMo = { ...mo, hp: 0 }; e.monster = null;
-    };
-    const k2 = (m, k) => (m.weak[k] >= 1.5 ? 2 : 0);
-    draw();
+      battle.log.push({ k: 'win', t: `${m.n} vaincu ! +${xp} XP · +${coins} pièces${text}` });
+      battle.lastMo = { ...mo }; e.monster = null; save();
+    }
+    function enemyTurn() {
+      if (!valid() || battle.over || !e.monster) return;
+      const mo = e.monster, attack = m.atk[Math.floor(Math.random() * m.atk.length)];
+      const damage = Math.round(attack[1] * (1 + mo.lvl / 60) * (mo.dmg || 1) * (.85 + Math.random() * .3));
+      st.q.push({ k: 'foe', dur: .8, impactAt: .32,
+        onStart() { if (valid()) { battle.log.push({ k: 'foe', t: `${m.n} prépare ${attack[0]}…` }); draw(); } },
+        onImpact() { if (!valid()) return; battle.php = Math.max(0, battle.php - damage); battle.heroHit = st.time; battle.log.push({ k: 'foe', t: `${attack[0]} — ${attack[2]} · −${damage}` });
+          if (!battle.php) { battle.over = true; battle.lost = true; g.coins = Math.max(0, g.coins - 3); mo.hp = mo.maxHp; mo.engaged = false; battle.log.push({ k: 'foe', t: 'Tu es assommé. Il reste là, remis à neuf, jusqu’au prochain passage. −3 pièces' }); save(); } draw(); },
+        onEnd() { if (!valid()) return; if (battle.lost) st.q.push({ k: 'player-defeat', dur: .6, onEnd() { if (valid()) { battle.playerVisible = false; finishTurn(); } } }); else finishTurn(); },
+      });
+    }
+    function act(k) {
+      if (!valid() || battle.busy || battle.over || !e.monster) return;
+      const mo = e.monster, eff = m.weak[k] || 1;
+      const damage = Math.round(MOVES[k][1] * eff * toolBonus(k) * (.85 + Math.random() * .3));
+      battle.busy = true; battle.turn++; battle.menu = 'main'; battle.log.push({ k: 'me', t: `${MOVES[k][0].toUpperCase()}…` }); draw();
+      st.q.push({ k: 'player-action', move: k, dur: .8, impactAt: .4,
+        onImpact() { if (!valid() || e.monster !== mo) return; mo.hp = Math.max(0, mo.hp - damage); battle.enemyHit = st.time; battle.log.push({ k: 'me', t: `${MOVES[k][0].toUpperCase()} · −${damage}${eff >= 1.8 ? ' — c’est super efficace !' : eff <= .6 ? ' — ça ne lui fait pas grand-chose.' : ''}` }); if (!mo.hp) rewardWin(mo); save(); draw(); },
+        onEnd() { if (!valid()) return; if (battle.won) st.q.push({ k: 'dissolve', dur: .6, onEnd() { if (!valid()) return; battle.enemyVisible = false; st.q.push({ k: 'victory', dur: .68, onEnd: finishTurn }); } }); else enemyTurn(); },
+      });
+    }
+    function flee() {
+      if (!valid() || battle.busy || battle.over || !e.monster) return;
+      const mo = e.monster, success = Math.random() < fleeOdds(mo); battle.busy = true; battle.turn++; battle.log.push({ k: 'me', t: 'Tu tentes de fuir…' }); draw();
+      st.q.push({ k: 'flee', dur: .52, onEnd() { if (!valid()) return; if (success) { battle.over = true; battle.fled = true; battle.lastMo = { ...mo }; e.monster = null; battle.playerVisible = false; battle.enemyVisible = false; battle.log.push({ k: 'foe', t: `Tu files. ${m.n} disparaît dans ${c.name} — son butin avec.` }); save(); finishTurn(); } else { battle.log.push({ k: 'foe', t: 'Impossible de fuir !' }); draw(); enemyTurn(); } } });
+    }
+    draw(); battle.ov.querySelector('.q-bbtn')?.focus({ preventScroll: true });
   }
 
-  // ---------------------------------------------------------------- stages: a 128×96 pixel screen the real actions play on
-  // One canvas, redrawn ~12 times a second while it is on the page. A queue of
-  // short animations plays what the app just recorded: sticks dropped in the
-  // skimmer, a water test at the edge, a sweep, a backwash — and the fight.
+  // One persistent map stage per visited pool; repainting the app does not reset it.
   function stage(draw) {
     const c = document.createElement('canvas'); c.width = 256; c.height = 192; c.className = 'q-stage';
-    const sc = { c, t0: performance.now(), q: [], hc: [8, 9], hx: 128, hy: 136, moving: 0, bubble: null, taps: [] }; let last = 0;
-    const loop = (now) => { if (!c.isConnected && now - sc.t0 > 3000) return; if (now - last > 80) { last = now; const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false; const t = (now - sc.t0) / 1000; const a = sc.q[0]; let p = 0; if (a) { if (a.t0 == null) { a.t0 = t; if (a.k === 'walk') { a.path = sc.lay ? PoolMaps.route(sc.lay.coll, sc.hc, a.to) : [sc.hc]; a.dur = Math.max(.2, a.path.length * .16); } } p = Math.min(1, (t - a.t0) / a.dur); } draw(ctx, t, sc, a, p); if (a && p >= 1) { if (a.k === 'walk') sc.hc = a.to; sc.q.shift(); } } requestAnimationFrame(loop); };
-    requestAnimationFrame(loop); return sc;
+    const host = el('<div class="q-map-stage"></div>'); host.appendChild(c);
+    const timeline = new Motion.Timeline();
+    const sc = { c, host, timeline, q: timeline.jobs, time: 0, hc: [8, 9], hx: 128, hy: 136, direction: 'south', moving: false, disposed: false, created: performance.now() };
+    let previous = performance.now(), accumulated = 0, connected = false, raf;
+    sc.dispose = () => { if (sc.disposed) return; sc.disposed = true; timeline.cancel(); cancelAnimationFrame(raf); closeMapMenu(sc, false); sc.cleanup?.(); };
+    const loop = (now) => {
+      if (sc.disposed) return;
+      const dt = Math.min(.1, Math.max(0, (now - previous) / 1000)); previous = now;
+      if (c.isConnected) connected = true; else if (connected || now - sc.created > 3000) { sc.dispose(); return; }
+      if (!document.hidden && !(sc === poolStage && B)) {
+        accumulated += dt;
+        if (accumulated >= .075) {
+          const step = accumulated; accumulated = 0; sc.time += step;
+          const { action, progress } = timeline.advance(step); sc.action = action; sc.progress = progress;
+          if (sc.disposed) return;
+          const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false; draw(ctx, sc.time, sc, action, progress); timeline.finish();
+          host.dataset.moving = String(sc.moving); host.dataset.queued = String(sc.q.length);
+        }
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop); return sc;
   }
-  const WATER = PA.WATER;
-  const px = (ctx, col, x, y, w, h) => { ctx.fillStyle = col; ctx.fillRect(x, y, w || 1, h || 1); };
-  const line = (ctx, col, x0, y0, x1, y1, w) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) px(ctx, col, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), w || 1, w || 1); };
   const T = 16;
-  // where each monster lives on the map; it wanders a cell at a time inside that ground
+  const cellPx = (cx, cy) => [cx * T, cy * T - 8];
+  function queueWalk(sc, to) {
+    const job = { k: 'walk', to: to.slice(), dur: .08,
+      onStart() { job.path = PoolMaps.route(sc.lay.coll, sc.hc, job.to); job.dur = Math.max(.08, (job.path.length - 1) * .16); },
+      onEnd() { sc.hc = (job.path?.at(-1) || sc.hc).slice(); sc.moving = false; },
+    };
+    sc.q.push(job);
+  }
   const HABITAT = { algue: 'water', moutarde: 'water', locataire: 'water', calcaire: 'deck', feuilles: 'grass', aiguille: 'grass', gland: 'grass', moustique: 'shed', filtre: 'shed', sable: 'sand' };
   function habitatCells(L, hab) {
-    const out = []; const near = (x, y) => L.objects.some((o) => (o.kind === 'shed' || o.kind === 'pump') && x >= o.x - 1 && x <= o.x + o.w && y >= o.y - 1 && y <= o.y + o.h);
+    const out = [], fallback = [];
+    const near = (x, y) => L.objects.some((o) => ['shed', 'pump'].includes(o.kind) && x >= o.x - 1 && x <= o.x + o.w && y >= o.y - 1 && y <= o.y + o.h);
     for (let y = 0; y < PoolMaps.H; y++) for (let x = 0; x < PoolMaps.W; x++) {
-      const g = L.ground[y][x]; const blocked = L.coll[y][x];
-      if (hab === 'water' && g === 'water' && x < PoolMaps.W - 1) out.push([x, y]);
-      else if (hab === 'deck' && g === L.deckTile && !blocked) out.push([x, y]);
-      else if (hab === 'grass' && g === 'grass' && !blocked) out.push([x, y]);
-      else if (hab === 'sand' && g === 'sand' && !blocked) out.push([x, y]);
-      else if (hab === 'shed' && !blocked && near(x, y)) out.push([x, y]);
+      const ground = L.ground[y][x], blocked = L.coll[y][x]; if (!blocked) fallback.push([x, y]);
+      if (hab === 'water' && ground === 'water' && x < PoolMaps.W - 1 || !blocked && (hab === 'deck' && ground === L.deckTile || hab === 'grass' && ground === 'grass' || hab === 'sand' && ground === 'sand' || hab === 'shed' && near(x, y))) out.push([x, y]);
     }
-    return out.length ? out : habitatCells(L, hab === 'grass' ? 'sand' : 'grass');
+    return out.length ? out : fallback;
   }
-  // the background: the pool's own map in its current condition, the creature swimming in it
-  function drawPoolBg(ctx, c, t, sc) { const o = { state: c.state, sunk: c.sunk, dirt: c.s && c.s.dirt, t, pumpLate: c.filtre > c.interval, creature: c.p ? spriteCanvas(c.p) : null, seed: c.id }; PA.map(ctx, sc.lay, o); sc.crPos = o.creaturePos; }
-  const cellPx = (cx, cy) => [cx * T, cy * T - 8];   // a 16×24 sprite whose feet sit at the cell's bottom
-  function drawHero(ctx, sc, a, p, o) {
-    const g = load(); o = o || {};
-    if (a && a.k === 'walk' && a.path && a.path.length > 1) { const f = p * (a.path.length - 1); const i = Math.min(a.path.length - 2, Math.floor(f)); const q = f - i; const [ax, ay] = cellPx(a.path[i][0], a.path[i][1]); const [bx, by] = cellPx(a.path[i + 1][0], a.path[i + 1][1]); sc.hx = Math.round(ax + (bx - ax) * q); sc.hy = Math.round(ay + (by - ay) * q); sc.moving = 1; sc.back = by < ay; }
-    else { const [hx, hy] = cellPx(sc.hc[0], sc.hc[1]); sc.hx = hx; sc.hy = hy; sc.moving = 0; }
-    drawAvatar(ctx, sc.hx + (o.dx || 0), sc.hy + (o.dy || 0), g.avatar, g.equip, { walk: sc.moving ? performance.now() / 120 : 0, crouch: o.crouch, back: o.back != null ? o.back : sc.back });
+  function drawPoolBg(ctx, c, t, sc) {
+    PA.map(ctx, sc.lay, { state: c.state, sunk: c.sunk, dirt: c.s?.dirt, t, pumpLate: c.filtre > c.interval, drawWater: (...args) => Motion.water(...args) });
+  }
+  function drawHero(ctx, sc, a, progress, options = {}) {
+    const g = load();
+    if (a?.k === 'walk' && a.path?.length > 1) {
+      const f = progress * (a.path.length - 1), i = Math.min(a.path.length - 2, Math.floor(f)), part = f - i;
+      const [ax, ay] = cellPx(...a.path[i]), [bx, by] = cellPx(...a.path[i + 1]);
+      sc.hx = Math.round(ax + (bx - ax) * part); sc.hy = Math.round(ay + (by - ay) * part); sc.hc = a.path[i].slice(); sc.moving = true;
+      sc.direction = bx > ax ? 'east' : bx < ax ? 'west' : by < ay ? 'north' : 'south';
+    } else { [sc.hx, sc.hy] = cellPx(...sc.hc); sc.moving = false; }
+    const motion = options.motion || (sc.moving ? 'walk' : a && ['test', 'wash'].includes(a.k) ? 'crouch' : a && a.k !== 'walk' ? 'cast' : 'idle');
+    const elapsed = options.elapsed ?? (motion === 'idle' || motion === 'walk' ? sc.time * 1000 : sc.timeline.elapsed * 1000);
+    const foot = [sc.hx + 8, sc.hy + 23], set = Motion.fullSet(g.equip), active = set && motion === 'idle' && options.alive !== false;
+    if (active) Motion.aura(ctx, 'set-' + set, 'back', sc.time * 1000, ...foot);
+    Motion.keeper(ctx, ...foot, g.avatar, g.equip, { motion, direction: options.direction || sc.direction, elapsed, offset: options.offset, applyOffset: !!options.applyOffset });
+    if (active) Motion.aura(ctx, 'set-' + set, 'front', sc.time * 1000, ...foot);
   }
   function drawMonster(ctx, t, sc, e) {
-    const mo = e && e.monster; if (!mo) return;
-    const L = sc.lay; const hab = HABITAT[mo.id] || 'grass';
-    if (!mo.cell) { const cells = habitatCells(L, hab); mo.cell = cells[Math.floor(Math.random() * cells.length)]; save(); }
-    if (!sc.nextMove) sc.nextMove = t + 2 + Math.random() * 3;
-    if (t >= sc.nextMove) { sc.nextMove = t + 3 + Math.random() * 4; const cells = habitatCells(L, hab); const adj = cells.filter(([x, y]) => Math.abs(x - mo.cell[0]) + Math.abs(y - mo.cell[1]) === 1); if (adj.length) { sc.moFrom = mo.cell.slice(); sc.moT = t; mo.cell = adj[Math.floor(Math.random() * adj.length)]; save(); } }
-    let [cx, cy] = mo.cell; let fx = cx * T, fy = cy * T; if (sc.moFrom && t - sc.moT < .5) { const q = (t - sc.moT) / .5; fx = Math.round((sc.moFrom[0] + (cx - sc.moFrom[0]) * q) * T); fy = Math.round((sc.moFrom[1] + (cy - sc.moFrom[1]) * q) * T); }
-    const mx = fx + 8 - 14, my = fy + 16 - 24 + (hab === 'water' ? 4 : 0) + Math.round(Math.sin(t * 2)); const w = WATER[sc.state] || WATER.calme;
-    if (hab === 'water') px(ctx, w[1], mx + 2, my + 21, 24, 1);
-    ctx.drawImage(monsterCanvas(mo.id), mx, my); sc.moPos = [mx, my];
-    if (sc.bubble && sc.bubble.kind === 'monster') { const bx = Math.max(2, Math.min(256 - 50, mx - 10)), by = Math.max(2, my - 16); px(ctx, '#20203a', bx, by, 48, 13); px(ctx, '#fffbe9', bx + 1, by + 1, 46, 11); px(ctx, '#20203a', bx + 22, by + 13, 4, 2); ctx.font = '8px "Pixelify Sans", monospace'; ctx.fillStyle = '#d82f2f'; ctx.textBaseline = 'top'; ctx.fillText('Attaquer', bx + 5, by + 2); sc.bubble.rect = [bx, by, 48, 13]; }
+    const mo = e?.monster; if (!mo) { sc.moPos = null; return; }
+    const L = sc.lay, hab = HABITAT[mo.id] || 'grass', cells = habitatCells(L, hab); if (!cells.length) return;
+    if (!mo.cell || !cells.some(([x, y]) => x === mo.cell[0] && y === mo.cell[1])) { mo.cell = cells[Math.floor(Math.random() * cells.length)]; save(); }
+    if (sc.monsterRef !== mo) { sc.monsterRef = mo; sc.moSpawnTime = t; sc.moFrom = null; sc.nextMove = t + 2 + Math.random() * 3; }
+    if (t >= sc.nextMove) { sc.nextMove = t + 3 + Math.random() * 4; const adjacent = cells.filter(([x, y]) => Math.abs(x - mo.cell[0]) + Math.abs(y - mo.cell[1]) === 1); if (adjacent.length) { sc.moFrom = mo.cell.slice(); sc.moT = t; mo.cell = adjacent[Math.floor(Math.random() * adjacent.length)]; save(); } }
+    let [cx, cy] = mo.cell; const moving = !!sc.moFrom && t - sc.moT < .5;
+    if (moving) { const f = (t - sc.moT) / .5; cx = sc.moFrom[0] + (cx - sc.moFrom[0]) * f; cy = sc.moFrom[1] + (cy - sc.moFrom[1]) * f; }
+    let x = cx * T + 8, y = cy * T + 15;
+    if (hab === 'water') { const p = L.pool; x = Math.max(p.x * T + 14, Math.min((p.x + p.w) * T - 14, x)); y = Math.max(p.y * T + 23, Math.min((p.y + p.h) * T - 1, y)); }
+    const motion = t - sc.moSpawnTime < .54 ? 'spawn' : 'idle';
+    const tier = Motion.tiers.includes(mo.tier) ? mo.tier : 'common', auraOptions = { moving, action: motion !== 'idle' };
+    Motion.aura(ctx, 'rarity-' + tier, 'back', t * 1000, x, y, auraOptions);
+    Motion.monster(ctx, mo.id, motion, motion === 'spawn' ? (t - sc.moSpawnTime) * 1000 : t * 1000, x, y, { offset: [0, 0] });
+    Motion.aura(ctx, 'rarity-' + tier, 'front', t * 1000, x, y, auraOptions);
+    sc.moPos = [x - 14, y - 23]; sc.moMoving = moving;
   }
-  function drawPool(ctx, t, sc, a, p, c, e) {
-    sc.state = c.state; drawPoolBg(ctx, c, t, sc); const g = load(); const w = c.sunk ? WATER.sunk : WATER[c.state] || WATER.calme; const L = sc.lay;
-    if (e && e.escaped && !e.monster) px(ctx, '#7b3fc4', L.pool.x * T + 20 + Math.floor(t * 3) % 5, L.pool.y * T + 10, 2, 2);
-    const k = a && a.k; const hx = sc.hx, hy = sc.hy;
-    if (k === 'test') { drawHero(ctx, sc, a, p, { crouch: true }); px(ctx, '#20203a', hx + 15, hy + 16, 5, 8); px(ctx, '#e6e6ff', hx + 16, hy + 17, 3, 6); px(ctx, p < .5 ? '#ffd94a' : c.s.cl < 1 ? '#f2c14e' : '#ff7aa8', hx + 16, hy + 20, 3, 3); if (p < .4) px(ctx, w[0], hx + 17, hy - 2 + Math.round(p * 50), 2, 2); return; }
-    drawMonster(ctx, t, sc, e);
-    drawHero(ctx, sc, a, p);
-    if (k === 'drop') { for (let i = 0; i < a.n; i++) { const q = Math.min(1, Math.max(0, p * 1.4 - i * 0.15)); if (q < 1) { px(ctx, '#20203a', hx + 12 + (i % 3) * 3, hy + 12 - Math.round(q * 20), 3, 5); px(ctx, '#fff', hx + 13 + (i % 3) * 3, hy + 13 - Math.round(q * 20), 1, 3); } } }
-    if (k === 'scatter') { const r = rng(hash('sc')); for (let i = 0; i < 24; i++) { const q = Math.min(1, p * 1.3 + r() * .2); px(ctx, i % 4 ? '#fff' : '#e6e6ff', hx + 14 + Math.round((r() * 40 - 8) * q), hy + 12 - Math.round(q * (24 + r() * 30)), 1, 1); } }
-    if (k === 'sweep') {
-      const P = L.pool; const cxp = P.x * T + P.w * 8, cyp = P.y * T + P.h * 8;
-      if (g.equip.robot) { const rc = RCOL[g.equip.robot.rar]; const rx = P.x * T + 4 + Math.round(p * (P.w * T - 16)); const ry = cyp - 2; px(ctx, '#20203a', rx - 1, ry - 1, 10, 7); px(ctx, rc, rx, ry, 8, 5); px(ctx, shade(rc, 1.3), rx + 1, ry, 6, 1); px(ctx, '#20203a', rx + 1, ry + 5, 2, 1); px(ctx, '#20203a', rx + 5, ry + 5, 2, 1); px(ctx, w[1], rx - 3, ry - 2, 2, 1); }
-      else { const tx = cxp + Math.round(Math.sin(p * 9) * Math.min(22, P.w * 6)), ty = cyp + 4; const pc = g.equip.balai ? RCOL[g.equip.balai.rar] : '#8a4a1e'; line(ctx, pc, hx + 15, hy + 10, tx, ty, 1); px(ctx, '#20203a', tx - 3, ty - 1, 8, 3); px(ctx, w[1], tx - 5, ty + 2, 12, 1); }
+  function drawPool(ctx, t, sc, a, progress, c, e) {
+    drawPoolBg(ctx, c, t, sc); drawMonster(ctx, t, sc, e); drawHero(ctx, sc, a, progress);
+    if (a && a.k !== 'walk') {
+      const pool = sc.lay.pool, anchor = a.k === 'wash' ? sc.lay.anchors.pu : a.k === 'test' ? sc.lay.anchors.la : a.k === 'drop' ? sc.lay.anchors.sk : null;
+      const point = anchor ? [anchor.x * T + 8, anchor.y * T + 4] : [pool.x * T + pool.w * 8, pool.y * T + pool.h * 8];
+      Motion.draw(ctx, 'fx/service/' + a.k, sc.timeline.elapsed * 1000, ...point);
     }
-    if (k === 'wash') { const pu = L.objects.find((o) => o.kind === 'pump'); if (pu) { for (let i = 0; i < 6; i++) px(ctx, i % 2 ? '#8ed4ff' : '#fffbe9', pu.x * T + 2 + i * 2, pu.y * T + 2 - ((Math.round(p * 40) + i * 6) % 24), 2, 3); px(ctx, '#2aa845', pu.x * T + 7, pu.y * T + 7, 2, 2); } }
-    if (sc.bubble && sc.bubble.kind === 'creature' && sc.crPos) { const [cx, cy] = sc.crPos; const txt = sc.bubble.text; ctx.font = '8px "Pixelify Sans", monospace'; const tw = Math.min(200, ctx.measureText(txt).width + 8); const bx = Math.max(2, Math.min(256 - tw - 2, cx + 12 - tw / 2)), by = Math.max(2, cy - 14); px(ctx, '#20203a', bx, by, tw, 12); px(ctx, '#fffbe9', bx + 1, by + 1, tw - 2, 10); ctx.fillStyle = '#20203a'; ctx.textBaseline = 'top'; ctx.fillText(txt, bx + 4, by + 2); }
+    if (a?.k === 'walk') { const [x, y] = a.path?.at(-1) || sc.hc; ctx.strokeStyle = '#fffbe9'; ctx.lineWidth = 1; ctx.strokeRect(x * T + 3, y * T + 3, 10, 10); }
   }
-  function drawBattle(ctx, t, sc, c, mo, g) {
-    const a = sc.q[0]; const p = a ? Math.min(1, (t - (a.t0 == null ? t : a.t0)) / a.dur) : 0; const k = a && a.k; const L = sc.lay; const P = L.pool;
-    drawPoolBg(ctx, c, t, sc);
-    const gone = !B || (B.won && k !== 'dissolve') || (B.fled && (k !== 'flee' || p > .5));
-    const mx = P.x * T + P.w * 8 - 28, my = P.y * T + P.h * 8 - 26;
-    if (mo && !gone) {
-      const mc = monsterCanvas(mo.id); const dy = k === 'foe' ? Math.round(Math.sin(p * Math.PI) * 16) : Math.round(Math.sin(t * 2) * 2); const dx = k === 'hit' ? Math.round(Math.sin(p * Math.PI * 4) * 4) : 0;
-      const w = WATER[c.state] || WATER.calme; px(ctx, w[1], mx + 4 + dx, my + 46 + dy, 48, 1);
-      if (k === 'dissolve') { ctx.globalAlpha = 1 - p; } ctx.drawImage(mc, mx + dx, my + dy, 56, 48); ctx.globalAlpha = 1;
-      if (k === 'hit' && p < .2) { ctx.globalAlpha = .5; px(ctx, '#fff', mx + dx, my + dy, 56, 48); ctx.globalAlpha = 1; }
+  function drawBattle(ctx, t, sc, c, mo, g, battle, a, progress) {
+    if (!mo) return; drawPoolBg(ctx, c, t, sc);
+    const p = sc.lay.pool, foot = [p.x * T + p.w * 8, p.y * T + p.h * 8 + 21], elapsed = sc.timeline.elapsed * 1000;
+    const k = a?.k;
+    let enemyMotion = k === 'dissolve' ? 'defeat' : k === 'foe' ? 'attack' : battle.enemyHit != null && t - battle.enemyHit < .36 ? 'hit' : 'idle';
+    const enemyTime = enemyMotion === 'hit' ? (t - battle.enemyHit) * 1000 : enemyMotion === 'idle' ? t * 1000 : elapsed;
+    if (battle.enemyVisible) {
+      const tier = Motion.tiers.includes(mo.tier) ? mo.tier : 'common';
+      if (enemyMotion === 'idle' && mo.hp > 0) Motion.aura(ctx, 'rarity-' + tier, 'back', t * 1000, ...foot, { scale: 2 });
+      Motion.monster(ctx, mo.id, enemyMotion, enemyTime, ...foot, { scale: 2 });
+      if (enemyMotion === 'idle' && mo.hp > 0) Motion.aura(ctx, 'rarity-' + tier, 'front', t * 1000, ...foot, { scale: 2 });
     }
-    const lunge = k === 'lunge' ? -Math.round(Math.sin(p * Math.PI) * 14) : 0;
-    drawHero(ctx, sc, null, 0, { dy: lunge, dx: k === 'flee' ? Math.round(p * 120) : 0, back: true });
-    if (k === 'lunge' && a.move) { const col = { choc: '#fff', phm: '#ffd94a', floc: '#8ed4ff', lavage: '#8ed4ff', perche: '#8a4a1e', balai: '#8a4a1e', robot: '#7a7a90' }[a.move]; for (let i = 0; i < 10; i++) px(ctx, col, sc.hx + 8 + i * 3 - Math.round(p * 12), sc.hy - Math.round(p * 28) - i * 2, 2, 2); }
-    if (k === 'foe' && p < .25) { ctx.globalAlpha = .35; px(ctx, '#d82f2f', 0, 0, 256, 192); ctx.globalAlpha = 1; }
+    if (battle.playerVisible) {
+      const hit = battle.heroHit != null && t - battle.heroHit < .36;
+      const motion = k === 'player-defeat' ? 'defeat' : k === 'flee' ? 'flee' : k === 'victory' ? 'victory' : hit ? 'hit' : k === 'player-action' ? 'cast' : 'idle';
+      drawHero(ctx, sc, null, 0, { motion, direction: k === 'flee' ? 'east' : 'north', elapsed: hit ? (t - battle.heroHit) * 1000 : motion === 'idle' ? t * 1000 : elapsed, applyOffset: true, alive: battle.php > 0 });
+    }
+    if (k === 'player-action' && elapsed >= 80) Motion.draw(ctx, 'fx/action/' + a.move, elapsed - 80, foot[0], foot[1] - 23, { scale: 1 });
+    if (k === 'foe' && elapsed >= 260 && elapsed < 680) Motion.draw(ctx, 'fx/event/impact', elapsed - 260, sc.hx + 8, sc.hy + 12);
   }
-  // ---------------------------------------------------------------- taps on the map: the monster, the creature, the basin, the shed
-  function tapStage(sc, ev, p, c, e, render) {
-    const r = sc.c.getBoundingClientRect(); const mx = (ev.clientX - r.left) / r.width * 256, my = (ev.clientY - r.top) / r.height * 192; const L = sc.lay;
-    const inRect = (x, y, w, h) => mx >= x && mx < x + w && my >= y && my < y + h;
-    if (sc.bubble && sc.bubble.kind === 'monster' && sc.bubble.rect && inRect(...sc.bubble.rect)) { sc.bubble = null; openBattle(render); return; }
-    if (e && e.monster && sc.moPos && inRect(sc.moPos[0] - 4, sc.moPos[1] - 4, 36, 32)) { sc.bubble = sc.bubble && sc.bubble.kind === 'monster' ? null : { kind: 'monster' }; return; }
-    if (sc.crPos && inRect(sc.crPos[0] - 2, sc.crPos[1] - 2, 28, 28)) { const z = PA.ZONE[p.res] || PA.ZONE.EC; sc.bubble = sc.bubble && sc.bubble.kind === 'creature' ? null : { kind: 'creature', text: `${z.n} · Nv ${c.level} · ${c.state} · Vie ${c.vie} %` }; return; }
-    sc.bubble = null;
+
+  function closeMapMenu(sc, focus = true) {
+    if (!sc?.menu) return;
+    sc.menuRestore?.(); sc.menuRestore = null; sc.menu.remove(); sc.menu = null;
+    if (focus && sc.c.isConnected) sc.c.focus({ preventScroll: true });
+  }
+  function positionMenu(sc) {
+    if (!sc.menu || !sc.c.isConnected) return;
+    const canvas = sc.c.getBoundingClientRect(), host = sc.host.getBoundingClientRect();
+    const x = canvas.left - host.left + sc.menuPoint[0] / 256 * canvas.width, y = canvas.top - host.top + sc.menuPoint[1] / 192 * canvas.height;
+    sc.menu.style.maxHeight = Math.max(100, canvas.height - 12) + 'px';
+    const width = sc.menu.offsetWidth, height = sc.menu.offsetHeight;
+    const left = Math.max(5, Math.min(canvas.width - width - 5, x + 8));
+    const top = Math.max(5, Math.min(canvas.height - height - 5, y + 8));
+    sc.menu.style.left = left + 'px'; sc.menu.style.top = top + 'px';
+  }
+  function showMapMenu(sc, title, rows, point, back) {
+    closeMapMenu(sc, false); if (sc.disposed) return;
+    sc.menuPoint = point || sc.menuPoint || [128, 96];
+    const menu = sc.menu = el(`<div class="q-map-menu" role="dialog" aria-label="${esc(title)}"><div class="q-map-menu-head"><span>${esc(title)}</span><button type="button" class="q-map-close" aria-label="Fermer le menu">×</button></div><div class="q-map-menu-body"></div></div>`);
+    menu.querySelector('.q-map-close').addEventListener('click', () => closeMapMenu(sc));
+    const body = menu.querySelector('.q-map-menu-body');
+    if (back) rows = [{ label: '◂ Retour', run: back }, ...rows];
+    rows.forEach((row) => {
+      if (row.node) { body.appendChild(row.node); return; }
+      const button = el(`<button type="button" class="q-map-option">${esc(row.label)}${row.next ? '<span aria-hidden="true">▸</span>' : ''}</button>`);
+      button.disabled = !!row.disabled; if (row.id) button.dataset.mapAction = row.id;
+      button.addEventListener('click', () => { if (!button.disabled && sc.menu === menu && !sc.disposed) { if (!row.next) button.disabled = true; row.run?.(); if (sc.menu === menu && !row.disabled) button.disabled = false; } }); body.appendChild(button);
+    });
+    menu.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeMapMenu(sc); }
+      if (['ArrowDown', 'ArrowUp'].includes(event.key) && event.target.tagName === 'BUTTON') { const buttons = [...menu.querySelectorAll('button:not(:disabled)')]; const i = buttons.indexOf(document.activeElement); event.preventDefault(); buttons[(i + (event.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]?.focus(); }
+    });
+    sc.host.appendChild(menu); positionMenu(sc);
+    (menu.querySelector('.q-map-option:not(:disabled)') || menu.querySelector('input, textarea, button'))?.focus({ preventScroll: true });
+  }
+  function runMapControl(sc, selector) {
+    const poolId = sc.poolId; closeMapMenu(sc, false);
+    if (sc.disposed || load().enc?.poolId !== poolId) return;
+    const control = document.querySelector(selector); if (!control || control.disabled) return;
+    control.click(); poolStage?.c.focus({ preventScroll: true });
+  }
+  function mapMenu(sc, kind, point) {
+    const { p, render } = sc.context; const root = () => mapMenu(sc, kind, sc.menuPoint);
+    if (kind === 'monster') {
+      const mo = sc.context.e?.monster; if (!mo) return;
+      showMapMenu(sc, `${MON[mo.id].n} · Nv ${mo.lvl}`, [{ label: 'Attaquer', id: 'attack', run: () => { closeMapMenu(sc, false); openBattle(render); } }], point); return;
+    }
+    if (kind === 'pool') {
+      showMapMenu(sc, `${p.res} ${p.unit} · Bassin`, [
+        { label: 'Nettoyage', id: 'cleaning', next: true, run: () => {
+          const rows = [...document.querySelectorAll('.clean-btn')].map((b) => ({ label: (b.classList.contains('done') ? '✓ ' : '') + b.textContent.trim(), disabled: b.classList.contains('done'), id: 'clean-' + b.dataset.task, run: () => runMapControl(sc, `.clean-btn[data-task="${b.dataset.task}"]`) }));
+          showMapMenu(sc, 'Nettoyage', rows, null, root);
+        } },
+        { label: 'Chimie', id: 'chemistry', next: true, run: () => {
+          const quantity = el('<label class="q-map-quantity"><span>Quantité</span><input type="text" inputmode="decimal" pattern="[0-9.,]*" aria-label="Quantité de produit"></label>');
+          const input = quantity.querySelector('input'); input.value = document.querySelector('.treat-qty')?.value || '1';
+          const rows = [...document.querySelectorAll('.treat-btn')].map((b) => ({ label: b.querySelector('span').textContent, id: 'treat-' + b.dataset.productId, run: () => { if (!input.checkValidity()) { input.reportValidity(); return; } const q = document.querySelector('.treat-qty'); if (q) q.value = input.value; runMapControl(sc, `.treat-btn[data-product-id="${b.dataset.productId}"]`); } }));
+          showMapMenu(sc, 'Chimie', [{ node: quantity }, ...rows], null, root);
+        } },
+        { label: 'Actions', id: 'actions', next: true, run: () => showMapMenu(sc, 'Actions', [{ label: 'Saisir une mesure', id: 'reading', next: true, run: () => mapReading(sc, root) }, { label: 'Filtration', id: 'filter', next: true, run: () => mapMenu(sc, 'filter', sc.menuPoint) }], null, root) },
+      ], point); return;
+    }
+    if (kind === 'filter' || kind === 'shed') {
+      showMapMenu(sc, kind === 'filter' ? 'Filtre' : 'Local technique', [
+        { label: 'Laver le filtre', id: 'backwash', run: () => runMapControl(sc, '[data-pool-action="backwash"]') },
+        { label: 'Sable du filtre', id: 'sand', next: true, run: () => mapSand(sc, root) },
+        { label: 'Note du local', id: 'pump-note', next: true, run: () => mapPumpNote(sc, root) },
+      ], point); return;
+    }
+    showMapMenu(sc, `${p.res} ${p.unit}`, [{ label: 'Volets fermés', disabled: true }], point);
+  }
+  function mapReading(sc, back) {
+    const form = document.querySelector('.reading-form'); if (!form) return;
+    const parent = form.parentNode, next = form.nextSibling, poolId = sc.poolId;
+    const before = Store.readingsFor(poolId).length;
+    showMapMenu(sc, 'Mesure de l’eau', [{ node: form }], null, back);
+    const submitted = () => { queueMicrotask(() => { if (Store.readingsFor(poolId).length > before) closeMapMenu(sc); }); };
+    form.addEventListener('submit', submitted);
+    sc.menuRestore = () => { form.removeEventListener('submit', submitted); if (parent.isConnected) parent.insertBefore(form, next?.parentNode === parent ? next : null); else form.remove(); };
+    positionMenu(sc); form.querySelector('input')?.focus({ preventScroll: true });
+  }
+  function mapPumpNote(sc, back) {
+    const box = el('<form class="q-map-form"><label>Note du local<textarea rows="3" aria-label="Note du local"></textarea></label><button type="submit" class="q-map-option">Enregistrer</button></form>');
+    box.querySelector('textarea').value = document.querySelector('.pump-notes')?.value || '';
+    box.addEventListener('submit', (event) => { event.preventDefault(); const original = document.querySelector('.pump-notes'); if (original) { original.value = box.querySelector('textarea').value; original.dispatchEvent(new Event('change', { bubbles: true })); } closeMapMenu(sc); });
+    showMapMenu(sc, 'Note du local', [{ node: box }], null, back);
+  }
+  function mapSand(sc, back) {
+    const button = document.querySelector('[data-pool-action="sand"]'); if (!button) return;
+    button.click(); const legacy = document.querySelector('.sheet-back:last-of-type'), original = legacy?.querySelector('input[type="date"]');
+    if (!original) { legacy?.remove(); return; }
+    const form = el('<form class="q-map-form"><label>Sable changé le<input type="date" aria-label="Date du sable"></label><button type="submit" class="q-map-option">Enregistrer</button></form>');
+    form.querySelector('input').value = original.value; legacy.remove();
+    form.addEventListener('submit', (event) => { event.preventDefault(); original.value = form.querySelector('input').value; original.dispatchEvent(new Event('change', { bubbles: true })); closeMapMenu(sc); sc.context.render(); });
+    showMapMenu(sc, 'Sable du filtre', [{ node: form }], null, back);
+  }
+  function tapStage(sc, ev) {
+    if (sc.menu) { closeMapMenu(sc); return; }
+    if (B || sc.disposed) return;
+    const r = sc.c.getBoundingClientRect(), mx = (ev.clientX - r.left) / r.width * 256, my = (ev.clientY - r.top) / r.height * 192;
+    const L = sc.lay, point = [mx, my], inRect = (x, y, w, h) => mx >= x && mx < x + w && my >= y && my < y + h;
+    if (sc.context.e?.monster && sc.moPos && inRect(sc.moPos[0] - 3, sc.moPos[1] - 3, 34, 30)) { mapMenu(sc, 'monster', point); return; }
     const tx = Math.floor(mx / T), ty = Math.floor(my / T);
-    const D = L.deck; if (tx >= D.x && tx < D.x + D.w && ty >= D.y && ty < D.y + D.h) { mapSheet('bassin', p, render); return; }
-    const near = L.objects.find((o) => (o.kind === 'shed' || o.kind === 'pump') && tx >= o.x && tx < o.x + o.w && ty >= o.y && ty < o.y + o.h); if (near) { mapSheet('local', p, render); return; }
-    const villa = L.objects.find((o) => o.kind === 'villa' && tx >= o.x && tx < o.x + o.w && ty >= o.y && ty < o.y + o.h); if (villa) { sc.bubble = { kind: 'creature', text: 'Personne. Les volets sont fermés.' }; }
+    const object = L.objects.find((o) => ['pump', 'shed', 'villa'].includes(o.kind) && tx >= o.x && tx < o.x + o.w && ty >= o.y && ty < o.y + o.h);
+    if (object) { mapMenu(sc, object.kind === 'pump' ? 'filter' : object.kind, point); return; }
+    const d = L.deck;
+    if (tx >= d.x && tx < d.x + d.w && ty >= d.y && ty < d.y + d.h) { mapMenu(sc, 'pool', point); return; }
+    if (L.coll[ty]?.[tx] === 0) queueWalk(sc, [tx, ty]);
   }
-  // the map's sheets drive the page's own buttons, so the data path is unchanged
-  function mapSheet(kind, p, render) {
-    const nodes = []; const item = (label, fn, cls) => { const b = el(`<button class="sheet-item${cls ? ' ' + cls : ''}">${label}</button>`); b.addEventListener('click', () => { back.remove(); fn(); }); return b; };
-    if (kind === 'bassin') {
-      const saisir = document.querySelector('.ov-saisir'); if (saisir) nodes.push(item('Mesure · pH, chlore, stabilisant', () => saisir.click()));
-      const qty = document.querySelector('.treat-qty'); const treats = [...document.querySelectorAll('.treat-btn')];
-      if (treats.length) {
-        const qrow = el(`<div class="q-qty"><span>Quantité</span><button type="button" class="q-pick">−</button><b>${qty ? qty.value : 1}</b><button type="button" class="q-pick">+</button></div>`);
-        const [minus, plus] = qrow.querySelectorAll('button'); const bump = (d) => { if (!qty) return; const v = Math.max(1, Math.min(20, (parseFloat(qty.value) || 1) + d)); qty.value = String(v); qrow.querySelector('b').textContent = v; };
-        minus.addEventListener('click', () => bump(-1)); plus.addEventListener('click', () => bump(1)); nodes.push(qrow);
-        treats.forEach((b) => nodes.push(item('Chimie · ' + esc(b.querySelector('span').textContent), () => b.click())));
-      }
-      [...document.querySelectorAll('.clean-btn')].forEach((b) => nodes.push(item((b.classList.contains('done') ? '✓ ' : '') + 'Nettoyage · ' + esc(b.textContent.trim()), () => b.click(), b.classList.contains('done') ? 'dis' : '')));
-    } else {
-      const ov = [...document.querySelectorAll('.ov-btn')]; if (ov[0]) nodes.push(item('Lavage du filtre', () => ov[0].click())); if (ov[1]) nodes.push(item(esc(ov[1].textContent), () => ov[1].click()));
-      const pn = document.querySelector('.pump-notes'); if (pn) nodes.push(item('Note sur le local', () => { pn.scrollIntoView({ behavior: 'smooth', block: 'center' }); pn.focus(); }));
-    }
-    if (!nodes.length) nodes.push(el('<p class="q-hint">Rien à faire ici.</p>'));
-    const back = sheet(kind === 'bassin' ? `${p.res} ${p.unit} · le bassin` : `${p.res} ${p.unit} · le local`, nodes);
+  function configurePoolStage(sc) {
+    sc.c.tabIndex = 0; sc.c.setAttribute('aria-label', 'Carte interactive. Touchez le bassin, le filtre ou un monstre. Flèches pour marcher, Entrée pour les actions.');
+    sc.c.addEventListener('click', (event) => tapStage(sc, event));
+    sc.c.addEventListener('keydown', (event) => {
+      if (B || sc.disposed) return;
+      if (event.key === 'Escape') { closeMapMenu(sc); return; }
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); mapMenu(sc, 'pool', [sc.hc[0] * T + 8, sc.hc[1] * T]); return; }
+      const d = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[event.key];
+      if (d && !B) { event.preventDefault(); const to = [sc.hc[0] + d[0], sc.hc[1] + d[1]]; if (!sc.q.length && sc.lay.coll[to[1]]?.[to[0]] === 0) queueWalk(sc, to); }
+    });
+    // The shortcut handles its own toggle on click; closing on pointerdown would reopen it.
+    const outside = (event) => { if (sc.menu && !sc.host.contains(event.target) && !sc.shortcut?.contains(event.target)) closeMapMenu(sc, false); };
+    const escape = (event) => { if (sc.menu && event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); closeMapMenu(sc); } };
+    const resize = () => positionMenu(sc); document.addEventListener('pointerdown', outside); document.addEventListener('keydown', escape); window.addEventListener('resize', resize);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize); observer?.observe(sc.c);
+    sc.cleanup = () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); window.removeEventListener('resize', resize); observer?.disconnect(); };
   }
   function drawDepot(ctx, t, sc, n, at) {
-    PA.storage(ctx, at, n, t);
-    const g = load(); const to = at ? 144 : 8; const q = Math.min(1, t / 2.8); const hx = Math.round(8 + (to - 8) * q);
-    drawAvatar(ctx, hx, 118, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0 });
+    PA.storage(ctx, at, n, t); const g = load(), to = at ? 144 : 8, q = Math.min(1, t / 2.8), hx = Math.round(8 + (to - 8) * q);
+    Motion.keeper(ctx, hx + 8, 141, g.avatar, g.equip, { direction: q < 1 ? 'east' : 'south', motion: q < 1 ? 'walk' : 'idle', elapsed: t * 1000 });
   }
+
   function monsterBanner(render) {
     const g = load(); const e = g.enc; if (!e || !e.monster) return null;
     const m = MON[e.monster.id];
@@ -582,20 +723,30 @@ const Game = (() => {
         ${c.sable != null ? bar('Sable', c.sable, 6, c.sable.toFixed(1) + ' ans') : ''}
       </div></div>`);
     box.querySelector('.q-head').appendChild(sprite(p));
-    // the screen: what was just recorded plays out (sticks in the skimmer, a test, a sweep, a wash)
-    const e = g.enc; const st = stage((ctx, t, sc, a, pp) => drawPool(ctx, t, sc, a, pp, c, e));
-    st.lay = PoolMaps.get(p.id, p.res); const A = st.lay.anchors; st.hc = [A.sp.x, A.sp.y];
-    st.c.addEventListener('click', (ev) => tapStage(st, ev, p, c, e, render || (() => window.dispatchEvent(new Event('hashchange')))));
+    // Reuse the same canvas and queue through normal logging/sync/weather renders.
+    const e = g.enc;
+    if (!poolStage || poolStage.poolId !== p.id || poolStage.disposed) {
+      poolStage?.dispose();
+      poolStage = stage((ctx, t, sc, a, pp) => { const data = sc.context; if (data) drawPool(ctx, t, sc, a, pp, data.c, data.e); });
+      poolStage.poolId = p.id; poolStage.host.dataset.poolId = p.id;
+      poolStage.lay = PoolMaps.get(p.id, p.res); const spawn = poolStage.lay.anchors.sp; poolStage.hc = [spawn.x, spawn.y];
+      configurePoolStage(poolStage);
+    }
+    const st = poolStage, A = st.lay.anchors;
+    st.context = { p, c, e, render: render || (() => window.dispatchEvent(new Event('hashchange'))) };
     if (e) {
       const seen = e.seen || { chem: 0, clean: 0, filt: 0, mes: 0 };
-      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', to: [A.sk.x, A.sk.y] }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
-      if (acts.mes > seen.mes) st.q.push({ k: 'walk', to: [A.la.x, A.la.y] }, { k: 'test', dur: 2 });
-      if (acts.clean > seen.clean) st.q.push({ k: 'walk', to: [A.la.x, A.la.y] }, { k: 'sweep', dur: 2.4 });
-      if (acts.filt > seen.filt) { const pu = st.lay.paths.pu; const last = pu[pu.length - 1]; st.q.push({ k: 'walk', to: [last[0], last[1]] }, { k: 'wash', dur: 1.8 }); }
+      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; queueWalk(st, [A.sk.x, A.sk.y]); st.q.push({ k: sticks ? 'drop' : 'scatter', dur: .8 }); }
+      if (acts.mes > seen.mes) { queueWalk(st, [A.la.x, A.la.y]); st.q.push({ k: 'test', dur: .8 }); }
+      if (acts.clean > seen.clean) { queueWalk(st, [A.la.x, A.la.y]); st.q.push({ k: 'sweep', dur: .8 }); }
+      if (acts.filt > seen.filt) { const pu = st.lay.paths.pu; const last = pu[pu.length - 1]; queueWalk(st, last); st.q.push({ k: 'wash', dur: .8 }); }
       e.seen = { ...acts }; save();
     }
-    box.insertBefore(st.c, box.querySelector('.q-stats'));
-    box.insertBefore(el('<div class="q-hint q-maphint">Touche le bassin, le local, la créature — ou le monstre.</div>'), box.querySelector('.q-stats'));
+    box.insertBefore(st.host, box.querySelector('.q-stats'));
+    const hint = el('<div class="q-hint q-maphint"><span>Touche le bassin, le filtre ou un monstre. Touche ailleurs pour fermer.</span><button type="button" class="q-map-shortcut" aria-haspopup="dialog">Actions</button></div>');
+    st.shortcut = hint.querySelector('button');
+    st.shortcut.addEventListener('click', () => { if (st.menu) closeMapMenu(st); else mapMenu(st, 'pool', [220, 170]); });
+    box.insertBefore(hint, box.querySelector('.q-stats'));
     if (e && e.escaped && !e.monster) box.insertBefore(el(`<div class="q-hint">${esc(e.escaped)} s’est enfui pendant que tu avais le dos tourné — son butin avec.</div>`), box.querySelector('.q-stats'));
     const mb = monsterBanner(render || (() => window.dispatchEvent(new Event('hashchange'))));
     if (mb) { const w = document.createElement('div'); w.appendChild(box); w.appendChild(mb); return w; }
@@ -732,10 +883,11 @@ const Game = (() => {
   function onRoute(name, poolId) {
     const g = load();
     if (B && !(name === 'pool' && g.enc && poolId === g.enc.poolId)) abandon();
+    if (poolStage && (name !== 'pool' || poolStage.poolId !== poolId || document.documentElement.dataset.style !== 'pixel')) { poolStage.dispose(); poolStage = null; }
     if (g.enc && !(name === 'pool' && poolId === g.enc.poolId)) settle();
     if (name !== 'pool') setTimeout(toast, 50);
   }
-  window.addEventListener('pagehide', () => { abandon(); if (load().enc) settle(); });
+  window.addEventListener('pagehide', () => { abandon(); poolStage?.dispose(); poolStage = null; if (load().enc) settle(); });
 
   return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, MON, MTIER, RES, openBattle, rewardDays, get state() { return load(); } };
 })();

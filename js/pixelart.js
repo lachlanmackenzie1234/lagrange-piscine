@@ -65,7 +65,10 @@ const PixelArt = (() => {
     px(g, I, x + 3, by + 1, 1, 6); px(g, I, x + 12, by + 1, 1, 6);
     // head 8×7
     px(g, I, x + 3, hy, 10, 9); px(g, skin, x + 4, hy + 1, 8, 7); px(g, skinD, x + 10, hy + 2, 2, 6);
-    if (!o.back) { px(g, I, x + 6, hy + 4, 1, 2); px(g, I, x + 9, hy + 4, 1, 2); px(g, skinD, x + 7, hy + 7, 2, 1); }
+    if (!o.back) {
+      if (o.direction === 'east') { px(g, I, x + 10, hy + 4, 1, 2); px(g, skin, x + 13, hy + 5, 1, 2); px(g, skinD, x + 10, hy + 7, 2, 1); }
+      else { px(g, I, x + 6, hy + 4, 1, 2); px(g, I, x + 9, hy + 4, 1, 2); px(g, skinD, x + 7, hy + 7, 2, 1); }
+    }
     px(g, hairC, x + 4, hy + 1, 8, 2); px(g, hairC, x + 4, hy + 3, 1, 1); px(g, hairC, x + 11, hy + 3, 1, 1);
     if ((o.hair || 1) === 3) { px(g, hairC, x + 3, hy + 3, 1, 5); px(g, hairC, x + 12, hy + 3, 1, 5); }
     if ((o.hair || 1) === 2 && !sets.head) { px(g, hairC, x + 5, hy, 1, 1); px(g, hairC, x + 8, hy - 1, 1, 2); px(g, hairC, x + 10, hy, 1, 1); }
@@ -263,7 +266,7 @@ const PixelArt = (() => {
     px(g, C.i, 226, 102, 14, 14); px(g, C.n, 227, 103, 12, 12); px(g, C.w, 229, 105, 8, 6); px(g, o.pumpLate ? C.r : C.g, 232, 107, 2, 2); px(g, C.i, 228, 112, 10, 1); // pump by the shed
   }
   // ---------------------------------------------------------------- a pool's map (256×192) from its layout (js/maps.js)
-  // o: { state, sunk, dirt, t, pumpLate, creature (24×24 canvas), seed, open (the shed door open) }
+  // o: { state, sunk, dirt, t, pumpLate, drawWater, open }. Actors are drawn separately.
   const SIGN = ['..iiiiiiii..', '.iwwwwwwwwi.', '.iwbbwwbbwi.', '.iwwwwwwwwi.', '..iiiiiiii..', '.....ii.....', '.....io.....', '.....io.....', '.....io.....', '....iiii....'];
   const BENCH = ['iiiiiiiiiiiiii', 'iOOOOOOOOOOOOi', 'iooooooooooooi', 'iiiiiiiiiiiiii', '.io........oi.', '.io........oi.', '.ii........ii.'];
   function map(g, L, o) {
@@ -276,10 +279,10 @@ const PixelArt = (() => {
     // the basin
     const w = o.sunk ? WATER.sunk : WATER[o.state] || WATER.calme; const P = L.pool; const bx = P.x * T, by = P.y * T, bw = P.w * T, bh = P.h * T;
     px(g, C.i, bx - 1, by - 1, bw + 2, bh + 2); px(g, w[0], bx, by, bw, bh); px(g, w[2], bx, by + bh - 8, bw, 8); px(g, w[1], bx, by, bw, 2);
-    for (let ry = 0; ry < bh / 8; ry++) for (let rx = 0; rx < bw / 16 + 1; rx++) { const wx = bx + 2 + rx * 16 + (ry % 2) * 8 + (Math.floor(t * 2) % 4) * 2, wy = by + 5 + ry * 8; if (wx + 6 < bx + bw && wy < by + bh - 2) { px(g, w[1], wx, wy, 4, 1); px(g, w[1], wx + 4, wy + 1, 2, 1); } }
+    const animatedWater = !o.sunk && o.drawWater?.(g, o.state, t * 1000, bx, by, bw, bh);
+    if (!animatedWater) for (let ry = 0; ry < bh / 8; ry++) for (let rx = 0; rx < bw / 16 + 1; rx++) { const wx = bx + 2 + rx * 16 + (ry % 2) * 8 + (Math.floor(t * 2) % 4) * 2, wy = by + 5 + ry * 8; if (wx + 6 < bx + bw && wy < by + bh - 2) { px(g, w[1], wx, wy, 4, 1); px(g, w[1], wx + 4, wy + 1, 2, 1); } }
     if (o.sunk) for (let i = 0; i < 8; i++) px(g, '#3a2a5a', bx + 4 + ((i * 29 + Math.floor(t * 5)) % (bw - 8)), by + 4 + ((i * 13 + Math.floor(t * 3)) % (bh - 8)), 3, 2);
     if (o.dirt) { let h = 7; for (let i = 0; i < o.dirt * 10; i++) { h = (h * 1103515245 + 12345) & 0x7fffffff; px(g, i % 3 ? C.A : C.O, bx + 3 + (h % (bw - 6)), by + 3 + ((h >> 8) % (bh - 6)), 2, 1); } }
-    if (o.creature && !o.sunk && bw > 32 && bh > 28) { let h = 2166136261; for (const ch of String(o.seed || '')) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } h >>>= 0; const cx = bx + 4 + (h % (bw - 32)) + Math.round(Math.sin(t * .6 + h % 7) * Math.min(6, (bw - 32) / 4)), cy = by + 2 + ((h >> 5) % (bh - 28)) + Math.round(Math.sin(t * .9) * 2); px(g, w[1], cx - 4, cy + 20, 32, 1); g.drawImage(o.creature, cx, cy); o.creaturePos = [cx, cy]; }
     // ladder on the pool edge nearest its anchor, skimmer on its coping cell
     const la = L.anchors.la; const sk = L.anchors.sk;
     if (la.y >= P.y + P.h) { px(g, C.w, la.x * T + 5, by + bh - 12, 2, 13); px(g, C.w, la.x * T + 10, by + bh - 12, 2, 13); px(g, C.w, la.x * T + 5, by + bh - 9, 7, 1); px(g, C.w, la.x * T + 5, by + bh - 4, 7, 1); }
