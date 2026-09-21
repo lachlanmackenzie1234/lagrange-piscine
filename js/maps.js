@@ -140,7 +140,7 @@ const PoolMaps = (() => {
     bureau: makeHub('bureau', [[1, 1, 10, 7]],
       [[1, 1, 1, 3], [1, 4, 2, 4], [7, 4, 4, 1], [10, 1, 1, 2], [10, 6, 1, 2], [3, 6, 1, 1]],
       { sp: { x: 9, y: 6 }, rewards: { x: 3, y: 2 }, quest: { x: 8, y: 5 }, partner: { x: 5, y: 6 } },
-      [{ id: 'pj', cell: [2, 2], direction: 'west' }, { id: 'jp', cell: [7, 3], direction: 'south', offset: [0, -16] }, { id: 'partner', cell: [4, 6], direction: 'west' }],
+      [{ id: 'pj', cell: [2, 2], direction: 'west' }, { id: 'jp', cell: [7, 3], direction: 'south', offset: [0, -21] }, { id: 'partner', cell: [4, 6], direction: 'west' }],
       [{ kind: 'rewards', npc: 'pj', rect: [12, 20, 32, 49], anchor: 'rewards' }, { kind: 'quest', npc: 'jp', rect: [107, 36, 59, 44], anchor: 'quest' }],
       { rect: [137, 119, 30, 25], to: 'depot' }),
   };

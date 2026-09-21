@@ -1,5 +1,7 @@
 # Quest v0.101 · Layered hubs and character integration
 
+For the latest character proportions, see [the compact character pass](quest-characters.md).
+
 The Bureau is now a compact 384×288 room. At the same panel width, its characters
 appear a third larger than on a 512×384 map. PJ faces a small vertical wooden
 computer desk along the left wall. JP stands behind a taller white counter on

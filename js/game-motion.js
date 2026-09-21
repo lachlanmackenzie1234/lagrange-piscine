@@ -4,7 +4,16 @@ const QuestMotion = (() => {
   const slots = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
   const sets = ['EC', 'AG', 'EP', 'EPP', 'GP'];
   const tiers = ['common', 'uncommon', 'rare', 'vrare', 'epic', 'legend'];
-  const humanStyle = Object.freeze({ scale: .8, body: .5, legs: .5, neck: 22, waist: 44, ankle: 57 });
+  // Jojo/Karine set the body budget, while each source keeps its original head.
+  // Torso, exposed legs and boots below are native output pixels at map scale.
+  const humanStyle = Object.freeze({ scale: .8, torso: 6, legs: 1, feet: 3, neck: 22, waist: 44, ankle: 57 });
+  const npcRig = Object.freeze({
+    jojo: Object.freeze({ neck: 31, waist: 52, ankle: 59 }),
+    karine: Object.freeze({ neck: 29, waist: 44, ankle: 58 }),
+    matt: Object.freeze({ neck: 24, waist: 44, ankle: 58 }),
+    jp: Object.freeze({ neck: 21, waist: 35, ankle: 60 }),
+    pj: Object.freeze({ neck: 23, waist: 40, ankle: 59 }),
+  });
   let data = null, loaded = false, failure = null, revision = 0;
   const pages = new Map(), keeperCache = new Map(), keeperBases = new Map(), dressedBases = new Map();
   const variants = new Map(), sourceIds = new WeakMap(); let nextSourceId = 0;
@@ -74,32 +83,33 @@ const QuestMotion = (() => {
     return variants.get(key);
   }
 
-  // Native art and equipment stay intact. Shorten only the region below the
-  // neck, then apply the common display scale; every pose keeps its foot anchor.
-  function humanGeometry(neck = humanStyle.neck, scale = humanStyle.scale, body = humanStyle.body, legs = humanStyle.legs) {
+  // The same body silhouette budget in every view, independent of source height.
+  // Head pixels and the ground anchor are unaffected by the body normalization.
+  function humanGeometry(neck = humanStyle.neck, scale = humanStyle.scale) {
     const width = Math.round(48 * scale), head = Math.round(neck * scale);
-    const torso = Math.max(1, Math.round((humanStyle.waist - neck) * scale * body));
-    const shins = Math.max(1, Math.round((humanStyle.ankle - humanStyle.waist) * scale * body * legs));
-    const feet = Math.max(1, Math.round((64 - humanStyle.ankle) * scale * body));
+    const zoom = scale / humanStyle.scale;
+    const torso = Math.max(1, Math.round(humanStyle.torso * zoom));
+    const shins = Math.max(1, Math.round(humanStyle.legs * zoom));
+    const feet = Math.max(1, Math.round(humanStyle.feet * zoom));
     return { width, head, torso, legs: shins, feet, height: head + torso + shins + feet };
   }
   function human(ctx, source, rect, x, y, options = {}) {
     const neck = options.neck ?? humanStyle.neck;
-    const size = humanGeometry(neck, options.scale ?? humanStyle.scale, options.body ?? humanStyle.body, options.legs ?? humanStyle.legs);
+    const size = humanGeometry(neck, options.scale ?? humanStyle.scale);
     const tone = options.shadow ? 'shadow' : options.light;
     if (tone) { source = variant(source, rect, tone); rect = [0, 0]; }
     const [sx, sy] = rect, left = Math.round(x * 2 - size.width / 2) / 2, top = Math.round(y * 2 - size.height + 1) / 2;
     ctx.imageSmoothingEnabled = false;
-    const cuts = [0, neck, humanStyle.waist, humanStyle.ankle, 64], heights = [size.head, size.torso, size.legs, size.feet];
+    const cuts = [0, neck, options.waist ?? humanStyle.waist, options.ankle ?? humanStyle.ankle, 64], heights = [size.head, size.torso, size.legs, size.feet];
     let dy = top;
     for (let i = 0; i < heights.length; i++) { ctx.drawImage(source, sx, sy + cuts[i], 48, cuts[i + 1] - cuts[i], left, dy, size.width / 2, heights[i] / 2); dy += heights[i] / 2; }
   }
   function npc(ctx, id, direction, elapsed, x, y, options = {}) {
     const clip = data?.clips[`npc/${id}/${direction}`], page = clip && pages.get(clip.page); if (!page) return false;
     const frame = frameAt(clip, elapsed, reduced());
-    // Shorter source characters have extra transparent rows above their heads.
-    const neck = ({ jojo: 31, karine: 29, matt: 24, jp: 21, pj: 23 })[id] || 22;
-    human(ctx, page, frame.r, x, y + frame.o[1] / 2, { neck, ...options }); return true;
+    // Keep Jojo's apron inside the torso and JP's long trouser section inside
+    // the leg band, rather than treating either one as the other character's cut.
+    human(ctx, page, frame.r, x, y + frame.o[1] / 2, { ...npcRig[id], ...options }); return true;
   }
 
   function aura(ctx, group, layer, elapsed, x, y, options = {}) {
@@ -249,7 +259,7 @@ const QuestMotion = (() => {
     } catch (error) { failure = error.message; return false; }
   })();
   const tile = (ctx, kind, variant, x, y) => draw(ctx, `tile/${kind}/${Math.abs(variant || 0) % 4}`, 0, x, y);
-  return { ready, frameAt, Timeline, RenderClock, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, icon, tile, keeper, npc, humanGeometry, humanStyle, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size, revision, keeperFrames: keeperCache.size, litFrames: variants.size }; } };
+  return { ready, frameAt, Timeline, RenderClock, fullSet, setAuraState, tiers, draw, aura, setAura, portrait, creaturePortrait, monsterPortrait, icon, tile, keeper, npc, humanGeometry, humanStyle, npcRig, monster, water, reduced, get status() { return { loaded, failure, pages: pages.size, portraits: portraits.size, revision, keeperFrames: keeperCache.size, litFrames: variants.size }; } };
 })();
 if (typeof window !== 'undefined') window.QuestMotion = QuestMotion;
 if (typeof module !== 'undefined') module.exports = QuestMotion;

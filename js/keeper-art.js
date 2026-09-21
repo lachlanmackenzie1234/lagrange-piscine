@@ -58,7 +58,7 @@ const KeeperArt = (() => {
     }
     if (equip.jambes) { f(trim('jambes'), side ? 27 : 18, 42, 3); cursed('jambes', side ? 30 : 29, 46); }
     if (equip.pieds) { f(trim('pieds'), side ? 29 : 16, 59, 3); if (!side) f(trim('pieds'), 28, 59, 3); cursed('pieds', 29, 60); }
-    if (equip.amulette) { if (back) f(trim('amulette'), 20, 22, 10); else { f(trim('amulette'), side ? 31 : 20, 23, 1, 8); if (!side) f(trim('amulette'), 29, 23, 1, 7); box(pal('amulette')[1], side ? 29 : 22, 29, 6, 6); f(trim('amulette'), side ? 31 : 24, 31, 2, 2); } cursed('amulette', side ? 31 : 24, back ? 22 : 32); }
+    if (equip.amulette) { if (back) f(trim('amulette'), 20, 22, 10, 3); else { f(trim('amulette'), side ? 31 : 20, 23, 1, 8); if (!side) f(trim('amulette'), 29, 23, 1, 7); box(pal('amulette')[1], side ? 29 : 22, 29, 6, 6); f(trim('amulette'), side ? 31 : 24, 31, 2, 2); } cursed('amulette', side ? 31 : 24, back ? 22 : 32); }
     if (equip.robot) { const x = back ? 17 : side ? 12 : 8, y = back ? 26 : 34; box(pal('robot')[1], x, y, back ? 15 : 8, back ? 17 : 10); f(pal('robot')[2], x + 2, y + 2, back ? 10 : 4, 2); f(trim('robot'), x + 3, y + 6, 3, 2); f('#e9f2dc', x + 2, y + 5); cursed('robot', x + 3, y + 8); }
     if (equip.perche) {
       f(ink, 42, 6, 2, 48); f('#b4976b', 42, 9, 1, 43); const res = equip.perche.res;

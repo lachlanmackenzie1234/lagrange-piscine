@@ -3,21 +3,27 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { humanGeometry } = require('../js/game-motion.js');
+const { humanGeometry, humanStyle, npcRig } = require('../js/game-motion.js');
 const dir = path.join(__dirname, '../assets/quest-hubs');
 const pack = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json')));
 const context = vm.createContext({ window: {} });
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/maps.js'), 'utf8'), context);
 const maps = context.window.PoolMaps;
 
-test('shorter legs preserve head, torso and boot dimensions in every human build', () => {
-  for (const neck of [21, 22, 23, 24, 29, 31]) for (const scale of [.8, 1.6]) {
-    const old = humanGeometry(neck, scale, .5, 1), compact = humanGeometry(neck, scale, .5, .5);
-    for (const part of ['width', 'head', 'torso', 'feet']) assert.equal(compact[part], old[part], part);
-    assert.ok(Math.abs(compact.legs - old.legs / 2) <= .5);
-    assert.equal(old.height - compact.height, old.legs - compact.legs);
-    assert.ok(compact.feet >= 2);
+test('every human shares a compact body while retaining source heads and boots', () => {
+  for (const scale of [.8, 1.6]) {
+    const reference = humanGeometry(npcRig.karine.neck, scale);
+    for (const rig of [humanStyle, ...Object.values(npcRig)]) {
+      const geometry = humanGeometry(rig.neck, scale);
+      assert.equal(geometry.head, Math.round(rig.neck * scale));
+      for (const part of ['torso', 'legs', 'feet']) assert.equal(geometry[part], reference[part]);
+      assert.ok(rig.neck < rig.waist && rig.waist < rig.ankle && rig.ankle < 64);
+      assert.equal(geometry.height - geometry.head, reference.height - reference.head);
+    }
   }
+  assert.equal(humanGeometry().legs, 1);
+  assert.equal(humanGeometry().torso, 6);
+  assert.equal(humanGeometry().feet, 3);
 });
 
 test('layered hub stations have packed art, solid footprints and reachable approaches', () => {

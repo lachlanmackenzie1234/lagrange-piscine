@@ -1,0 +1,29 @@
+{
+  "heads": 68,
+  "keeperFeet": 48,
+  "missingEquipment": [],
+  "uniformBody": [
+    6,
+    1,
+    3
+  ],
+  "visibleEquipmentSlots": 32,
+  "version": "v0.102.1",
+  "tests": 39,
+  "flow": {
+    "combat": {
+      "after": 168,
+      "before": 174,
+      "immediate": 174,
+      "phase": "ready",
+      "turn": "1"
+    },
+    "logsUnchanged": true,
+    "walk": "24,95"
+  },
+  "mobileWidth": 320,
+  "mobileMenusFit": true,
+  "offlineCache": "lp-v0.102.1",
+  "offlineLoaded": true,
+  "newRuntimeImages": 0
+}
