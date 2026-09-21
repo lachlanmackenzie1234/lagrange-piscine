@@ -186,8 +186,8 @@ const Game = (() => {
     if (Math.random() < SPAWN[c.state]) {
       const w = Object.entries(MON).map(([k, m]) => [k, 0.3 + m.when(c)]); const tot = w.reduce((a, x) => a + x[1], 0);
       let r = Math.random() * tot, id = w[0][0]; for (const [k, v] of w) { r -= v; if (r <= 0) { id = k; break; } }
-      const lvl = Math.max(1, Math.round(c.level * (0.6 + Math.random() * 0.8) * c.mult / 1.5));
-      const hp = Math.round(MON[id].hp * (1 + lvl / 25));
+      const lvl = Math.max(1, Math.round(c.level * (0.35 + Math.random() * 0.4) * (1 + (c.mult - 1) * 0.25)));
+      const hp = Math.round(MON[id].hp * (1 + lvl / 40));
       e.monster = { id, lvl, hp, maxHp: hp, pool: c.name };
       g.bestiary = g.bestiary || {}; g.bestiary[id] = g.bestiary[id] || { seen: 0, beaten: 0 }; g.bestiary[id].seen++;
     }
@@ -219,7 +219,9 @@ const Game = (() => {
   function openBattle(render) {
     const g = load(); const e = g.enc; if (!e || !e.monster) return;
     const m = MON[e.monster.id]; const c = creature(Store.pool(e.poolId));
-    B = { e, m, c, php: 100, maxP: 100, log: [{ k: 'foe', t: `${m.n} (Nv ${e.monster.lvl}) surgit de ${c.name} !` }], over: false, menu: 'main', turn: 0 };
+    const armour = ['tête', 'torse', 'jambes', 'pieds'].reduce((a, sl) => a + (g.equip[sl] ? 8 + RTIER[g.equip[sl].rar] * 4 : 0), 0);
+    const maxP = 100 + 4 * (level() - 1) + armour;
+    B = { e, m, c, php: maxP, maxP, log: [{ k: 'foe', t: `${m.n} (Nv ${e.monster.lvl}) surgit de ${c.name} !` }], over: false, menu: 'main', turn: 0 };
     const ov = el('<div class="q-battle"></div>'); document.body.appendChild(ov);
     const draw = () => {
       const mo = e.monster || B.lastMo; const hpP = Math.round(mo.hp / mo.maxHp * 100);
@@ -245,7 +247,7 @@ const Game = (() => {
       mo.hp = Math.max(0, mo.hp - dmg);
       B.log.push({ k: 'me', t: `${MOVES[k][0].toUpperCase()} · −${dmg}${eff >= 1.8 ? ' — c’est super efficace !' : eff <= .6 ? ' — ça ne lui fait pas grand-chose.' : ''}` });
       if (mo.hp <= 0) { win(); save(); draw(); return; }
-      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 30) * (0.85 + Math.random() * 0.3));
+      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 60) * (0.85 + Math.random() * 0.3));
       B.php = Math.max(0, B.php - ad); B.log.push({ k: 'foe', t: `${m.n} utilise ${a[0]} — ${a[2]} · −${ad}` });
       if (B.php <= 0) { B.over = true; B.lost = true; g.coins = Math.max(0, g.coins - 3); B.log.push({ k: 'foe', t: 'Tu es assommé. Il reste là jusqu’au prochain passage. −3 pièces' }); }
       save(); draw();
@@ -329,7 +331,7 @@ const Game = (() => {
   function enter(poolId) {
     const g = load();
     if (g.enc && g.enc.poolId !== poolId) settle();
-    if (!g.enc) { g.enc = { poolId, since: new Date().toISOString() }; if (g.lurk && g.lurk[poolId]) { g.enc.monster = g.lurk[poolId]; delete g.lurk[poolId]; } save(); }
+    if (!g.enc) { const c0 = creature(Store.pool(poolId)); g.enc = { poolId, since: new Date().toISOString(), state: c0 ? c0.state : 'calme', mult: c0 ? c0.mult : 1 }; if (g.lurk && g.lurk[poolId]) { g.enc.monster = g.lurk[poolId]; delete g.lurk[poolId]; } save(); }
   }
   // Settle the open encounter: real actions → XP, coins, maybe a crate. Nothing done → the creature stays wild, no loot.
   function settle() {
@@ -341,9 +343,9 @@ const Game = (() => {
     g.fights++;
     let out = { pool: `${p.res} ${p.unit}`, n, xp: 0, coins: 0, crate: null };
     if (n) {
-      const c = creature(p); const b = bonuses();
-      out.state = c.state; out.mult = c.mult;
-      out.xp = Math.round((8 + c.level + n * 2) * c.mult * (1 + b.xp / 100));
+      const c = creature(p); const b = bonuses(); const mult = e.mult || c.mult;
+      out.state = e.state || c.state; out.mult = mult;
+      out.xp = Math.round((8 + c.level + n * 2) * mult * (1 + b.xp / 100));
       out.coins = Math.round((3 + Math.floor(Math.random() * 6) + n * 2) * (1 + b.gold / 100));
       g.xp += out.xp; g.coins += out.coins; g.wins++; g.calmed[p.id] = new Date().toISOString();
       const r = Math.random() / (1 + b.drop / 100); let acc = 0, ti = -1;
@@ -355,6 +357,7 @@ const Game = (() => {
         if (g.bag.length < bagSize()) { g.bag.push(crate); out.crate = crate; } else out.crate = { lost: true, rar: tier };
       }
     }
+    if (!n && g.calmed[p.id] && daysSince(g.calmed[p.id]) < 0.1) out.quiet = true; // just calmed, came back — no nag
     g.pending = out; save();
     return out;
   }
@@ -439,6 +442,7 @@ const Game = (() => {
   // toast after an encounter settles (shown on the next page)
   function toast() {
     const g = load(); const o = g.pending; if (!o) return; g.pending = null; save();
+    if (o.quiet) return;
     const parts = o.n ? [`${o.pool} apaisée${o.mult > 1 ? ' (' + o.state + ' ×' + o.mult + ')' : ''}`, `+${o.xp} XP`, `+${o.coins} pièces`] : [`${o.pool} reste sauvage — rien de saisi`];
     if (o.crate) parts.push(o.crate.lost ? `caisse ${rarName(o.crate.rar).toLowerCase()} perdue (sac plein)` : `caisse ${rarName(o.crate.rar).toLowerCase()} !`);
     const tst = el(`<div class="q-toast ${o.n ? 'win' : ''}"><b>${o.n ? '★' : '…'}</b> ${esc(parts.join(' · '))}</div>`);
