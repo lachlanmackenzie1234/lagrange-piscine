@@ -27,8 +27,9 @@
   // style is Pixel, so the other styles never pay for it.
   function loadGame() {
     if (window.Game || document.getElementById('game-js')) return;
-    const sc = document.createElement('script'); sc.id = 'game-js'; sc.src = 'js/game.js'; sc.onload = () => render();
-    document.head.appendChild(sc);
+    const art = document.createElement('script'); art.id = 'pixelart-js'; art.src = 'js/pixelart.js';
+    art.onload = () => { const sc = document.createElement('script'); sc.id = 'game-js'; sc.src = 'js/game.js'; sc.onload = () => render(); document.head.appendChild(sc); };
+    document.head.appendChild(art);
   }
   // Pixel skin sidecar: photos go through a 48-px canvas and come back up
   // pixelated — the real gate photo as pixel art. Cached per photo; the first
@@ -61,7 +62,7 @@
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.87'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.88'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {
