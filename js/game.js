@@ -22,6 +22,7 @@ const Game = (() => {
     try { G = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (_) { G = null; }
     if (!G) G = { xp: 0, coins: 0, wins: 0, fights: 0, bag: [], bagTier: 0, equip: {}, calmed: {}, avatar: { size: 1, hair: 1, hairColor: '#4a2e1a', skin: '#e8b88a', eyes: '#2f4fdf' }, pending: null, enc: null };
     if (!Array.isArray(G.bag)) G.bag = [];
+    if (!G.res || typeof G.res !== 'object') G.res = {};
     return G;
   }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(load())); } catch (_) {} };
@@ -119,6 +120,8 @@ const Game = (() => {
   const RANGE = { common: [3, 8], uncommon: [5, 12], rare: [8, 18], vrare: [12, 24], epic: [18, 30], legend: [25, 35] };
   const NAFF = { common: 1, uncommon: 1, rare: 2, vrare: 2, epic: 3, legend: 3 };
   const SELL = { common: 2, uncommon: 6, rare: 15, vrare: 50, epic: 200, legend: 1000 };
+  // the workshop: resources of any kind + coins → a piece of the chosen set, slot and rarity
+  const CRAFT = { common: [4, 10], uncommon: [8, 50], rare: [16, 200], vrare: [32, 800], epic: [64, 3000], legend: [128, 10000] };
   function makeItem(res, slot, rar, from) {
     const set = ZSETS[res] || ZSETS.EC; const [base, gender, flavour] = set.base[slot];
     const e = EPI[rar]; const epi = rar === 'legend' ? set.legend : rar === 'epic' ? set.epic : (typeof e === 'string' ? e : e[gender] || e.m);
@@ -179,16 +182,24 @@ const Game = (() => {
     locataire: { n: 'Locataire nocturne', el: 'Feu', pal: ['#ffb3a7', '#d82f2f', '#5a1a1a'], hp: 55, when: (c) => (c.humeur > 4 ? 2 : 0) + (c.s.cl < 0.6 ? 2 : 0), weak: { choc: 1.8, floc: 1.5, phm: 1.2, perche: .9, balai: .9, robot: .8 },
       atk: [['BAIGNADE DE 14 H', 12, 'douze personnes, une bouée licorne, zéro douche'], ['CRÈME SOLAIRE', 6, 'un film gras sur toute la surface']], desc: 'On ne le voit jamais, on ne voit que ses traces : le chlore plonge, l’eau mousse, la bouée reste.' },
   };
-  const SPAWN = { calme: .06, agitée: .22, sauvage: .48, critique: .78 };
+  const SPAWN = { calme: .06, 'traité': .10, sauvage: .48, critique: .78 };
+  // monster tiers: rarer is tougher, hits harder, and drops more
+  const MTIER = [['common', 'commun', .60, 1, 1], ['uncommon', 'peu commun', .25, 1.3, 1.15], ['rare', 'rare', .10, 1.7, 1.3], ['vrare', 'très rare', .04, 2.2, 1.5], ['epic', 'épique', .009, 3, 1.8], ['legend', 'légendaire', .001, 4, 2.2]];
+  const mtierIdx = (t) => Math.max(0, MTIER.findIndex((x) => x[0] === t));
+  // what a beaten monster leaves behind — the raw material of the dépôt's workshop
+  const RES = { algue: 'Algue séchée', feuilles: 'Aiguilles de pin', calcaire: 'Écaille de calcaire', moustique: 'Aile de moustique', sable: 'Sable fin', locataire: 'Tube de crème solaire' };
+  const RESCOL = { algue: '#2aa845', feuilles: '#e39b12', calcaire: '#c9c0a8', moustique: '#7b3fc4', sable: '#c9a55a', locataire: '#d82f2f' };
   function spawn(c) {
     const g = load(); const e = g.enc; if (!e || e.monster !== undefined) return;
     e.monster = null;
     if (Math.random() < SPAWN[c.state]) {
       const w = Object.entries(MON).map(([k, m]) => [k, 0.3 + m.when(c)]); const tot = w.reduce((a, x) => a + x[1], 0);
       let r = Math.random() * tot, id = w[0][0]; for (const [k, v] of w) { r -= v; if (r <= 0) { id = k; break; } }
-      const lvl = Math.max(1, Math.round(c.level * (0.35 + Math.random() * 0.4) * (1 + (c.mult - 1) * 0.25)));
-      const hp = Math.round(MON[id].hp * (1 + lvl / 40));
-      e.monster = { id, lvl, hp, maxHp: hp, pool: c.name };
+      let tr = Math.random(), tier = MTIER[0]; for (const t of MTIER) { if (tr < t[2]) { tier = t; break; } tr -= t[2]; }
+      // level 1–50: the pool's level and how far its Vie has drained
+      const lvl = Math.max(1, Math.min(50, Math.round(c.level * 0.6 + (100 - c.vie) / 5 + (Math.random() * 10 - 5))));
+      const hp = Math.round(MON[id].hp * (1 + lvl / 40) * tier[3]);
+      e.monster = { id, lvl, hp, maxHp: hp, tier: tier[0], tierN: tier[1], dmg: tier[4], pool: c.name };
       g.bestiary = g.bestiary || {}; g.bestiary[id] = g.bestiary[id] || { seen: 0, beaten: 0 }; g.bestiary[id].seen++;
     }
     save();
@@ -226,7 +237,7 @@ const Game = (() => {
     const draw = () => {
       const mo = e.monster || B.lastMo; const hpP = Math.round(mo.hp / mo.maxHp * 100);
       ov.innerHTML = '';
-      const foe = el(`<div class="q-bside foe"><div class="q-bname"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${mo.lvl}</span><span class="q-tag">${esc(m.el)}</span><div class="q-hp ${hpP < 40 ? 'low' : hpP < 75 ? 'mid' : ''}"><i style="width:${hpP}%"></i></div><div class="q-hint">${mo.hp}/${mo.maxHp}</div></div></div>`);
+      const foe = el(`<div class="q-bside foe"><div class="q-bname"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${mo.lvl}</span><span class="q-tag">${esc(m.el)}</span>${mo.tier && mo.tier !== 'common' ? `<span class="q-tag" style="background:${RCOL[mo.tier]};color:#fff">${esc(mo.tierN)}</span>` : ''}<div class="q-hp ${hpP < 40 ? 'low' : hpP < 75 ? 'mid' : ''}"><i style="width:${hpP}%"></i></div><div class="q-hint">${mo.hp}/${mo.maxHp}</div></div></div>`);
       foe.appendChild(monsterSprite(mo.id)); ov.appendChild(foe);
       const me = el(`<div class="q-bside me"><div class="q-bname"><b>${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hp ${B.php < 40 ? 'low' : B.php < 75 ? 'mid' : ''}"><i style="width:${B.php}%"></i></div><div class="q-hint">${B.php}/${B.maxP}</div></div></div>`);
       me.insertBefore(avatar(g.avatar), me.firstChild); ov.appendChild(me);
@@ -247,19 +258,24 @@ const Game = (() => {
       mo.hp = Math.max(0, mo.hp - dmg);
       B.log.push({ k: 'me', t: `${MOVES[k][0].toUpperCase()} · −${dmg}${eff >= 1.8 ? ' — c’est super efficace !' : eff <= .6 ? ' — ça ne lui fait pas grand-chose.' : ''}` });
       if (mo.hp <= 0) { win(); save(); draw(); return; }
-      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 60) * (0.85 + Math.random() * 0.3));
+      const a = m.atk[Math.floor(Math.random() * m.atk.length)]; const ad = Math.round(a[1] * (1 + mo.lvl / 60) * (mo.dmg || 1) * (0.85 + Math.random() * 0.3));
       B.php = Math.max(0, B.php - ad); B.log.push({ k: 'foe', t: `${m.n} utilise ${a[0]} — ${a[2]} · −${ad}` });
       if (B.php <= 0) { B.over = true; B.lost = true; g.coins = Math.max(0, g.coins - 3); B.log.push({ k: 'foe', t: 'Tu es assommé. Il reste là jusqu’au prochain passage. −3 pièces' }); }
       save(); draw();
       const sp = ov.querySelector('.q-sprite.mon'); if (sp) { sp.classList.add('shake'); }
     };
     const win = () => {
-      const mo = e.monster; const b = bonuses(); B.over = true; B.won = true;
-      const xp = Math.round(mo.lvl * 4 * c.mult * (1 + b.xp / 100)), coins = Math.round((2 + Math.floor(Math.random() * 5) + Math.round(mo.lvl / 4)) * (1 + b.gold / 100));
+      const mo = e.monster; const b = bonuses(); const ti0 = mtierIdx(mo.tier); B.over = true; B.won = true;
+      const xp = Math.round(mo.lvl * 4 * (1 + ti0 * 0.5) * c.mult * (1 + b.xp / 100)), coins = Math.round((2 + Math.floor(Math.random() * 5) + Math.round(mo.lvl / 4)) * (1 + ti0 * 0.3) * (1 + b.gold / 100));
       g.xp += xp; g.coins += coins; g.bestiary[mo.id].beaten++;
-      let crateTxt = '';
-      const r = Math.random() / (1 + b.drop / 100) / 0.8; let acc = 0, ti = -1; for (let i = RAR.length - 1; i >= 0; i--) { acc += RAR[i][2]; if (r < acc) { ti = i; break; } }
-      if (ti >= 0) { if (ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++; const crate = { id: 'cr-' + Date.now(), crate: true, rar: RAR[ti][0], res: Store.pool(e.poolId).res, from: m.n, acts: { chem: k2(m, 'choc'), clean: k2(m, 'balai'), filt: k2(m, 'robot'), mes: 0 }, at: new Date().toISOString() }; if (g.bag.length < bagSize()) { g.bag.push(crate); crateTxt = ` · caisse ${rarName(crate.rar).toLowerCase()} !`; } else crateTxt = ' · caisse perdue (sac plein)'; }
+      // resources always; equipment rarely — the dépôt turns the one into the other
+      const qty = 1 + ti0 + Math.floor(mo.lvl / 15); g.res[mo.id] = (g.res[mo.id] || 0) + qty;
+      let crateTxt = ` · ${qty} × ${RES[mo.id]}`;
+      if (Math.random() < 0.12 * (1 + ti0 * 0.6) * (1 + b.drop / 100)) {
+        let ti = ti0; if (ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++;
+        const crate = { id: 'cr-' + Date.now(), crate: true, rar: RAR[ti][0], res: Store.pool(e.poolId).res, from: m.n, acts: { chem: k2(m, 'choc'), clean: k2(m, 'balai'), filt: k2(m, 'robot'), mes: 0 }, at: new Date().toISOString() };
+        if (g.bag.length < bagSize()) { g.bag.push(crate); crateTxt += ` · caisse ${rarName(crate.rar).toLowerCase()} !`; } else crateTxt += ' · caisse perdue (sac plein)';
+      }
       B.log.push({ k: 'win', t: `${m.n} se dissout ! +${xp} XP · +${coins} pièces${crateTxt}` });
       B.lastMo = { ...mo, hp: 0 }; e.monster = null;
     };
@@ -269,7 +285,7 @@ const Game = (() => {
   function monsterBanner(render) {
     const g = load(); const e = g.enc; if (!e || !e.monster) return null;
     const m = MON[e.monster.id];
-    const b = el(`<div class="q-card q-mon"><div class="q-head"><div class="q-grow"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${e.monster.lvl}</span><span class="q-tag">${esc(m.el)}</span><div class="q-hint">rôde dans le bassin — ${esc(m.desc.split('.')[0])}.</div></div></div><button type="button" class="btn q-fight">⚔ Combattre</button></div>`);
+    const b = el(`<div class="q-card q-mon"><div class="q-head"><div class="q-grow"><b>${esc(m.n)}</b> <span class="q-tag">Nv ${e.monster.lvl}</span><span class="q-tag">${esc(m.el)}</span>${e.monster.tier && e.monster.tier !== 'common' ? `<span class="q-tag" style="background:${RCOL[e.monster.tier]};color:#fff">${esc(e.monster.tierN)}</span>` : ''}<div class="q-hint">rôde dans le bassin — ${esc(m.desc.split('.')[0])}.</div></div></div><button type="button" class="btn q-fight">⚔ Combattre</button></div>`);
     b.querySelector('.q-head').appendChild(monsterSprite(e.monster.id));
     b.querySelector('.q-fight').addEventListener('click', () => openBattle(render));
     return b;
@@ -298,10 +314,14 @@ const Game = (() => {
     const lastCl = V.find((v) => v.type === 'treatment' && CL[v.productId]);
     const life = lastCl ? ({ 'hth-stick': 4, 'hth-galet': 3, 'hypomen-pro': 1.5 })[lastCl.productId] : 3;
     const fade = lastCl ? daysSince(lastCl.at) / life : 3;
-    const wild = Math.max(fade, humeur / 4, filtre / Math.max(interval, 1) / 1.5, (100 - H) / 30);
-    const st = wild < 0.8 ? 'calme' : wild < 1.3 ? 'agitée' : wild < 2.2 ? 'sauvage' : 'critique';
-    const mult = { calme: 1, agitée: 1.3, sauvage: 2, critique: 3 }[st];
-    return { p, id: p.id, name: `${p.res} ${p.unit}`, line: lineOf(p), level: lvl, vol, last, humeur, faim, filtre, interval, sable, s, hp: H, lastCl, fade, state: st, mult, wild: st === 'sauvage' || st === 'critique' };
+    // Vie: a week without a passage drains it to zero (−100 over 7 days:
+    // 4/7 → 43 %, 5/7 → 29 %, 7/7 → sombrée). Calme and traité are the
+    // recovering states, sauvage and critique the draining ones.
+    const vie = Math.max(0, Math.min(100, Math.round(100 - 100 * humeur / 7)));
+    const sunk = vie === 0;
+    const st = sunk || vie <= 30 || fade > 2 ? 'critique' : vie <= 57 || fade > 1.2 ? 'sauvage' : (lastCl && fade < 1) ? 'traité' : 'calme';
+    const mult = sunk ? 4 : { calme: 1, traité: 1.2, sauvage: 2, critique: 3 }[st];
+    return { p, id: p.id, name: `${p.res} ${p.unit}`, line: lineOf(p), level: lvl, vol, last, humeur, faim, filtre, interval, sable, s, hp: H, lastCl, fade, vie, sunk, state: st, mult, wild: st === 'sauvage' || st === 'critique' };
   }
   function state(last, humeur, V, vol) {
     const d = Math.min(14, last ? daysSince(last.at) : 7);
@@ -331,7 +351,7 @@ const Game = (() => {
   function enter(poolId) {
     const g = load();
     if (g.enc && g.enc.poolId !== poolId) settle();
-    if (!g.enc) { const c0 = creature(Store.pool(poolId)); g.enc = { poolId, since: new Date().toISOString(), state: c0 ? c0.state : 'calme', mult: c0 ? c0.mult : 1 }; if (g.lurk && g.lurk[poolId]) { g.enc.monster = g.lurk[poolId]; delete g.lurk[poolId]; } save(); }
+    if (!g.enc) { const c0 = creature(Store.pool(poolId)); g.enc = { poolId, since: new Date().toISOString(), state: c0 ? c0.state : 'calme', mult: c0 ? c0.mult : 1, vie: c0 ? c0.vie : 100 }; if (g.lurk && g.lurk[poolId]) { g.enc.monster = g.lurk[poolId]; delete g.lurk[poolId]; } save(); }
   }
   // Settle the open encounter: real actions → XP, coins, maybe a crate. Nothing done → the creature stays wild, no loot.
   function settle() {
@@ -342,13 +362,16 @@ const Game = (() => {
     const acts = kindsFor(e.poolId, e.since); const n = acts.chem + acts.clean + acts.filt + acts.mes;
     g.fights++;
     let out = { pool: `${p.res} ${p.unit}`, n, xp: 0, coins: 0, crate: null };
-    if (n) {
+    const vie0 = e.vie != null ? e.vie : 100;
+    if (n && vie0 === 0 && n < 2) { out.n = 0; out.sunk = true; }     // one gesture doesn't raise the dead
+    if (out.n) {
       const c = creature(p); const b = bonuses(); const mult = e.mult || c.mult;
-      out.state = e.state || c.state; out.mult = mult;
+      out.state = e.state || c.state; out.mult = mult; out.resurrected = vie0 === 0;
       out.xp = Math.round((8 + c.level + n * 2) * mult * (1 + b.xp / 100));
       out.coins = Math.round((3 + Math.floor(Math.random() * 6) + n * 2) * (1 + b.gold / 100));
       g.xp += out.xp; g.coins += out.coins; g.wins++; g.calmed[p.id] = new Date().toISOString();
-      const r = Math.random() / (1 + b.drop / 100); let acc = 0, ti = -1;
+      // a pool kept full drops better crates (×1.3 at 100 % Vie, ×0.7 when found empty)
+      const r = Math.random() / (1 + b.drop / 100) / (0.7 + 0.6 * vie0 / 100); let acc = 0, ti = -1;
       for (let i = RAR.length - 1; i >= 0; i--) { acc += RAR[i][2]; if (r < acc) { ti = i; break; } }
       if (ti >= 0 && ti < RAR.length - 1 && Math.random() < b.luck / 100) ti++;
       const tier = ti >= 0 ? RAR[ti][0] : null;
@@ -421,11 +444,16 @@ const Game = (() => {
     enter(p.id);
     const c = creature(p);
     spawn(c); const g = load(); const acts = kindsFor(p.id, g.enc ? g.enc.since : new Date().toISOString()); const n = acts.chem + acts.clean + acts.filt + acts.mes;
-    const box = el(`<div class="q-card">
-      <div class="q-head"><div class="q-grow"><b>${esc(c.name)}</b> <span class="q-tag">${esc(c.line.n)}</span><span class="q-tag">Nv ${c.level}</span><span class="q-tag st-${c.state}">${c.state}${c.mult > 1 ? ' · XP ×' + c.mult : ''}</span>
-        <div class="q-hp ${c.hp < 40 ? 'low' : c.hp < 75 ? 'mid' : ''}"><i style="width:${c.hp}%"></i></div>
-        <div class="q-hint">PV ${c.hp}/100 · ${c.lastCl ? 'dernier chlore il y a ' + daysSince(c.lastCl.at).toFixed(0) + ' j (' + (c.fade > 1 ? 'épuisé' : 'encore actif') + ')' : 'jamais dosé'} · ${n ? n + ' geste' + (n > 1 ? 's' : '') + ' ce passage' : 'aucun geste — chaque saisie compte'}</div></div>
+    const STATES = ['calme', 'traité', 'sauvage', 'critique'];
+    const box = el(`<div class="q-card${c.sunk ? ' sunk' : ''}">
+      <div class="q-head"><div class="q-grow"><b>${esc(c.name)}</b> <span class="q-tag">${esc(c.line.n)}</span><span class="q-tag">Nv ${c.level}</span>
+        <div class="q-lbl">Vie <span>${c.vie} %</span></div>
+        <div class="q-hp ${c.vie < 30 ? 'low' : c.vie < 58 ? 'mid' : ''}"><i style="width:${c.vie}%"></i></div>
+        <div class="q-lbl">État <span>XP ×${c.mult}</span></div>
+        <div class="q-state">${STATES.map((k) => `<span class="st-${k}${k === c.state ? ' on' : ''}">${k}</span>`).join('')}</div>
+        <div class="q-hint">${c.humeur < 900 ? c.humeur.toFixed(1) + ' j sans passage · −14 %/j' : 'jamais vue'} · ${c.lastCl ? 'chlore il y a ' + daysSince(c.lastCl.at).toFixed(0) + ' j (' + (c.fade > 1 ? 'épuisé' : 'actif') + ')' : 'jamais dosée'} · ${n ? n + ' geste' + (n > 1 ? 's' : '') + ' ce passage' : 'aucun geste'}</div></div>
       </div>
+      ${c.sunk ? `<div class="q-sunk">Tu as laissé ${esc(c.name)} sombrer dans les ténèbres. Ressusciter ? — deux gestes réels, XP ×4.</div>` : ''}
       <div class="q-stats">
         ${bar('Faim', c.faim, 40, c.faim.toFixed(0) + ' g/m³/sem')}
         ${bar('Chlore', c.s.cl, 4, c.s.cl.toFixed(1) + ' ppm')}
@@ -443,7 +471,7 @@ const Game = (() => {
   function toast() {
     const g = load(); const o = g.pending; if (!o) return; g.pending = null; save();
     if (o.quiet) return;
-    const parts = o.n ? [`${o.pool} apaisée${o.mult > 1 ? ' (' + o.state + ' ×' + o.mult + ')' : ''}`, `+${o.xp} XP`, `+${o.coins} pièces`] : [`${o.pool} reste sauvage — rien de saisi`];
+    const parts = o.n ? [`${o.pool} ${o.resurrected ? 'ressuscitée ! (×4)' : 'apaisée' + (o.mult > 1 ? ' (' + o.state + ' ×' + o.mult + ')' : '')}`, `+${o.xp} XP`, `+${o.coins} pièces`] : [o.sunk ? `${o.pool} reste dans les ténèbres — il faut au moins deux gestes` : `${o.pool} reste sauvage — rien de saisi`];
     if (o.crate) parts.push(o.crate.lost ? `caisse ${rarName(o.crate.rar).toLowerCase()} perdue (sac plein)` : `caisse ${rarName(o.crate.rar).toLowerCase()} !`);
     const tst = el(`<div class="q-toast ${o.n ? 'win' : ''}"><b>${o.n ? '★' : '…'}</b> ${esc(parts.join(' · '))}</div>`);
     document.body.appendChild(tst);
@@ -466,7 +494,7 @@ const Game = (() => {
     const g = load(); const bs = g.bestiary || {};
     wrap.appendChild(el('<p class="q-hint">Ce qui hante une piscine négligée. Chacun naît d’un vrai problème et craint le vrai remède.</p>'));
     Object.entries(MON).forEach(([id, m]) => {
-      const seen = bs[id] && bs[id].seen; const card = el(`<div class="q-card q-monrow${seen ? '' : ' unseen'}"><div class="q-head"><div class="q-grow"><b>${seen ? esc(m.n) : '???'}</b> <span class="q-tag">${esc(m.el)}</span><div class="q-hint">${seen ? esc(m.desc) : 'Pas encore rencontré.'}</div>${seen ? `<div class="q-hint">faible contre ${Object.entries(m.weak).filter(([, v]) => v >= 1.5).map(([k]) => MOVES[k][0]).join(', ')} · vu ${bs[id].seen}× · vaincu ${bs[id].beaten}×</div>` : ''}</div></div></div>`);
+      const seen = bs[id] && bs[id].seen; const card = el(`<div class="q-card q-monrow${seen ? '' : ' unseen'}"><div class="q-head"><div class="q-grow"><b>${seen ? esc(m.n) : '???'}</b> <span class="q-tag">${esc(m.el)}</span><div class="q-hint">${seen ? esc(m.desc) : 'Pas encore rencontré.'}</div>${seen ? `<div class="q-hint">faible contre ${Object.entries(m.weak).filter(([, v]) => v >= 1.5).map(([k]) => MOVES[k][0]).join(', ')} · laisse ${esc(RES[id])} · vu ${bs[id].seen}× · vaincu ${bs[id].beaten}×</div>` : ''}</div></div></div>`);
       card.querySelector('.q-head').appendChild(monsterSprite(id));
       wrap.appendChild(card);
     });
@@ -498,9 +526,26 @@ const Game = (() => {
     const sets = el('<div class="q-card"><b>Panoplies</b><div class="q-hint">2 pièces : +5 % XP · 4 : +10 % pièces · 6 : +10 % caisses · 8 : aura, +25 % à tout</div><div class="q-sets"></div></div>');
     Object.entries(ZSETS).forEach(([res, z]) => sets.querySelector('.q-sets').appendChild(el(`<div><span style="color:${z.aura}">${esc(z.n)}</span> <small class="q-hint">${res}</small><br>${b.sets[res] || 0} / 8 portées</div>`)));
     wrap.appendChild(sets);
-    // the dépôt buys — only when you're there
+    // resources: what monsters leave, what the dépôt's workshop takes
+    const resEntries = Object.entries(g.res || {}).filter(([, n]) => n > 0);
+    const rc = el(`<div class="q-card"><b>Ressources</b> <span class="q-hint">${resEntries.reduce((a, [, n]) => a + n, 0)} au total</span><div class="q-res">${resEntries.length ? resEntries.map(([k, n]) => `<span><i style="background:${RESCOL[k]}"></i>${n} × ${esc(RES[k])}</span>`).join('') : '<span class="q-hint">Vaincs un monstre : il laisse toujours quelque chose.</span>'}</div></div>`);
+    wrap.appendChild(rc);
+    // the dépôt buys and crafts — only when you're there
     const dp = el(`<div class="q-card q-depot"><div class="q-head"><div class="q-grow"><b>Dépôt</b><div class="q-hint" id="q-dep-txt">${depotState.checked ? (depotState.at ? 'Tu es au dépôt — vente ouverte' : depotState.err === 'denied' ? 'Position refusée — la vente attend au dépôt' : depotState.err ? 'Pas de GPS ici' : 'À ' + (depotState.dist >= 1000 ? (depotState.dist / 1000).toFixed(1) + ' km' : Math.round(depotState.dist) + ' m') + ' du dépôt — reviens pour vendre') : 'La vente n’est possible qu’au dépôt produits'}</div></div><button type="button" class="btn q-up">Je suis là ?</button></div></div>`);
     dp.querySelector('button').addEventListener('click', () => { dp.querySelector('#q-dep-txt').textContent = 'Position…'; checkDepot(render); });
+    if (depotState.at) {
+      const totalRes = resEntries.reduce((a, [, n]) => a + n, 0);
+      const cf = el(`<div class="q-craft"><b>Atelier</b><div class="q-craftrow"><select id="q-cz">${Object.entries(ZSETS).map(([k, z]) => `<option value="${k}">${esc(z.n)}</option>`).join('')}</select><select id="q-cs">${SLOTS.map((sl) => `<option value="${sl}">${sl}</option>`).join('')}</select><select id="q-cr">${RAR.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></div><div class="q-hint" id="q-ccost"></div><button type="button" class="btn q-up" id="q-cbtn">Fabriquer</button></div>`);
+      const cost = () => { const r = cf.querySelector('#q-cr').value; const [nres, coins] = CRAFT[r]; cf.querySelector('#q-ccost').textContent = `${nres} ressources (tu en as ${totalRes}) + ${coins} pièces (tu en as ${g.coins})`; cf.querySelector('#q-cbtn').classList.toggle('dis', totalRes < nres || g.coins < coins); };
+      cf.querySelectorAll('select').forEach((x) => x.addEventListener('change', cost)); cost();
+      cf.querySelector('#q-cbtn').addEventListener('click', () => {
+        const r = cf.querySelector('#q-cr').value; const [nres, coins] = CRAFT[r]; if (totalRes < nres || g.coins < coins || g.bag.length >= bagSize()) return;
+        let need = nres; Object.entries(g.res).sort((a, b) => b[1] - a[1]).forEach(([k, n]) => { const take = Math.min(n, need); g.res[k] -= take; need -= take; });
+        g.coins -= coins; const it = makeItem(cf.querySelector('#q-cz').value, cf.querySelector('#q-cs').value, r, 'atelier du dépôt'); g.bag.push(it); save(); render();
+        const tst = el(`<div class="q-toast win show"><b>🔨</b> ${esc(it.name)} · ${esc(rarName(it.rar))}</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500);
+      });
+      dp.appendChild(cf);
+    }
     wrap.appendChild(dp);
     const size = bagSize(); const cost = upgradeCost();
     const bag = el(`<div class="q-card"><div class="q-head"><b>Sac</b> <span class="q-hint">${g.bag.length} / ${size}</span><span class="q-grow"></span>${g.bagTier < BAG_SIZES.length - 1 ? `<button type="button" class="btn q-up${g.coins >= cost ? '' : ' dis'}">+${BAG_SIZES[g.bagTier + 1] - size} places · ${cost} pièces</button>` : ''}</div><div class="q-slots"></div></div>`);
@@ -554,6 +599,6 @@ const Game = (() => {
   }
   window.addEventListener('pagehide', () => { if (load().enc) settle(); });
 
-  return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, MON, openBattle, get state() { return load(); } };
+  return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, MON, MTIER, RES, openBattle, get state() { return load(); } };
 })();
 window.Game = Game;

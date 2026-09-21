@@ -784,8 +784,8 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-up { font-size: .78rem !important; padding: 5px 8px !important; margin: 0 !important; width: auto !important; } .q-up.dis { opacity: .45; pointer-events: none; }
 .q-toast { position: fixed; left: 16px; right: 16px; top: calc(env(safe-area-inset-top, 0px) + 12px); z-index: 60; background: var(--card); color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--px-shadow, var(--ink)); padding: 10px 12px; font-size: .9rem; transform: translateY(-140%); transition: transform .3s; }
 .q-toast.show { transform: none; } .q-toast.win b { color: var(--ok); }
-.q-tag.st-calme { background: var(--ok-bg); } .q-tag.st-agitée { background: var(--low-bg); } .q-tag.st-sauvage { background: var(--high); color: #fff; } .q-tag.st-critique { background: var(--ink); color: var(--card); }
-.q-st.st-agitée { color: var(--low); } .q-st.st-sauvage { color: var(--high); } .q-st.st-critique { color: var(--ink); font-weight: 700; } .q-st.st-calme { color: var(--ok); }
+.q-tag.st-calme { background: var(--ok-bg); } .q-tag.st-traité { background: var(--wx-bg); } .q-tag.st-sauvage { background: var(--high); color: #fff; } .q-tag.st-critique { background: var(--ink); color: var(--card); }
+.q-st.st-traité { color: var(--brand); } .q-st.st-sauvage { color: var(--high); } .q-st.st-critique { color: var(--ink); font-weight: 700; } .q-st.st-calme { color: var(--ok); }
 .q-bon { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; font-size: .8rem; color: var(--muted); } .q-bon .pos { color: var(--ok); } .q-bon .neg { color: var(--high); }
 .q-card.aura { box-shadow: 4px 4px 0 var(--aura), 0 0 0 3px var(--aura); }
 .q-avatar.aura { filter: drop-shadow(0 0 6px var(--aura)); }
@@ -808,3 +808,14 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-bbtn.p { background: var(--brand-dark); color: #fff; } .q-bbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--px-shadow, var(--ink)); }
 .shake { animation: q-shake .35s; } @keyframes q-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+/* Vie + État bars, the sunk pool, resources, the workshop */
+.q-lbl { display: flex; justify-content: space-between; font-size: .74rem; color: var(--muted); margin-top: 6px; } .q-lbl span { color: var(--ink); font-weight: 700; }
+.q-state { display: flex; gap: 3px; margin-top: 3px; }
+.q-state span { flex: 1; text-align: center; font-size: .68rem; padding: 3px 0; border: 2px solid var(--ink); color: var(--muted); background: var(--na-bg); }
+.q-state span.on { color: #fff; font-weight: 700; } .q-state .st-calme.on { background: var(--ok); } .q-state .st-traité.on { background: var(--brand-dark); } .q-state .st-sauvage.on { background: var(--low); } .q-state .st-critique.on { background: var(--high); }
+.q-card.sunk { background: var(--ink); color: var(--card); } .q-card.sunk .q-hint, .q-card.sunk .q-lbl { color: var(--na); } .q-card.sunk .q-lbl span, .q-card.sunk b { color: var(--card); }
+.q-card.sunk .q-tag { background: var(--card); color: var(--ink); } .q-card.sunk .q-stat span:first-child, .q-card.sunk .q-v { color: var(--na); }
+.q-sunk { margin: 10px 0 4px; padding: 8px 10px; border: 2px dashed var(--high); color: var(--high); font-weight: 700; font-size: .9rem; }
+.q-res { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; font-size: .84rem; } .q-res i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border: 2px solid var(--ink); vertical-align: -1px; }
+.q-craft { margin-top: 10px; border-top: 2px dotted var(--na-bg); padding-top: 8px; }
+.q-craftrow { display: flex; gap: 6px; margin: 6px 0; } .q-craftrow select { flex: 1; min-width: 0; font: inherit; font-size: .8rem; border: 2px solid var(--ink); background: var(--input-bg); color: var(--ink); padding: 4px; }
