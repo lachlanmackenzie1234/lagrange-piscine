@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v0.96';
+const VERSION = 'lp-v0.97';
 const ASSETS = [
   './',
   './index.html',
@@ -21,13 +21,15 @@ const ASSETS = [
   './assets/quest-motion/effects.png',
   './assets/quest-motion/water.png',
   './assets/quest-motion/loot.png',
+  './assets/quest-motion/creatures.png',
+  './assets/quest-motion/depot.png',
   './manifest.webmanifest',
   './fonts/PixelifySans-Regular.ttf',
   './icons/icon.svg',
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(ASSETS.map(asset => new Request(asset, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {

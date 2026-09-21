@@ -2,7 +2,7 @@
  * Pocket Coast — the Quest's pixel art, hand-drawn and data-free.
  * Chunky square pixels, a 1-px ink outline on everything alive, flat fills
  * with one shade step, light from the top-left. Sizes are the game's pixel
- * budget: trainer 16×24, creatures 24×24, monsters 28×24, items 16×16,
+ * budget: keeper 24×32 (legacy trainer 16×24), creatures 24×24, monsters 28×24, items 16×16,
  * tiles 16×16, stage 256×192. Sprites are row strings (one letter per pixel,
  * see C for the letters); symmetric ones give the left half only.
  */
@@ -90,6 +90,84 @@ const PixelArt = (() => {
       if (tz === 'EPP') { px(g, I, x + 12, top - 2, 4, 4); px(g, C.v, x + 13, top - 1, 2, 2); }                                    // shrimp net
       if (tz === 'GP') { px(g, I, x + 12, top - 1, 4, 2); px(g, C.t, x + 13, top - 1, 2, 1); }                                     // hook
     }
+  }
+
+  // Composable Pocket Coast keeper. Each worn slot paints its own layer over
+  // the basic tee/shorts; no outfit is inferred from a single collected item.
+  // The neutral frame is 24×32, feet at [12,31], with room for one-pixel poses.
+  function keeper(g, ox, oy, equip = {}, avatar = {}, direction = 'south') {
+    g.save(); g.translate(ox, oy);
+    if (direction === 'west') { g.translate(24, 0); g.scale(-1, 1); direction = 'east'; }
+    const side = direction === 'east', back = direction === 'north';
+    const ink = '#202a40', skin = avatar.skin || '#e8b88a', skinD = shade(skin, .73), hair = avatar.hairColor || '#4a2e1a';
+    const f = (c, x, y, w = 1, h = 1) => px(g, c, x, y, w, h);
+    const box = (c, x, y, w, h) => {
+      if (w >= 7 && h >= 5) { f(ink, x + 1, y, w - 2, h); f(ink, x, y + 1, w, h - 2); }
+      else f(ink, x, y, w, h);
+      if (w > 2 && h > 2) f(c, x + 1, y + 1, w - 2, h - 2);
+    };
+    const zone = slot => palette[equip[slot]?.res] ? equip[slot].res : null;
+    const palette = { EC: ['#eee6ca', '#3061a1', '#729fcc'], AG: ['#287755', '#204937', '#9ebb61'], EP: ['#b58a46', '#766443', '#e4bd72'], EPP: ['#a779b0', '#674d83', '#e4b1dc'], GP: ['#308a87', '#284f5c', '#9bd7c1'] };
+    const pal = slot => palette[zone(slot)] || ['#efe8cb', '#695641', '#c5b895'];
+    const trim = slot => equip[slot]?.rar !== 'common' && RCOL[equip[slot]?.rar] || pal(slot)[2];
+    const curse = (slot, x, y) => { if (equip[slot]?.cursed) { f('#bb5dde', x, y, 2); f('#f1b3ff', x + 1, y - 1); } };
+    const long = avatar.hair === 3;
+    if (long) { box(hair, side ? 6 : 5, 8, side ? 7 : 14, 13); f(shade(hair, 1.3), side ? 7 : 6, 10, 1, 8); }
+    // Legs and shoes remain independent, including bare calves in basic wear.
+    const pants = zone('jambes') ? { EC: '#32618b', AG: '#245743', EP: '#7a714d', EPP: '#dea951', GP: '#315763' }[zone('jambes')] : '#967a52';
+    box(pants, side ? 9 : 7, 23, side ? 7 : 11, 5);
+    f(shade(pants, .73), side ? 13 : 15, 24, 2, 3); f(ink, side ? 12 : 12, 26, 1, 2);
+    const calves = ['AG', 'EP', 'GP'].includes(zone('jambes')) ? pants : skinD;
+    f(calves, side ? 10 : 8, 26, 3, 3); f(calves, side ? 13 : 14, 26, 3, 3);
+    const shoes = zone('pieds') ? { EC: '#3672b0', AG: '#204b40', EP: '#615b45', EPP: '#be8552', GP: '#78bbaa' }[zone('pieds')] : '#594b40';
+    box(shoes, side ? 8 : 7, 28, 5, 3); box(shoes, 13, 28, 5, 3);
+    f(zone('pieds') ? trim('pieds') : '#b29d79', side ? 10 : 8, 29, 2); f(zone('pieds') ? trim('pieds') : '#b29d79', 14, 29, 2);
+    if (zone('jambes')) { f(trim('jambes'), 10, 24, 2); curse('jambes', 14, 25); }
+    if (zone('pieds')) curse('pieds', 15, 29);
+    // Tee, jacket and arms; the torso does not choose the rest of the outfit.
+    const shirt = pal('torse')[0], shirtD = shade(shirt, .73), tx = side ? 9 : 7, tw = side ? 7 : 11;
+    box(shirt, tx, 16, tw, 9); f(shirtD, tx + tw - 3, 17, 2, 6);
+    if (!back) { f('#fcf1d7', tx + 2, 17, 3); f(ink, tx + 3, 18, 1, 2); }
+    if (zone('torse') === 'AG') { f('#9ebb61', tx + 1, 19, tw - 3); f('#1e4d3b', tx + 1, 22, tw - 3); }
+    if (zone('torse') === 'EP') { f('#f5e7bd', tx + 3, 17, 2, 6); f('#6c522f', tx + 1, 21, 2, 2); f('#6c522f', tx + tw - 3, 21, 2, 2); }
+    if (zone('torse') === 'EPP') for (const [x, y] of [[9, 18], [13, 19], [10, 22], [15, 21]]) f('#ecc599', x, y);
+    if (zone('torse') === 'GP') { f('#a6ddca', tx + 1, 19, tw - 3); f('#25546b', tx + 1, 21, tw - 3); }
+    f(ink, tx, 24, tw); f(zone('torse') ? trim('torse') : '#b7a77e', tx + 3, 24, 2); curse('torse', tx + tw - 3, 22);
+    if (!side) { box(shirt, 4, 17, 4, 6); f(skin, 5, 21, 2, 3); f(ink, 5, 24, 2); }
+    box(shirt, side ? 14 : 17, 17, 4, 6); f(skin, side ? 15 : 18, 21, 2, 3); f(skinD, side ? 16 : 19, 22, 1, 2); f(ink, side ? 15 : 18, 24, 2);
+    // Face and hair. North views show the back of the head, east a single eye.
+    box(back ? hair : skin, side ? 7 : 6, 6, side ? 11 : 12, 11);
+    if (back) { f(shade(hair, .73), 7, 12, 10, 4); f(shade(hair, 1.25), 8, 7, 7, 2); f(skinD, 10, 16, 4); }
+    else {
+      f(skinD, side ? 8 : 15, 9, 2, 7); f(skin, side ? 18 : 5, 11, 1, 3);
+      if (side) { f(ink, 15, 11, 1, 2); f(skin, 18, 12); f(skinD, 15, 15, 2); }
+      else { f(ink, 9, 11, 1, 2); f(ink, 14, 11, 1, 2); f('#fbe6b9', 11, 12, 2); f(skinD, 11, 15, 2); }
+      f(hair, 8, 5, side ? 6 : 8, 2); f(hair, 7, 7, side ? 7 : 10, 2); f(hair, side ? 7 : 6, 9, 2, side ? 6 : 3); if (!side) f(hair, 16, 9, 2, 3);
+      f(shade(hair, 1.3), 8, 6, 5); if (avatar.hair === 2) { f(ink, 8, 3, 2, 3); f(hair, 9, 4); f(ink, 12, 4, 3, 2); }
+      if (long) { f(hair, 6, 12, 2, 6); if (!side) f(hair, 16, 12, 2, 6); }
+    }
+    if (back && avatar.hair === 2) { f(ink, 8, 3, 2, 3); f(hair, 9, 4); f(ink, 12, 4, 3, 2); }
+    // Headwear overlays the chosen hair and skin.
+    const hat = zone('tête');
+    if (hat === 'EC') { box('#315faa', 6, 3, 12, 6); f('#78a0d6', 8, 4, 6); box('#315faa', side ? 13 : 3, 7, side ? 8 : 10, 3); f(trim('tête'), 10, 5, 3); }
+    if (hat === 'AG') { box('#397552', 7, 2, 10, 7); box('#397552', 3, 7, 18, 3); f(trim('tête'), 8, 6, 8); }
+    if (hat === 'EP') { box('#d0a763', 8, 3, 8, 5); box('#d0a763', 3, 7, 18, 3); f('#f5d497', 4, 8, 15); f(trim('tête'), 9, 6, 6); }
+    if (hat === 'EPP' && !back) { f(ink, side ? 13 : 6, 10, side ? 6 : 12, 3); f(trim('tête'), side ? 14 : 7, 11, 3); if (!side) f(trim('tête'), 13, 11, 3); f('#f4e6cb', side ? 15 : 8, 11); }
+    if (hat === 'GP') { f(ink, 6, 6, 12, 3); f('#2b807c', 7, 7, 10); f(ink, side ? 12 : 4, 9, side ? 9 : 14); f(trim('tête'), side ? 13 : 5, 8, side ? 7 : 12); }
+    if (hat) curse('tête', 14, hat === 'EPP' ? 11 : 5);
+    if (equip.amulette) { f(trim('amulette'), side ? 16 : 9, 17, back ? 6 : 1, back ? 1 : 3); if (!back) { f(trim('amulette'), side ? 16 : 14, 17, 1, 3); box(pal('amulette')[1], side ? 15 : 10, 19, 4, 4); f(trim('amulette'), side ? 16 : 11, 20, 2); } curse('amulette', side ? 16 : 11, back ? 17 : 21); }
+    if (equip.robot) { const rx = back ? 9 : side ? 6 : 3; box(pal('robot')[1], rx, back ? 19 : 21, back ? 7 : 5, 5); f(trim('robot'), rx + 1, back ? 20 : 22, back ? 4 : 2); f('#e3f2ec', rx + 2, back ? 21 : 23); curse('robot', rx + 1, back ? 22 : 23); }
+    if (equip.perche) {
+      f(ink, 21, 3, 2, 25); f(zone('perche') === 'AG' ? '#72824b' : '#ad9067', 21, 5, 1, 22);
+      const pole = zone('perche');
+      if (pole === 'EC' || pole === 'EPP') { box(pole === 'EC' ? '#6a9fce' : '#c79cce', 17, 1, 6, 7); f('#dae9e2', 18, 3, 3); f(trim('perche'), 20, 4, 1, 3); }
+      if (pole === 'AG') { f('#a8b468', 21, 2, 1, 25); for (const y of [5, 12, 19]) f(trim('perche'), 21, y); }
+      if (pole === 'EP') { f(ink, 17, 3, 6, 3); for (const x of [17, 19, 21]) f(trim('perche'), x, 1, 1, 3); }
+      if (pole === 'GP') { f(ink, 18, 1, 5, 4); f(trim('perche'), 19, 2, 3); f('#f1e8c7', 19, 3); }
+      f(skin, 20, 20, 2, 2); curse('perche', 21, 13);
+    }
+    if (equip.balai) { f(ink, 2, 13, 2, 15); f('#ae8656', 3, 14, 1, 13); box(pal('balai')[1], 1, 26, 7, 3); for (const x of [1, 3, 5, 7]) f(trim('balai'), x, 29); f(skin, 3, 21, 2, 2); curse('balai', 4, 27); }
+    g.restore();
   }
 
   // ------------------------------------------------------------ the five species (24×24), one per zone
@@ -312,6 +390,6 @@ const PixelArt = (() => {
   const heroSets = (equip) => ({ head: equip['tête'] ? equip['tête'].res : null, body: equip.torse ? equip.torse.res : null, legs: equip.jambes ? equip.jambes.res : null, feet: equip.pieds ? equip.pieds.res : null, tool: equip.perche ? equip.perche.res : (equip.balai ? equip.balai.res : null), toolKind: equip.perche ? 'perche' : (equip.balai ? 'balai' : null) });
   const heroTrim = (equip) => { const t = {}; [['tête', 'head'], ['torse', 'body'], ['jambes', 'legs'], ['pieds', 'feet']].forEach(([sl, k]) => { if (equip[sl] && equip[sl].rar !== 'common') t[k] = RCOL[equip[sl].rar]; }); return t; };
 
-  return { C, ZONE, RCOL, ROOF, WATER, px, rows, mir, trainer, creature, monster, MON, SPECIES, item, ITEM, crate, tile, lay, TILE, shed, storage, villa, pine, roundTree, courtyard, map, heroSets, heroTrim, TREE, PINE, ROUND, LOUNGER, cached };
+  return { C, ZONE, RCOL, ROOF, WATER, px, rows, mir, trainer, keeper, creature, monster, MON, SPECIES, item, ITEM, crate, tile, lay, TILE, shed, storage, villa, pine, roundTree, courtyard, map, heroSets, heroTrim, TREE, PINE, ROUND, LOUNGER, cached };
 })();
 window.PixelArt = PixelArt;

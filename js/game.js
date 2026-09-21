@@ -49,17 +49,16 @@ const Game = (() => {
   const PA = window.PixelArt;
   const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); const c = (v) => Math.min(255, Math.max(0, Math.round(v * f))); return '#' + ((c((n >> 16) & 255) << 16) | (c((n >> 8) & 255) << 8) | c(n & 255)).toString(16).padStart(6, '0'); };
   // a pool's creature: its zone's species (Écume, Oyatin, Pignotte, Gouémitte, Glapot), tinted and marked by its own id
-  const spriteCanvas = (p) => PA.creature(PA.ZONE[p.res] ? p.res : 'EC', p.id);
-  function sprite(p) { const img = document.createElement('img'); img.src = spriteCanvas(p).toDataURL(); img.className = 'q-sprite'; img.alt = ''; return img; }
-  // the keeper, wearing what's equipped: each piece brings its own set's shape (hat, top, shorts, shoes, tool); rarity shows in the trim
-  function drawAvatar(g, ox, oy, a, equip, o) {
-    o = o || {}; equip = equip || {};
-    PA.trainer(g, ox, oy, PA.heroSets(equip), { walk: o.walk, crouch: o.crouch, back: o.back, skin: a.skin, hair: a.hair === 4 ? 1 : a.hair, hairColor: a.hairColor, trim: PA.heroTrim(equip) });
-  }
+  function sprite(p) { const c = Motion.creaturePortrait(p.id, PA.ZONE[p.res] ? p.res : 'EC'); c.className = 'q-sprite'; return c; }
+  // The keeper wears independently collected items over its basic clothes.
+  let avatarDirection = 'south';
   function avatar(a) {
-    const c = document.createElement('canvas'); c.width = 16; c.height = 24; const g = c.getContext('2d');
-    drawAvatar(g, 0, 0, a, load().equip, {});
-    const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'q-avatar'; img.alt = ''; return img;
+    const c = Motion.portrait(48, 48, (ctx, elapsed) => {
+      const equip = load().equip;
+      Motion.setAura(ctx, equip, 'back', elapsed, 24, 40);
+      Motion.keeper(ctx, 24, 40, a, equip, { direction: avatarDirection, elapsed });
+      Motion.setAura(ctx, equip, 'front', elapsed, 24, 40);
+    }); c.className = 'q-avatar'; return c;
   }
   const SLOTS = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
   // The catalogue. One panoplie per zone (the creature's line decides which
@@ -171,14 +170,14 @@ const Game = (() => {
     }
     save();
   }
-  const monsterCanvas = (id) => PA.monster(id);
-  function monsterSprite(id) { const img = document.createElement('img'); img.src = monsterCanvas(id).toDataURL(); img.className = 'q-sprite mon'; img.alt = ''; return img; }
+  function monsterSprite(id) { const c = Motion.monsterPortrait(id); c.className = 'q-sprite mon'; return c; }
   // moves: your tools (a worn piece of the tool makes it hit harder) and the chemistry you'd actually reach for
   const MOVES = { perche: ['Perche', 14], balai: ['Balai', 13], robot: ['Robot', 12], choc: ['Choc', 16], phm: ['pH−', 12], floc: ['Floc', 11], lavage: ['Lavage', 13] };
   const RTIER = { common: 1, uncommon: 2, rare: 3, vrare: 4, epic: 5, legend: 6 };
   function toolBonus(k) { const it = load().equip[k]; return it ? 1 + RTIER[it.rar] * 0.1 : 1; }
   let B = null;
   let poolStage = null;
+  let depotStage = null;
   const Motion = window.QuestMotion;
   const fleeOdds = (mo) => { const d = mo.lvl - level(); return d < 0 ? 1 : Math.max(.2, 1 / 3 - d / 75); };
   function releaseBattle(battle) {
@@ -330,10 +329,10 @@ const Game = (() => {
     } else { [sc.hx, sc.hy] = cellPx(...sc.hc); sc.moving = false; }
     const motion = options.motion || (sc.moving ? 'walk' : a && ['test', 'wash'].includes(a.k) ? 'crouch' : a && a.k !== 'walk' ? 'cast' : 'idle');
     const elapsed = options.elapsed ?? (motion === 'idle' || motion === 'walk' ? sc.time * 1000 : sc.timeline.elapsed * 1000);
-    const foot = [sc.hx + 8, sc.hy + 23], set = Motion.fullSet(g.equip), active = set && motion === 'idle' && options.alive !== false;
-    if (active) Motion.aura(ctx, 'set-' + set, 'back', sc.time * 1000, ...foot);
+    const foot = [sc.hx + 8, sc.hy + 23], active = motion === 'idle' && options.alive !== false;
+    if (active) Motion.setAura(ctx, g.equip, 'back', sc.time * 1000, ...foot);
     Motion.keeper(ctx, ...foot, g.avatar, g.equip, { motion, direction: options.direction || sc.direction, elapsed, offset: options.offset, applyOffset: !!options.applyOffset });
-    if (active) Motion.aura(ctx, 'set-' + set, 'front', sc.time * 1000, ...foot);
+    if (active) Motion.setAura(ctx, g.equip, 'front', sc.time * 1000, ...foot);
   }
   function drawMonster(ctx, t, sc, e) {
     const mo = e?.monster; if (!mo) { sc.moPos = null; return; }
@@ -492,12 +491,13 @@ const Game = (() => {
     if (L.coll[ty]?.[tx] === 0) queueWalk(sc, [tx, ty]);
   }
   function configurePoolStage(sc) {
-    sc.c.tabIndex = 0; sc.c.setAttribute('aria-label', 'Carte interactive. Touchez le bassin, le filtre ou un monstre. Flèches pour marcher, Entrée pour les actions.');
-    sc.c.addEventListener('click', (event) => tapStage(sc, event));
+    const depot = sc.kind === 'depot';
+    sc.c.tabIndex = 0; sc.c.setAttribute('aria-label', depot ? 'Carte du dépôt. Touchez l’atelier, les caisses ou les casiers. Flèches pour marcher, Entrée pour les actions.' : 'Carte interactive. Touchez le bassin, le filtre ou un monstre. Flèches pour marcher, Entrée pour les actions.');
+    sc.c.addEventListener('click', (event) => depot ? tapDepotStage(sc, event) : tapStage(sc, event));
     sc.c.addEventListener('keydown', (event) => {
       if (B || sc.disposed) return;
       if (event.key === 'Escape') { closeMapMenu(sc); return; }
-      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); mapMenu(sc, 'pool', [sc.hc[0] * T + 8, sc.hc[1] * T]); return; }
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); const point = [sc.hc[0] * T + 8, sc.hc[1] * T]; if (depot) depotMenu(sc, 'root', point); else mapMenu(sc, 'pool', point); return; }
       const d = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[event.key];
       if (d && !B) { event.preventDefault(); const to = [sc.hc[0] + d[0], sc.hc[1] + d[1]]; if (!sc.q.length && sc.lay.coll[to[1]]?.[to[0]] === 0) queueWalk(sc, to); }
     });
@@ -508,9 +508,61 @@ const Game = (() => {
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize); observer?.observe(sc.c);
     sc.cleanup = () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); window.removeEventListener('resize', resize); observer?.disconnect(); };
   }
-  function drawDepot(ctx, t, sc, n, at) {
-    PA.storage(ctx, at, n, t); const g = load(), to = at ? 144 : 8, q = Math.min(1, t / 2.8), hx = Math.round(8 + (to - 8) * q);
-    Motion.keeper(ctx, hx + 8, 141, g.avatar, g.equip, { direction: q < 1 ? 'east' : 'south', motion: q < 1 ? 'walk' : 'idle', elapsed: t * 1000 });
+  function drawDepot(ctx, t, sc, action, progress) {
+    if (!Motion.draw(ctx, 'scene/depot', 0, 0, 0)) {
+      PA.lay(ctx, 'slab', 0, 0, 256, 192);
+      sc.lay.coll.forEach((row, y) => row.forEach((blocked, x) => { if (blocked) { ctx.fillStyle = '#527990'; ctx.fillRect(x * 16, y * 16, 16, 16); } }));
+    }
+    drawHero(ctx, sc, action, progress);
+    if (sc.context.nCr && action?.k !== 'reward') Motion.draw(ctx, 'loot/common/drop', 650, 159, 77, { offset: [0, 0] });
+    if (action?.k === 'reward') Motion.draw(ctx, 'loot/' + (action.rarity || 'common') + '/drop', sc.timeline.elapsed * 1000, sc.hx + 8, sc.hy - 6);
+    if (action?.k === 'craft') Motion.draw(ctx, 'fx/event/critical', sc.timeline.elapsed * 1000, 106, 53);
+    if (action?.k === 'sell') Motion.draw(ctx, 'fx/event/coin', sc.timeline.elapsed * 1000, sc.hx + 8, sc.hy);
+    if (action?.k === 'walk') { const [x, y] = action.to; ctx.strokeStyle = '#fffbe9'; ctx.strokeRect(x * 16 + 3, y * 16 + 3, 10, 10); }
+  }
+
+  function depotCelebrate(kind, rarity) {
+    const sc = depotStage; if (!sc || sc.disposed) return;
+    const a = sc.lay.anchors[kind === 'craft' ? 'bench' : kind === 'sell' ? 'sale' : 'rewards'];
+    queueWalk(sc, [a.x, a.y]); sc.q.push({ k: kind, rarity, dur: .8 });
+  }
+
+  function mapPanel(sc, title, node, back) {
+    const parent = node.parentNode, next = node.nextSibling;
+    showMapMenu(sc, title, [{ node }], null, back);
+    sc.menuRestore = () => { if (parent.isConnected) parent.insertBefore(node, next?.parentNode === parent ? next : null); else node.remove(); };
+    positionMenu(sc);
+  }
+
+  function depotMenu(sc, kind, point) {
+    const root = () => depotMenu(sc, 'root', sc.menuPoint), g = load();
+    const control = selector => { closeMapMenu(sc, false); document.querySelector(selector)?.click(); };
+    if (kind === 'root') {
+      showMapMenu(sc, 'Dépôt', [{ label: 'Atelier', next: true, id: 'depot-craft', run: () => depotMenu(sc, 'craft') }, { label: 'Récompenses', next: true, id: 'depot-rewards', run: () => depotMenu(sc, 'rewards') }, { label: 'Vendre un objet', next: true, id: 'depot-sale', run: () => depotMenu(sc, 'sale') }, { label: 'Mon équipement', next: true, id: 'depot-bag', run: () => depotMenu(sc, 'bag') }], point); return;
+    }
+    if (kind === 'bag') {
+      closeMapMenu(sc); const card = document.querySelector('.q-equip')?.closest('.q-card'); card?.scrollIntoView({ behavior: Motion.reduced() ? 'instant' : 'smooth', block: 'start' }); return;
+    }
+    if (!depotState.at) {
+      showMapMenu(sc, 'Dépôt', [{ node: el('<p class="q-hint q-map-note">Rends-toi au dépôt pour récupérer, fabriquer ou vendre.</p>') }, { label: 'Vérifier ma position', id: 'depot-check', run: () => control('[data-depot-check]') }], point, root); return;
+    }
+    if (kind === 'craft') {
+      const form = document.querySelector('[data-depot-craft]'); if (form) { sc.menuPoint = point || sc.menuPoint; mapPanel(sc, 'Atelier', form, root); } return;
+    }
+    if (kind === 'rewards') {
+      const n = rewardDays().reduce((sum, day) => sum + day.crates, 0), room = bagSize() - g.bag.length;
+      showMapMenu(sc, 'Récompenses', [{ node: el(`<p class="q-hint q-map-note">${n ? n + ' caisse' + (n > 1 ? 's' : '') + ' en attente · ' + room + ' place' + (room > 1 ? 's' : '') + ' libre' + (room > 1 ? 's' : '') : 'Aucune caisse en attente.'}</p>`) }, { label: 'Récupérer', id: 'depot-claim', disabled: !n || room <= 0, run: () => control('[data-depot-claim]') }], point, root); return;
+    }
+    const items = g.bag.filter(it => !it.crate);
+    showMapMenu(sc, 'Revente', items.length ? items.map(it => ({ label: it.name + ' · ' + (SELL[it.rar] || 1) + ' pièces', id: 'sell-' + it.id, run: () => { const index = load().bag.findIndex(item => item.id === it.id); if (index < 0) return; const coins = sell(index); closeMapMenu(sc, false); if (coins) { sc.context.render(); depotCelebrate('sell'); } } })) : [{ node: el('<p class="q-hint q-map-note">Aucun équipement à vendre dans le sac.</p>') }], point, root);
+  }
+
+  function tapDepotStage(sc, event) {
+    if (sc.menu) { closeMapMenu(sc); return; } if (sc.disposed) return;
+    const r = sc.c.getBoundingClientRect(), x = (event.clientX - r.left) / r.width * 256, y = (event.clientY - r.top) / r.height * 192;
+    const spot = sc.lay.hotspots.find(({ rect: [rx, ry, w, h] }) => x >= rx && x < rx + w && y >= ry && y < ry + h);
+    if (spot) { depotMenu(sc, spot.kind, [x, y]); return; }
+    const to = [Math.floor(x / 16), Math.floor(y / 16)]; if (sc.lay.coll[to[1]]?.[to[0]] === 0) queueWalk(sc, to);
   }
 
   function monsterBanner(render) {
@@ -648,20 +700,24 @@ const Game = (() => {
     const add = (r) => { if (r.deleted) return; const d = day(r.at); if (d >= from && d < today) { days[d] = days[d] || new Set(); days[d].add(r.poolId); } };
     D.visits.forEach(add); D.readings.forEach(add);
     // a bigger day leaves a better crate: 8 pools → at least peu commun, 12 → at least rare (and two crates)
-    return Object.entries(days).filter(([, s]) => s.size >= 4).map(([d, s]) => ({ d, n: s.size, crates: s.size >= 12 ? 2 : 1, floor: s.size >= 12 ? 2 : s.size >= 8 ? 1 : 0 })).sort((a, b) => (a.d < b.d ? -1 : 1));
+    return Object.entries(days).filter(([, s]) => s.size >= 4).map(([d, s]) => ({ d, n: s.size, crates: Math.max(0, (s.size >= 12 ? 2 : 1) - (g.rewardClaims?.[d] || 0)), floor: s.size >= 12 ? 2 : s.size >= 8 ? 1 : 0 })).filter(d => d.crates).sort((a, b) => (a.d < b.d ? -1 : 1));
   }
   function claimRewards() {
     const g = load(); if (!depotState.at) return []; const got = []; const b = bonuses();
     const cs = maintained().map(creature); const avg = cs.length ? cs.reduce((a, c) => a + c.vie, 0) / cs.length : 50;
-    rewardDays().forEach((dd) => { for (let i = 0; i < dd.crates; i++) {
-      if (g.bag.length >= bagSize()) return;
+    g.rewardClaims ||= {};
+    days: for (const dd of rewardDays()) { for (let i = 0; i < dd.crates; i++) {
+      if (g.bag.length >= bagSize()) break days;
       const r = Math.random() / (0.7 + 0.6 * avg / 100) / (1 + b.drop / 100); let acc = 0, ti = 0;
       for (let k = RAR.length - 1; k >= 1; k--) { acc += RAR[k][2]; if (r < acc) { ti = k; break; } }
       ti = Math.max(ti, dd.floor || 0);
       const crate = { id: 'cr-' + Date.now() + '-' + Math.floor(Math.random() * 1e6), crate: true, rar: RAR[ti][0], res: Object.keys(ZSETS)[Math.floor(Math.random() * 5)], from: 'dépôt · ' + dd.d, acts: { chem: 1, clean: 1, filt: 1, mes: 1 }, at: new Date().toISOString() };
-      g.bag.push(crate); got.push(crate);
-    } });
-    g.rewardFrom = day(new Date().toISOString()); save(); return got;
+      g.bag.push(crate); got.push(crate); g.rewardClaims[dd.d] = (g.rewardClaims[dd.d] || 0) + 1;
+    } }
+    // Keep unclaimed crates available when only part of the reward fits.
+    const oldest = day(new Date(Date.now() - 7 * 864e5).toISOString());
+    Object.keys(g.rewardClaims).filter(d => d < oldest).forEach(d => delete g.rewardClaims[d]);
+    save(); return got;
   }
   // ---------------------------------------------------------------- the dépôt: the only place that buys
   const depot = () => (Store.residences() || []).find((r) => r.poi && r.lat != null);
@@ -817,22 +873,33 @@ const Game = (() => {
     const rc = el(`<div class="q-card"><b>Ressources</b> <span class="q-hint">${resEntries.reduce((a, [, n]) => a + n, 0)} au total</span><div class="q-res">${resEntries.length ? resEntries.map(([k, n]) => `<span><i style="background:${RESCOL[k]}"></i>${n} × ${esc(RES[k])}</span>`).join('') : '<span class="q-hint">Vaincs un monstre : il laisse toujours quelque chose.</span>'}</div></div>`);
     wrap.appendChild(rc);
     // the dépôt buys and crafts — only when you're there
-    const dp = el(`<div class="q-card q-depot"><div class="q-head"><div class="q-grow"><b>Dépôt</b><div class="q-hint" id="q-dep-txt">${depotState.checked ? (depotState.at ? 'Tu es au dépôt — vente ouverte' : depotState.err === 'denied' ? 'Position refusée — la vente attend au dépôt' : depotState.err ? 'Pas de GPS ici' : 'À ' + (depotState.dist >= 1000 ? (depotState.dist / 1000).toFixed(1) + ' km' : Math.round(depotState.dist) + ' m') + ' du dépôt — reviens pour vendre') : 'La vente n’est possible qu’au dépôt produits'}</div></div><button type="button" class="btn q-up">Je suis là ?</button></div></div>`);
+    const dp = el(`<div class="q-card q-depot"><div class="q-head"><div class="q-grow"><b>Dépôt</b><div class="q-hint" id="q-dep-txt">${depotState.checked ? (depotState.at ? 'Tu es au dépôt — vente ouverte' : depotState.err === 'denied' ? 'Position refusée — la vente attend au dépôt' : depotState.err ? 'Pas de GPS ici' : 'À ' + (depotState.dist >= 1000 ? (depotState.dist / 1000).toFixed(1) + ' km' : Math.round(depotState.dist) + ' m') + ' du dépôt — reviens pour vendre') : 'La vente n’est possible qu’au dépôt produits'}</div></div><button type="button" class="btn q-up" data-depot-check>Je suis là ?</button></div></div>`);
     dp.querySelector('button').addEventListener('click', () => { dp.querySelector('#q-dep-txt').textContent = 'Position…'; checkDepot(render); });
     const rd = rewardDays(); const nCr = rd.reduce((a, d) => a + d.crates, 0);
-    dp.appendChild(stage((ctx, t, sc) => drawDepot(ctx, t, sc, nCr, depotState.at)).c);
+    if (!depotStage || depotStage.disposed) {
+      depotStage = stage(drawDepot); depotStage.kind = 'depot'; depotStage.host.dataset.mapKind = 'depot'; depotStage.lay = PoolMaps.depot();
+      const spawn = depotStage.lay.anchors.sp; depotStage.hc = [spawn.x, spawn.y]; configurePoolStage(depotStage);
+    }
+    const ds = depotStage, revision = JSON.stringify([depotState.at, g.coins, g.res, g.bag.map(it => it.id)]);
+    if (ds.revision !== revision) closeMapMenu(ds, false); ds.revision = revision; ds.context = { render, nCr };
+    dp.appendChild(ds.host);
+    const mapHint = el('<div class="q-hint q-maphint"><span>Touche l’atelier, les caisses ou les casiers. Touche le sol pour marcher.</span><button type="button" class="q-map-shortcut" aria-haspopup="dialog">Actions</button></div>');
+    ds.shortcut = mapHint.querySelector('button'); ds.shortcut.addEventListener('click', () => ds.menu ? closeMapMenu(ds) : depotMenu(ds, 'root', [200, 140])); dp.appendChild(mapHint);
     const rw = el(`<div class="q-craft"><div class="q-head"><div class="q-grow"><b>Récompenses</b><div class="q-hint">${nCr ? nCr + ' caisse' + (nCr > 1 ? 's' : '') + ' — ' + rd.map((d) => d.d.slice(5) + ' : ' + d.n + ' piscines' + (d.floor ? ' (' + rarName(RAR[d.floor][0]).toLowerCase() + ' min.)' : '')).join(' · ') : 'Une journée à 4 piscines ou plus laisse une caisse ici : peu commun dès 8 piscines, rare et deux caisses dès 12. Le dépôt en garde une semaine.'}</div></div>${nCr ? `<button type="button" class="btn q-up${depotState.at ? '' : ' dis'}">Récupérer</button>` : ''}</div></div>`);
-    const rb = rw.querySelector('button'); if (rb && depotState.at) rb.addEventListener('click', () => { const got = claimRewards(); render(); if (got.length) { const tst = el(`<div class="q-toast win show"><b>📦</b> ${got.length} caisse${got.length > 1 ? 's' : ''} : ${esc(got.map((x) => rarName(x.rar).toLowerCase()).join(', '))}</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500); } });
+    const rb = rw.querySelector('button'); if (rb) { rb.dataset.depotClaim = ''; rb.disabled = !depotState.at || g.bag.length >= bagSize(); }
+    if (rb && depotState.at) rb.addEventListener('click', () => { if (!rb.isConnected) return; const got = claimRewards(); render(); if (got.length) { depotCelebrate('reward', got[0].rar); const tst = el(`<div class="q-toast win show"><b>📦</b> ${got.length} caisse${got.length > 1 ? 's' : ''} : ${esc(got.map((x) => rarName(x.rar).toLowerCase()).join(', '))}</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500); } });
     dp.appendChild(rw);
     if (depotState.at) {
       const totalRes = resEntries.reduce((a, [, n]) => a + n, 0);
-      const cf = el(`<div class="q-craft"><b>Atelier</b><div class="q-craftrow"><select id="q-cz">${Object.entries(ZSETS).map(([k, z]) => `<option value="${k}">${esc(z.n)}</option>`).join('')}</select><select id="q-cs">${SLOTS.map((sl) => `<option value="${sl}">${sl}</option>`).join('')}</select><select id="q-cr">${RAR.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></div><div class="q-hint" id="q-ccost"></div><button type="button" class="btn q-up" id="q-cbtn">Fabriquer</button></div>`);
-      const cost = () => { const r = cf.querySelector('#q-cr').value; const [nres, coins] = CRAFT[r]; cf.querySelector('#q-ccost').textContent = `${nres} ressources (tu en as ${totalRes}) + ${coins} pièces (tu en as ${g.coins})`; cf.querySelector('#q-cbtn').classList.toggle('dis', totalRes < nres || g.coins < coins); };
+      const cf = el(`<div class="q-craft"><b>Atelier</b><div class="q-craftrow"><select class="q-cz">${Object.entries(ZSETS).map(([k, z]) => `<option value="${k}">${esc(z.n)}</option>`).join('')}</select><select class="q-cs">${SLOTS.map((sl) => `<option value="${sl}">${sl}</option>`).join('')}</select><select class="q-cr">${RAR.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></div><div class="q-hint q-ccost"></div><button type="button" class="btn q-up q-cbtn">Fabriquer</button></div>`);
+      cf.dataset.depotCraft = ''; [['.q-cz', 'Panoplie'], ['.q-cs', 'Emplacement'], ['.q-cr', 'Rareté']].forEach(([selector, label]) => cf.querySelector(selector).setAttribute('aria-label', label));
+      const cost = () => { const r = cf.querySelector('.q-cr').value; const [nres, coins] = CRAFT[r]; cf.querySelector('.q-ccost').textContent = `${nres} ressources (tu en as ${totalRes}) + ${coins} pièces (tu en as ${g.coins})${g.bag.length >= bagSize() ? ' · sac plein' : ''}`; cf.querySelector('.q-cbtn').disabled = !depotState.at || totalRes < nres || g.coins < coins || g.bag.length >= bagSize(); };
       cf.querySelectorAll('select').forEach((x) => x.addEventListener('change', cost)); cost();
-      cf.querySelector('#q-cbtn').addEventListener('click', () => {
-        const r = cf.querySelector('#q-cr').value; const [nres, coins] = CRAFT[r]; if (totalRes < nres || g.coins < coins || g.bag.length >= bagSize()) return;
+      cf.querySelector('.q-cbtn').addEventListener('click', () => {
+        if (!cf.isConnected) return;
+        const r = cf.querySelector('.q-cr').value; const [nres, coins] = CRAFT[r]; if (!depotState.at || Object.values(g.res).reduce((n, v) => n + v, 0) < nres || g.coins < coins || g.bag.length >= bagSize()) return;
         let need = nres; Object.entries(g.res).sort((a, b) => b[1] - a[1]).forEach(([k, n]) => { const take = Math.min(n, need); g.res[k] -= take; need -= take; });
-        g.coins -= coins; const it = makeItem(cf.querySelector('#q-cz').value, cf.querySelector('#q-cs').value, r, 'atelier du dépôt'); g.bag.push(it); save(); render();
+        g.coins -= coins; const it = makeItem(cf.querySelector('.q-cz').value, cf.querySelector('.q-cs').value, r, 'atelier du dépôt'); g.bag.push(it); save(); render(); depotCelebrate('craft');
         const tst = el(`<div class="q-toast win show"><b>🔨</b> ${esc(it.name)} · ${esc(rarName(it.rar))}</div>`); document.body.appendChild(tst); setTimeout(() => tst.remove(), 3500);
       });
       dp.appendChild(cf);
@@ -856,12 +923,15 @@ const Game = (() => {
   function viewMe(wrap, render) {
     const g = load(); const a = g.avatar;
     const card = el(`<div class="q-card"><div class="q-head"><div class="q-grow"><b style="font-size:1.2rem">${esc(Store.operator() || 'Dresseur')}</b> <span class="q-tag">Nv ${level()}</span><div class="q-hint">${g.xp} XP · ${g.coins} pièces · ${g.wins} apaisées / ${g.fights} passages</div></div></div></div>`);
-    const av = avatar(a); const bb = bonuses(); if (bb.aura) { av.classList.add('aura'); av.style.setProperty('--aura', ZSETS[bb.aura].aura); } card.querySelector('.q-head').appendChild(av);
+    const av = avatar(a); card.querySelector('.q-head').appendChild(av);
+    const aura = Motion.setAuraState(g.equip); if (aura) card.appendChild(el(`<div class="q-hint">Aura ${esc(setName(aura.set))} · ${esc(rarName(aura.rarity))} · rareté minimale des 8 pièces</div>`));
     wrap.appendChild(card);
     // avatar settings
     const set = el('<div class="q-card"><b>Personnage</b><div class="q-opts"></div></div>');
     const opts = set.querySelector('.q-opts');
     const row = (label, html) => { const r = el(`<div class="q-opt"><span>${label}</span><span class="q-optv"></span></div>`); r.querySelector('.q-optv').innerHTML = html; opts.appendChild(r); return r; };
+    const facing = row('Vue', [['south', 'Face'], ['east', 'Droite'], ['north', 'Dos'], ['west', 'Gauche']].map(([direction, name]) => `<button type="button" class="q-pick${avatarDirection === direction ? ' on' : ''}" data-direction="${direction}">${name}</button>`).join(''));
+    facing.querySelectorAll('button').forEach(button => button.addEventListener('click', () => { avatarDirection = button.dataset.direction; render(); }));
     const r2 = row('Cheveux', [1, 2, 3].map((h) => `<button type="button" data-v="${h}" class="q-pick${(a.hair === 4 ? 1 : a.hair) === h ? ' on' : ''}">${['—', 'court', 'hérissé', 'long'][h]}</button>`).join(''));
     r2.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { a.hair = +b.dataset.v; save(); render(); }));
     const sw = (key, colors) => { const r = row({ hairColor: 'Couleur', skin: 'Peau' }[key], colors.map((c) => `<button type="button" data-v="${c}" class="q-sw${a[key] === c ? ' on' : ''}" style="background:${c}" aria-label="${c}"></button>`).join('')); r.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { a[key] = b.dataset.v; save(); render(); })); };
@@ -884,10 +954,11 @@ const Game = (() => {
     const g = load();
     if (B && !(name === 'pool' && g.enc && poolId === g.enc.poolId)) abandon();
     if (poolStage && (name !== 'pool' || poolStage.poolId !== poolId || document.documentElement.dataset.style !== 'pixel')) { poolStage.dispose(); poolStage = null; }
+    if (depotStage && (name !== 'quest' || sub !== 'bag' || document.documentElement.dataset.style !== 'pixel')) { depotStage.dispose(); depotStage = null; }
     if (g.enc && !(name === 'pool' && poolId === g.enc.poolId)) settle();
     if (name !== 'pool') setTimeout(toast, 50);
   }
-  window.addEventListener('pagehide', () => { abandon(); poolStage?.dispose(); poolStage = null; if (load().enc) settle(); });
+  window.addEventListener('pagehide', () => { abandon(); poolStage?.dispose(); poolStage = null; depotStage?.dispose(); depotStage = null; if (load().enc) settle(); });
 
   return { poolSection, view, onRoute, settle, creature, sprite, makeItem, bonuses, ZSETS, MON, MTIER, RES, openBattle, rewardDays, get state() { return load(); } };
 })();

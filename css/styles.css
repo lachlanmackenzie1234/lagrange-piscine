@@ -751,7 +751,7 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-head { display: flex; align-items: flex-start; gap: 10px; }
 .q-grow { flex: 1; min-width: 0; }
 .q-sprite { image-rendering: pixelated; width: 72px; height: 72px; flex: none; }
-.q-avatar { image-rendering: pixelated; width: 64px; height: 96px; flex: none; }
+.q-avatar { image-rendering: pixelated; width: 144px; height: 144px; flex: none; }
 .q-tag { display: inline-block; font-size: .7rem; padding: 1px 6px; border: 2px solid var(--ink); background: var(--na-bg); margin-right: 4px; vertical-align: 1px; }
 .q-tag.wild { background: var(--high); color: #fff; } .q-tag.calm { background: var(--ok); color: #fff; }
 .q-hp { height: 14px; border: 3px solid var(--ink); background: var(--na-bg); margin: 6px 0 2px; }
@@ -822,6 +822,12 @@ svg.ic.ic-sm { font-size: .8em; } svg.ic.ic-brand { color: var(--brand); } svg.i
 .q-map-shortcut { font: inherit; color: var(--ink); border: 2px solid var(--ink); background: var(--card); padding: 5px 7px; cursor: pointer; }
 .q-map-menu { position: absolute; z-index: 3; width: 204px; max-width: calc(100% - 10px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; color: var(--ink); background: var(--card); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--px-shadow, var(--ink)); font: 14px/1.25 var(--font); }
 .q-map-menu:has(form) { width: 246px; }
+.q-map-menu:has(.q-craftrow) { width: 246px; }
+.q-map-menu .q-craftrow { display: grid; grid-template-columns: 1fr; }
+.q-map-menu .q-craftrow select { min-width: 0; width: 100%; font-size: 16px; }
+.q-map-menu .q-craft { border: 0; margin: 0; padding: 5px; }
+.q-map-note { padding: 5px 8px; }
+@media (max-width: 360px) { .q-seg { flex-wrap: wrap; } .q-seg button { flex-basis: calc(50% - 8px); } }
 .q-map-menu-head { position: sticky; top: 0; display: flex; align-items: center; gap: 6px; background: var(--brand-dark); color: #fff; border-bottom: 2px solid var(--ink); padding-left: 8px; z-index: 1; min-height: 32px; }
 .q-map-menu-head > span { flex: 1; font-size: 13px; }
 .q-map-close { background: transparent; border: 0; color: #fff; width: 32px; min-height: 30px; font: 20px/1 var(--font); cursor: pointer; }

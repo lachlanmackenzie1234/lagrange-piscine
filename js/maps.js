@@ -107,6 +107,23 @@ const PoolMaps = (() => {
     const m = byId[id] || M.find((x) => x[1] === res) || M[0];
     const L = expand(m); L.borrowed = !byId[id]; cache.set(k, L); return L;
   }
-  return { get, route, ids: () => M.map((m) => m[0]), W, H };
+  // Foot collision for the exported 256×192 depot interior. Shelves, tools,
+  // lockers and drums are solid; the southern doorway opens onto the floor.
+  const depotLayout = (() => {
+    const coll = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => +(x === 0 || x === W - 1 || y === 0 || y === H - 1)));
+    [[1, 1, 14, 3], [1, 4, 4, 4], [13, 4, 2, 2], [12, 6, 3, 3], [1, 9, 1, 2], [14, 9, 1, 2]].forEach(([x, y, w, h]) => {
+      for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) coll[yy][xx] = 1;
+    });
+    coll[11][7] = coll[11][8] = 0;
+    return { id: 'depot', coll, anchors: { sp: { x: 8, y: 10 }, bench: { x: 6, y: 4 }, rewards: { x: 10, y: 4 }, lockers: { x: 11, y: 4 }, sale: { x: 12, y: 5 } },
+      hotspots: [
+        { kind: 'craft', label: 'Atelier', rect: [77, 24, 59, 42], anchor: 'bench' },
+        { kind: 'rewards', label: 'Récompenses', rect: [139, 10, 39, 55], anchor: 'rewards' },
+        { kind: 'bag', label: 'Équipement', rect: [179, 10, 42, 54], anchor: 'lockers' },
+        { kind: 'craft', label: 'Atelier', rect: [9, 17, 65, 119], anchor: 'bench' },
+        { kind: 'sale', label: 'Revente', rect: [202, 68, 37, 35], anchor: 'sale' },
+      ] };
+  })();
+  return { get, route, depot: () => depotLayout, ids: () => M.map((m) => m[0]), W, H };
 })();
 window.PoolMaps = PoolMaps;
