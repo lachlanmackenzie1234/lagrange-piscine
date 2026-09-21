@@ -29,63 +29,64 @@ const PixelArt = (() => {
   const cache = new Map();
   const cached = (key, w, h, draw) => { if (!cache.has(key)) { const c = canvas(w, h); draw(c.getContext('2d')); cache.set(key, c); } return cache.get(key); };
 
-  // ------------------------------------------------------------ the keeper (24×32, the figure itself 22×30: a 10×8 head, short legs)
+  // ------------------------------------------------------------ the keeper (24×32, the figure itself 22×28: a 10×8 head, a 10×8 torso, arms set off the body, shorts straight onto the feet)
   // sets: { head, body, legs, feet, tool } → zone codes (or null for the plain kit); tool: 'perche' | 'balai' | null
   // o: { walk (number, alternates legs), crouch, back, skin, hair (1..4), hairColor, trim: { head, body, legs, feet } rarity colours }
   function trainer(g, x, y, sets, o) {
     sets = sets || {}; o = o || {}; const trim = o.trim || {};
     const skin = o.skin || C.k, skinD = shade(skin, .82); const hairC = o.hairColor || C.o; const I = C.i;
     const f = o.walk ? Math.floor(o.walk) % 2 : -1; const top = y + 2 + (o.crouch ? 3 : 0);
-    // shorts, short legs, feet
+    const hy = top + 2, by = hy + 10, ly = by + 10;
+    // shorts straight onto the feet (no legs)
     const lz = ZONE[sets.legs]; const short = lz ? { EC: C.d, AG: C.G, EP: C.d, EPP: C.y, GP: C.T }[sets.legs] : C.d; const shortD = shade(short, .8);
-    const ly = top + 20; const l1 = 3 - (f === 1 ? 1 : 0), l2 = 3 - (f === 0 ? 1 : 0);
-    px(g, I, x + 5, ly, 14, 5); px(g, short, x + 6, ly, 12, 4); px(g, shortD, x + 16, ly, 2, 4); px(g, shortD, x + 11, ly + 1, 2, 3);
-    if (sets.legs === 'EPP') { px(g, C.w, x + 8, ly + 1, 1, 1); px(g, C.w, x + 14, ly + 2, 1, 1); } else { px(g, shortD, x + 7, ly + 1, 2, 2); px(g, shortD, x + 15, ly + 1, 2, 2); }
+    px(g, I, x + 6, ly, 12, 5); px(g, short, x + 7, ly, 10, 4); px(g, shortD, x + 15, ly, 2, 4); px(g, shortD, x + 11, ly + 1, 2, 3);
+    if (sets.legs === 'EPP') { px(g, C.w, x + 8, ly + 1, 1, 1); px(g, C.w, x + 14, ly + 2, 1, 1); } else { px(g, shortD, x + 8, ly + 1, 2, 2); px(g, shortD, x + 13, ly + 1, 2, 2); }
     if (trim.legs) px(g, trim.legs, x + 11, ly, 2, 1);
-    px(g, I, x + 6, ly + 4, 5, l1 + 1); px(g, I, x + 13, ly + 4, 5, l2 + 1); px(g, skin, x + 7, ly + 4, 3, l1); px(g, skin, x + 14, ly + 4, 3, l2);
     const fz = sets.feet; const shoe = fz ? { EC: C.b, AG: C.g, EP: C.o, EPP: C.y, GP: C.t }[fz] : C.b;
-    const fy1 = ly + 4 + l1, fy2 = ly + 4 + l2;
+    const fy1 = ly + 4 - (f === 1 ? 1 : 0), fy2 = ly + 4 - (f === 0 ? 1 : 0);
     px(g, I, x + 5, fy1, 7, 3); px(g, I, x + 12, fy2, 7, 3); px(g, shoe, x + 6, fy1 + 1, 5, 1); px(g, shoe, x + 13, fy2 + 1, 5, 1);
-    if (fz === 'EP') { px(g, shoe, x + 6, fy1 - 1, 5, 2); px(g, shoe, x + 13, fy2 - 1, 5, 2); px(g, I, x + 5, fy1 - 1, 1, 1); px(g, I, x + 18, fy2 - 1, 1, 1); }  // boots
-    else if (fz === 'EPP') { px(g, C.w, x + 8, fy1 + 1, 1, 1); px(g, C.w, x + 15, fy2 + 1, 1, 1); }                                                       // sandals
+    if (fz === 'EP') { px(g, I, x + 5, fy1 - 1, 7, 1); px(g, I, x + 12, fy2 - 1, 7, 1); px(g, shoe, x + 6, fy1, 5, 1); px(g, shoe, x + 13, fy2, 5, 1); }   // boots
+    else if (fz === 'EPP') { px(g, C.w, x + 8, fy1 + 1, 1, 1); px(g, C.w, x + 15, fy2 + 1, 1, 1); }                                                   // sandals
     else { px(g, shade(shoe, 1.4), x + 7, fy1 + 1, 1, 1); px(g, shade(shoe, 1.4), x + 9, fy1 + 1, 1, 1); px(g, shade(shoe, 1.4), x + 14, fy2 + 1, 1, 1); px(g, shade(shoe, 1.4), x + 16, fy2 + 1, 1, 1); } // clog holes
-    if (trim.feet) { px(g, trim.feet, x + 6, fy1, 5, 1); px(g, trim.feet, x + 13, fy2, 5, 1); }
-    // torso
-    const by = top + 10; const bz = sets.body; const shirt = bz ? { EC: C.w, AG: C.g, EP: C.y, EPP: C.v, GP: C.t }[bz] : C.w; const shirtD = shade(shirt, .84);
-    px(g, I, x + 4, by, 16, 11); px(g, shirt, x + 5, by + 1, 14, 9); px(g, shirtD, x + 17, by + 1, 2, 9);
-    if (bz === 'EC' || !bz) { px(g, C.b, x + 9, by + 1, 6, 1); px(g, C.b, x + 10, by + 2, 1, 1); px(g, C.b, x + 13, by + 2, 1, 1); px(g, C.b, x + 11, by + 3, 2, 1); }   // polo collar
-    if (bz === 'AG') { px(g, C.L, x + 7, by + 3, 10, 1); px(g, C.L, x + 11, by + 5, 2, 2); }                                                                     // surf tee
-    if (bz === 'EP') { px(g, C.A, x + 5, by + 1, 3, 9); px(g, C.A, x + 16, by + 1, 3, 9); px(g, C.a, x + 6, by + 6, 1, 2); px(g, C.a, x + 17, by + 6, 1, 2); }     // vest
-    if (bz === 'EPP') { [[6, 2], [10, 4], [14, 2], [8, 7], [12, 8], [16, 6]].forEach(([dx, dy]) => px(g, C.x, x + dx, by + dy, 2, 1)); px(g, C.w, x + 11, by + 1, 2, 9); } // hawaiian
-    if (bz === 'GP') { px(g, C.w, x + 5, by + 4, 14, 1); px(g, C.m, x + 9, by + 1, 6, 1); }                                                                     // keeper polo
-    if (trim.body) px(g, trim.body, x + 11, by + 9, 2, 1);
-    // pouch & belt
-    px(g, I, x + 8, by + 8, 8, 3); px(g, C.c, x + 9, by + 9, 6, 1); px(g, trim.body || C.S, x + 11, by + 9, 2, 1);
-    // arms (sleeves for AG/GP)
-    const sleeve = bz === 'AG' || bz === 'GP' ? shirt : skin;
-    px(g, I, x + 1, by + 1, 4, 8); px(g, I, x + 19, by + 1, 4, 8); px(g, sleeve, x + 2, by + 2, 2, 2); px(g, sleeve, x + 20, by + 2, 2, 2); px(g, skin, x + 2, by + 4, 2, 4); px(g, skin, x + 20, by + 4, 2, 4); px(g, skinD, x + 21, by + 4, 1, 4);
+    if (trim.feet) { px(g, trim.feet, x + 6, fy1 + 1, 1, 1); px(g, trim.feet, x + 17, fy2 + 1, 1, 1); }
+    // torso 10×8
+    const bz = sets.body; const shirt = bz ? { EC: C.w, AG: C.g, EP: C.y, EPP: C.v, GP: C.t }[bz] : C.w; const shirtD = shade(shirt, .84);
+    px(g, I, x + 6, by, 12, 10); px(g, shirt, x + 7, by + 1, 10, 8); px(g, shirtD, x + 15, by + 1, 2, 8);
+    if (bz === 'EC' || !bz) { px(g, C.b, x + 10, by + 1, 4, 1); px(g, C.b, x + 10, by + 2, 1, 1); px(g, C.b, x + 13, by + 2, 1, 1); px(g, C.b, x + 11, by + 3, 2, 1); }   // polo collar
+    if (bz === 'AG') { px(g, C.L, x + 8, by + 3, 8, 1); px(g, C.L, x + 11, by + 5, 2, 2); }                                                                       // surf tee
+    if (bz === 'EP') { px(g, C.A, x + 7, by + 1, 2, 8); px(g, C.A, x + 15, by + 1, 2, 8); px(g, C.a, x + 7, by + 5, 1, 2); px(g, C.a, x + 16, by + 5, 1, 2); }       // vest
+    if (bz === 'EPP') { [[8, 2], [11, 4], [14, 2], [9, 6], [13, 7]].forEach(([dx, dy]) => px(g, C.x, x + dx, by + dy, 2, 1)); px(g, C.w, x + 11, by + 1, 2, 8); }   // hawaiian
+    if (bz === 'GP') { px(g, C.w, x + 7, by + 4, 10, 1); px(g, C.m, x + 10, by + 1, 4, 1); }                                                                      // keeper polo
+    if (trim.body) px(g, trim.body, x + 11, by + 8, 2, 1);
+    px(g, I, x + 8, by + 7, 8, 3); px(g, C.c, x + 9, by + 8, 6, 1); px(g, trim.body || C.S, x + 11, by + 8, 2, 1);   // pouch on the belt
+    // arms: a shoulder of sleeve, then skin, a gap from the torso
+    const sleeve = bz === 'AG' || bz === 'GP' ? shirt : (bz === 'EP' ? C.w : shirt);
+    px(g, I, x + 1, by, 4, 8); px(g, I, x + 19, by, 4, 8); px(g, I, x + 5, by, 1, 1); px(g, I, x + 18, by, 1, 1);
+    px(g, sleeve, x + 2, by + 1, 5, 2); px(g, sleeve, x + 17, by + 1, 5, 2); px(g, I, x + 4, by + 3, 1, 5); px(g, I, x + 19, by + 3, 1, 5);
+    px(g, skin, x + 2, by + 3, 2, 4); px(g, skin, x + 20, by + 3, 2, 4); px(g, skinD, x + 21, by + 3, 1, 4);
+    if (bz === 'EP') { px(g, C.A, x + 7, by + 1, 2, 2); px(g, C.A, x + 15, by + 1, 2, 2); }
+    px(g, I, x + 6, by + 3, 1, 7); px(g, I, x + 17, by + 3, 1, 7);
     // head 10×8
-    const hy = top + 2;
-    px(g, I, x + 6, hy, 12, 9); px(g, skin, x + 7, hy + 1, 10, 7); px(g, skinD, x + 15, hy + 2, 2, 6);
-    if (!o.back) { px(g, I, x + 9, hy + 4, 1, 2); px(g, I, x + 14, hy + 4, 1, 2); px(g, skinD, x + 11, hy + 7, 2, 1); }
-    // hair (visible under any hat)
+    px(g, I, x + 6, hy, 12, 10); px(g, skin, x + 7, hy + 1, 10, 8); px(g, skinD, x + 15, hy + 2, 2, 7);
+    if (!o.back) { px(g, I, x + 9, hy + 5, 1, 2); px(g, I, x + 14, hy + 5, 1, 2); px(g, skinD, x + 11, hy + 8, 2, 1); }
+    // hair (what a hat leaves showing)
     px(g, hairC, x + 7, hy + 1, 10, 2); px(g, hairC, x + 7, hy + 3, 1, 1); px(g, hairC, x + 16, hy + 3, 1, 1);
     if ((o.hair || 1) === 3) { px(g, hairC, x + 6, hy + 3, 2, 6); px(g, hairC, x + 16, hy + 3, 2, 6); }
     if ((o.hair || 1) === 2 && !sets.head) { px(g, hairC, x + 8, hy - 1, 1, 1); px(g, hairC, x + 11, hy - 2, 1, 2); px(g, hairC, x + 14, hy - 1, 1, 1); }
-    // hat by set (the trim takes the rarity colour)
+    // hat by set, pulled down over the head (the trim takes the rarity colour)
     const hz = sets.head; const tr = trim.head;
-    if (hz === 'EC') { px(g, I, x + 6, hy - 3, 12, 4); px(g, C.b, x + 7, hy - 2, 10, 3); px(g, C.B, x + 7, hy, 10, 1); px(g, I, x + 1, hy - 1, 6, 3); px(g, C.b, x + 2, hy, 5, 1); px(g, tr || C.l, x + 11, hy - 2, 2, 1); }   // backward cap
-    if (hz === 'AG') { px(g, I, x + 7, hy - 4, 10, 4); px(g, C.G, x + 8, hy - 3, 8, 3); px(g, I, x + 4, hy - 1, 16, 3); px(g, C.g, x + 5, hy, 14, 1); px(g, tr || C.L, x + 8, hy - 1, 8, 1); }                              // bucket hat
-    if (hz === 'EP') { px(g, I, x + 8, hy - 4, 8, 4); px(g, C.y, x + 9, hy - 3, 6, 3); px(g, I, x + 2, hy - 1, 20, 3); px(g, C.y, x + 3, hy, 18, 1); px(g, tr || C.A, x + 9, hy - 1, 6, 1); }                                  // straw hat
+    if (hz === 'EC') { px(g, I, x + 6, hy - 2, 12, 7); px(g, C.b, x + 7, hy - 1, 10, 5); px(g, C.B, x + 7, hy + 3, 10, 1); px(g, I, x + 1, hy + 1, 6, 3); px(g, C.b, x + 2, hy + 2, 5, 1); px(g, tr || C.l, x + 11, hy, 2, 1); }   // backward cap
+    if (hz === 'AG') { px(g, I, x + 7, hy - 3, 10, 5); px(g, C.G, x + 8, hy - 2, 8, 4); px(g, I, x + 4, hy + 1, 16, 3); px(g, C.g, x + 5, hy + 2, 14, 1); px(g, tr || C.L, x + 8, hy + 1, 8, 1); }                              // bucket hat
+    if (hz === 'EP') { px(g, I, x + 8, hy - 3, 8, 5); px(g, C.y, x + 9, hy - 2, 6, 4); px(g, I, x + 2, hy + 1, 20, 3); px(g, C.y, x + 3, hy + 2, 18, 1); px(g, tr || C.A, x + 9, hy + 1, 6, 1); }                                  // straw hat
     if (hz === 'EPP') { px(g, I, x + 6, hy + 3, 12, 4); px(g, C.P, x + 7, hy + 4, 4, 2); px(g, C.P, x + 13, hy + 4, 4, 2); px(g, tr || C.p, x + 11, hy + 4, 2, 1); px(g, C.w, x + 8, hy + 4, 1, 1); px(g, C.w, x + 14, hy + 4, 1, 1); } // oversized shades
-    if (hz === 'GP') { px(g, I, x + 5, hy - 1, 14, 3); px(g, C.t, x + 6, hy, 12, 1); px(g, I, x + 4, hy + 1, 16, 2); px(g, tr || C.m, x + 5, hy + 1, 14, 1); }                                                            // visor
+    if (hz === 'GP') { px(g, I, x + 6, hy, 12, 3); px(g, C.t, x + 7, hy + 1, 10, 1); px(g, I, x + 4, hy + 2, 16, 2); px(g, tr || C.m, x + 5, hy + 2, 14, 1); }                                                              // visor
     // tool in the right hand
     const tz = sets.tool; const tc = o.toolColor;
-    if (tz && sets.toolKind === 'balai') { px(g, I, x + 21, top + 3, 3, 21); px(g, tc || C.O, x + 22, top + 4, 1, 19); px(g, I, x + 18, top + 23, 8, 4); px(g, C.h, x + 19, top + 24, 6, 2); }
+    if (tz && sets.toolKind === 'balai') { px(g, I, x + 21, top + 2, 3, 20); px(g, tc || C.O, x + 22, top + 3, 1, 18); px(g, I, x + 18, top + 21, 8, 4); px(g, C.h, x + 19, top + 22, 6, 2); }
     else if (tz) {
-      px(g, I, x + 21, top + 1, 3, 25); px(g, tc || C.n, x + 22, top + 2, 1, 23);
+      px(g, I, x + 21, top + 1, 3, 24); px(g, tc || C.n, x + 22, top + 2, 1, 22);
       if (tz === 'EC') { px(g, I, x + 17, top - 2, 7, 6); px(g, C.l, x + 18, top - 1, 5, 4); px(g, C.w, x + 19, top, 1, 1); px(g, C.w, x + 21, top + 1, 1, 1); px(g, C.w, x + 19, top + 2, 1, 1); }   // telescopic net
-      if (tz === 'AG') { px(g, tc || C.y, x + 22, top - 2, 1, 28); px(g, C.A, x + 22, top + 4, 1, 1); px(g, C.A, x + 22, top + 12, 1, 1); px(g, C.A, x + 22, top + 20, 1, 1); }                          // bamboo
+      if (tz === 'AG') { px(g, tc || C.y, x + 22, top - 2, 1, 27); px(g, C.A, x + 22, top + 4, 1, 1); px(g, C.A, x + 22, top + 12, 1, 1); px(g, C.A, x + 22, top + 20, 1, 1); }                          // bamboo
       if (tz === 'EP') { px(g, I, x + 17, top - 2, 7, 4); px(g, C.n, x + 18, top - 1, 5, 1); px(g, C.n, x + 18, top, 1, 1); px(g, C.n, x + 20, top, 1, 1); px(g, C.n, x + 22, top, 1, 1); }               // rake
       if (tz === 'EPP') { px(g, I, x + 18, top - 2, 6, 6); px(g, C.v, x + 19, top - 1, 4, 4); px(g, C.p, x + 20, top, 1, 1); px(g, C.p, x + 21, top + 1, 1, 1); }                                        // shrimp net
       if (tz === 'GP') { px(g, I, x + 19, top - 2, 5, 4); px(g, C.t, x + 20, top - 1, 3, 1); px(g, C.t, x + 20, top, 1, 1); }                                                                      // hook pole
