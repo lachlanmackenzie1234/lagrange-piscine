@@ -57,7 +57,7 @@ const Game = (() => {
     PA.trainer(g, ox, oy, PA.heroSets(equip), { walk: o.walk, crouch: o.crouch, back: o.back, skin: a.skin, hair: a.hair === 4 ? 1 : a.hair, hairColor: a.hairColor, trim: PA.heroTrim(equip) });
   }
   function avatar(a) {
-    const c = document.createElement('canvas'); c.width = 24; c.height = 32; const g = c.getContext('2d');
+    const c = document.createElement('canvas'); c.width = 16; c.height = 24; const g = c.getContext('2d');
     drawAvatar(g, 0, 0, a, load().equip, {});
     const img = document.createElement('img'); img.src = c.toDataURL(); img.className = 'q-avatar'; img.alt = ''; return img;
   }
@@ -257,7 +257,7 @@ const Game = (() => {
   // skimmer, a water test at the edge, a sweep, a backwash — and the fight.
   function stage(draw) {
     const c = document.createElement('canvas'); c.width = 256; c.height = 192; c.className = 'q-stage';
-    const sc = { c, t0: performance.now(), q: [], hx: 116, hdir: 1, moving: 0 }; let last = 0;
+    const sc = { c, t0: performance.now(), q: [], hx: 120, hdir: 1, moving: 0 }; let last = 0;
     const loop = (now) => { if (!c.isConnected && now - sc.t0 > 3000) return; if (now - last > 80) { last = now; const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false; const t = (now - sc.t0) / 1000; const a = sc.q[0]; let p = 0; if (a) { if (a.t0 == null) { a.t0 = t; if (a.k === 'walk') { a.from = sc.hx; sc.hdir = a.x >= sc.hx ? 1 : -1; } } p = Math.min(1, (t - a.t0) / a.dur); } draw(ctx, t, sc, a, p); if (a && p >= 1) sc.q.shift(); } requestAnimationFrame(loop); };
     requestAnimationFrame(loop); return sc;
   }
@@ -276,13 +276,13 @@ const Game = (() => {
     if (e && e.monster) { const mc = monsterCanvas(e.monster.id); const my = 76 + Math.round(Math.sin(t * 2) * 2); px(ctx, w[1], 108, my + 21, 36, 1); ctx.drawImage(mc, 112, my); }
     if (e && e.escaped && !e.monster) px(ctx, '#7b3fc4', 122 + Math.floor(t * 3) % 5, 86, 2, 2);
     const k = a && a.k; const hx = sc.hx;
-    if (k === 'test') { drawHero(ctx, sc, a, p, { crouch: true }); px(ctx, '#20203a', hx + 22, 160, 6, 10); px(ctx, '#e6e6ff', hx + 23, 161, 4, 8); px(ctx, p < .5 ? '#ffd94a' : c.s.cl < 1 ? '#f2c14e' : '#ff7aa8', hx + 23, 165, 4, 4); if (p < .4) px(ctx, w[0], hx + 25, 134 + Math.round(p * 60), 2, 2); return; }
+    if (k === 'test') { drawHero(ctx, sc, a, p, { crouch: true }); px(ctx, '#20203a', hx + 15, 156, 5, 8); px(ctx, '#e6e6ff', hx + 16, 157, 3, 6); px(ctx, p < .5 ? '#ffd94a' : c.s.cl < 1 ? '#f2c14e' : '#ff7aa8', hx + 16, 160, 3, 3); if (p < .4) px(ctx, w[0], hx + 17, 134 + Math.round(p * 55), 2, 2); return; }
     drawHero(ctx, sc, a, p);
-    if (k === 'drop') { for (let i = 0; i < a.n; i++) { const q = Math.min(1, Math.max(0, p * 1.4 - i * 0.15)); if (q < 1) { px(ctx, '#20203a', hx + 19 + (i % 3) * 3, 156 - Math.round(q * 22), 3, 5); px(ctx, '#fff', hx + 20 + (i % 3) * 3, 157 - Math.round(q * 22), 1, 3); } } }
-    if (k === 'scatter') { const r = rng(hash('sc')); for (let i = 0; i < 24; i++) { const q = Math.min(1, p * 1.3 + r() * .2); px(ctx, i % 4 ? '#fff' : '#e6e6ff', hx + 20 + Math.round((r() * 40 - 8) * q), 156 - Math.round(q * (24 + r() * 30)), 1, 1); } }
+    if (k === 'drop') { for (let i = 0; i < a.n; i++) { const q = Math.min(1, Math.max(0, p * 1.4 - i * 0.15)); if (q < 1) { px(ctx, '#20203a', hx + 12 + (i % 3) * 3, 152 - Math.round(q * 20), 3, 5); px(ctx, '#fff', hx + 13 + (i % 3) * 3, 153 - Math.round(q * 20), 1, 3); } } }
+    if (k === 'scatter') { const r = rng(hash('sc')); for (let i = 0; i < 24; i++) { const q = Math.min(1, p * 1.3 + r() * .2); px(ctx, i % 4 ? '#fff' : '#e6e6ff', hx + 14 + Math.round((r() * 40 - 8) * q), 152 - Math.round(q * (24 + r() * 30)), 1, 1); } }
     if (k === 'sweep') {
       if (g.equip.robot) { const rc = RCOL[g.equip.robot.rar]; const rx = 66 + Math.round(p * 120); px(ctx, '#20203a', rx - 1, 99, 10, 7); px(ctx, rc, rx, 100, 8, 5); px(ctx, shade(rc, 1.3), rx + 1, 100, 6, 1); px(ctx, '#20203a', rx + 1, 105, 2, 1); px(ctx, '#20203a', rx + 5, 105, 2, 1); px(ctx, w[1], rx - 3, 98, 2, 1); px(ctx, w[1], rx - 6, 96, 1, 1); }
-      else { const tx = hx + 8 + Math.round(Math.sin(p * 9) * 22), ty = 96; const pc = g.equip.balai ? RCOL[g.equip.balai.rar] : '#8a4a1e'; line(ctx, pc, hx + 22, 150, tx, ty, 2); px(ctx, '#20203a', tx - 3, ty - 1, 8, 3); px(ctx, w[1], tx - 5, ty + 2, 12, 1); }
+      else { const tx = hx + 6 + Math.round(Math.sin(p * 9) * 22), ty = 96; const pc = g.equip.balai ? RCOL[g.equip.balai.rar] : '#8a4a1e'; line(ctx, pc, hx + 15, 146, tx, ty, 1); px(ctx, '#20203a', tx - 3, ty - 1, 8, 3); px(ctx, w[1], tx - 5, ty + 2, 12, 1); }
     }
     if (k === 'wash') { for (let i = 0; i < 6; i++) px(ctx, i % 2 ? '#8ed4ff' : '#fffbe9', 227 + i * 2, 102 - ((Math.round(p * 40) + i * 6) % 24), 2, 3); px(ctx, '#2aa845', 232, 107, 2, 2); }
   }
@@ -296,14 +296,14 @@ const Game = (() => {
       if (k === 'dissolve') { ctx.globalAlpha = 1 - p; } ctx.drawImage(mc, 100 + dx, 64 + dy, 56, 48); ctx.globalAlpha = 1;
       if (k === 'hit' && p < .2) { ctx.globalAlpha = .5; px(ctx, '#fff', 100 + dx, 64 + dy, 56, 48); ctx.globalAlpha = 1; }
     }
-    sc.hx = 116; const lunge = k === 'lunge' ? -Math.round(Math.sin(p * Math.PI) * 14) : 0;
+    sc.hx = 120; const lunge = k === 'lunge' ? -Math.round(Math.sin(p * Math.PI) * 14) : 0;
     drawHero(ctx, sc, null, 0, { dy: lunge, dx: k === 'flee' ? Math.round(p * 120) : 0 });
-    if (k === 'lunge' && a.move) { const col = { choc: '#fff', phm: '#ffd94a', floc: '#8ed4ff', lavage: '#8ed4ff', perche: '#8a4a1e', balai: '#8a4a1e', robot: '#7a7a90' }[a.move]; for (let i = 0; i < 10; i++) px(ctx, col, 126 + i * 3 - Math.round(p * 12), 136 - Math.round(p * 28) - i * 2, 2, 2); }
+    if (k === 'lunge' && a.move) { const col = { choc: '#fff', phm: '#ffd94a', floc: '#8ed4ff', lavage: '#8ed4ff', perche: '#8a4a1e', balai: '#8a4a1e', robot: '#7a7a90' }[a.move]; for (let i = 0; i < 10; i++) px(ctx, col, 128 + i * 3 - Math.round(p * 12), 136 - Math.round(p * 28) - i * 2, 2, 2); }
     if (k === 'foe' && p < .25) { ctx.globalAlpha = .35; px(ctx, '#d82f2f', 0, 0, 256, 192); ctx.globalAlpha = 1; }
   }
   function drawDepot(ctx, t, sc, n, at) {
     PA.storage(ctx, at, n, t);
-    const g = load(); const to = at ? 140 : 8; const q = Math.min(1, t / 2.8); const hx = Math.round(8 + (to - 8) * q);
+    const g = load(); const to = at ? 144 : 8; const q = Math.min(1, t / 2.8); const hx = Math.round(8 + (to - 8) * q);
     drawAvatar(ctx, hx, 118, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0 });
   }
   function monsterBanner(render) {
@@ -520,10 +520,10 @@ const Game = (() => {
     const e = g.enc; const st = stage((ctx, t, sc, a, pp) => drawPool(ctx, t, sc, a, pp, c, e));
     if (e) {
       const seen = e.seen || { chem: 0, clean: 0, filt: 0, mes: 0 };
-      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', x: 130, dur: 1 }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
-      if (acts.mes > seen.mes) st.q.push({ k: 'walk', x: 48, dur: 1 }, { k: 'test', dur: 2 });
-      if (acts.clean > seen.clean) st.q.push({ k: 'walk', x: 100, dur: .7 }, { k: 'sweep', dur: 2.4 });
-      if (acts.filt > seen.filt) st.q.push({ k: 'walk', x: 204, dur: 1.1 }, { k: 'wash', dur: 1.8 });
+      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', x: 138, dur: 1 }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
+      if (acts.mes > seen.mes) st.q.push({ k: 'walk', x: 50, dur: 1 }, { k: 'test', dur: 2 });
+      if (acts.clean > seen.clean) st.q.push({ k: 'walk', x: 108, dur: .7 }, { k: 'sweep', dur: 2.4 });
+      if (acts.filt > seen.filt) st.q.push({ k: 'walk', x: 212, dur: 1.1 }, { k: 'wash', dur: 1.8 });
       e.seen = { ...acts }; save();
     }
     box.insertBefore(st.c, box.querySelector('.q-stats'));

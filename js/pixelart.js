@@ -2,7 +2,7 @@
  * Pocket Coast — the Quest's pixel art, hand-drawn and data-free.
  * Chunky square pixels, a 1-px ink outline on everything alive, flat fills
  * with one shade step, light from the top-left. Sizes are the game's pixel
- * budget: trainer 24×32, creatures 24×24, monsters 28×24, items 16×16,
+ * budget: trainer 16×24, creatures 24×24, monsters 28×24, items 16×16,
  * tiles 16×16, stage 256×192. Sprites are row strings (one letter per pixel,
  * see C for the letters); symmetric ones give the left half only.
  */
@@ -14,7 +14,7 @@ const PixelArt = (() => {
     b: '#2f4fdf', B: '#1a1c5a', l: '#7ec8ff', g: '#2aa845', G: '#124d2a', L: '#b5f27a',
     a: '#e39b12', A: '#8a4a1e', y: '#f2c14e', p: '#7b3fc4', P: '#3a1a5a', v: '#c9b6e8',
     t: '#1f9e8a', T: '#0f4a42', m: '#8ee6d2', r: '#d82f2f', R: '#a81f1f', x: '#ff7aa8',
-    q: '#4aa8ff', Q: '#2f7fd6', n: '#7a7a90', N: '#4a4a60', h: '#b8c4d6', e: '#c9c0a8', j: '#c96a3a', J: '#9a4a2a', u: '#b9b4a6', U: '#9a9588',
+    q: '#4aa8ff', Q: '#2f7fd6', n: '#7a7a90', N: '#4a4a60', h: '#b8c4d6', e: '#c9c0a8', j: '#c96a3a', J: '#9a4a2a', u: '#b9b4a6', U: '#9a9588', f: '#8ad46a', F: '#4fa84a', E: '#c8ec9a',
   };
   const ZONE = { EC: { n: 'Écume', base: 'l', dark: 'b', hat: 'cap' }, AG: { n: 'Oyatin', base: 'g', dark: 'G', hat: 'bucket' }, EP: { n: 'Pignotte', base: 'y', dark: 'a', hat: 'straw' }, EPP: { n: 'Gouémitte', base: 'v', dark: 'p', hat: 'shades' }, GP: { n: 'Glapot', base: 't', dark: 'T', hat: 'visor' } };
   const RCOL = { common: '#8a94a8', uncommon: '#2aa845', rare: '#2f4fdf', vrare: '#7b3fc4', epic: '#e39b12', legend: '#d82f2f' };
@@ -29,66 +29,62 @@ const PixelArt = (() => {
   const cache = new Map();
   const cached = (key, w, h, draw) => { if (!cache.has(key)) { const c = canvas(w, h); draw(c.getContext('2d')); cache.set(key, c); } return cache.get(key); };
 
-  // ------------------------------------------------------------ the keeper (24×32, the figure itself 22×28: a 10×8 head, a 10×8 torso, arms at its sides, shorts straight onto the feet)
-  // sets: { head, body, legs, feet, tool } → zone codes (or null for the plain kit); tool: 'perche' | 'balai' | null
-  // o: { walk (number, alternates legs), crouch, back, skin, hair (1..4), hairColor, trim: { head, body, legs, feet } rarity colours }
+  // ------------------------------------------------------------ the keeper (16×24, one tile wide like a GBA overworld sprite)
+  // sets: { head, body, legs, feet, tool, toolKind } → zone codes (or null for the plain kit); toolKind: 'perche' | 'balai'
+  // o: { walk (number, alternates feet), crouch, back, skin, hair (1..3), hairColor, trim: { head, body, legs, feet } rarity colours }
   function trainer(g, x, y, sets, o) {
     sets = sets || {}; o = o || {}; const trim = o.trim || {};
     const skin = o.skin || C.k, skinD = shade(skin, .82); const hairC = o.hairColor || C.o; const I = C.i;
-    const f = o.walk ? Math.floor(o.walk) % 2 : -1; const top = y + 2 + (o.crouch ? 3 : 0);
-    const hy = top + 2, by = hy + 10, ly = by + 10;
-    // shorts straight onto the feet (no legs)
-    const lz = ZONE[sets.legs]; const short = lz ? { EC: C.d, AG: C.G, EP: C.d, EPP: C.y, GP: C.T }[sets.legs] : C.d; const shortD = shade(short, .8);
-    px(g, I, x + 6, ly, 12, 5); px(g, short, x + 7, ly, 10, 4); px(g, shortD, x + 15, ly, 2, 4); px(g, shortD, x + 11, ly + 1, 2, 3);
-    if (sets.legs === 'EPP') { px(g, C.w, x + 8, ly + 1, 1, 1); px(g, C.w, x + 14, ly + 2, 1, 1); } else { px(g, shortD, x + 8, ly + 1, 2, 2); px(g, shortD, x + 13, ly + 1, 2, 2); }
-    if (trim.legs) px(g, trim.legs, x + 11, ly, 2, 1);
-    const fz = sets.feet; const shoe = fz ? { EC: C.b, AG: C.g, EP: C.o, EPP: C.y, GP: C.t }[fz] : C.b;
-    const fy1 = ly + 4 - (f === 1 ? 1 : 0), fy2 = ly + 4 - (f === 0 ? 1 : 0);
-    px(g, I, x + 5, fy1, 7, 3); px(g, I, x + 12, fy2, 7, 3); px(g, shoe, x + 6, fy1 + 1, 5, 1); px(g, shoe, x + 13, fy2 + 1, 5, 1);
-    if (fz === 'EP') { px(g, I, x + 5, fy1 - 1, 7, 1); px(g, I, x + 12, fy2 - 1, 7, 1); px(g, shoe, x + 6, fy1, 5, 1); px(g, shoe, x + 13, fy2, 5, 1); }   // boots
-    else if (fz === 'EPP') { px(g, C.w, x + 8, fy1 + 1, 1, 1); px(g, C.w, x + 15, fy2 + 1, 1, 1); }                                                   // sandals
-    else { px(g, shade(shoe, 1.4), x + 7, fy1 + 1, 1, 1); px(g, shade(shoe, 1.4), x + 9, fy1 + 1, 1, 1); px(g, shade(shoe, 1.4), x + 14, fy2 + 1, 1, 1); px(g, shade(shoe, 1.4), x + 16, fy2 + 1, 1, 1); } // clog holes
-    if (trim.feet) { px(g, trim.feet, x + 6, fy1 + 1, 1, 1); px(g, trim.feet, x + 17, fy2 + 1, 1, 1); }
-    // torso 10×8
+    const f = o.walk ? Math.floor(o.walk) % 2 : -1; const top = y + 1 + (o.crouch ? 2 : 0);
+    const hy = top + 1, by = hy + 9, ly = by + 7;
+    // shorts straight onto the feet
+    const short = sets.legs ? { EC: C.d, AG: C.G, EP: C.d, EPP: C.y, GP: C.T }[sets.legs] : C.d; const shortD = shade(short, .8);
+    px(g, I, x + 3, ly, 10, 3); px(g, short, x + 4, ly, 8, 2); px(g, shortD, x + 10, ly, 2, 2); px(g, shortD, x + 7, ly + 1, 2, 1);
+    if (sets.legs === 'EPP') px(g, C.w, x + 5, ly, 1, 1); if (trim.legs) px(g, trim.legs, x + 7, ly, 2, 1);
+    const shoe = sets.feet ? { EC: C.b, AG: C.g, EP: C.o, EPP: C.y, GP: C.t }[sets.feet] : C.b;
+    const fy1 = ly + 2 - (f === 1 ? 1 : 0), fy2 = ly + 2 - (f === 0 ? 1 : 0);
+    px(g, I, x + 3, fy1, 5, 3); px(g, I, x + 8, fy2, 5, 3); px(g, shoe, x + 4, fy1 + 1, 3, 1); px(g, shoe, x + 9, fy2 + 1, 3, 1);
+    if (sets.feet === 'EP') { px(g, shoe, x + 4, fy1, 3, 1); px(g, shoe, x + 9, fy2, 3, 1); }
+    else if (sets.feet === 'EPP') { px(g, C.w, x + 5, fy1 + 1, 1, 1); px(g, C.w, x + 10, fy2 + 1, 1, 1); }
+    else { px(g, shade(shoe, 1.4), x + 5, fy1 + 1, 1, 1); px(g, shade(shoe, 1.4), x + 10, fy2 + 1, 1, 1); }
+    if (trim.feet) { px(g, trim.feet, x + 4, fy1 + 1, 1, 1); px(g, trim.feet, x + 11, fy2 + 1, 1, 1); }
+    // torso 8×5
     const bz = sets.body; const shirt = bz ? { EC: C.w, AG: C.g, EP: C.y, EPP: C.v, GP: C.t }[bz] : C.w; const shirtD = shade(shirt, .84);
-    px(g, I, x + 6, by, 12, 10); px(g, shirt, x + 7, by + 1, 10, 8); px(g, shirtD, x + 15, by + 1, 2, 8);
-    if (bz === 'EC' || !bz) { px(g, C.b, x + 10, by + 1, 4, 1); px(g, C.b, x + 10, by + 2, 1, 1); px(g, C.b, x + 13, by + 2, 1, 1); px(g, C.b, x + 11, by + 3, 2, 1); }   // polo collar
-    if (bz === 'AG') { px(g, C.L, x + 8, by + 3, 8, 1); px(g, C.L, x + 11, by + 5, 2, 2); }                                                                       // surf tee
-    if (bz === 'EP') { px(g, C.A, x + 7, by + 1, 2, 8); px(g, C.A, x + 15, by + 1, 2, 8); px(g, C.a, x + 7, by + 5, 1, 2); px(g, C.a, x + 16, by + 5, 1, 2); }       // vest
-    if (bz === 'EPP') { [[8, 2], [11, 4], [14, 2], [9, 6], [13, 7]].forEach(([dx, dy]) => px(g, C.x, x + dx, by + dy, 2, 1)); px(g, C.w, x + 11, by + 1, 2, 8); }   // hawaiian
-    if (bz === 'GP') { px(g, C.w, x + 7, by + 4, 10, 1); px(g, C.m, x + 10, by + 1, 4, 1); }                                                                      // keeper polo
-    if (trim.body) px(g, trim.body, x + 11, by + 8, 2, 1);
-    px(g, I, x + 8, by + 7, 8, 3); px(g, C.c, x + 9, by + 8, 6, 1); px(g, trim.body || C.S, x + 11, by + 8, 2, 1);   // pouch on the belt
-    // arms: a shoulder of sleeve, then skin, a gap from the torso
+    px(g, I, x + 3, by, 10, 7); px(g, shirt, x + 4, by + 1, 8, 5); px(g, shirtD, x + 10, by + 1, 2, 5);
+    if (bz === 'EC' || !bz) { px(g, C.b, x + 7, by + 1, 2, 1); px(g, C.b, x + 6, by + 2, 1, 1); px(g, C.b, x + 9, by + 2, 1, 1); }   // polo collar
+    if (bz === 'AG') { px(g, C.L, x + 5, by + 2, 6, 1); }                                                                     // surf tee
+    if (bz === 'EP') { px(g, C.A, x + 4, by + 1, 2, 5); px(g, C.A, x + 10, by + 1, 2, 5); px(g, C.w, x + 7, by + 1, 2, 5); }       // vest over a tee
+    if (bz === 'EPP') { [[5, 1], [8, 2], [10, 1], [6, 4], [9, 4]].forEach(([dx, dy]) => px(g, C.x, x + dx, by + dy, 1, 1)); }     // hawaiian
+    if (bz === 'GP') { px(g, C.w, x + 4, by + 3, 8, 1); }                                                                     // keeper polo
+    if (trim.body) px(g, trim.body, x + 7, by + 5, 2, 1);
+    px(g, I, x + 5, by + 5, 6, 2); px(g, trim.body || C.c, x + 6, by + 6, 4, 1);                                              // belt & pouch
+    // arms at the sides
     const sleeve = bz === 'AG' || bz === 'GP' ? shirt : (bz === 'EP' ? C.w : shirt);
-    px(g, I, x + 3, by, 4, 8); px(g, I, x + 17, by, 4, 8); px(g, sleeve, x + 4, by + 1, 3, 2); px(g, sleeve, x + 17, by + 1, 3, 2);
-    px(g, skin, x + 4, by + 3, 2, 4); px(g, skin, x + 18, by + 3, 2, 4); px(g, skinD, x + 19, by + 3, 1, 4);
-    px(g, I, x + 6, by + 3, 1, 7); px(g, I, x + 17, by + 3, 1, 7);
-    if (bz === 'EP') { px(g, C.A, x + 7, by + 1, 2, 2); px(g, C.A, x + 15, by + 1, 2, 2); }
-    // head 10×8
-    px(g, I, x + 6, hy, 12, 10); px(g, skin, x + 7, hy + 1, 10, 8); px(g, skinD, x + 15, hy + 2, 2, 7);
-    if (!o.back) { px(g, I, x + 9, hy + 5, 1, 2); px(g, I, x + 14, hy + 5, 1, 2); px(g, skinD, x + 11, hy + 8, 2, 1); }
-    // hair (what a hat leaves showing)
-    px(g, hairC, x + 7, hy + 1, 10, 2); px(g, hairC, x + 7, hy + 3, 1, 1); px(g, hairC, x + 16, hy + 3, 1, 1);
-    if ((o.hair || 1) === 3) { px(g, hairC, x + 6, hy + 3, 2, 6); px(g, hairC, x + 16, hy + 3, 2, 6); }
-    if ((o.hair || 1) === 2 && !sets.head) { px(g, hairC, x + 8, hy - 1, 1, 1); px(g, hairC, x + 11, hy - 2, 1, 2); px(g, hairC, x + 14, hy - 1, 1, 1); }
-    // hat by set, pulled down over the head (the trim takes the rarity colour)
+    px(g, I, x + 1, by, 3, 6); px(g, I, x + 12, by, 3, 6); px(g, sleeve, x + 2, by + 1, 1, 2); px(g, sleeve, x + 13, by + 1, 1, 2); px(g, skin, x + 2, by + 3, 1, 2); px(g, skinD, x + 13, by + 3, 1, 2);
+    px(g, I, x + 3, by + 1, 1, 6); px(g, I, x + 12, by + 1, 1, 6);
+    // head 8×7
+    px(g, I, x + 3, hy, 10, 9); px(g, skin, x + 4, hy + 1, 8, 7); px(g, skinD, x + 10, hy + 2, 2, 6);
+    if (!o.back) { px(g, I, x + 6, hy + 4, 1, 2); px(g, I, x + 9, hy + 4, 1, 2); px(g, skinD, x + 7, hy + 7, 2, 1); }
+    px(g, hairC, x + 4, hy + 1, 8, 2); px(g, hairC, x + 4, hy + 3, 1, 1); px(g, hairC, x + 11, hy + 3, 1, 1);
+    if ((o.hair || 1) === 3) { px(g, hairC, x + 3, hy + 3, 1, 5); px(g, hairC, x + 12, hy + 3, 1, 5); }
+    if ((o.hair || 1) === 2 && !sets.head) { px(g, hairC, x + 5, hy, 1, 1); px(g, hairC, x + 8, hy - 1, 1, 2); px(g, hairC, x + 10, hy, 1, 1); }
+    // hat by set, pulled down (trim in the rarity colour)
     const hz = sets.head; const tr = trim.head;
-    if (hz === 'EC') { px(g, I, x + 6, hy - 2, 12, 7); px(g, C.b, x + 7, hy - 1, 10, 5); px(g, C.B, x + 7, hy + 3, 10, 1); px(g, I, x + 1, hy + 1, 6, 3); px(g, C.b, x + 2, hy + 2, 5, 1); px(g, tr || C.l, x + 11, hy, 2, 1); }   // backward cap
-    if (hz === 'AG') { px(g, I, x + 7, hy - 3, 10, 5); px(g, C.G, x + 8, hy - 2, 8, 4); px(g, I, x + 4, hy + 1, 16, 3); px(g, C.g, x + 5, hy + 2, 14, 1); px(g, tr || C.L, x + 8, hy + 1, 8, 1); }                              // bucket hat
-    if (hz === 'EP') { px(g, I, x + 8, hy - 3, 8, 5); px(g, C.y, x + 9, hy - 2, 6, 4); px(g, I, x + 2, hy + 1, 20, 3); px(g, C.y, x + 3, hy + 2, 18, 1); px(g, tr || C.A, x + 9, hy + 1, 6, 1); }                                  // straw hat
-    if (hz === 'EPP') { px(g, I, x + 6, hy + 3, 12, 4); px(g, C.P, x + 7, hy + 4, 4, 2); px(g, C.P, x + 13, hy + 4, 4, 2); px(g, tr || C.p, x + 11, hy + 4, 2, 1); px(g, C.w, x + 8, hy + 4, 1, 1); px(g, C.w, x + 14, hy + 4, 1, 1); } // oversized shades
-    if (hz === 'GP') { px(g, I, x + 6, hy, 12, 3); px(g, C.t, x + 7, hy + 1, 10, 1); px(g, I, x + 4, hy + 2, 16, 2); px(g, tr || C.m, x + 5, hy + 2, 14, 1); }                                                              // visor
+    if (hz === 'EC') { px(g, I, x + 3, hy - 1, 10, 5); px(g, C.b, x + 4, hy, 8, 3); px(g, C.B, x + 4, hy + 2, 8, 1); px(g, I, x + 0, hy + 1, 4, 2); px(g, C.b, x + 1, hy + 1, 3, 1); px(g, tr || C.l, x + 7, hy, 2, 1); }   // backward cap
+    if (hz === 'AG') { px(g, I, x + 4, hy - 2, 8, 4); px(g, C.G, x + 5, hy - 1, 6, 3); px(g, I, x + 2, hy + 1, 12, 2); px(g, C.g, x + 3, hy + 1, 10, 1); px(g, tr || C.L, x + 5, hy, 6, 1); }                   // bucket hat
+    if (hz === 'EP') { px(g, I, x + 5, hy - 2, 6, 4); px(g, C.y, x + 6, hy - 1, 4, 3); px(g, I, x + 1, hy + 1, 14, 2); px(g, C.y, x + 2, hy + 1, 12, 1); px(g, tr || C.A, x + 6, hy, 4, 1); }                     // straw hat
+    if (hz === 'EPP') { px(g, I, x + 3, hy + 3, 10, 3); px(g, C.P, x + 4, hy + 4, 3, 1); px(g, C.P, x + 9, hy + 4, 3, 1); px(g, tr || C.p, x + 7, hy + 4, 2, 1); px(g, C.w, x + 5, hy + 4, 1, 1); px(g, C.w, x + 10, hy + 4, 1, 1); } // shades
+    if (hz === 'GP') { px(g, I, x + 3, hy, 10, 2); px(g, C.t, x + 4, hy + 1, 8, 1); px(g, I, x + 2, hy + 2, 12, 1); px(g, tr || C.m, x + 3, hy + 2, 10, 1); }                                             // visor
     // tool in the right hand
-    const tz = sets.tool; const tc = o.toolColor;
-    if (tz && sets.toolKind === 'balai') { px(g, I, x + 21, top + 2, 3, 20); px(g, tc || C.O, x + 22, top + 3, 1, 18); px(g, I, x + 18, top + 21, 8, 4); px(g, C.h, x + 19, top + 22, 6, 2); }
+    const tz = sets.tool;
+    if (tz && sets.toolKind === 'balai') { px(g, I, x + 14, top + 3, 2, 15); px(g, C.O, x + 15, top + 4, 1, 13); px(g, I, x + 12, top + 17, 4, 3); px(g, C.h, x + 13, top + 18, 2, 1); }
     else if (tz) {
-      px(g, I, x + 21, top + 1, 3, 24); px(g, tc || C.n, x + 22, top + 2, 1, 22);
-      if (tz === 'EC') { px(g, I, x + 17, top - 2, 7, 6); px(g, C.l, x + 18, top - 1, 5, 4); px(g, C.w, x + 19, top, 1, 1); px(g, C.w, x + 21, top + 1, 1, 1); px(g, C.w, x + 19, top + 2, 1, 1); }   // telescopic net
-      if (tz === 'AG') { px(g, tc || C.y, x + 22, top - 2, 1, 27); px(g, C.A, x + 22, top + 4, 1, 1); px(g, C.A, x + 22, top + 12, 1, 1); px(g, C.A, x + 22, top + 20, 1, 1); }                          // bamboo
-      if (tz === 'EP') { px(g, I, x + 17, top - 2, 7, 4); px(g, C.n, x + 18, top - 1, 5, 1); px(g, C.n, x + 18, top, 1, 1); px(g, C.n, x + 20, top, 1, 1); px(g, C.n, x + 22, top, 1, 1); }               // rake
-      if (tz === 'EPP') { px(g, I, x + 18, top - 2, 6, 6); px(g, C.v, x + 19, top - 1, 4, 4); px(g, C.p, x + 20, top, 1, 1); px(g, C.p, x + 21, top + 1, 1, 1); }                                        // shrimp net
-      if (tz === 'GP') { px(g, I, x + 19, top - 2, 5, 4); px(g, C.t, x + 20, top - 1, 3, 1); px(g, C.t, x + 20, top, 1, 1); }                                                                      // hook pole
+      px(g, I, x + 14, top + 1, 2, 17); px(g, o.toolColor || C.n, x + 15, top + 2, 1, 15);
+      if (tz === 'EC') { px(g, I, x + 12, top - 2, 4, 4); px(g, C.l, x + 13, top - 1, 2, 2); }                                     // net
+      if (tz === 'AG') { px(g, C.y, x + 15, top - 1, 1, 19); px(g, C.A, x + 15, top + 5, 1, 1); px(g, C.A, x + 15, top + 11, 1, 1); } // bamboo
+      if (tz === 'EP') { px(g, I, x + 11, top - 1, 5, 2); px(g, C.n, x + 12, top - 1, 1, 1); px(g, C.n, x + 14, top - 1, 1, 1); }     // rake
+      if (tz === 'EPP') { px(g, I, x + 12, top - 2, 4, 4); px(g, C.v, x + 13, top - 1, 2, 2); }                                    // shrimp net
+      if (tz === 'GP') { px(g, I, x + 12, top - 1, 4, 2); px(g, C.t, x + 13, top - 1, 2, 1); }                                     // hook
     }
   }
 
@@ -164,12 +160,13 @@ const PixelArt = (() => {
 
   // ------------------------------------------------------------ tiles (16×16) and the courtyard (128×96)
   const TILE = {
-    sand: [['ssssssssssssssss', 'ssssSsssssssssss', 'ssssssssssssSsss', 'ssssssssssssssss', 'sSssssssssssssss', 'ssssssssSsssssss', 'ssssssssssssssss', 'ssssssssssssssSs', 'ssssssssssssssss', 'ssSsssssssssssss', 'ssssssssssSsssss', 'ssssssssssssssss', 'ssssssSsssssssss', 'ssssssssssssssss', 'sssSsssssssssSss', 'ssssssssssssssss'],
-      ['ssssssssssssssss', 'ssssssssssSSssss', 'sSsssssssssssszs', 'ssssssssssssssss', 'sssssszzssssssss', 'ssssssssssssssss', 'ssssssssssssSsss', 'ssSSssssssssssss', 'ssssssssssssssss', 'ssssssssssSsssss', 'ssssssssssssssss', 'sSsssssszsssssss', 'ssssssssssssssSS', 'ssssssssssssssss', 'sssssSssssssssss', 'ssssssssssssssss'],
-      ['ssssssssssssssss', 'ssssssssssssssss', 'ssssssssSsssssss', 'ssszzsssssssssss', 'sssssssssssscsss', 'ssssssssssscccss', 'sSssssssssssSsss', 'ssssssssssssssss', 'ssssssssssssssss', 'sssssssSSsssssss', 'ssssssssssssssss', 'sszssssssssssSss', 'ssssssssssssssss', 'ssssssssssssssss', 'ssssSsssssssssss', 'ssssssssssssssss']],
-    grass: [['LLLLLLLLLLLLLLLL', 'LLGLLLLLLLLGLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLGLLLLLLLL', 'LLLLLLLLLLLLLLGL', 'LGLLLLLLLLLLLLLL', 'LLLLLLLLLLGLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLGLLL', 'LLLGLLLLLLLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LGLLLLLLLLLLLGLL', 'LLLLLLLLLLLLLLLL'],
-      ['LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLGgGLLLLLLLLL', 'LLLLLGLLLLLLLxLL', 'LLLLLLLLLLLLxwxL', 'LLLLLLLLLLLLLxLL', 'LLLLLLLLLLLLLGLL', 'LLGLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLGgGLLLLLL', 'LLLLLLLLGLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL'],
-      ['LLLLLLLLLLLLLLLL', 'LLLLLLLLggLLLLLL', 'LLLLLLLgggLLLLLL', 'LLLLLLLLggLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLyLLLLLLLLLLLL', 'LLywyLLLLLLLLLLL', 'LLLyLLLLLLLLLLLL', 'LLLLLLLLLLLLLggL', 'LLLLLLLLLLLLggLL', 'LLLLLLLLLLLLLLLL', 'LLLLLLLLLLLLLLLL', 'LLLLLGLLLLLLLLLL', 'LLLLGgGLLLLLLLLL', 'LLLLLGLLLLLLLLLL']],
+    sand: [['ssssssssssssssss', 'ssSsssssssSsssss', 'ssssssssssssssss', 'ssssssSsssssssss', 'ssssssssssssssSs', 'sszsssssssssssss', 'ssssssssssssssss', 'ssssSsssssSsssss', 'ssssssssssssssss', 'sSssssssssssssss', 'ssssssssSsssssss', 'ssssssssssssssss', 'sssssSsssssssSss', 'ssssssssssssssss', 'sszsssssszssssss', 'ssssssssssssssss'],
+      ['ssssssssssssssss', 'ssssSsssssssSsss', 'ssssssssssssssss', 'sSssssssssssssss', 'ssssssssssSsssss', 'ssssssssssssssss', 'sssssssSsssssszs', 'ssssssssssssssss', 'ssSsssssssssssss', 'ssssssssssssSsss', 'sssssszsssssssss', 'ssssssssssssssss', 'ssssSsssssSsssss', 'ssssssssssssssss', 'sssssssssssssSss', 'ssssssssssssssss'],
+      ['ssssssssssssssss', 'ssssssssssssssss', 'ssssssSsssssssss', 'ssSsssssssssssss', 'sssssssssssscsss', 'ssssssssssscccss', 'ssssssssssssSsss', 'ssssssssssssssss', 'ssSsssssssssssss', 'sssssssSsssssSss', 'ssssssssssssssss', 'sszsssssssssssss', 'ssssssssssssssss', 'ssssssssSsssssss', 'ssssSsssssssssss', 'ssssssssssssssss']],
+    grass: [['ffffffffffffffff', 'ffffffffffffffff', 'fFfFffffffffffff', 'ffFfffffffFfFfff', 'fffffffffffFffff', 'ffffffffffffffff', 'ffffffffffffffff', 'ffffffFfFfffffff', 'fffffffFffffffff', 'ffffffffffffffff', 'fFfFffffffffffff', 'ffFfffffffffffff', 'ffffffffffffFfFf', 'fffffffffffffFff', 'ffffffffffffffff', 'ffffffffffffffff'],
+      ['ffffffffffffffff', 'fffffffffffFfFff', 'ffffffffffffFfff', 'ffffffffffffffff', 'fffFfFffffffffff', 'ffffFfffffffffff', 'ffffffffffffffff', 'ffffffffffffffff', 'ffffffffffffffff', 'ffffffffffffffff', 'ffffffffffffffff', 'fffffffffFfFffff', 'ffffffffffFfffff', 'fFfFffffffffffff', 'ffFfffffffffffff', 'ffffffffffffffff'],
+      ['ffffffffffffffff', 'fFfFfFfFfFfFfFfF', 'ffFfFfFfFfFfFfFf', 'fFfFfFfFfFfFfFfF', 'ffFfFfFfFfFfFfFf', 'fFfFfFfFfFfFfFfF', 'ffFfFfFfFfFfFfFf', 'fFfFfFfFfFfFfFfF', 'ffFfFfFfFfFfFfFf', 'fFfFfFfFfFfFfFfF', 'ffFfFfFfFfFfFfFf', 'fFfFfFfFfFfFfFfF', 'ffFfFfFfFfFfFfFf', 'fFfFfFfFfFfFfFfF', 'ffFfFfFfFfFfFfFf', 'ffffffffffffffff'],
+      ['ffffffffffffffff', 'ffffffffffffffff', 'ffffffffffffffff', 'ffffFfFfffffffff', 'fffffFffffffffff', 'ffffffffffffffff', 'ffffffffffffffff', 'fffffffffffffFff', 'ffffffffffffxwxf', 'fffffffffffffxff', 'ffffffffffffffff', 'fFfFffffffffffff', 'ffFfffffffffffff', 'ffffffffffffffff', 'ffffffffffffffff', 'ffffffffffffffff']],
     paving: [['cccccccccccccccc', 'cccccccScccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccccccccccccccSc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'ccSccccccccccccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS', 'cccccccccccccccc', 'cccccccccccScccc', 'cccccccccccccccc', 'SSSSSSSSSSSSSSSS']],
     slab: [['zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzSzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzSzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzSzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzSzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS'],
       ['zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzSzzzS', 'zzzzzzzzzzSzzzzS', 'zzzzzzzzzSzzzzzS', 'zzzzzzzzzzzzzzzS', 'zzzzzzzzzzzzzzzS', 'zSzzzzzzzzzzzzzS', 'SSSSSSSSSSSSSSSS', 'sssssssssssssssS', 'sssssssssssssssS', 'sssssssSsssssssS', 'sssssssssssssssS', 'sssssssssssssssS', 'ssssssssssssSssS', 'sssssssssssssssS', 'SSSSSSSSSSSSSSSS'],
@@ -190,13 +187,16 @@ const PixelArt = (() => {
   const FENCE = ['.ii......ii.....', '.io......io.....', 'iiiiiiiiiiiiiiii', 'ioooooooooooooo', 'iiiiiiiiiiiiiiii', '.io......io.....', '.io......io.....', '.ii......ii.....'];
   const PINE = ['.......ii.......', '......iGGi......', '......iGLi......', '.....iGGGGi.....', '.....iLGGGi.....', '....iGGGGGGi....', '.....iGGLGi.....', '....iGGGGGGi....', '...iGLGGGGGGi...', '....iGGGGGGi....', '...iGGGGLGGGi...', '..iGGGGGGGGGGi..', '...iGGLGGGGGi...', '..iGGGGGGGGGGi..', '.iGGGGGGGGGLGGi.', '..iiiGGGGGGiii..', '.....iGGGGi.....', '......iooi......', '......iooi......', '......iOoi......', '......iooi......', '......iOoi......', '......iooi......', '......iooi......', '.....iOooi......', '.....ioooi......', '.....iiiii......', '................', '................', '................', '................', '................'];
   const pine = () => cached('pine', 16, 32, (gg) => rows(gg, PINE, 0, 0));
-  // a villa (56×40): white walls, terracotta roof, blue shutters, a door and a step
+  const ROUND = ['.....iiiiii.....', '...iiGGggGGii...', '..iGgggLLgggGi..', '.iGggLLggggggGi.', '.iGgggggggLgggi.', 'iGggLggggggggGGi', 'iGgggggggLggGGGi', 'iGgLggggggggGGGi', 'iGGgggggLgggGGGi', 'iGGGggggggggGGGi', '.iGGGgggggGGGGi.', '.iGGGGggggGGGGi.', '..iGGGGGGGGGGi..', '...iiGGGGGGii...', '.....iiooii.....', '......iooi......', '......iooi......', '......iOoi......', '.....ioooi......', '.....iiiii......'];
+  const roundTree = () => cached('round', 16, 20, (gg) => rows(gg, ROUND, 0, 0));
+  // a house (56×40) the GBA way: a striped roof block, light walls with a darker base, framed windows with a sill, a door under a small awning
   function villa(g, x, y) {
-    px(g, C.i, x, y + 14, 56, 26); px(g, C.c, x + 1, y + 15, 54, 24); px(g, C.e, x + 1, y + 34, 54, 5);
-    px(g, C.i, x - 2, y + 4, 60, 11); px(g, C.j, x - 1, y + 5, 58, 9); for (let ry = y + 6; ry < y + 14; ry += 2) for (let rx = x + (ry % 4 ? 0 : 3); rx < x + 57; rx += 6) px(g, C.J, rx, ry, 3, 1);
-    px(g, C.i, x + 22, y, 12, 5); px(g, C.J, x + 23, y + 1, 10, 3);                                                             // chimney
-    [[6, 18], [40, 18]].forEach(([wx, wy]) => { px(g, C.i, x + wx, y + wy, 12, 10); px(g, C.l, x + wx + 1, y + wy + 1, 10, 8); px(g, C.i, x + wx + 5, y + wy + 1, 2, 8); px(g, C.b, x + wx - 3, y + wy, 3, 10); px(g, C.b, x + wx + 12, y + wy, 3, 10); });
-    px(g, C.i, x + 23, y + 20, 10, 20); px(g, C.o, x + 24, y + 21, 8, 18); px(g, C.y, x + 30, y + 30, 1, 1); px(g, C.i, x + 20, y + 39, 16, 1);   // door & step
+    px(g, C.J, x - 2, y + 2, 60, 16); for (let ry = y + 3; ry < y + 17; ry += 2) px(g, C.j, x - 1, ry, 58, 1); px(g, C.i, x - 2, y + 17, 60, 1); px(g, C.c, x - 1, y + 2, 58, 1);
+    px(g, C.J, x + 22, y - 2, 10, 5); px(g, C.i, x + 22, y - 3, 10, 1);
+    px(g, C.c, x, y + 18, 56, 22); px(g, C.e, x, y + 36, 56, 4); px(g, C.i, x, y + 39, 56, 1); px(g, C.e, x, y + 18, 1, 22); px(g, C.e, x + 55, y + 18, 1, 22);
+    [[6, 22], [40, 22]].forEach(([wx, wy]) => { px(g, C.b, x + wx - 1, y + wy - 1, 12, 10); px(g, C.l, x + wx, y + wy, 10, 8); px(g, C.w, x + wx + 1, y + wy + 1, 3, 2); px(g, C.b, x + wx + 4, y + wy, 2, 8); px(g, C.e, x + wx - 2, y + wy + 9, 14, 1); });
+    px(g, C.i, x + 22, y + 24, 12, 16); px(g, C.o, x + 23, y + 25, 10, 14); px(g, C.y, x + 30, y + 32, 1, 1);
+    for (let i = 0; i < 4; i++) px(g, i % 2 ? C.j : C.c, x + 20 + i * 4, y + 21, 4, 3); px(g, C.i, x + 20, y + 24, 16, 1);
   }
   // the storage yard (256×192): gravel, a corrugated hangar with the roll-up gate on the right and a door on the left,
   // a trailer seen from behind in front, the day crates by the gate; open when you are there
@@ -238,11 +238,11 @@ const PixelArt = (() => {
   // opts: { state, sunk, dirt, t (seconds, for the ripples), pumpLate, creature (a 24×24 canvas swimming in the pool), seed }
   function courtyard(g, o) {
     o = o || {}; const t = o.t || 0;
-    lay(g, 'grass', 0, 0, 256, 192); lay(g, 'sand', 0, 160, 256, 192);
+    lay(g, 'grass', 0, 0, 256, 192); lay(g, 'sand', 0, 160, 256, 192); px(g, C.z, 0, 160, 256, 1); px(g, C.S, 0, 161, 256, 1);
     px(g, C.q, 0, 0, 256, 12); px(g, C.Q, 0, 10, 256, 2); for (let i = 0; i < 14; i++) px(g, C.w, (i * 19 + Math.floor(t * 6)) % 256, 2 + (i % 4) * 2, 5, 1);
     lay(g, 'slab', 32, 40, 224, 160);
     px(g, C.S, 32, 40, 192, 1); px(g, C.S, 32, 40, 1, 120); px(g, C.i, 32, 159, 192, 1);
-    villa(g, 6, 2); [[74, 6], [98, 0], [124, 8], [152, 2], [180, 7], [236, 4], [240, 52], [2, 88], [238, 124]].forEach(([x, y]) => g.drawImage(pine(), x, y));
+    villa(g, 6, 2); [[74, 6], [124, 8], [180, 7], [240, 52], [238, 124]].forEach(([x, y]) => g.drawImage(pine(), x, y)); [[98, 16], [152, 14], [236, 18], [2, 100], [4, 128]].forEach(([x, y]) => g.drawImage(roundTree(), x, y));
     shed(g, 222, 66, false, 0);
     const fence = cached('fence', 16, 8, (gg) => rows(gg, FENCE, 0, 0)); for (let tx = 0; tx < 256; tx += 16) g.drawImage(fence, tx, 184);
     const lounger = cached('lounger', 16, 16, (gg) => rows(gg, LOUNGER, 0, 0)); g.drawImage(lounger, 36, 66); g.drawImage(lounger, 36, 90);
@@ -252,7 +252,7 @@ const PixelArt = (() => {
     px(g, C.S, 56, 56, 144, 1); px(g, C.S, 56, 135, 144, 1); px(g, C.S, 56, 56, 1, 80); px(g, C.S, 199, 56, 1, 80);
     const w = o.sunk ? WATER.sunk : WATER[o.state] || WATER.calme;
     px(g, C.i, 60, 60, 136, 72); px(g, w[0], 61, 61, 134, 70); px(g, w[2], 61, 122, 134, 9); px(g, w[1], 61, 61, 134, 3);
-    for (let i = 0; i < 12; i++) px(g, w[1], 64 + ((i * 23 + Math.floor(t * 8)) % 124), 68 + (i * 11) % 50, 6, 1);
+    for (let ry = 0; ry < 8; ry++) for (let rx = 0; rx < 9; rx++) { const wx = 62 + rx * 16 + (ry % 2) * 8 + (Math.floor(t * 2) % 4) * 2, wy = 66 + ry * 8; if (wx + 5 < 195) { px(g, w[1], wx, wy, 4, 1); px(g, w[1], wx + 4, wy + 1, 2, 1); } }
     if (o.sunk) for (let i = 0; i < 10; i++) px(g, '#3a2a5a', 66 + ((i * 29 + Math.floor(t * 5)) % 118), 66 + ((i * 13 + Math.floor(t * 3)) % 52), 4, 2);
     if (o.dirt) { let h = 7; for (let i = 0; i < o.dirt * 16; i++) { h = (h * 1103515245 + 12345) & 0x7fffffff; px(g, i % 3 ? C.A : C.O, 64 + (h % 124), 66 + ((h >> 8) % 52), 2, 1); } }
     if (o.creature && !o.sunk) { let h = 2166136261; for (const ch of String(o.seed || '')) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } h >>>= 0; const cx = 70 + (h % 96) + Math.round(Math.sin(t * .6 + h % 7) * 6), cy = 66 + ((h >> 5) % 40) + Math.round(Math.sin(t * .9) * 2); px(g, w[1], cx - 4, cy + 20, 32, 1); g.drawImage(o.creature, cx, cy); }
@@ -264,6 +264,6 @@ const PixelArt = (() => {
   const heroSets = (equip) => ({ head: equip['tête'] ? equip['tête'].res : null, body: equip.torse ? equip.torse.res : null, legs: equip.jambes ? equip.jambes.res : null, feet: equip.pieds ? equip.pieds.res : null, tool: equip.perche ? equip.perche.res : (equip.balai ? equip.balai.res : null), toolKind: equip.perche ? 'perche' : (equip.balai ? 'balai' : null) });
   const heroTrim = (equip) => { const t = {}; [['tête', 'head'], ['torse', 'body'], ['jambes', 'legs'], ['pieds', 'feet']].forEach(([sl, k]) => { if (equip[sl] && equip[sl].rar !== 'common') t[k] = RCOL[equip[sl].rar]; }); return t; };
 
-  return { C, ZONE, RCOL, WATER, px, rows, mir, trainer, creature, monster, MON, SPECIES, item, ITEM, crate, tile, lay, TILE, shed, storage, villa, pine, courtyard, heroSets, heroTrim, TREE, PINE, LOUNGER, cached };
+  return { C, ZONE, RCOL, WATER, px, rows, mir, trainer, creature, monster, MON, SPECIES, item, ITEM, crate, tile, lay, TILE, shed, storage, villa, pine, roundTree, courtyard, heroSets, heroTrim, TREE, PINE, ROUND, LOUNGER, cached };
 })();
 window.PixelArt = PixelArt;
