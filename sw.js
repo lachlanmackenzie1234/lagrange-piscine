@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v0.94';
+const VERSION = 'lp-v0.95';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const ASSETS = [
   './js/store.js',
   './js/app.js',
   './js/pixelart.js',
+  './js/maps.js',
   './js/game.js',
   './manifest.webmanifest',
   './fonts/PixelifySans-Regular.ttf',
