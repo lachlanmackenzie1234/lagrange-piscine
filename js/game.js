@@ -264,8 +264,8 @@ const Game = (() => {
   const WATER = PA.WATER;
   const px = (ctx, col, x, y, w, h) => { ctx.fillStyle = col; ctx.fillRect(x, y, w || 1, h || 1); };
   const line = (ctx, col, x0, y0, x1, y1, w) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) px(ctx, col, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), w || 1, w || 1); };
-  // the courtyard (256×192): the basin's coping spans 48..208 × 44..140, the skimmer sits on the near coping at 156, the pump at 214
-  const drawPoolBg = (ctx, c, t) => PA.courtyard(ctx, { state: c.state, sunk: c.sunk, dirt: c.s && c.s.dirt, t, pumpLate: c.filtre > c.interval });
+  // the courtyard (256×192): the basin's coping spans 56..200 × 56..136, the skimmer sits on the near coping at 148, the pump at 226
+  const drawPoolBg = (ctx, c, t) => PA.courtyard(ctx, { state: c.state, sunk: c.sunk, dirt: c.s && c.s.dirt, t, pumpLate: c.filtre > c.interval, creature: c.p ? spriteCanvas(c.p) : null, seed: c.id });
   function drawHero(ctx, sc, a, p, o) {
     const g = load(); o = o || {};
     if (a && a.k === 'walk') { sc.hx = Math.round(a.from + (a.x - a.from) * p); sc.moving = 1; } else sc.moving = 0;
@@ -273,18 +273,18 @@ const Game = (() => {
   }
   function drawPool(ctx, t, sc, a, p, c, e) {
     drawPoolBg(ctx, c, t); const g = load(); const w = c.sunk ? ['#101828', '#1c2740'] : WATER[c.state] || WATER.calme;
-    if (e && e.monster) { const mc = monsterCanvas(e.monster.id); const my = 74 + Math.round(Math.sin(t * 2) * 2); px(ctx, w[1], 96, my + 21, 36, 1); ctx.drawImage(mc, 100, my); }
-    if (e && e.escaped && !e.monster) px(ctx, '#7b3fc4', 110 + Math.floor(t * 3) % 5, 84, 2, 2);
+    if (e && e.monster) { const mc = monsterCanvas(e.monster.id); const my = 76 + Math.round(Math.sin(t * 2) * 2); px(ctx, w[1], 108, my + 21, 36, 1); ctx.drawImage(mc, 112, my); }
+    if (e && e.escaped && !e.monster) px(ctx, '#7b3fc4', 122 + Math.floor(t * 3) % 5, 86, 2, 2);
     const k = a && a.k; const hx = sc.hx;
     if (k === 'test') { drawHero(ctx, sc, a, p, { crouch: true }); px(ctx, '#20203a', hx + 22, 160, 6, 10); px(ctx, '#e6e6ff', hx + 23, 161, 4, 8); px(ctx, p < .5 ? '#ffd94a' : c.s.cl < 1 ? '#f2c14e' : '#ff7aa8', hx + 23, 165, 4, 4); if (p < .4) px(ctx, w[0], hx + 25, 134 + Math.round(p * 60), 2, 2); return; }
     drawHero(ctx, sc, a, p);
     if (k === 'drop') { for (let i = 0; i < a.n; i++) { const q = Math.min(1, Math.max(0, p * 1.4 - i * 0.15)); if (q < 1) { px(ctx, '#20203a', hx + 19 + (i % 3) * 3, 156 - Math.round(q * 22), 3, 5); px(ctx, '#fff', hx + 20 + (i % 3) * 3, 157 - Math.round(q * 22), 1, 3); } } }
     if (k === 'scatter') { const r = rng(hash('sc')); for (let i = 0; i < 24; i++) { const q = Math.min(1, p * 1.3 + r() * .2); px(ctx, i % 4 ? '#fff' : '#e6e6ff', hx + 20 + Math.round((r() * 40 - 8) * q), 156 - Math.round(q * (24 + r() * 30)), 1, 1); } }
     if (k === 'sweep') {
-      if (g.equip.robot) { const rc = RCOL[g.equip.robot.rar]; const rx = 58 + Math.round(p * 134); px(ctx, '#20203a', rx - 1, 99, 10, 7); px(ctx, rc, rx, 100, 8, 5); px(ctx, shade(rc, 1.3), rx + 1, 100, 6, 1); px(ctx, '#20203a', rx + 1, 105, 2, 1); px(ctx, '#20203a', rx + 5, 105, 2, 1); px(ctx, w[1], rx - 3, 98, 2, 1); px(ctx, w[1], rx - 6, 96, 1, 1); }
+      if (g.equip.robot) { const rc = RCOL[g.equip.robot.rar]; const rx = 66 + Math.round(p * 120); px(ctx, '#20203a', rx - 1, 99, 10, 7); px(ctx, rc, rx, 100, 8, 5); px(ctx, shade(rc, 1.3), rx + 1, 100, 6, 1); px(ctx, '#20203a', rx + 1, 105, 2, 1); px(ctx, '#20203a', rx + 5, 105, 2, 1); px(ctx, w[1], rx - 3, 98, 2, 1); px(ctx, w[1], rx - 6, 96, 1, 1); }
       else { const tx = hx + 8 + Math.round(Math.sin(p * 9) * 22), ty = 96; const pc = g.equip.balai ? RCOL[g.equip.balai.rar] : '#8a4a1e'; line(ctx, pc, hx + 22, 150, tx, ty, 2); px(ctx, '#20203a', tx - 3, ty - 1, 8, 3); px(ctx, w[1], tx - 5, ty + 2, 12, 1); }
     }
-    if (k === 'wash') { for (let i = 0; i < 6; i++) px(ctx, i % 2 ? '#8ed4ff' : '#fffbe9', 215 + i * 2, 116 - ((Math.round(p * 40) + i * 6) % 24), 2, 3); px(ctx, '#2aa845', 220, 121, 2, 2); }
+    if (k === 'wash') { for (let i = 0; i < 6; i++) px(ctx, i % 2 ? '#8ed4ff' : '#fffbe9', 227 + i * 2, 102 - ((Math.round(p * 40) + i * 6) % 24), 2, 3); px(ctx, '#2aa845', 232, 107, 2, 2); }
   }
   function drawBattle(ctx, t, sc, c, mo, g) {
     const a = sc.q[0]; const p = a ? Math.min(1, (t - (a.t0 == null ? t : a.t0)) / a.dur) : 0; const k = a && a.k;
@@ -292,9 +292,9 @@ const Game = (() => {
     const gone = !B || (B.won && k !== 'dissolve') || (B.fled && (k !== 'flee' || p > .5));
     if (mo && !gone) {
       const mc = monsterCanvas(mo.id); const dy = k === 'foe' ? Math.round(Math.sin(p * Math.PI) * 16) : Math.round(Math.sin(t * 2) * 2); const dx = k === 'hit' ? Math.round(Math.sin(p * Math.PI * 4) * 4) : 0;
-      const w = WATER[c.state] || WATER.calme; px(ctx, w[1], 104 + dx, 108 + dy, 48, 1);
-      if (k === 'dissolve') { ctx.globalAlpha = 1 - p; } ctx.drawImage(mc, 100 + dx, 62 + dy, 56, 48); ctx.globalAlpha = 1;
-      if (k === 'hit' && p < .2) { ctx.globalAlpha = .5; px(ctx, '#fff', 100 + dx, 62 + dy, 56, 48); ctx.globalAlpha = 1; }
+      const w = WATER[c.state] || WATER.calme; px(ctx, w[1], 104 + dx, 110 + dy, 48, 1);
+      if (k === 'dissolve') { ctx.globalAlpha = 1 - p; } ctx.drawImage(mc, 100 + dx, 64 + dy, 56, 48); ctx.globalAlpha = 1;
+      if (k === 'hit' && p < .2) { ctx.globalAlpha = .5; px(ctx, '#fff', 100 + dx, 64 + dy, 56, 48); ctx.globalAlpha = 1; }
     }
     sc.hx = 116; const lunge = k === 'lunge' ? -Math.round(Math.sin(p * Math.PI) * 14) : 0;
     drawHero(ctx, sc, null, 0, { dy: lunge, dx: k === 'flee' ? Math.round(p * 120) : 0 });
@@ -302,13 +302,9 @@ const Game = (() => {
     if (k === 'foe' && p < .25) { ctx.globalAlpha = .35; px(ctx, '#d82f2f', 0, 0, 256, 192); ctx.globalAlpha = 1; }
   }
   function drawDepot(ctx, t, sc, n, at) {
-    px(ctx, '#bfe3ff', 0, 0, 256, 192); px(ctx, '#d4ecff', 0, 70, 256, 50); [[20, 24], [150, 14], [210, 36], [90, 40]].forEach(([x, y]) => { px(ctx, '#fff', x, y + 2, 18, 4); px(ctx, '#fff', x + 4, y, 10, 2); });
-    for (let ty = 120; ty < 192; ty += 16) for (let tx = 0; tx < 256; tx += 16) ctx.drawImage(PA.tile('sand'), tx, ty);
-    for (let tx = 0; tx < 256; tx += 16) ctx.drawImage(PA.tile('hedge'), tx, 104);
-    const tree = PA.cached('tree', 16, 16, () => {}); [[6, 98], [230, 96], [60, 100]].forEach(([x, y]) => ctx.drawImage(tree, x, y));
-    PA.shed(ctx, 112, 88, at, n);
-    const g = load(); const to = at ? 104 : 8; const q = Math.min(1, t / 2.2); const hx = Math.round(8 + (to - 8) * q);
-    drawAvatar(ctx, hx, 122, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0 });
+    PA.storage(ctx, at, n, t);
+    const g = load(); const to = at ? 78 : 8; const q = Math.min(1, t / 2.4); const hx = Math.round(8 + (to - 8) * q);
+    drawAvatar(ctx, hx, 118, g.avatar, g.equip, { walk: q < 1 ? performance.now() / 120 : 0 });
   }
   function monsterBanner(render) {
     const g = load(); const e = g.enc; if (!e || !e.monster) return null;
@@ -524,10 +520,10 @@ const Game = (() => {
     const e = g.enc; const st = stage((ctx, t, sc, a, pp) => drawPool(ctx, t, sc, a, pp, c, e));
     if (e) {
       const seen = e.seen || { chem: 0, clean: 0, filt: 0, mes: 0 };
-      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', x: 138, dur: 1 }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
-      if (acts.mes > seen.mes) st.q.push({ k: 'walk', x: 44, dur: 1 }, { k: 'test', dur: 2 });
+      if (acts.chem > seen.chem) { const tr = Store.load().visits.filter((v) => v.poolId === p.id && !v.deleted && v.type === 'treatment' && v.at >= e.since).sort((x, y) => (x.at < y.at ? 1 : -1))[0]; const sticks = tr && CL[tr.productId] && CL[tr.productId] > 1; st.q.push({ k: 'walk', x: 130, dur: 1 }, sticks ? { k: 'drop', n: Math.min(6, Math.max(1, Math.round(tr.qty || 1))), dur: 1.4 } : { k: 'scatter', dur: 1.4 }); }
+      if (acts.mes > seen.mes) st.q.push({ k: 'walk', x: 48, dur: 1 }, { k: 'test', dur: 2 });
       if (acts.clean > seen.clean) st.q.push({ k: 'walk', x: 100, dur: .7 }, { k: 'sweep', dur: 2.4 });
-      if (acts.filt > seen.filt) st.q.push({ k: 'walk', x: 192, dur: 1.1 }, { k: 'wash', dur: 1.8 });
+      if (acts.filt > seen.filt) st.q.push({ k: 'walk', x: 204, dur: 1.1 }, { k: 'wash', dur: 1.8 });
       e.seen = { ...acts }; save();
     }
     box.insertBefore(st.c, box.querySelector('.q-stats'));
