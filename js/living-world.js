@@ -3,6 +3,7 @@
  */
 const QuestWorld = (() => {
   const Eco = typeof window === 'undefined' ? require('./quest-ecology.js') : window.QuestEcology;
+  const Zones = typeof window === 'undefined' ? require('./quest-zones.js') : window.QuestZones;
   const W = 512, H = 384, T = 32, TAU = Math.PI * 2;
   const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
   const seeded = seed => { let n = seed >>> 0; return () => { n = (Math.imul(n, 1664525) + 1013904223) >>> 0; return n / 4294967296; }; };
@@ -94,7 +95,7 @@ function makeGrassSprite(size, variant) {
     layout.objects.forEach(o => {
       const tree = o.kind === 'tree' || o.kind === 'pine';
       props.push({ kind: o.kind, plant: tree ? o.kind === 'pine' ? o.variant % 2 ? 3 : 1 : o.variant % 2 ? 2 : 0 : null,
-        x: (o.x + o.w / 2) * T, y: (o.y + o.h) * T - 2, scale: tree ? .66 + rand() * .15 : o.kind === 'villa' ? .94 : o.kind === 'shed' ? .9 : 1,
+        x: (o.x + o.w / 2) * T, y: (o.y + o.h) * T - 2, scale: o.kind === 'villa' ? .94 : o.kind === 'shed' ? .9 : 1, occludes: o.kind === 'villa' || o.kind === 'shed',
         phase: rand() * TAU, object: o });
     });
     // Edge trees frame the property without adding obstacles to open cells.
@@ -108,11 +109,34 @@ function makeGrassSprite(size, variant) {
       props.push({ kind: 'foliage', plant: [4, 5, 7][i % 3], x, y, scale: .5 + rand() * .24, phase: rand() * TAU });
     }
     const trees = props.filter(p => p.plant != null && p.plant < 4), roster = Eco.treeRoster(layout.id, trees.length);
-    trees.forEach((p, i) => { p.species = roster[i]; p.treeVariant = i % 2; });
+    trees.forEach((p, i) => {
+      p.species = roster[i]; p.scale = 1;
+      p.treeSize = p.x < 12 || p.x > W - 12 || p.y > H ? 'large' : Zones.TREE_PLACEMENT_SIZES[i % 7];
+    });
     const cover = Eco.createGroundCover({ width: W, height: H, seed: Eco.hashIdentity(layout.id),
       eligible: (x, y) => clear(x, y, 5), rockEligible: (x, y) => clear(x, y, 12) && props.every(p => Math.hypot(x - p.x, y - p.y) > 28) });
     cover.rocks.forEach(o => props.push({ ...o, kind: 'foliage', plant: 6 }));
-    return { props, grass: cover.grass, coverage: cover };
+    const used = new Set();
+    const accents = cover.grass.filter(t => {
+      if (used.has(t.patchId) || Eco.hashIdentity(layout.id + t.patchId) % 4) return false;
+      used.add(t.patchId); return true;
+    }).map(t => ({ ...t, zoneAccent: true }));
+    return { props, grass: accents, coverage: cover };
+  }
+
+  function lawnEligibility(layout) {
+    const occupied = new Set();
+    // Small props sit in the lawn; excluding their whole tile would leave a
+    // rectangular colour patch around pots, signs and filter controls.
+    for (const o of layout.objects) if (['villa', 'shed'].includes(o.kind)) {
+      for (let y = o.y; y < o.y + o.h; y++) for (let x = o.x; x < o.x + o.w; x++) occupied.add(y * 16 + x);
+    }
+    const deck = rect(layout.deck), water = rect(layout.pool);
+    return (x, y) => {
+      if (x < 0 || y < 0 || x >= W || y >= H || layout.border === 'canal' && x >= W - 34) return false;
+      const tx = Math.floor(x / T), ty = Math.floor(y / T);
+      return layout.ground[ty]?.[tx] === 'grass' && !occupied.has(ty * 16 + tx) && !inside(x, y, deck) && !inside(x, y, water);
+    };
   }
 
   function makeGround(layout) {
@@ -182,9 +206,12 @@ function makeGrassSprite(size, variant) {
   const ready = typeof document === 'undefined' ? Promise.resolve(false) : (async () => {
     try {
       const base = new URL('../assets/quest-world/', document.currentScript.src);
-      const [source, manifest, treePage, treeManifest] = await Promise.all([loadImage(new URL('foliage.png', base).href), fetch(new URL('foliage.json', base)).then(r => { if (!r.ok) throw new Error('Foliage manifest unavailable'); return r.json(); }), loadImage(new URL('trees.png', base).href), fetch(new URL('trees.json', base)).then(r => { if (!r.ok) throw new Error('Tree manifest unavailable'); return r.json(); })]);
+      const zoneBase = new URL('../quest-zones/', base);
+      const [source, manifest, zonePage, zoneManifest] = await Promise.all([loadImage(new URL('foliage.png', base).href), fetch(new URL('foliage.json', base)).then(r => { if (!r.ok) throw new Error('Foliage manifest unavailable'); return r.json(); }), loadImage(new URL('zones.png', zoneBase).href), fetch(new URL('manifest.json', zoneBase)).then(r => { if (!r.ok) throw new Error('Zone manifest unavailable'); return r.json(); })]);
       const plants = manifest.regions.map(([x, y, w, h]) => { const c = surface(w, h), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(source, x, y, w, h, 0, 0, w, h); return c; });
-      const trees = Object.fromEntries(Object.entries(treeManifest.regions).map(([id, [x, y, w, h]]) => { const c = surface(w, h); c.getContext('2d').drawImage(treePage, x, y, w, h, 0, 0, w, h); return [id, c]; }));
+      const zones = Object.fromEntries(Object.entries(zoneManifest.regions).map(([id, meta]) => {
+        const [x, y, w, h] = meta.r, c = surface(w, h), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(zonePage, x, y, w, h, 0, 0, w, h); return [id, c];
+      }));
       const grass = Array.from({ length: 4 }, (_, size) => Array.from({ length: 3 }, (_, variant) => makeGrassSprite(size, variant)));
       const props = Object.fromEntries(['pump', 'pot', 'sign', 'bench', 'lounger'].map(kind => [kind, makeProp(kind)]));
       props.villa = makeHouse(); props.shed = makePump();
@@ -199,9 +226,9 @@ function makeGrassSprite(size, variant) {
         for (const [id, { r: [x, y, w, h] }] of Object.entries(manifest.props)) { const c = surface(w, h); c.getContext('2d').drawImage(page, x, y, w, h, 0, 0, w, h); hubProps[id] = c; }
       } catch (error) { hubFailure = error.message; }
       if (hubProps['boss-desk']) { const source = hubProps['boss-desk'], c = surface(source.width, source.height), g = c.getContext('2d'); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(source, 0, 0); hubProps['boss-desk-mirrored'] = c; }
-      const all = [...plants, ...Object.values(trees), ...grass.flat(), ...Object.values(props), ...Object.values(hubProps)];
-      const animated = new Set([...plants, ...Object.values(trees), ...grass.flat()]);
-      art = { plants, trees, grass, props, hubProps, frames: new Map(), shadows: new Map(), shadowFrames: new Map(), alpha: new Map() };
+      const all = [...plants, ...Object.values(zones), ...grass.flat(), ...Object.values(props), ...Object.values(hubProps)];
+      const animated = new Set([...plants.filter((_, i) => i !== 6), ...Object.entries(zones).filter(([id]) => ['trees', 'grass'].includes(zoneManifest.regions[id].family)).map(([, image]) => image), ...grass.flat()]);
+      art = { plants, zones, zoneMeta: zoneManifest.regions, grass, props, hubProps, frames: new Map(), shadows: new Map(), shadowFrames: new Map(), alpha: new Map() };
       all.forEach(c => { if (animated.has(c)) { const frames = bendFrames(c); art.frames.set(c, frames); art.shadowFrames.set(c, frames.map(shadowSprite)); } art.shadows.set(c, shadowSprite(c)); art.alpha.set(c, c.getContext('2d').getImageData(0, 0, c.width, c.height).data); });
       return true;
     } catch (error) { failure = error.message; return false; }
@@ -229,14 +256,25 @@ function makeGrassSprite(size, variant) {
       this.layout = layout; this.pool = layout.pool ? rect(layout.pool) : null; this.time = 0; this.leaves = [];
       [this.width, this.height] = layout.size || [W, H];
       this.interior = layout.id === 'bureau';
+      this.theme = this.pool ? Zones.zoneStyle(layout.res || layout.id) : null;
       const hub = !!layout.npcs, decoration = hub ? { props: layout.scenery, grass: window.QuestHubArt.grass(layout) } : plan(layout);
       this.coverage = decoration.coverage; this.tracks = []; this.trackDistance = 0; this.refreshClimate();
       if (hub) { const room = window.QuestHubArt.build(layout.id, art.plants); this.base = room.base; this.foreground = room.foreground; } else this.base = makeGround(layout);
-      this.props = decoration.props.map((o, i) => ({ scale: 1, phase: i * 2.73, ...o, sprite: o.asset ? art.hubProps[o.flipX ? o.asset + '-mirrored' : o.asset] : o.species ? art.trees[o.species + '-' + o.treeVariant] : o.plant == null ? art.props[o.kind] : art.plants[o.plant] }));
-      this.grass = decoration.grass.map(o => ({ ...o, kind: 'grass', scale: 1, sprite: art.grass[o.size][o.variant], bend: 0, bendVelocity: 0, flatten: 0 }));
+      this.props = decoration.props.map((o, i) => {
+        const zoneAsset = o.species ? `${o.species}-${o.treeSize}` : null;
+        const sprite = zoneAsset ? art.zones[zoneAsset] : o.asset ? art.hubProps[o.flipX ? o.asset + '-mirrored' : o.asset] : o.plant == null ? art.props[o.kind] : art.plants[o.plant];
+        return { scale: 1, phase: i * 2.73, ...o, zoneAsset, sprite, anchor: zoneAsset ? art.zoneMeta[zoneAsset].anchor : [sprite.width / 2, sprite.height] };
+      });
+      this.grass = decoration.grass.map(o => ({ ...o, kind: 'grass', scale: 1, sprite: o.zoneAccent ? art.zones[`${this.theme.id}-${Zones.grassStage(this.cycle.height)}`] : art.grass[o.size][o.variant], bend: 0, bendVelocity: 0, flatten: 0 }));
       this.scenery = [...this.props, ...this.grass].sort((a, b) => (a.depth ?? a.y) - (b.depth ?? b.y));
       this.hitProps = this.props.slice().sort((a, b) => b.y - a.y);
       this.shadows = surface(this.width, this.height); this.shadeSample = surface(Math.ceil(this.width / 4), Math.ceil(this.height / 4));
+      this.meadowFrames = new Map(); this.meadowDirty = true;
+      this.lawnAt = this.pool ? lawnEligibility(layout) : null;
+      this.meadow = this.pool ? Zones.createMeadow({ width: this.width, height: this.height, eligible: this.lawnAt,
+        zoneAt: (x, y) => inside(x, y, rect(layout.deck), 12) ? 'trimmed' : 'wild' }) : [];
+      this.meadowIndex = new Map(this.meadow.map(c => [Math.floor(c.y / 8) * Math.ceil(this.width / 8) + Math.floor(c.x / 8), c]));
+      this.meadowLayer = this.pool ? surface(this.width, this.height) : null;
       this.shade = new Uint8Array(this.shadeSample.width * this.shadeSample.height); this.makeLawn(); this.updateShadows(0, true);
     }
     refreshClimate() {
@@ -245,13 +283,67 @@ function makeGrassSprite(size, variant) {
       this.cycle = Eco.gardenCycle(this.layout.id, atmosphere.clock.date); this.nextClimate = Date.now() + 60000;
     }
     makeLawn() {
-      if (!this.coverage) return;
-      this.lawn = surface(this.width, this.height); const g = this.lawn.getContext('2d'), rand = seeded(hash(this.layout.id));
-      const height = this.cycle.height, colour = `rgb(${Math.round(152 - height * 36)},${Math.round(188 - height * 24)},${Math.round(113 - height * 22)})`;
-      for (const patch of this.coverage.patches) if (patch.kind === 'grass') for (const [x, y] of patch.samples) {
-        g.globalAlpha = .88; box(g, colour, x - 4, y - 4, 8, 8);
-        g.globalAlpha = .17; for (let n = 0; n < 3; n++) box(g, n % 2 ? '#b4c778' : '#578a59', x - 4 + rand() * 8, y - 4 + rand() * 8, 2, 1);
+      if (!this.theme) return;
+      const w = this.width, h = this.height;
+      if (!this.lawnMask) {
+        this.lawnMask = surface(w, h); this.lawnPixels = new Uint8Array(w * h);
+        const g = this.lawnMask.getContext('2d'), pixels = g.createImageData(w, h);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (this.lawnAt(x, y)) { this.lawnPixels[y * w + x] = 1; pixels.data[(y * w + x) * 4 + 3] = 255; }
+        g.putImageData(pixels, 0, 0);
       }
+      this.lawn = surface(w, h); const g = this.lawn.getContext('2d');
+      g.fillStyle = g.createPattern(Zones.meadowTile(this.theme, this.cycle.height, false), 'repeat'); g.fillRect(0, 0, w, h);
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(this.lawnMask, 0, 0); g.globalCompositeOperation = 'source-over';
+      const pixels = g.getImageData(0, 0, w, h), base = this.base.getContext('2d').getImageData(0, 0, w, h).data;
+      // Interleave neighbouring sand/stone colours only on the grass side of
+      // the boundary; pools, terraces and navigation remain exactly where they are.
+      for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+        const i = y * w + x; if (!this.lawnPixels[i]) continue;
+        let neighbour = -1, distance = 0;
+        for (let d = 1; d <= 3 && neighbour < 0; d++) for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d]]) {
+          const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+          const next = yy * w + xx; if (!this.lawnPixels[next]) { neighbour = next; distance = d; break; }
+        }
+        const noise = ((Math.imul(x, 374761393) ^ Math.imul(y, 668265263)) >>> 0) % 100;
+        if (neighbour >= 0 && noise < 65 / distance) for (let k = 0; k < 3; k++) pixels.data[i * 4 + k] = base[neighbour * 4 + k];
+      }
+      g.putImageData(pixels, 0, 0); this.meadowPalette = Zones.meadowPalette(this.theme, this.cycle.height);
+      this.meadowFrames.clear(); this.meadowDirty = true;
+    }
+    meadowSprite(cell, time, quiet, mask = cell.mask, shade = 0) {
+      const shape = Zones.meadowShape(cell, { growth: this.cycle.height, lushness: 100, time: Math.floor(time * 8) / 8, wind: this.climate.patch.breeze / 100, quiet, maximum: Zones.MAX_GRASS_HEIGHT });
+      shape.mask = mask;
+      const key = `${shape.height}/${shape.amount}/${shape.pose}/${shape.variant}/${mask}/${shade}`;
+      if (!this.meadowFrames.has(key)) {
+        const image = Zones.meadowSprite(shape, this.meadowPalette);
+        if (shade) { const g = image.getContext('2d'); g.globalCompositeOperation = 'source-atop'; g.globalAlpha = shade / 8; box(g, '#255b55', 0, 0, image.width, image.height); }
+        this.meadowFrames.set(key, image);
+        if (this.meadowFrames.size > 768) this.meadowFrames.delete(this.meadowFrames.keys().next().value);
+      }
+      return this.meadowFrames.get(key);
+    }
+    paintMeadow(g, time, quiet) {
+      if (!this.meadowLayer) return;
+      const stamp = quiet ? -1 : Math.floor(time * 8);
+      if (this.meadowDirty || stamp !== this.meadowStamp) {
+        const target = this.meadowLayer.getContext('2d'); target.clearRect(0, 0, this.width, this.height); target.imageSmoothingEnabled = false;
+        for (const cell of this.meadow) target.drawImage(this.meadowSprite(cell, time, quiet), cell.x - 12, cell.y - 22);
+        this.meadowStamp = stamp; this.meadowDirty = false;
+      }
+      g.drawImage(this.meadowLayer, 0, 0);
+    }
+    foregroundMeadow(g, actor, time, quiet) {
+      const x = actor.x * 2, y = actor.y * 2, half = Math.max(12, (actor.shadow || 7) + 2), depth = Zones.MAX_GRASS_HEIGHT, columns = Math.ceil(this.width / 8);
+      g.save(); g.beginPath(); g.rect(x - half, y - depth, half * 2, depth + 3); g.clip();
+      for (let cy = Math.max(0, Math.floor((y - 3) / 8)); cy <= Math.floor((y + depth + 3) / 8); cy++) {
+        for (let cx = Math.max(0, Math.floor((x - half - 12) / 8)); cx <= Math.min(columns - 1, Math.floor((x + half + 12) / 8)); cx++) {
+          const cell = this.meadowIndex.get(cy * columns + cx); if (!cell) continue;
+          const mask = Zones.foregroundRoots(cell, y - 1); if (!mask) continue;
+          const shade = Math.round(this.shade[clamp(Math.floor(cell.y / 4), 0, this.shadeSample.height - 1) * this.shadeSample.width + clamp(Math.floor(cell.x / 4), 0, this.shadeSample.width - 1)] / 255 * 8);
+          g.drawImage(this.meadowSprite(cell, time, quiet, mask, shade), cell.x - 12, cell.y - 22);
+        }
+      }
+      g.restore();
     }
     frameIndex(o, time, quiet) {
       if (quiet || !art.frames.has(o.sprite)) return 2;
@@ -270,7 +362,8 @@ function makeGrassSprite(size, variant) {
         if (o.noShadow) return;
         g.save(); g.imageSmoothingEnabled = false; g.globalAlpha = (this.interior ? .13 : o.plant != null ? .2 : .25) * (1 - visual.cloud * .55) * (.55 + .45 * visual.sunStrength);
         g.translate(Math.round(o.x), Math.round(o.y)); g.transform(1, 0, this.shadowShear, this.interior ? .25 : -.3, 0, 0);
-        g.drawImage(sprite, -Math.round(sprite.width * o.scale / 2), -Math.round(sprite.height * o.scale), Math.round(sprite.width * o.scale), Math.round(sprite.height * o.scale)); g.restore();
+        const padding = (sprite.width - o.sprite.width) / 2;
+        g.drawImage(sprite, -Math.round((o.anchor[0] + padding) * o.scale), -Math.round(o.anchor[1] * o.scale), Math.round(sprite.width * o.scale), Math.round(sprite.height * o.scale)); g.restore();
       });
       const sample = this.shadeSample.getContext('2d', { willReadFrequently: true }); sample.clearRect(0, 0, this.shadeSample.width, this.shadeSample.height);
       sample.imageSmoothingEnabled = false; sample.drawImage(this.shadows, 0, 0, this.shadeSample.width, this.shadeSample.height);
@@ -283,11 +376,12 @@ function makeGrassSprite(size, variant) {
       return shade > 28 || this.climate.patch.mood === 'dusk' ? 'shade' : this.interior && !window.QuestHubArt.sunlit(this.layout.id, x, y) ? 'interior' : 'sun';
     }
     grassAt(x, y) {
-      return this.pool ? this.layout.ground[Math.floor(y / T)]?.[Math.floor(x / T)] === 'grass' : window.QuestHubArt.isGrass(this.layout.id, x, y);
+      return this.pool ? this.lawnAt(x, y) : window.QuestHubArt.isGrass(this.layout.id, x, y);
     }
-    footGrass(g, actor, t) {
+    footGrass(g, actor, t, quiet) {
       const x = Math.round(actor.x * 2), y = Math.round(actor.y * 2);
       if (!this.grassAt(x, y) || actor.grass === false) return;
+      if (this.meadowLayer) { this.foregroundMeadow(g, actor, t, quiet); return; }
       // A few rooted blades overlap the soles rather than drawing a green halo.
       const sway = Math.round(Math.sin(t * 1.2 + x) * .5);
       for (const [dx, h] of [[-6, 2], [-3, 4], [2, 3], [5, 2]]) { box(g, '#5d8c61', x + dx, y - h + 1, 1, h); box(g, '#b1c77c', x + dx + sway, y - h + 1, 1, 1); }
@@ -295,7 +389,7 @@ function makeGrassSprite(size, variant) {
     hit(x, y) {
       x *= 2; y *= 2;
       return this.hitProps.find(o => {
-        const w = o.sprite.width, h = o.sprite.height, sx = Math.floor((x - o.x) / o.scale + w / 2), sy = Math.floor((y - o.y) / o.scale + h);
+        const w = o.sprite.width, h = o.sprite.height, sx = Math.floor((x - o.x) / o.scale + o.anchor[0]), sy = Math.floor((y - o.y) / o.scale + o.anchor[1]);
         return sx >= 0 && sx < w && sy >= 0 && sy < h && art.alpha.get(o.sprite)[(sy * w + sx) * 4 + 3] > 0;
       });
     }
@@ -334,13 +428,14 @@ function makeGrassSprite(size, variant) {
       for (let y = ly - 7; y < ly + 6; y += 6) box(g, '#c2e1cd', lx - 2, y, 12, 2);
     }
     paintObject(g, o, t, hero, quiet) {
-      const grass = o.kind === 'grass', source = grass ? art.grass[Math.min(o.size, Math.floor(o.size * this.cycle.height))][o.variant] : o.sprite;
-      const w = Math.round(source.width * o.scale), h = Math.max(3, Math.round(source.height * o.scale * (grass ? (.75 + this.cycle.height * .25) * (1 - o.flatten * .55) : 1)));
+      const grass = o.kind === 'grass', source = o.zoneAccent ? art.zones[`${this.theme.id}-${Zones.grassStage(this.cycle.height)}`] : grass ? art.grass[Math.min(o.size, Math.floor(o.size * this.cycle.height))][o.variant] : o.sprite;
+      const w = Math.round(source.width * o.scale), h = Math.max(3, Math.round(source.height * o.scale * (grass ? (o.zoneAccent ? 1 : .75 + this.cycle.height * .25) * (1 - o.flatten * .55) : 1)));
       const sway = quiet ? 0 : Math.sin(t * 1.1 + o.phase) * this.climate.patch.breeze / 60 + (o.bend || 0);
       const frame = art.frames.get(source)?.[grass ? clamp(Math.round(sway), -2, 2) + 2 : this.frameIndex(o, t, quiet)] || source;
-      const behind = (o.occludes || o.plant != null && o.plant < 4) && hero[1] < o.y && hero[1] > o.y - h && Math.abs(hero[0] - o.x) < w * .4;
+      const behind = (o.occludes || o.plant != null && o.plant < 4 || o.zoneAccent && o.y - h < hero[1] - Zones.MAX_GRASS_HEIGHT) && hero[1] < o.y && hero[1] > o.y - h && Math.abs(hero[0] - o.x) < w * .4;
       g.save(); if (behind) g.globalAlpha = .58;
-      g.drawImage(frame, Math.round(o.x - w / 2 - (frame.width - source.width) / 2 * o.scale), Math.round(o.y - h), Math.round(frame.width * o.scale), h); g.restore();
+      const anchor = grass ? [source.width / 2, source.height] : o.anchor;
+      g.drawImage(frame, Math.round(o.x - (anchor[0] + (frame.width - source.width) / 2) * o.scale), Math.round(o.y - anchor[1] / source.height * h), Math.round(frame.width * o.scale), h); g.restore();
     }
     paint(ctx, condition, time, hero, actors = [], quiet = false) {
       const dt = Math.min(.25, Math.max(0, time - this.time)); this.time = time; const t = quiet ? 0 : time, foot = hero.map(n => n * 2);
@@ -349,17 +444,26 @@ function makeGrassSprite(size, variant) {
       for (const tuft of this.grass) { const impulse = Eco.passageImpulse(tuft, { x: foot[0], y: foot[1], vx, vy });
         for (let left = dt; left > 0; left -= .05) Eco.advanceGrassMemory(tuft, impulse, Math.min(.05, left), quiet);
       }
+      for (const cell of this.meadow) {
+        const near = Math.abs(cell.x - foot[0]) < 22 && Math.abs(cell.y - foot[1]) < 22;
+        if (near || Math.abs(cell.bend) > .005 || cell.flatten > .005 || Math.abs(cell.bendVelocity) > .005) {
+          const impulse = near ? Eco.passageImpulse(cell, { x: foot[0], y: foot[1], vx, vy }) : { bend: 0, pressure: 0 };
+          const previous = [cell.bend, cell.flatten];
+          for (let left = dt; left > 0; left -= .05) Eco.advanceGrassMemory(cell, impulse, Math.min(.05, left), quiet);
+          if (Math.abs(previous[0] - cell.bend) > .001 || Math.abs(previous[1] - cell.flatten) > .001) this.meadowDirty = true;
+        } else { cell.bend = 0; cell.flatten = 0; cell.bendVelocity = 0; }
+      }
       if (!quiet && this.lastFoot && this.grassAt(...foot)) { this.trackDistance += Math.hypot(foot[0] - this.lastFoot[0], foot[1] - this.lastFoot[1]); if (this.trackDistance > 9) { this.tracks.push({ x: foot[0], y: foot[1], at: time }); this.trackDistance = 0; } }
       this.lastFoot = foot; this.tracks = quiet ? [] : this.tracks.filter(p => time - p.at < 2).slice(-32); this.updateShadows(t, quiet);
       ctx.save(); ctx.scale(.5, .5); ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.base, 0, 0); if (this.lawn) ctx.drawImage(this.lawn, 0, 0); if (this.pool) this.water(ctx, condition, t); ctx.drawImage(this.shadows, 0, 0);
+      ctx.drawImage(this.base, 0, 0); if (this.lawn) ctx.drawImage(this.lawn, 0, 0); if (this.pool) this.water(ctx, condition, t); this.paintMeadow(ctx, t, quiet); ctx.drawImage(this.shadows, 0, 0);
       for (const track of this.tracks) { ctx.globalAlpha = (1 - (time - track.at) / 2) * .2; ellipse(ctx, '#a7bd78', track.x, track.y, 5, 2); } ctx.globalAlpha = 1;
       actors = actors.slice().sort((a, b) => a.y - b.y);
       for (const actor of actors) {
         if (actor.castShadow) { ctx.save(); ctx.globalAlpha = (this.interior ? .15 : .22) * (1 - this.climate.visual.cloud * .55); ctx.scale(2, 2); ctx.translate(actor.x, actor.y); ctx.transform(1, 0, this.shadowShear, this.interior ? .26 : -.36, 0, 0); actor.castShadow(); ctx.restore(); }
         ctx.globalAlpha = this.interior ? .16 : .22; ellipse(ctx, '#254e43', actor.x * 2, actor.y * 2 - 1, actor.shadow || 7, 2);
       } ctx.globalAlpha = 1;
-      const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw({ light: this.lightAt(a.x * 2, a.y * 2) }); ctx.restore(); this.footGrass(ctx, a, t); };
+      const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw({ light: this.lightAt(a.x * 2, a.y * 2) }); ctx.restore(); this.footGrass(ctx, a, t, quiet); };
       let next = 0;
       for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= (o.depth ?? o.y)) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); }
       while (next < actors.length) drawActor(actors[next++]);
@@ -378,7 +482,7 @@ function makeGrassSprite(size, variant) {
       ctx.restore();
     }
   }
-  return { ready, plan, paintBattle, create: layout => art && (!layout.npcs || window.QuestHubArt && layout.scenery.every(p => !p.asset || art.hubProps[p.asset])) ? new Scene(layout) : null, get status() { return { loaded: !!art, hubsLoaded: !!art && !hubFailure && Object.keys(art.hubProps).length > 0, hubProps: art ? Object.keys(art.hubProps).length : 0, failure, hubFailure }; } };
+  return { ready, plan, lawnEligibility, paintBattle, create: layout => art && (!layout.npcs || window.QuestHubArt && layout.scenery.every(p => !p.asset || art.hubProps[p.asset])) ? new Scene(layout) : null, get status() { return { loaded: !!art, zoneAssets: art ? Object.keys(art.zones).length : 0, hubsLoaded: !!art && !hubFailure && Object.keys(art.hubProps).length > 0, hubProps: art ? Object.keys(art.hubProps).length : 0, failure, hubFailure }; } };
 })();
 if (typeof window !== 'undefined') window.QuestWorld = QuestWorld;
 if (typeof module !== 'undefined') module.exports = QuestWorld;

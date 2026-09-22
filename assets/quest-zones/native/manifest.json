@@ -1,0 +1,1573 @@
+{
+  "version": 2,
+  "origin": "ImageGen sprites and code-authored seamless meadow tiles",
+  "anchor": "bottom-centre",
+  "alpha": "binary at native size",
+  "assets": [
+    {
+      "id": "EC-pump",
+      "family": "houses",
+      "identity": "EC",
+      "stage": "pump",
+      "file": "houses-v2/EC-pump.png",
+      "size": [
+        75,
+        83
+      ],
+      "anchor": [
+        37.5,
+        83
+      ],
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        41,
+        125,
+        360,
+        439
+      ],
+      "sampling": {
+        "offset": [
+          4,
+          1
+        ],
+        "drawSize": [
+          66,
+          81
+        ]
+      }
+    },
+    {
+      "id": "AG-pump",
+      "family": "houses",
+      "identity": "AG",
+      "stage": "pump",
+      "file": "houses-v2/AG-pump.png",
+      "size": [
+        75,
+        83
+      ],
+      "anchor": [
+        37.5,
+        83
+      ],
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        467,
+        135,
+        370,
+        427
+      ],
+      "sampling": {
+        "offset": [
+          2,
+          1
+        ],
+        "drawSize": [
+          70,
+          81
+        ]
+      }
+    },
+    {
+      "id": "EP-pump",
+      "family": "houses",
+      "identity": "EP",
+      "stage": "pump",
+      "file": "houses-v2/EP-pump.png",
+      "size": [
+        75,
+        83
+      ],
+      "anchor": [
+        37.5,
+        83
+      ],
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        910,
+        124,
+        385,
+        436
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          1
+        ],
+        "drawSize": [
+          72,
+          81
+        ]
+      }
+    },
+    {
+      "id": "EPP-pump",
+      "family": "houses",
+      "identity": "EPP",
+      "stage": "pump",
+      "file": "houses-v2/EPP-pump.png",
+      "size": [
+        75,
+        83
+      ],
+      "anchor": [
+        37.5,
+        83
+      ],
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        1355,
+        128,
+        379,
+        440
+      ],
+      "sampling": {
+        "offset": [
+          2,
+          1
+        ],
+        "drawSize": [
+          70,
+          81
+        ]
+      }
+    },
+    {
+      "id": "GP-pump",
+      "family": "houses",
+      "identity": "GP",
+      "stage": "pump",
+      "file": "houses-v2/GP-pump.png",
+      "size": [
+        75,
+        83
+      ],
+      "anchor": [
+        37.5,
+        83
+      ],
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        1808,
+        124,
+        362,
+        443
+      ],
+      "sampling": {
+        "offset": [
+          4,
+          1
+        ],
+        "drawSize": [
+          66,
+          81
+        ]
+      }
+    },
+    {
+      "id": "EC-house",
+      "family": "houses",
+      "identity": "EC",
+      "stage": "house",
+      "file": "houses-v2/EC-house.png",
+      "size": [
+        150,
+        126
+      ],
+      "anchor": [
+        75.0,
+        126
+      ],
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        11,
+        141,
+        337,
+        351
+      ],
+      "sampling": {
+        "offset": [
+          15,
+          1
+        ],
+        "drawSize": [
+          119,
+          124
+        ]
+      }
+    },
+    {
+      "id": "AG-house",
+      "family": "houses",
+      "identity": "AG",
+      "stage": "house",
+      "file": "houses-v2/AG-house.png",
+      "size": [
+        150,
+        126
+      ],
+      "anchor": [
+        75.0,
+        126
+      ],
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        349,
+        178,
+        358,
+        328
+      ],
+      "sampling": {
+        "offset": [
+          7,
+          1
+        ],
+        "drawSize": [
+          135,
+          124
+        ]
+      }
+    },
+    {
+      "id": "EP-house",
+      "family": "houses",
+      "identity": "EP",
+      "stage": "house",
+      "file": "houses-v2/EP-house.png",
+      "size": [
+        150,
+        126
+      ],
+      "anchor": [
+        75.0,
+        126
+      ],
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        714,
+        133,
+        343,
+        365
+      ],
+      "sampling": {
+        "offset": [
+          16,
+          1
+        ],
+        "drawSize": [
+          117,
+          124
+        ]
+      }
+    },
+    {
+      "id": "EPP-house",
+      "family": "houses",
+      "identity": "EPP",
+      "stage": "house",
+      "file": "houses-v2/EPP-house.png",
+      "size": [
+        150,
+        126
+      ],
+      "anchor": [
+        75.0,
+        126
+      ],
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        1064,
+        139,
+        352,
+        361
+      ],
+      "sampling": {
+        "offset": [
+          14,
+          1
+        ],
+        "drawSize": [
+          121,
+          124
+        ]
+      }
+    },
+    {
+      "id": "GP-house",
+      "family": "houses",
+      "identity": "GP",
+      "stage": "house",
+      "file": "houses-v2/GP-house.png",
+      "size": [
+        150,
+        126
+      ],
+      "anchor": [
+        75.0,
+        126
+      ],
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        1428,
+        133,
+        335,
+        365
+      ],
+      "sampling": {
+        "offset": [
+          18,
+          1
+        ],
+        "drawSize": [
+          114,
+          124
+        ]
+      }
+    },
+    {
+      "id": "oak-small",
+      "family": "trees",
+      "identity": "oak",
+      "stage": "small",
+      "file": "trees/oak-small.png",
+      "size": [
+        40,
+        48
+      ],
+      "anchor": [
+        20.0,
+        48
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        118,
+        68,
+        117,
+        136
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          3
+        ],
+        "drawSize": [
+          38,
+          44
+        ]
+      }
+    },
+    {
+      "id": "pine-small",
+      "family": "trees",
+      "identity": "pine",
+      "stage": "small",
+      "file": "trees/pine-small.png",
+      "size": [
+        32,
+        54
+      ],
+      "anchor": [
+        16.0,
+        54
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        413,
+        35,
+        140,
+        168
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          17
+        ],
+        "drawSize": [
+          30,
+          36
+        ]
+      }
+    },
+    {
+      "id": "umbrella-small",
+      "family": "trees",
+      "identity": "umbrella",
+      "stage": "small",
+      "file": "trees/umbrella-small.png",
+      "size": [
+        46,
+        46
+      ],
+      "anchor": [
+        23.0,
+        46
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        744,
+        64,
+        136,
+        140
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          1
+        ],
+        "drawSize": [
+          43,
+          44
+        ]
+      }
+    },
+    {
+      "id": "holm-small",
+      "family": "trees",
+      "identity": "holm",
+      "stage": "small",
+      "file": "trees/holm-small.png",
+      "size": [
+        38,
+        44
+      ],
+      "anchor": [
+        19.0,
+        44
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1054,
+        59,
+        138,
+        145
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          5
+        ],
+        "drawSize": [
+          36,
+          38
+        ]
+      }
+    },
+    {
+      "id": "birch-small",
+      "family": "trees",
+      "identity": "birch",
+      "stage": "small",
+      "file": "trees/birch-small.png",
+      "size": [
+        30,
+        54
+      ],
+      "anchor": [
+        15.0,
+        54
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1389,
+        42,
+        94,
+        162
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          5
+        ],
+        "drawSize": [
+          28,
+          48
+        ]
+      }
+    },
+    {
+      "id": "oak-medium",
+      "family": "trees",
+      "identity": "oak",
+      "stage": "medium",
+      "file": "trees/oak-medium.png",
+      "size": [
+        70,
+        82
+      ],
+      "anchor": [
+        35.0,
+        82
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        47,
+        255,
+        244,
+        254
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          10
+        ],
+        "drawSize": [
+          68,
+          71
+        ]
+      }
+    },
+    {
+      "id": "pine-medium",
+      "family": "trees",
+      "identity": "pine",
+      "stage": "medium",
+      "file": "trees/pine-medium.png",
+      "size": [
+        58,
+        90
+      ],
+      "anchor": [
+        29.0,
+        90
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        352,
+        235,
+        261,
+        273
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          30
+        ],
+        "drawSize": [
+          56,
+          59
+        ]
+      }
+    },
+    {
+      "id": "umbrella-medium",
+      "family": "trees",
+      "identity": "umbrella",
+      "stage": "medium",
+      "file": "trees/umbrella-medium.png",
+      "size": [
+        80,
+        80
+      ],
+      "anchor": [
+        40.0,
+        80
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        676,
+        266,
+        264,
+        242
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          7
+        ],
+        "drawSize": [
+          78,
+          72
+        ]
+      }
+    },
+    {
+      "id": "holm-medium",
+      "family": "trees",
+      "identity": "holm",
+      "stage": "medium",
+      "file": "trees/holm-medium.png",
+      "size": [
+        66,
+        76
+      ],
+      "anchor": [
+        33.0,
+        76
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1005,
+        266,
+        247,
+        242
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          12
+        ],
+        "drawSize": [
+          64,
+          63
+        ]
+      }
+    },
+    {
+      "id": "birch-medium",
+      "family": "trees",
+      "identity": "birch",
+      "stage": "medium",
+      "file": "trees/birch-medium.png",
+      "size": [
+        50,
+        88
+      ],
+      "anchor": [
+        25.0,
+        88
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1354,
+        225,
+        193,
+        283
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          17
+        ],
+        "drawSize": [
+          48,
+          70
+        ]
+      }
+    },
+    {
+      "id": "oak-large",
+      "family": "trees",
+      "identity": "oak",
+      "stage": "large",
+      "file": "trees/oak-large.png",
+      "size": [
+        108,
+        120
+      ],
+      "anchor": [
+        54.0,
+        120
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        18,
+        549,
+        324,
+        377
+      ],
+      "sampling": {
+        "offset": [
+          3,
+          1
+        ],
+        "drawSize": [
+          101,
+          118
+        ]
+      }
+    },
+    {
+      "id": "pine-large",
+      "family": "trees",
+      "identity": "pine",
+      "stage": "large",
+      "file": "trees/pine-large.png",
+      "size": [
+        96,
+        137
+      ],
+      "anchor": [
+        48.0,
+        137
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        339,
+        523,
+        314,
+        402
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          16
+        ],
+        "drawSize": [
+          94,
+          120
+        ]
+      }
+    },
+    {
+      "id": "umbrella-large",
+      "family": "trees",
+      "identity": "umbrella",
+      "stage": "large",
+      "file": "trees/umbrella-large.png",
+      "size": [
+        116,
+        116
+      ],
+      "anchor": [
+        58.0,
+        116
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        628,
+        560,
+        357,
+        366
+      ],
+      "sampling": {
+        "offset": [
+          2,
+          1
+        ],
+        "drawSize": [
+          111,
+          114
+        ]
+      }
+    },
+    {
+      "id": "holm-large",
+      "family": "trees",
+      "identity": "holm",
+      "stage": "large",
+      "file": "trees/holm-large.png",
+      "size": [
+        100,
+        111
+      ],
+      "anchor": [
+        50.0,
+        111
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        968,
+        576,
+        327,
+        349
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          5
+        ],
+        "drawSize": [
+          98,
+          105
+        ]
+      }
+    },
+    {
+      "id": "birch-large",
+      "family": "trees",
+      "identity": "birch",
+      "stage": "large",
+      "file": "trees/birch-large.png",
+      "size": [
+        82,
+        132
+      ],
+      "anchor": [
+        41.0,
+        132
+      ],
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1315,
+        522,
+        283,
+        402
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          17
+        ],
+        "drawSize": [
+          80,
+          114
+        ]
+      }
+    },
+    {
+      "id": "EC-cut",
+      "family": "grass",
+      "identity": "EC",
+      "stage": "cut",
+      "file": "grass/EC-cut.png",
+      "size": [
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        18,
+        113,
+        266,
+        109
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    {
+      "id": "AG-cut",
+      "family": "grass",
+      "identity": "AG",
+      "stage": "cut",
+      "file": "grass/AG-cut.png",
+      "size": [
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        324,
+        116,
+        274,
+        111
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    {
+      "id": "EP-cut",
+      "family": "grass",
+      "identity": "EP",
+      "stage": "cut",
+      "file": "grass/EP-cut.png",
+      "size": [
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        634,
+        118,
+        267,
+        109
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    {
+      "id": "EPP-cut",
+      "family": "grass",
+      "identity": "EPP",
+      "stage": "cut",
+      "file": "grass/EPP-cut.png",
+      "size": [
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        937,
+        117,
+        275,
+        110
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    {
+      "id": "GP-cut",
+      "family": "grass",
+      "identity": "GP",
+      "stage": "cut",
+      "file": "grass/GP-cut.png",
+      "size": [
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        1249,
+        116,
+        266,
+        111
+      ],
+      "sampling": {
+        "offset": [
+          9,
+          1
+        ],
+        "drawSize": [
+          14,
+          6
+        ]
+      }
+    },
+    {
+      "id": "EC-medium",
+      "family": "grass",
+      "identity": "EC",
+      "stage": "medium",
+      "file": "grass/EC-medium.png",
+      "size": [
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        16,
+        335,
+        271,
+        168
+      ],
+      "sampling": {
+        "offset": [
+          4,
+          1
+        ],
+        "drawSize": [
+          23,
+          14
+        ]
+      }
+    },
+    {
+      "id": "AG-medium",
+      "family": "grass",
+      "identity": "AG",
+      "stage": "medium",
+      "file": "grass/AG-medium.png",
+      "size": [
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        320,
+        335,
+        282,
+        179
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          14
+        ]
+      }
+    },
+    {
+      "id": "EP-medium",
+      "family": "grass",
+      "identity": "EP",
+      "stage": "medium",
+      "file": "grass/EP-medium.png",
+      "size": [
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        636,
+        341,
+        265,
+        167
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          14
+        ]
+      }
+    },
+    {
+      "id": "EPP-medium",
+      "family": "grass",
+      "identity": "EPP",
+      "stage": "medium",
+      "file": "grass/EPP-medium.png",
+      "size": [
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        935,
+        340,
+        273,
+        170
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          14
+        ]
+      }
+    },
+    {
+      "id": "GP-medium",
+      "family": "grass",
+      "identity": "GP",
+      "stage": "medium",
+      "file": "grass/GP-medium.png",
+      "size": [
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        1245,
+        330,
+        276,
+        181
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          21,
+          14
+        ]
+      }
+    },
+    {
+      "id": "EC-tall",
+      "family": "grass",
+      "identity": "EC",
+      "stage": "tall",
+      "file": "grass/EC-tall.png",
+      "size": [
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        13,
+        595,
+        280,
+        290
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          21,
+          22
+        ]
+      }
+    },
+    {
+      "id": "AG-tall",
+      "family": "grass",
+      "identity": "AG",
+      "stage": "tall",
+      "file": "grass/AG-tall.png",
+      "size": [
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        318,
+        596,
+        289,
+        293
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          22
+        ]
+      }
+    },
+    {
+      "id": "EP-tall",
+      "family": "grass",
+      "identity": "EP",
+      "stage": "tall",
+      "file": "grass/EP-tall.png",
+      "size": [
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        630,
+        597,
+        275,
+        292
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          21,
+          22
+        ]
+      }
+    },
+    {
+      "id": "EPP-tall",
+      "family": "grass",
+      "identity": "EPP",
+      "stage": "tall",
+      "file": "grass/EPP-tall.png",
+      "size": [
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        932,
+        600,
+        284,
+        285
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          22
+        ]
+      }
+    },
+    {
+      "id": "GP-tall",
+      "family": "grass",
+      "identity": "GP",
+      "stage": "tall",
+      "file": "grass/GP-tall.png",
+      "size": [
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "source": "sources/grass.png",
+      "sourceRect": [
+        1241,
+        608,
+        283,
+        277
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          22
+        ]
+      }
+    },
+    {
+      "id": "EC-ground-cut",
+      "family": "ground",
+      "identity": "EC",
+      "stage": "cut",
+      "file": "ground/EC-cut.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.18,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EC-ground-medium",
+      "family": "ground",
+      "identity": "EC",
+      "stage": "medium",
+      "file": "ground/EC-medium.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.59,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EC-ground-tall",
+      "family": "ground",
+      "identity": "EC",
+      "stage": "tall",
+      "file": "ground/EC-tall.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 1,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "AG-ground-cut",
+      "family": "ground",
+      "identity": "AG",
+      "stage": "cut",
+      "file": "ground/AG-cut.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.18,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "AG-ground-medium",
+      "family": "ground",
+      "identity": "AG",
+      "stage": "medium",
+      "file": "ground/AG-medium.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.59,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "AG-ground-tall",
+      "family": "ground",
+      "identity": "AG",
+      "stage": "tall",
+      "file": "ground/AG-tall.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 1,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EP-ground-cut",
+      "family": "ground",
+      "identity": "EP",
+      "stage": "cut",
+      "file": "ground/EP-cut.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.18,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EP-ground-medium",
+      "family": "ground",
+      "identity": "EP",
+      "stage": "medium",
+      "file": "ground/EP-medium.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.59,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EP-ground-tall",
+      "family": "ground",
+      "identity": "EP",
+      "stage": "tall",
+      "file": "ground/EP-tall.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 1,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EPP-ground-cut",
+      "family": "ground",
+      "identity": "EPP",
+      "stage": "cut",
+      "file": "ground/EPP-cut.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.18,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EPP-ground-medium",
+      "family": "ground",
+      "identity": "EPP",
+      "stage": "medium",
+      "file": "ground/EPP-medium.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.59,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "EPP-ground-tall",
+      "family": "ground",
+      "identity": "EPP",
+      "stage": "tall",
+      "file": "ground/EPP-tall.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 1,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "GP-ground-cut",
+      "family": "ground",
+      "identity": "GP",
+      "stage": "cut",
+      "file": "ground/GP-cut.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.18,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "GP-ground-medium",
+      "family": "ground",
+      "identity": "GP",
+      "stage": "medium",
+      "file": "ground/GP-medium.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 0.59,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    },
+    {
+      "id": "GP-ground-tall",
+      "family": "ground",
+      "identity": "GP",
+      "stage": "tall",
+      "file": "ground/GP-tall.png",
+      "size": [
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "source": "../../meadow.mjs",
+      "growth": 1,
+      "tiling": "repeat-x-y",
+      "alpha": "opaque"
+    }
+  ]
+}

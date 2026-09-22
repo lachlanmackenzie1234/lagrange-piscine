@@ -26,7 +26,7 @@
   // Pixel's game layer is a sidecar, executed only when the style is Pixel.
   function loadGame() {
     if (window.Game || document.getElementById('game-js') || loadGame.busy) return; loadGame.busy = true;
-    const chain = [['js/pixelart.js', 'PixelArt'], ['js/maps.js', 'PoolMaps'], ['js/pixel-surface.js', 'PixelSurface'], ['js/keeper-art.js', 'KeeperArt'], ['js/game-motion.js', 'QuestMotion'], ['js/quest-npcs.js', 'QuestNPCs'], ['js/quest-ecology.js', 'QuestEcology'], ['js/hub-art.js', 'QuestHubArt'], ['js/living-world.js', 'QuestWorld'], ['js/game.js', 'Game']];
+    const chain = [['js/pixelart.js', 'PixelArt'], ['js/maps.js', 'PoolMaps'], ['js/pixel-surface.js', 'PixelSurface'], ['js/keeper-art.js', 'KeeperArt'], ['js/game-motion.js', 'QuestMotion'], ['js/quest-npcs.js', 'QuestNPCs'], ['js/quest-ecology.js', 'QuestEcology'], ['js/quest-zones.js', 'QuestZones'], ['js/hub-art.js', 'QuestHubArt'], ['js/living-world.js', 'QuestWorld'], ['js/game.js', 'Game']];
     const next = () => {
       const entry = chain.shift(); if (!entry) { loadGame.busy = false; render(); return; }
       const [src, global] = entry; if (window[global]) { next(); return; }
@@ -68,7 +68,7 @@
   // drawn icon from the sprite in index.html — one stroke, currentColor
   const ico = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const app = document.getElementById('app');
-  const APP_VERSION = 'v0.104.1'; // semver display; keep in step with sw.js VERSION
+  const APP_VERSION = 'v0.105.0'; // semver display; keep in step with sw.js VERSION
 
   // Nuclear refresh: drop the service worker + all caches, then reload fresh.
   async function forceUpdate() {

@@ -1,0 +1,348 @@
+{
+  "version": "v0.105.0",
+  "nodeTests": 65,
+  "syntaxChecks": true,
+  "diffCheck": true,
+  "uncaughtBrowserErrors": 0,
+  "mobileEmulationNotPhysicalPhone": true,
+  "art": {
+    "groundTilesMatch": 15,
+    "zoneAssets": 45
+  },
+  "maps": {
+    "logsUnchanged": true,
+    "maps": [
+      {
+        "basin": true,
+        "house": true,
+        "id": "EC-2",
+        "meadowCells": 1952,
+        "shelter": true,
+        "zone": "EC"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EC-5",
+        "meadowCells": 2128,
+        "shelter": true,
+        "zone": "EC"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EC-12",
+        "meadowCells": 1920,
+        "shelter": true,
+        "zone": "EC"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EC-18",
+        "meadowCells": 2016,
+        "shelter": true,
+        "zone": "EC"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EC-22",
+        "meadowCells": 1952,
+        "shelter": true,
+        "zone": "EC"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "AG-7",
+        "meadowCells": 1792,
+        "shelter": true,
+        "zone": "AG"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "AG-8",
+        "meadowCells": 1776,
+        "shelter": true,
+        "zone": "AG"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "AG-9",
+        "meadowCells": 1696,
+        "shelter": true,
+        "zone": "AG"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "AG-21",
+        "meadowCells": 1632,
+        "shelter": true,
+        "zone": "AG"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "AG-32",
+        "meadowCells": 1696,
+        "shelter": true,
+        "zone": "AG"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-6B-75",
+        "meadowCells": 1808,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-19B-90",
+        "meadowCells": 1888,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-30B-63",
+        "meadowCells": 1984,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-27B-94",
+        "meadowCells": 1920,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-40B-52",
+        "meadowCells": 2016,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-31B-96",
+        "meadowCells": 1792,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-52B-46",
+        "meadowCells": 1856,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EP-6E-99",
+        "meadowCells": 1984,
+        "shelter": true,
+        "zone": "EP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EPP-3",
+        "meadowCells": 2048,
+        "shelter": true,
+        "zone": "EPP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EPP-4",
+        "meadowCells": 1984,
+        "shelter": true,
+        "zone": "EPP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "EPP-7",
+        "meadowCells": 1792,
+        "shelter": true,
+        "zone": "EPP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "GP-18",
+        "meadowCells": 2064,
+        "shelter": true,
+        "zone": "GP"
+      },
+      {
+        "basin": true,
+        "house": true,
+        "id": "GP-39",
+        "meadowCells": 2016,
+        "shelter": true,
+        "zone": "GP"
+      }
+    ]
+  },
+  "scenes": {
+    "grass": {
+      "affectedCells": 3,
+      "after": 0,
+      "before": 0.3974605982697525,
+      "cachedFrames": 16,
+      "footY": 292,
+      "foregroundBottom": 294,
+      "foregroundTop": 290,
+      "pixels": 25
+    },
+    "restoredBuildings": 10,
+    "runtimeAssets": 45,
+    "scenes": [
+      {
+        "grassFrames": 12,
+        "id": "EC-2",
+        "meadowCells": 1952,
+        "zone": "EC"
+      },
+      {
+        "grassFrames": 18,
+        "id": "AG-7",
+        "meadowCells": 1792,
+        "zone": "AG"
+      },
+      {
+        "grassFrames": 13,
+        "id": "EP-6B-75",
+        "meadowCells": 1808,
+        "zone": "EP"
+      },
+      {
+        "grassFrames": 12,
+        "id": "EPP-3",
+        "meadowCells": 2048,
+        "zone": "EPP"
+      },
+      {
+        "grassFrames": 12,
+        "id": "GP-18",
+        "meadowCells": 2064,
+        "zone": "GP"
+      }
+    ]
+  },
+  "mobile": {
+    "canvas": [
+      756,
+      563
+    ],
+    "dpr": 3,
+    "grassDestination": true,
+    "logsUnchanged": true,
+    "outsideDismissal": true,
+    "popupsFit": true,
+    "samples": [
+      {
+        "drawMs": 1.93,
+        "fps": 60
+      },
+      {
+        "drawMs": 1.93,
+        "fps": 60
+      },
+      {
+        "drawMs": 1.93,
+        "fps": 60
+      },
+      {
+        "drawMs": 1.13,
+        "fps": 60
+      },
+      {
+        "drawMs": 1.13,
+        "fps": 60
+      },
+      {
+        "drawMs": 1.13,
+        "fps": 60
+      }
+    ],
+    "target": [
+      10,
+      7
+    ],
+    "viewport": 320,
+    "walkedCells": 6
+  },
+  "hubs": [
+    {
+      "clicked": [
+        "pj",
+        "jp",
+        "partner"
+      ],
+      "dpr": 3,
+      "footerRemoved": true,
+      "id": "bureau",
+      "keyboard": true,
+      "physical": [
+        756,
+        563
+      ],
+      "popupsFit": true,
+      "viewport": 320
+    },
+    {
+      "clicked": [
+        "matt",
+        "karine",
+        "jojo"
+      ],
+      "dpr": 3,
+      "footerRemoved": true,
+      "id": "depot",
+      "keyboard": true,
+      "physical": [
+        756,
+        563
+      ],
+      "popupsFit": true,
+      "viewport": 320
+    }
+  ],
+  "offline": {
+    "cache": [
+      "lp-v0.105.0"
+    ],
+    "meadowCells": 1952,
+    "motion": true,
+    "offline": true,
+    "oldTreesCached": false,
+    "sourcesCached": 0,
+    "world": true,
+    "zoneAssets": 45,
+    "zoneAtlas": true
+  },
+  "atlas": {
+    "nativeAssets": 55,
+    "runtimeAssets": 45,
+    "pngBytes": 92726,
+    "decodedPixelBytes": 790528,
+    "runtimeAtlasesDecodedBytes": 15432116,
+    "pngBytesChangeFromV104": -31823,
+    "pixelsUnchanged": true
+  }
+}

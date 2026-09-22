@@ -1,5 +1,8 @@
 # Quest v0.104.1 · Inventory, hub life and rematches
 
+The subsequent [v0.105.0 foliage integration](quest-zones.md) updates pool-map
+grass and trees while retaining the buildings and hub layout described here.
+
 Equipment operations now resolve the item's ID when clicked. A swap replaces
 the selected bag entry with the previously worn piece, preserving the full
 inventory even in a full bag. Repeated clicks, reordered bags and stale sheets

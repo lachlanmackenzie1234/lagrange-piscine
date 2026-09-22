@@ -378,7 +378,9 @@ const Game = (() => {
   function livingScene(sc) {
     if (!sc.world) {
       sc.world = window.QuestWorld?.create(sc.lay);
-      if (sc.world) { sc.bg = sc.fg = null; sc.host.dataset.world = 'living-v5'; sc.host.dataset.backgroundBuilds = 1; sc.host.dataset.scenery = sc.world.scenery.length; }
+      if (sc.world) { sc.bg = sc.fg = null; sc.host.dataset.world = 'living-v5'; sc.host.dataset.backgroundBuilds = 1; sc.host.dataset.scenery = sc.world.scenery.length;
+        if (sc.world.theme) { sc.host.dataset.zone = sc.world.theme.id; sc.host.dataset.zoneKit = '2'; sc.host.dataset.meadowCells = sc.world.meadow.length; }
+      }
     }
     return sc.world;
   }

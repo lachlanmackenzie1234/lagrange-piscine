@@ -1,0 +1,14 @@
+Use case: stylized-concept
+Asset type: a production tree-size sprite atlas, exactly FIVE COLUMNS by THREE ROWS, landscape about 5:3. FIFTEEN individual trees.
+Polished retro handheld RPG pixel art for a lush coastal garden, elevated three-quarter top-down view on a square ground grid. Clearly visible stepped pixel edges, coherent leaf and material clusters, restrained dark blue-green outlines, three or four colour shades per material, warm upper-left light and cool teal underside shadows. Clean and charming architectural forms, rich but readable at native game size. No painterly blur, no smooth vector surfaces, no 3D-rendered gloss. All objects share one camera and light. True transparent RGBA background, no checkerboard, labels, text, grid lines, ground plates, detached cast shadows or watermark. Each sprite must be fully contained in its own generously separated cell.
+Each column is one species, in this exact left-to-right order:
+1 deciduous OAK / CHÊNE: broad rounded irregular green crown, strong grey-brown branching trunk.
+2 MARITIME PINE / PIN MARITIME: rough reddish trunk, distinct open clusters of coastal pine needles and asymmetrical high branches. NOT a triangular Christmas fir.
+3 UMBRELLA PINE / PIN PARASOL: wide relatively flat parasol canopy, forked russet trunk, strong dark-green underside.
+4 HOLM OAK / CHÊNE VERT: dense compact domed dark olive-green crown, sturdy dark textured trunk, small grey-green highlights.
+5 BIRCH / BOULEAU: slender white trunk with dark bark marks, pale side branches and lighter airy hanging foliage.
+Each row is a clear growth/size class:
+TOP ROW: SMALL SAPLINGS. Short young trees with a small crown, few branches, thin readable trunks. Aim for 35–50 native pixels tall. Draw younger structures, not miniature replicas of old trees.
+MIDDLE ROW: MID-SIZE TREES. Developed but still compact trees with recognisable branching and rounded full crowns. Aim for 65–85 native pixels tall. These should be the most common garden-size trees.
+BOTTOM ROW: LARGE MATURE TREES. Full wide crowns and substantial trunks, around 110–130 native pixels tall, natural irregularities, distinct silhouettes.
+Preserve the relative visual sizes on the atlas: small truly smaller than middle, middle smaller than large. Each tree sits on its bottom-centre root anchor. A few small roots are fine, but no grassy base plates, fallen objects or detached shadows. Keep each tree separated inside its own cell. The palette should harmonize across species while birch stays visibly light and holm oak stays dark. Crisp readable leaf masses with restrained single-pixel noise. Fifteen fully transparent cutouts, no labels or captions.

@@ -1,0 +1,1665 @@
+{
+  "version": "coastal-zone-kit-2",
+  "page": "zones.png",
+  "regions": {
+    "pine-large": {
+      "r": [
+        0,
+        0,
+        96,
+        137
+      ],
+      "anchor": [
+        48.0,
+        137
+      ],
+      "family": "trees",
+      "identity": "pine",
+      "stage": "large",
+      "native": "native/trees/pine-large.png",
+      "pngSHA256": "fb1937dc8a4ce8fa49d557b7938a8907f69aa47b8af65907e1f8a80dd38ce193",
+      "rgbaSHA256": "9730b93a181593b11c796b3c9f131f88b0b8edcc2b7aa4cbc026ce1425cad063",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        339,
+        523,
+        314,
+        402
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          16
+        ],
+        "drawSize": [
+          94,
+          120
+        ]
+      }
+    },
+    "birch-large": {
+      "r": [
+        98,
+        0,
+        82,
+        132
+      ],
+      "anchor": [
+        41.0,
+        132
+      ],
+      "family": "trees",
+      "identity": "birch",
+      "stage": "large",
+      "native": "native/trees/birch-large.png",
+      "pngSHA256": "eabc1e92ecc717a0a303b8dfa3ecb5d68818669c5241cbdb110dbc6cb18d4e13",
+      "rgbaSHA256": "00dfe176eafddc1af6121adac9d36877e1db11f4b8e4eb1f5f8bd83fcbba572a",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1315,
+        522,
+        283,
+        402
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          17
+        ],
+        "drawSize": [
+          80,
+          114
+        ]
+      }
+    },
+    "oak-large": {
+      "r": [
+        182,
+        0,
+        108,
+        120
+      ],
+      "anchor": [
+        54.0,
+        120
+      ],
+      "family": "trees",
+      "identity": "oak",
+      "stage": "large",
+      "native": "native/trees/oak-large.png",
+      "pngSHA256": "73e62a9ae8b89c792cbb0644c2d1447fa1f082fa4930c0d2311ae2e3f8c4032e",
+      "rgbaSHA256": "e3f92b7bafd9eb293086c131f0ece30b2cf471bb99e1817c92809655ef390286",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        18,
+        549,
+        324,
+        377
+      ],
+      "sampling": {
+        "offset": [
+          3,
+          1
+        ],
+        "drawSize": [
+          101,
+          118
+        ]
+      }
+    },
+    "umbrella-large": {
+      "r": [
+        292,
+        0,
+        116,
+        116
+      ],
+      "anchor": [
+        58.0,
+        116
+      ],
+      "family": "trees",
+      "identity": "umbrella",
+      "stage": "large",
+      "native": "native/trees/umbrella-large.png",
+      "pngSHA256": "b65352249e1f4b010f117e0ada30fdbd5b300e92f9e3e05f07bded4d080fd4f9",
+      "rgbaSHA256": "c6295b88f8d5e05edb4d31e215cdf333c74decf22b1caa1ccd6c791560f39a0a",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        628,
+        560,
+        357,
+        366
+      ],
+      "sampling": {
+        "offset": [
+          2,
+          1
+        ],
+        "drawSize": [
+          111,
+          114
+        ]
+      }
+    },
+    "holm-large": {
+      "r": [
+        410,
+        0,
+        100,
+        111
+      ],
+      "anchor": [
+        50.0,
+        111
+      ],
+      "family": "trees",
+      "identity": "holm",
+      "stage": "large",
+      "native": "native/trees/holm-large.png",
+      "pngSHA256": "9b4a983024b9cd165a41fb37997829e3aa2d2c4acf74ac7e0fb67f6e14d697ac",
+      "rgbaSHA256": "9e108ab4f4384953d3a3b56fc3a3f3f1d939bb19b0f86d4f5a7be196d63b68c2",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        968,
+        576,
+        327,
+        349
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          5
+        ],
+        "drawSize": [
+          98,
+          105
+        ]
+      }
+    },
+    "pine-medium": {
+      "r": [
+        512,
+        0,
+        58,
+        90
+      ],
+      "anchor": [
+        29.0,
+        90
+      ],
+      "family": "trees",
+      "identity": "pine",
+      "stage": "medium",
+      "native": "native/trees/pine-medium.png",
+      "pngSHA256": "39fe6fcc339e22a744ff1476bdc6d7266f75f8f00954c0ff8b0bbec4a5778975",
+      "rgbaSHA256": "068ac05e9e74418136ef6e5d6b81bacb3ee5f0782e472b4b81b71e3d12581c3c",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        352,
+        235,
+        261,
+        273
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          30
+        ],
+        "drawSize": [
+          56,
+          59
+        ]
+      }
+    },
+    "birch-medium": {
+      "r": [
+        572,
+        0,
+        50,
+        88
+      ],
+      "anchor": [
+        25.0,
+        88
+      ],
+      "family": "trees",
+      "identity": "birch",
+      "stage": "medium",
+      "native": "native/trees/birch-medium.png",
+      "pngSHA256": "2725e2b555c0ee578193d59d8922022fa154a32d138e0306ddd068bae054eaed",
+      "rgbaSHA256": "4a1ef278fac152b190154d252a918992061aba4bea1f95b5b9b2f4a84f99a17e",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1354,
+        225,
+        193,
+        283
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          17
+        ],
+        "drawSize": [
+          48,
+          70
+        ]
+      }
+    },
+    "oak-medium": {
+      "r": [
+        624,
+        0,
+        70,
+        82
+      ],
+      "anchor": [
+        35.0,
+        82
+      ],
+      "family": "trees",
+      "identity": "oak",
+      "stage": "medium",
+      "native": "native/trees/oak-medium.png",
+      "pngSHA256": "1bab408f64f8e523764279a8f8e82bf7274f740f8624592557ba92fcac43e4a7",
+      "rgbaSHA256": "a208d768c2142f6f3462383bf3b98f87ba130ed55cfa86d020f53f6316da8d4b",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        47,
+        255,
+        244,
+        254
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          10
+        ],
+        "drawSize": [
+          68,
+          71
+        ]
+      }
+    },
+    "umbrella-medium": {
+      "r": [
+        696,
+        0,
+        80,
+        80
+      ],
+      "anchor": [
+        40.0,
+        80
+      ],
+      "family": "trees",
+      "identity": "umbrella",
+      "stage": "medium",
+      "native": "native/trees/umbrella-medium.png",
+      "pngSHA256": "8c24613b9195a681254d6a263afdd2100c23b22ae98c8b09588f004fb0ee3873",
+      "rgbaSHA256": "d1a817e35f48a8845957b3c95d92043cafb29ea3489902bc330ec2d8c1b826f9",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        676,
+        266,
+        264,
+        242
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          7
+        ],
+        "drawSize": [
+          78,
+          72
+        ]
+      }
+    },
+    "holm-medium": {
+      "r": [
+        778,
+        0,
+        66,
+        76
+      ],
+      "anchor": [
+        33.0,
+        76
+      ],
+      "family": "trees",
+      "identity": "holm",
+      "stage": "medium",
+      "native": "native/trees/holm-medium.png",
+      "pngSHA256": "3d2ed923e9ca6e4e36b2103752949b8c35030453e398548950400dbde24bbd99",
+      "rgbaSHA256": "5fdbdbaad280a011179a86992ee1aa5cb56a179e5333c42302cefa03cf39ec9c",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1005,
+        266,
+        247,
+        242
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          12
+        ],
+        "drawSize": [
+          64,
+          63
+        ]
+      }
+    },
+    "pine-small": {
+      "r": [
+        846,
+        0,
+        32,
+        54
+      ],
+      "anchor": [
+        16.0,
+        54
+      ],
+      "family": "trees",
+      "identity": "pine",
+      "stage": "small",
+      "native": "native/trees/pine-small.png",
+      "pngSHA256": "373d3bc14663fd527261e88bc599322277b795dcfe470ac8b2ec3997daab8f1c",
+      "rgbaSHA256": "b1ddb57a890755f933357a926fedc9226a77b530cf220ecaa18a2692a0db172a",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        413,
+        35,
+        140,
+        168
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          17
+        ],
+        "drawSize": [
+          30,
+          36
+        ]
+      }
+    },
+    "birch-small": {
+      "r": [
+        880,
+        0,
+        30,
+        54
+      ],
+      "anchor": [
+        15.0,
+        54
+      ],
+      "family": "trees",
+      "identity": "birch",
+      "stage": "small",
+      "native": "native/trees/birch-small.png",
+      "pngSHA256": "bca84b83a4738d20e294b0efdf74b4c5cf6b021e30d80267d7175be0a4caa204",
+      "rgbaSHA256": "cf52af02d63e304efb7896fbd39ce0c732a9abe70cc5d2401acf5837ea9eac38",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1389,
+        42,
+        94,
+        162
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          5
+        ],
+        "drawSize": [
+          28,
+          48
+        ]
+      }
+    },
+    "oak-small": {
+      "r": [
+        912,
+        0,
+        40,
+        48
+      ],
+      "anchor": [
+        20.0,
+        48
+      ],
+      "family": "trees",
+      "identity": "oak",
+      "stage": "small",
+      "native": "native/trees/oak-small.png",
+      "pngSHA256": "8e9f13a540903bc383add87e5fb5b24fd11dac7af7deb87409804cdf2e560ad1",
+      "rgbaSHA256": "2340421ba23b753c5beff01eef5fd2f7e0cd2c972df898e14e8935af0a66ea39",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        118,
+        68,
+        117,
+        136
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          3
+        ],
+        "drawSize": [
+          38,
+          44
+        ]
+      }
+    },
+    "umbrella-small": {
+      "r": [
+        954,
+        0,
+        46,
+        46
+      ],
+      "anchor": [
+        23.0,
+        46
+      ],
+      "family": "trees",
+      "identity": "umbrella",
+      "stage": "small",
+      "native": "native/trees/umbrella-small.png",
+      "pngSHA256": "7ceebee8ccce648f22ba0bd08c0388be70da4566928328a55bce184093def928",
+      "rgbaSHA256": "0382b850e7699c49273ca3cde812530f4817f061c65b71ad2e1a1b37c55fb7d7",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        744,
+        64,
+        136,
+        140
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          1
+        ],
+        "drawSize": [
+          43,
+          44
+        ]
+      }
+    },
+    "holm-small": {
+      "r": [
+        0,
+        139,
+        38,
+        44
+      ],
+      "anchor": [
+        19.0,
+        44
+      ],
+      "family": "trees",
+      "identity": "holm",
+      "stage": "small",
+      "native": "native/trees/holm-small.png",
+      "pngSHA256": "0edc6b1f07a4bdd1a8a5c1eccad9f3854b74113b1a192d793753cfe152a2eee9",
+      "rgbaSHA256": "eca750423a8599a3845697df5bb175e8fc8dacbf680bd57821931c9d38605e9d",
+      "source": "sources/trees.png",
+      "sourceRect": [
+        1054,
+        59,
+        138,
+        145
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          5
+        ],
+        "drawSize": [
+          36,
+          38
+        ]
+      }
+    },
+    "AG-ground-cut": {
+      "r": [
+        40,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "AG",
+      "stage": "cut",
+      "native": "native/ground/AG-cut.png",
+      "pngSHA256": "cc4694b66a200aab0e71402238b894ea98566b8d4bb9afa0ffd4ad60dc07d6e6",
+      "rgbaSHA256": "cdda99954756f22fc457e462d8aaeb7dbfa398cd7c22a88e65432e076c4e8427",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "AG-ground-medium": {
+      "r": [
+        74,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "AG",
+      "stage": "medium",
+      "native": "native/ground/AG-medium.png",
+      "pngSHA256": "19470bef46015906b8064e3fea1043b8ab44ac90493604233c4d94e526ccd684",
+      "rgbaSHA256": "ac118db09a8098470514d498b7f53d746cc070fccae0b43de44fa1e3f1debcec",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "AG-ground-tall": {
+      "r": [
+        108,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "AG",
+      "stage": "tall",
+      "native": "native/ground/AG-tall.png",
+      "pngSHA256": "46d4f17ee2e8d25e14837c95c11389cec9107578a5756eac380163bd3e0eb59b",
+      "rgbaSHA256": "e20ef1fd165f34f9b43e6fcbdfb9fd51e33a842d13a39dcb5df5ae0323f6d6b0",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EC-ground-cut": {
+      "r": [
+        142,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EC",
+      "stage": "cut",
+      "native": "native/ground/EC-cut.png",
+      "pngSHA256": "1c23309261d4784535f226445880255f314904da7d6b3646ede3b475afa25d71",
+      "rgbaSHA256": "c13cbd64846603a20bddb8b9170e119218afe3cbb6f9b842841a301a566a1b7d",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EC-ground-medium": {
+      "r": [
+        176,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EC",
+      "stage": "medium",
+      "native": "native/ground/EC-medium.png",
+      "pngSHA256": "1bb1af8399d1ee7ccaac4f2f81c7e2fcf3f1459f1fce117b5b077d29c7312d2f",
+      "rgbaSHA256": "62c2b5b06e12d211bbef4b630d2cb6a8180fe76e89b5390ed0ecf55f340301f9",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EC-ground-tall": {
+      "r": [
+        210,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EC",
+      "stage": "tall",
+      "native": "native/ground/EC-tall.png",
+      "pngSHA256": "ef57737264ab5334584882efdefb698ef57bad7483750414316ad13819c7b42c",
+      "rgbaSHA256": "f3eacfde526c9869fe733b874efc5bf164a2d928767eaa27347a62d93efb4652",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EP-ground-cut": {
+      "r": [
+        244,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EP",
+      "stage": "cut",
+      "native": "native/ground/EP-cut.png",
+      "pngSHA256": "b8f739a73786181e54403d34c98e0aafd5c05dc0eb0712d2c8e0a8f1d7b151f2",
+      "rgbaSHA256": "6a9bb887a0419ac2aa9d2f246b94ce2c12d076e62a65e413aec5a42b8b663e74",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EP-ground-medium": {
+      "r": [
+        278,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EP",
+      "stage": "medium",
+      "native": "native/ground/EP-medium.png",
+      "pngSHA256": "a7e2b8401676466ccd4203d2675f7a76e7e416ffef78721c5ec6c12bce77aedf",
+      "rgbaSHA256": "4cc55090b1b704f48b696cb6cebbdf0b4963469eacfc81c2d66ca8e30c45aae4",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EP-ground-tall": {
+      "r": [
+        312,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EP",
+      "stage": "tall",
+      "native": "native/ground/EP-tall.png",
+      "pngSHA256": "83e019912629a165259276e84868702a8938f5f96af4f1f4ed7d5a12297a8f19",
+      "rgbaSHA256": "77513525d757b02af75c9cf3cabd5516148e042bb2f63642be34d5aefc52a2e8",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EPP-ground-cut": {
+      "r": [
+        346,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EPP",
+      "stage": "cut",
+      "native": "native/ground/EPP-cut.png",
+      "pngSHA256": "8f90776a73acd9f2b952882efa3687ecd897cabcfe11ad213eca7b2127c31da9",
+      "rgbaSHA256": "9f0360e9bbefbed72b37e2d76927a66d3bfff8d981e0715d7b2a244fed4715f8",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EPP-ground-medium": {
+      "r": [
+        380,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EPP",
+      "stage": "medium",
+      "native": "native/ground/EPP-medium.png",
+      "pngSHA256": "891c6ef7c8c755698c1ea44afd1d887cda3621c353adcbb81d776dd908f8a6e1",
+      "rgbaSHA256": "d258d8dd889f1d4d1c00034d7ab510ba791876b4e49f3a62c21469a662152929",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "EPP-ground-tall": {
+      "r": [
+        414,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "EPP",
+      "stage": "tall",
+      "native": "native/ground/EPP-tall.png",
+      "pngSHA256": "a426afb6215bf27103fbb4df4af11395dca14a434217a1315d9e3e809503d095",
+      "rgbaSHA256": "fc1ecb991ffdbc3a33ac0fe820746d0f66aa575eb68e23042e75cab7cd05ec14",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "GP-ground-cut": {
+      "r": [
+        448,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "GP",
+      "stage": "cut",
+      "native": "native/ground/GP-cut.png",
+      "pngSHA256": "5e4d4323f2b363bb79b148e2911d247458b8dc7fbaee29f09c48c81e9c207779",
+      "rgbaSHA256": "3fb73093600dfd2636e93bf3122153687c1168ca9e6c1bb00b5044e828f5f4f7",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "GP-ground-medium": {
+      "r": [
+        482,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "GP",
+      "stage": "medium",
+      "native": "native/ground/GP-medium.png",
+      "pngSHA256": "c974786d485287c61834d35f4d70a76f500cfa506426ca5b682093825cddd6d6",
+      "rgbaSHA256": "fa194b56abcbc1ae26df4098b73a559219176049f4b35eab8fd1e565fadcdb31",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "GP-ground-tall": {
+      "r": [
+        516,
+        139,
+        32,
+        32
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "family": "ground",
+      "identity": "GP",
+      "stage": "tall",
+      "native": "native/ground/GP-tall.png",
+      "pngSHA256": "aa403b243e20ecac8c17aae70e8fbbed7dafaafd6778aa8936736f1bce4162b8",
+      "rgbaSHA256": "b644f18411814d0973b60f63e88ea4ab19678057b77bc5aeb08883be8de28f4f",
+      "source": "../../meadow.mjs",
+      "sourceRect": null,
+      "sampling": null
+    },
+    "AG-tall": {
+      "r": [
+        550,
+        139,
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "family": "grass",
+      "identity": "AG",
+      "stage": "tall",
+      "native": "native/grass/AG-tall.png",
+      "pngSHA256": "72aeb30a526b10f32ccbe821830ff318e9eb3e83d515bdbd249bdabb1d75dfd7",
+      "rgbaSHA256": "1343d4cd4b8b98a1b3da10bb1e9c6746434d4abb2d516ac515761f6ff801ac0e",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        318,
+        596,
+        289,
+        293
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          22
+        ]
+      }
+    },
+    "EC-tall": {
+      "r": [
+        584,
+        139,
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "family": "grass",
+      "identity": "EC",
+      "stage": "tall",
+      "native": "native/grass/EC-tall.png",
+      "pngSHA256": "930a409e0bee26e1b218369a008e4aa2e3b7a683962375ab736679a2cb87ed88",
+      "rgbaSHA256": "873a8f6e2410c665e8b3d937f852860862379cca6c3ebd836bc19a9f25abab94",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        13,
+        595,
+        280,
+        290
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          21,
+          22
+        ]
+      }
+    },
+    "EP-tall": {
+      "r": [
+        618,
+        139,
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "family": "grass",
+      "identity": "EP",
+      "stage": "tall",
+      "native": "native/grass/EP-tall.png",
+      "pngSHA256": "b25aa86d2a9d7aceefda420b1cd2a44adad048d3dcde6face2bd710e6d955fcd",
+      "rgbaSHA256": "e44ee94f5d9dbfb11932e74e6b348c92ff3af593a1dacebc4972fb3d1a247ee0",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        630,
+        597,
+        275,
+        292
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          21,
+          22
+        ]
+      }
+    },
+    "EPP-tall": {
+      "r": [
+        652,
+        139,
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "family": "grass",
+      "identity": "EPP",
+      "stage": "tall",
+      "native": "native/grass/EPP-tall.png",
+      "pngSHA256": "aede1f8d69a8ca78a65b8dc93a94ed21c6b60d06cb0d838bd2b68937b698610f",
+      "rgbaSHA256": "56cd30fa4b39714d06a9a63fe89a05e32690230d5eedcbbd656542e31a458458",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        932,
+        600,
+        284,
+        285
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          22
+        ]
+      }
+    },
+    "GP-tall": {
+      "r": [
+        686,
+        139,
+        32,
+        24
+      ],
+      "anchor": [
+        16.0,
+        24
+      ],
+      "family": "grass",
+      "identity": "GP",
+      "stage": "tall",
+      "native": "native/grass/GP-tall.png",
+      "pngSHA256": "616f112f398781ef93f49a97e310e6114f417b1358dbc9dda587bd551133b452",
+      "rgbaSHA256": "29c6f17601cd1a7b80a7bee1e8ebd395d04b6237272f052dddfcc1583bf5d857",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        1241,
+        608,
+        283,
+        277
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          22
+        ]
+      }
+    },
+    "AG-medium": {
+      "r": [
+        720,
+        139,
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "family": "grass",
+      "identity": "AG",
+      "stage": "medium",
+      "native": "native/grass/AG-medium.png",
+      "pngSHA256": "0d4e241771a5a23f3a710005341c0234bfdaae71a8cafecc511f794a96ed833f",
+      "rgbaSHA256": "8cb48516b20494d0d649873d7cb46eebc5d67e3cfb01457c38672b1eedd50120",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        320,
+        335,
+        282,
+        179
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          14
+        ]
+      }
+    },
+    "EC-medium": {
+      "r": [
+        754,
+        139,
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "family": "grass",
+      "identity": "EC",
+      "stage": "medium",
+      "native": "native/grass/EC-medium.png",
+      "pngSHA256": "507789abfc0816731869e48788e34885d6c4b5838ca14db3559948fe0cc891d7",
+      "rgbaSHA256": "246319422b587c07cc27ae7fa8ff740aca011c5e618d9bea267ee6528d65d4bf",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        16,
+        335,
+        271,
+        168
+      ],
+      "sampling": {
+        "offset": [
+          4,
+          1
+        ],
+        "drawSize": [
+          23,
+          14
+        ]
+      }
+    },
+    "EP-medium": {
+      "r": [
+        788,
+        139,
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "family": "grass",
+      "identity": "EP",
+      "stage": "medium",
+      "native": "native/grass/EP-medium.png",
+      "pngSHA256": "340f618d98622e011e21d3995e34608680df4a8e78c79134209a7538381338cf",
+      "rgbaSHA256": "179a3a4500f7bf853e2856e59bbf0ff1d58b2bd1fc251744c38d74f28f0767b3",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        636,
+        341,
+        265,
+        167
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          14
+        ]
+      }
+    },
+    "EPP-medium": {
+      "r": [
+        822,
+        139,
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "family": "grass",
+      "identity": "EPP",
+      "stage": "medium",
+      "native": "native/grass/EPP-medium.png",
+      "pngSHA256": "291b9b764bc375d3c2f5d823137c00c2e6c1dc2b2a5ff4458139ebeed028765c",
+      "rgbaSHA256": "435c9041389911f223524ba1e4fac444c7dc9dbaa4a9d5166edf74699b949716",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        935,
+        340,
+        273,
+        170
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          22,
+          14
+        ]
+      }
+    },
+    "GP-medium": {
+      "r": [
+        856,
+        139,
+        32,
+        16
+      ],
+      "anchor": [
+        16.0,
+        16
+      ],
+      "family": "grass",
+      "identity": "GP",
+      "stage": "medium",
+      "native": "native/grass/GP-medium.png",
+      "pngSHA256": "2bfa54485f7001d47d30f45ca67f95d4806c169d516538a8802b8c8d16701f57",
+      "rgbaSHA256": "75f570c40a79d9e264f8eb246b26757715f0fbbbc7dfb6fba714000ecf314390",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        1245,
+        330,
+        276,
+        181
+      ],
+      "sampling": {
+        "offset": [
+          5,
+          1
+        ],
+        "drawSize": [
+          21,
+          14
+        ]
+      }
+    },
+    "AG-cut": {
+      "r": [
+        890,
+        139,
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "family": "grass",
+      "identity": "AG",
+      "stage": "cut",
+      "native": "native/grass/AG-cut.png",
+      "pngSHA256": "abbeeda477a3b66794695213a1d0bf93a3d354b2bcf96c0ef0eedafb5c045e80",
+      "rgbaSHA256": "66e8794cfe65fb5c85844a0c48e0652c5809788858c555ca5277d3d507f2ef32",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        324,
+        116,
+        274,
+        111
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    "EC-cut": {
+      "r": [
+        924,
+        139,
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "family": "grass",
+      "identity": "EC",
+      "stage": "cut",
+      "native": "native/grass/EC-cut.png",
+      "pngSHA256": "80a363f31584373423857c978f3a7b706da58658a5952782d036bde051a615b3",
+      "rgbaSHA256": "aeec895c469830d92315ab1599965c33ee634b825fa2aef477d01ab3c8034342",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        18,
+        113,
+        266,
+        109
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    "EP-cut": {
+      "r": [
+        958,
+        139,
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "family": "grass",
+      "identity": "EP",
+      "stage": "cut",
+      "native": "native/grass/EP-cut.png",
+      "pngSHA256": "2d5746f080a24061027b016a78307dc745d14175e09dc23355e5e7edca6bd820",
+      "rgbaSHA256": "d263b3c2658fa02c16c842eda320f573698c9864e25155e99bf5115ccdc82c9f",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        634,
+        118,
+        267,
+        109
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    "EPP-cut": {
+      "r": [
+        992,
+        139,
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "family": "grass",
+      "identity": "EPP",
+      "stage": "cut",
+      "native": "native/grass/EPP-cut.png",
+      "pngSHA256": "5861d6ae67ab4dc7ca0409c618f1658f25a2cfa051732fdbf71c3b3a27c418fa",
+      "rgbaSHA256": "b7199803858a9333e42ad066af6d4d0317732e15606e6c7e09eba57ba8fae2ba",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        937,
+        117,
+        275,
+        110
+      ],
+      "sampling": {
+        "offset": [
+          8,
+          1
+        ],
+        "drawSize": [
+          15,
+          6
+        ]
+      }
+    },
+    "GP-cut": {
+      "r": [
+        0,
+        185,
+        32,
+        8
+      ],
+      "anchor": [
+        16.0,
+        8
+      ],
+      "family": "grass",
+      "identity": "GP",
+      "stage": "cut",
+      "native": "native/grass/GP-cut.png",
+      "pngSHA256": "c6af1392d297071c128f7c81b9c94644a77f73db96d65e27e9bfd3f2cae0264b",
+      "rgbaSHA256": "171e61d9a06b9963219f3c4ec737c995e65758d552fc8718d4adad9827d7e469",
+      "source": "sources/grass.png",
+      "sourceRect": [
+        1249,
+        116,
+        266,
+        111
+      ],
+      "sampling": {
+        "offset": [
+          9,
+          1
+        ],
+        "drawSize": [
+          14,
+          6
+        ]
+      }
+    }
+  },
+  "references": {
+    "AG-house": {
+      "anchor": [
+        75.0,
+        126
+      ],
+      "family": "houses",
+      "identity": "AG",
+      "stage": "house",
+      "native": "native/houses-v2/AG-house.png",
+      "pngSHA256": "befa8438cd54d5c76e4df42a983ccd3ab6a9d79c1b2a27d3c052d7cc8c6c4d87",
+      "rgbaSHA256": "3ce642e761784ad888238e665e8483c386fde2742e2cb6fb506cc99ba9ed62a7",
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        349,
+        178,
+        358,
+        328
+      ],
+      "sampling": {
+        "offset": [
+          7,
+          1
+        ],
+        "drawSize": [
+          135,
+          124
+        ]
+      }
+    },
+    "EC-house": {
+      "anchor": [
+        75.0,
+        126
+      ],
+      "family": "houses",
+      "identity": "EC",
+      "stage": "house",
+      "native": "native/houses-v2/EC-house.png",
+      "pngSHA256": "edbc97c97f271279a60517527c6e548329169e563ce4a42228e7f89c1fc29228",
+      "rgbaSHA256": "8fedd178777c31c1389c00d1d25ef3e76443e5c6af9c8cacf80adb6a8ee7ba3a",
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        11,
+        141,
+        337,
+        351
+      ],
+      "sampling": {
+        "offset": [
+          15,
+          1
+        ],
+        "drawSize": [
+          119,
+          124
+        ]
+      }
+    },
+    "EP-house": {
+      "anchor": [
+        75.0,
+        126
+      ],
+      "family": "houses",
+      "identity": "EP",
+      "stage": "house",
+      "native": "native/houses-v2/EP-house.png",
+      "pngSHA256": "9eee433977f9d4eb272c8c94dcd7d2be1ffddf35c497b8dcec30b736985acea9",
+      "rgbaSHA256": "3d4da874aa40ec1323b99348abd1fa4f271cfbed78508e3f5cbf48b554b67378",
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        714,
+        133,
+        343,
+        365
+      ],
+      "sampling": {
+        "offset": [
+          16,
+          1
+        ],
+        "drawSize": [
+          117,
+          124
+        ]
+      }
+    },
+    "EPP-house": {
+      "anchor": [
+        75.0,
+        126
+      ],
+      "family": "houses",
+      "identity": "EPP",
+      "stage": "house",
+      "native": "native/houses-v2/EPP-house.png",
+      "pngSHA256": "6d2e934abf9c1cd0e55ef7656a6a4153739ce2a657bb6aae1ff1a13b107d2f9c",
+      "rgbaSHA256": "fed2548d33cc1b7af89d5f73df4881166cc23b6e49fa994e59810b4563eaa02d",
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        1064,
+        139,
+        352,
+        361
+      ],
+      "sampling": {
+        "offset": [
+          14,
+          1
+        ],
+        "drawSize": [
+          121,
+          124
+        ]
+      }
+    },
+    "GP-house": {
+      "anchor": [
+        75.0,
+        126
+      ],
+      "family": "houses",
+      "identity": "GP",
+      "stage": "house",
+      "native": "native/houses-v2/GP-house.png",
+      "pngSHA256": "9453938e911ed014d6b7951900bb8b3df6c5ba8bea65052123658415695e3676",
+      "rgbaSHA256": "ed1fb56addbfd816473c9b05f71e69fa7d67f8737655c19e4f75cfb1c51362b5",
+      "source": "sources/houses-cartoon-v2.png",
+      "sourceRect": [
+        1428,
+        133,
+        335,
+        365
+      ],
+      "sampling": {
+        "offset": [
+          18,
+          1
+        ],
+        "drawSize": [
+          114,
+          124
+        ]
+      }
+    },
+    "AG-pump": {
+      "anchor": [
+        37.5,
+        83
+      ],
+      "family": "houses",
+      "identity": "AG",
+      "stage": "pump",
+      "native": "native/houses-v2/AG-pump.png",
+      "pngSHA256": "e7782c2377bd3bf3632b334c5ed3b4fb105f40c0a605ebdb49ca4241ab43f588",
+      "rgbaSHA256": "7b64cf9a40743dc21df470c34a6f74b8a811eaa7956f8865ba3c3b6dac3eeb2d",
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        467,
+        135,
+        370,
+        427
+      ],
+      "sampling": {
+        "offset": [
+          2,
+          1
+        ],
+        "drawSize": [
+          70,
+          81
+        ]
+      }
+    },
+    "EC-pump": {
+      "anchor": [
+        37.5,
+        83
+      ],
+      "family": "houses",
+      "identity": "EC",
+      "stage": "pump",
+      "native": "native/houses-v2/EC-pump.png",
+      "pngSHA256": "e05c999fdb2e54a7e03cd503ee6acfd8ac21f25af769c5e4c250e7076a4a03d2",
+      "rgbaSHA256": "12b82ba1ad94f81e7d271103efe44739c2fc4e010d5d14ab95b8ef56ddb3f8cc",
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        41,
+        125,
+        360,
+        439
+      ],
+      "sampling": {
+        "offset": [
+          4,
+          1
+        ],
+        "drawSize": [
+          66,
+          81
+        ]
+      }
+    },
+    "EP-pump": {
+      "anchor": [
+        37.5,
+        83
+      ],
+      "family": "houses",
+      "identity": "EP",
+      "stage": "pump",
+      "native": "native/houses-v2/EP-pump.png",
+      "pngSHA256": "08ec896dd52e22e3a70657b5e2f09ee17756decc85b443043bf230565a2adde1",
+      "rgbaSHA256": "1bc66cf536e36b3e8f9238a085065535f3ca9f216017c6e0933d4ff4536d8ea5",
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        910,
+        124,
+        385,
+        436
+      ],
+      "sampling": {
+        "offset": [
+          1,
+          1
+        ],
+        "drawSize": [
+          72,
+          81
+        ]
+      }
+    },
+    "EPP-pump": {
+      "anchor": [
+        37.5,
+        83
+      ],
+      "family": "houses",
+      "identity": "EPP",
+      "stage": "pump",
+      "native": "native/houses-v2/EPP-pump.png",
+      "pngSHA256": "43270697cdcc3b8704e4e93333f0c3255f808320bd476f1810189c9b7879b4bf",
+      "rgbaSHA256": "fdb08edbeeece0d0cdc0031f2e96cbcb1bb302737bea4e7e90c4cb50c0c0b229",
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        1355,
+        128,
+        379,
+        440
+      ],
+      "sampling": {
+        "offset": [
+          2,
+          1
+        ],
+        "drawSize": [
+          70,
+          81
+        ]
+      }
+    },
+    "GP-pump": {
+      "anchor": [
+        37.5,
+        83
+      ],
+      "family": "houses",
+      "identity": "GP",
+      "stage": "pump",
+      "native": "native/houses-v2/GP-pump.png",
+      "pngSHA256": "e5d65bae31f0d1feb48669a36b49db2c75e821c4fbf885e81fc957bc55897b6a",
+      "rgbaSHA256": "a225fcb2d57958f7b0aa74b399813ea37af30e25f6cdca54879929c81ad32199",
+      "source": "sources/pool-sheds-v3.png",
+      "sourceRect": [
+        1808,
+        124,
+        362,
+        443
+      ],
+      "sampling": {
+        "offset": [
+          4,
+          1
+        ],
+        "drawSize": [
+          66,
+          81
+        ]
+      }
+    }
+  },
+  "pngBytes": 92726,
+  "decodedPixelBytes": 790528
+}

@@ -18,7 +18,7 @@ test('HD atlas rectangles and timings are valid within a 32 MiB pixel budget', (
   for (const file of legacy.pages) { const png = fs.readFileSync(path.join(legacyDir, file)); pixels += png.readUInt32BE(16) * png.readUInt32BE(20) * 4; }
   const people = fs.readFileSync(path.join(__dirname, '../assets/quest-people/people.png'));
   pixels += people.readUInt32BE(16) * people.readUInt32BE(20) * 4;
-  for (const file of ['quest-hair/hair.png', 'quest-world/trees.png', 'quest-world/foliage.png', 'quest-hubs/props.png']) {
+  for (const file of ['quest-hair/hair.png', 'quest-zones/zones.png', 'quest-world/foliage.png', 'quest-hubs/props.png']) {
     const png = fs.readFileSync(path.join(__dirname, '../assets', file)); pixels += png.readUInt32BE(16) * png.readUInt32BE(20) * 4;
   }
   assert.ok(pixels < 32 * 1048576);
