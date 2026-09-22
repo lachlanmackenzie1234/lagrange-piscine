@@ -101,12 +101,76 @@ const PoolMaps = (() => {
     return { id, res, arch, mirrored: !!mirrored, border, deckTile, pool: { x: pool[0], y: pool[1], w: pool[2], h: pool[3] }, deck: { x: deck[0], y: deck[1], w: deck[2], h: deck[3] }, arena: { x: arena[0], y: arena[1], w: arena[2], h: arena[3] }, anchors, objects, ground, coll, paths };
   }
   function nearestOpen(coll, a) { for (const [dx, dy] of [[0, 1], [0, -1], [-1, 0], [1, 0]]) { const x = a.x + dx, y = a.y + dy; if (x >= 0 && y >= 0 && x < W && y < H && !coll[y][x]) return [x, y]; } return [a.x, a.y]; }
+  function nearestReachable(coll, from, target) {
+    if (coll[from[1]]?.[from[0]] !== 0) return null;
+    const queue = [from.slice()], seen = new Set([key(...from)]);
+    let closest = queue[0], distance = Infinity;
+    for (let i = 0; i < queue.length; i++) {
+      const [x, y] = queue[i], d = (x - target[0]) ** 2 + (y - target[1]) ** 2;
+      if (d < distance) { closest = queue[i]; distance = d; if (!d) break; }
+      for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1]]) {
+        const nx = x + dx, ny = y + dy, k = key(nx, ny);
+        if (nx < 0 || nx >= W || ny < 0 || ny >= H || coll[ny][nx] || seen.has(k)) continue;
+        seen.add(k); queue.push([nx, ny]);
+      }
+    }
+    return closest;
+  }
   const cache = new Map();
   function get(id, res) {
     const k = id + '|' + res; if (cache.has(k)) return cache.get(k);
     const m = byId[id] || M.find((x) => x[1] === res) || M[0];
     const L = expand(m); L.borrowed = !byId[id]; cache.set(k, L); return L;
   }
-  return { get, route, ids: () => M.map((m) => m[0]), W, H };
+  // Hub collision uses logical 16px cells; layered art positions use native pixels.
+  function makeHub(id, open, blocked, anchors, npcs, hotspots, exit) {
+    const coll = Array.from({ length: H }, () => Array(W).fill(1));
+    const fill = (rect, value) => { const [x, y, w, h] = rect; for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) coll[yy][xx] = value; };
+    open.forEach(r => fill(r, 0)); blocked.forEach(r => fill(r, 1));
+    npcs.forEach(n => { coll[n.cell[1]][n.cell[0]] = 1; });
+    return { id, size: id === 'bureau' ? [384, 288] : [512, 384], coll, anchors, npcs, hotspots, exit };
+  }
+  const hubs = {
+    depot: makeHub('depot', [[1, 4, 14, 7], [6, 11, 4, 1]],
+      [[14, 4, 1, 7], [13, 4, 2, 1], [12, 6, 2, 4], [2, 9, 3, 2], [11, 10, 3, 1]],
+      { sp: { x: 8, y: 10 }, bench: { x: 11, y: 4 }, sale: { x: 3, y: 5 }, potions: { x: 10, y: 8 }, lockers: { x: 8, y: 9 } },
+      [{ id: 'matt', cell: [3, 4] }, { id: 'karine', cell: [12, 4] }, { id: 'jojo', cell: [11, 8] }],
+      [{ kind: 'sale', npc: 'matt', rect: [28, 26, 50, 45], anchor: 'sale' }, { kind: 'craft', npc: 'karine', rect: [136, 50, 108, 28], anchor: 'bench' }, { kind: 'potions', npc: 'jojo', rect: [191, 90, 55, 54], anchor: 'potions' }],
+      { rect: [98, 165, 67, 27], to: 'bureau' }),
+    bureau: makeHub('bureau', [[1, 1, 10, 7]],
+      [[1, 1, 1, 3], [1, 4, 2, 4], [7, 4, 4, 1], [10, 1, 1, 2], [10, 6, 1, 2], [3, 6, 1, 1]],
+      { sp: { x: 9, y: 6 }, rewards: { x: 3, y: 2 }, quest: { x: 8, y: 5 }, partner: { x: 5, y: 6 } },
+      [{ id: 'pj', cell: [2, 2], direction: 'west' }, { id: 'jp', cell: [7, 3], direction: 'south', offset: [0, -21] }, { id: 'partner', cell: [4, 6], direction: 'west' }],
+      [{ kind: 'rewards', npc: 'pj', rect: [12, 20, 32, 49], anchor: 'rewards' }, { kind: 'quest', npc: 'jp', rect: [107, 36, 59, 44], anchor: 'quest' }],
+      { rect: [137, 119, 30, 25], to: 'depot' }),
+  };
+  hubs.bureau.scenery = [
+    { asset: 'boss-desk', x: 44, y: 136, npc: 'pj', occludes: true },
+    { asset: 'reception-counter', x: 280, y: 154, npc: 'jp', occludes: true },
+    { asset: 'cabinet', x: 348, y: 90, scale: .65 },
+    { asset: 'sofa', x: 48, y: 250, npc: 'partner', occludes: true },
+    { asset: 'coffee-table', x: 108, y: 216, npc: 'partner' },
+    { kind: 'interior-pot', x: 340, y: 244, scale: .8 },
+  ];
+  hubs.depot.scenery = [
+    { asset: 'gardener-van', x: 112, y: 136, npc: 'matt' },
+    { asset: 'karine-van', x: 224, y: 136, npc: 'karine' },
+    { asset: 'jojo-van', x: 426, y: 266, npc: 'jojo' },
+    { asset: 'workshop', x: 390, y: 154, npc: 'karine', occludes: true },
+    { asset: 'potions', x: 430, y: 316, scale: .75, npc: 'jojo' },
+    { asset: 'storage', x: 112, y: 338 },
+    { kind: 'foliage', plant: 0, x: 18, y: 152, scale: .95 },
+    { kind: 'foliage', plant: 1, x: 30, y: 309, scale: .82 },
+    { kind: 'foliage', plant: 3, x: 268, y: 46, scale: .62 },
+    { kind: 'foliage', plant: 1, x: 508, y: 204, scale: .82 },
+    { kind: 'foliage', plant: 0, x: 498, y: 351, scale: .85 },
+    { kind: 'foliage', plant: 2, x: 50, y: 421, scale: .85 },
+    { kind: 'foliage', plant: 4, x: 161, y: 357, scale: .8 },
+    { kind: 'foliage', plant: 5, x: 70, y: 226, scale: .65 },
+    { kind: 'foliage', plant: 7, x: 416, y: 353, scale: .8 },
+    { kind: 'foliage', plant: 5, x: 478, y: 288, scale: .65 },
+  ];
+  return { get, route, nearestReachable, depot: () => hubs.depot, hub: id => hubs[id] || hubs.depot, ids: () => M.map((m) => m[0]), W, H };
+
 })();
 window.PoolMaps = PoolMaps;

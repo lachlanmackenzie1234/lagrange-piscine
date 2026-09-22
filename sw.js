@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v0.96';
+const VERSION = 'lp-v0.103.0';
 const ASSETS = [
   './',
   './index.html',
@@ -8,26 +8,49 @@ const ASSETS = [
   './js/photos.js',
   './js/weather.js',
   './js/sync.js',
+  './js/quest-core.js',
+  './js/quest-profiles.js',
   './js/seed.js',
   './js/store.js',
   './js/app.js',
   './js/pixelart.js',
+  './js/pixel-surface.js',
+  './js/keeper-art.js',
   './js/maps.js',
   './js/game-motion.js',
+  './js/living-world.js',
+  './js/hub-art.js',
   './js/game.js',
+  './assets/quest-hubs/props.png',
+  './assets/quest-hubs/manifest.json',
+  './assets/quest-world/foliage.png',
+  './assets/quest-world/foliage.json',
   './assets/quest-motion/manifest.json',
   './assets/quest-motion/monsters.png',
   './assets/quest-motion/auras.png',
   './assets/quest-motion/effects.png',
   './assets/quest-motion/water.png',
   './assets/quest-motion/loot.png',
+  './assets/quest-motion/creatures.png',
+  './assets/quest-motion/depot.png',
+  './assets/quest-hires/manifest.json',
+  './assets/quest-hires/bureau.png',
+  './assets/quest-hires/depot.png',
+  './assets/quest-hires/npcs.png',
+  './assets/quest-hires/keepers.png',
+  './assets/quest-hires/actors.png',
+  './assets/quest-hires/icons.png',
+  './assets/quest-hires/tiles.png',
+  './assets/quest-hires/water.png',
+  './assets/quest-people/manifest.json',
+  './assets/quest-people/people.png',
   './manifest.webmanifest',
   './fonts/PixelifySans-Regular.ttf',
   './icons/icon.svg',
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(ASSETS.map(asset => new Request(asset, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {

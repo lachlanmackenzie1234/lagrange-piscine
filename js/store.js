@@ -529,7 +529,12 @@ const Store = (() => {
   // read as blank (no backfilling, no guessing who did what).
   const OP_KEY = 'lagrange-piscine.operator';
   function operator() { try { return localStorage.getItem(OP_KEY) || ''; } catch (_) { return ''; } }
-  function setOperator(name) { try { localStorage.setItem(OP_KEY, (name || '').trim()); } catch (_) {} }
+  function setOperator(name) {
+    const next = (name || '').trim(), previous = operator(); if (next === previous) return;
+    window.dispatchEvent?.(new CustomEvent('lp-operator-changing', { detail: { previous, next } }));
+    try { localStorage.setItem(OP_KEY, next); } catch (_) {}
+    window.dispatchEvent?.(new CustomEvent('lp-operator-changed', { detail: { previous, next } }));
+  }
   // Names for the picker = every `by` seen in the data (arrives from either
   // phone via sync) plus this device's own operator. Add-new = just type one.
   function knownOperators() {

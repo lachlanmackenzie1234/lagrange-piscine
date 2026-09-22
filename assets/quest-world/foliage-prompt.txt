@@ -1,0 +1,16 @@
+Use case: stylized-concept
+Asset type: transparent pixel-art foliage sprite atlas for a small interactive coastal RPG map.
+Primary request: create ONE cohesive environment sprite sheet for a lush, sunlit coastal garden in a sophisticated retro pixel game. The art should feel dense, organic and dimensional, with large coherent color clusters, rich teal shade and fresh yellow-green foliage in warm light. Elevated three-quarter top-down view, like classic handheld RPG towns with greater botanical richness. All objects must share the same camera and light from upper left. Crisp purposeful pixel edges, no smooth vector curves, no blur, no painted antialiasing. Work as if each tree were authored at roughly 80-100 pixels tall, then enlarged with nearest-neighbor.
+Composition: exactly 4 columns by 2 rows, each of 8 sprites completely separate, centered in its equal-sized cell with a generous transparent gutter. Landscape sheet, approximately 1536 by 1024. No grid lines, no labels, no captions.
+Row 1, left to right:
+1. a wide, mature coastal umbrella pine with branching russet trunk and an irregular layered green canopy, sunlit tips, darker undercanopy, clearly visible roots;
+2. a tall tapering maritime pine, several asymmetrical bushy branch tiers, a narrow warm brown trunk, naturally irregular silhouette;
+3. a full rounded deciduous tree with large overlapping leafy clumps, olive/lime highlights and deep teal shadow, branching visible trunk;
+4. a smaller young pine, thin trunk and 3 irregular lush branch clumps.
+Row 2, left to right:
+1. a broad lush shrub clump with overlapping leaves, medium dark green underside and bright top;
+2. a cluster of ferns and long coastal grass blades, rich shaped leaves, rooted at the bottom;
+3. an irregular group of 3 rounded grey-blue rocks, some moss and two tiny white flowers, coherent facets and shade;
+4. a low flowering garden patch, tiny warm white and yellow flowers scattered among lush grassy clumps, warm light.
+Materials: individual leaf clusters, crisp patterned bark, subtle hue-shifted shadows. Preserve clear readable silhouettes with restrained dark colored outlines, no thick black cartoon outlines. Rich local detail surrounded by calm larger masses. Shade on the objects only; NO separate cast shadows or ground plates. Do not include any people, pools, houses, interfaces, checkerboards, text, watermarks or scenery backgrounds.
+Background: genuinely transparent RGBA everywhere outside the eight object silhouettes. Assets fully contained inside their own cells, no overlap between cells.

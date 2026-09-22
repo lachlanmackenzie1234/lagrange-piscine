@@ -1,0 +1,38 @@
+{
+  "version": "v0.99",
+  "unitTests": 33,
+  "packs": {
+    "quest-motion": {
+      "pages": 7,
+      "clips": 168,
+      "runtimeBytes": 266911,
+      "decodedPixelBytes": 6809600
+    },
+    "quest-hires": {
+      "pages": 8,
+      "clips": 618,
+      "runtimeBytes": 1092085,
+      "decodedPixelBytes": 6209024
+    }
+  },
+  "totalDecodedPixelBytes": 13018624,
+  "browserChecks": {
+    "all23PoolMaps": true,
+    "npcPurchaseCraftSale": true,
+    "healingOnMapAndInCombat": true,
+    "questFromThreeActualWins": true,
+    "operatorSaveIsolation": true,
+    "partialDailyRewards": true,
+    "mobile320px": true,
+    "offlineQuestAcceptance": true
+  },
+  "syncChecks": "simulated devices and transports; no writes to a real team during QA",
+  "desktopWalkingSample": {
+    "renderUpdatesPerSecond": 60,
+    "drawCallWorkMsRange": [
+      0.12,
+      0.77
+    ],
+    "note": "local Chromium; excludes GPU composition, not a phone benchmark"
+  }
+}

@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { Timeline, frameAt, fullSet } = require('../js/game-motion.js');
+const { Timeline, frameAt, fullSet, setAuraState } = require('../js/game-motion.js');
 const assetDir = path.join(__dirname, '../assets/quest-motion');
 const manifest = JSON.parse(fs.readFileSync(path.join(assetDir, 'manifest.json')));
 
@@ -114,4 +114,14 @@ test('set aura requires all eight slots from the same known set', () => {
   assert.equal(fullSet(equip), null);
   assert.equal(fullSet(Object.fromEntries(slots.map(slot => [slot, { res: 'unknown' }]))), null);
   assert.equal(fullSet(), null);
+});
+
+test('a full-set aura uses the lowest equipped rarity, with no aura for mixed sets', () => {
+  const slots = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
+  const equip = Object.fromEntries(slots.map(slot => [slot, { res: 'AG', rar: 'legend' }]));
+  assert.deepEqual(setAuraState(equip), { set: 'AG', rank: 5, rarity: 'legend' });
+  equip.balai.rar = 'rare';
+  assert.deepEqual(setAuraState(equip), { set: 'AG', rank: 2, rarity: 'rare' });
+  equip.tête.res = 'EC';
+  assert.equal(setAuraState(equip), null);
 });
