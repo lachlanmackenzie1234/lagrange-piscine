@@ -288,14 +288,16 @@ const Game = (() => {
   }
 
   // One persistent map stage per visited pool; repainting the app does not reset it.
-  function stage(draw) {
-    const c = document.createElement('canvas'); c.width = 512; c.height = 384; c.className = 'q-stage';
+  function stage(draw, size = [512, 384]) {
+    const c = document.createElement('canvas'); [c.width, c.height] = size; c.className = 'q-stage';
     const host = el('<div class="q-map-stage"></div>'); host.appendChild(c);
     const timeline = new Motion.Timeline();
-    const sc = { c, host, timeline, q: timeline.jobs, time: 0, frames: 0, hc: [8, 9], hx: 128, hy: 136, direction: 'south', moving: false, visible: true, drawMs: 0, disposed: false, created: performance.now() };
+    const sc = { c, host, viewWidth: size[0] / 2, viewHeight: size[1] / 2, timeline, q: timeline.jobs, time: 0, frames: 0, hc: [8, 9], hx: 128, hy: 136, direction: 'south', moving: false, visible: true, drawMs: 0, disposed: false, created: performance.now() };
+    host.dataset.sceneSize = size.join('x');
+    const surface = PixelSurface.bind(c, sc.viewWidth, sc.viewHeight);
     const clock = new Motion.RenderClock(); let previous = performance.now(), connected = false, raf, lastTelemetry = 0;
     const visible = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => { sc.visible = entries[0].isIntersecting; clock.reset(); }); visible?.observe(c);
-    sc.dispose = () => { if (sc.disposed) return; sc.disposed = true; timeline.cancel(); cancelAnimationFrame(raf); visible?.disconnect(); closeMapMenu(sc, false); sc.cleanup?.(); };
+    sc.dispose = () => { if (sc.disposed) return; sc.disposed = true; timeline.cancel(); cancelAnimationFrame(raf); visible?.disconnect(); surface.dispose(); closeMapMenu(sc, false); sc.cleanup?.(); };
     const loop = (now) => {
       if (sc.disposed) return;
       const dt = Math.min(.1, Math.max(0, (now - previous) / 1000)); previous = now;
@@ -308,7 +310,7 @@ const Game = (() => {
           sc.time += step; const started = performance.now();
           const { action, progress } = timeline.advance(step); sc.action = action; sc.progress = progress;
           if (sc.disposed) return;
-          const ctx = c.getContext('2d'); ctx.setTransform(2, 0, 0, 2, 0, 0); ctx.imageSmoothingEnabled = false; draw(ctx, sc.time, sc, action, progress); timeline.finish();
+          const ctx = c.getContext('2d'); surface.prepare(ctx); draw(ctx, sc.time, sc, action, progress); timeline.finish();
           sc.frames++; sc.drawMs = sc.drawMs * .9 + (performance.now() - started) * .1;
           if (host.dataset.moving !== String(sc.moving)) host.dataset.moving = String(sc.moving);
           if (host.dataset.queued !== String(sc.q.length)) host.dataset.queued = String(sc.q.length);
@@ -454,8 +456,8 @@ const Game = (() => {
   }
   function positionMenu(sc) {
     if (!sc.menu || !sc.c.isConnected) return;
-    const canvas = sc.c.getBoundingClientRect(), host = sc.host.getBoundingClientRect();
-    const x = canvas.left - host.left + sc.menuPoint[0] / (sc.c.width / 2) * canvas.width, y = canvas.top - host.top + sc.menuPoint[1] / (sc.c.height / 2) * canvas.height;
+    const canvas = PixelSurface.bounds(sc.c), host = sc.host.getBoundingClientRect();
+    const x = canvas.left - host.left + sc.menuPoint[0] / sc.viewWidth * canvas.width, y = canvas.top - host.top + sc.menuPoint[1] / sc.viewHeight * canvas.height;
     sc.menu.style.maxHeight = Math.max(100, canvas.height - 12) + 'px';
     const width = sc.menu.offsetWidth, height = sc.menu.offsetHeight;
     const left = Math.max(5, Math.min(canvas.width - width - 5, x + 8));
@@ -464,7 +466,7 @@ const Game = (() => {
   }
   function showMapMenu(sc, title, rows, point, back) {
     closeMapMenu(sc, false); if (sc.disposed) return;
-    sc.menuPoint = point || sc.menuPoint || [sc.c.width / 4, sc.c.height / 4];
+    sc.menuPoint = point || sc.menuPoint || [sc.viewWidth / 2, sc.viewHeight / 2];
     const menu = sc.menu = el(`<div class="q-map-menu" role="dialog" aria-label="${esc(title)}"><div class="q-map-menu-head"><span>${esc(title)}</span><button type="button" class="q-map-close" aria-label="Fermer le menu">×</button></div><div class="q-map-menu-body"></div></div>`);
     menu.querySelector('.q-map-close').addEventListener('click', () => closeMapMenu(sc));
     const body = menu.querySelector('.q-map-menu-body');
@@ -546,7 +548,7 @@ const Game = (() => {
   function tapStage(sc, ev) {
     if (sc.menu) { closeMapMenu(sc); return; }
     if (B || sc.disposed) return;
-    const r = sc.c.getBoundingClientRect(), mx = (ev.clientX - r.left) / r.width * sc.c.width / 2, my = (ev.clientY - r.top) / r.height * sc.c.height / 2;
+    const r = PixelSurface.bounds(sc.c), mx = (ev.clientX - r.left) / r.width * sc.viewWidth, my = (ev.clientY - r.top) / r.height * sc.viewHeight;
     const L = sc.lay, point = [mx, my], inRect = (x, y, w, h) => mx >= x && mx < x + w && my >= y && my < y + h;
     if (sc.context.e?.monster && sc.moPos && inRect(sc.moPos[0] - 3, sc.moPos[1] - 3, 34, 30)) { mapMenu(sc, 'monster', point); return; }
     const tx = Math.floor(mx / T), ty = Math.floor(my / T);
@@ -581,9 +583,9 @@ const Game = (() => {
   function drawDepot(ctx, t, sc, action, progress) {
     const world = livingScene(sc);
     if (!world) {
-      ctx.save(); ctx.scale(sc.c.width / 512, sc.c.height / 384);
+      ctx.save(); ctx.scale(sc.viewWidth / 256, sc.viewHeight / 192);
       const shown = Motion.draw(ctx, 'scene/' + sc.hubId, 0, 0, 0); ctx.restore();
-      if (!shown) { PA.lay(ctx, 'slab', 0, 0, sc.c.width / 2, sc.c.height / 2); sc.lay.coll.forEach((row, y) => row.forEach((blocked, x) => { if (blocked) { ctx.fillStyle = '#527990'; ctx.fillRect(x * 16, y * 16, 16, 16); } })); }
+      if (!shown) { PA.lay(ctx, 'slab', 0, 0, sc.viewWidth, sc.viewHeight); sc.lay.coll.forEach((row, y) => row.forEach((blocked, x) => { if (blocked) { ctx.fillStyle = '#527990'; ctx.fillRect(x * 16, y * 16, 16, 16); } })); }
     }
     const actors = sc.lay.npcs.map(npc => {
       const [x, y] = npcPoint(npc), direction = npc.direction || 'south', p = sc.context.partnerProfile;
@@ -631,7 +633,7 @@ const Game = (() => {
     node.querySelector('button').addEventListener('click', () => {
       const health = Q.health(load());
       showMapMenu(sc, 'Se soigner', Q.POTIONS.map(p => ({ label: `${p.name} · +${p.heal} PV · ×${load().potions[p.id]}`, id: 'use-' + p.id, disabled: !load().potions[p.id] || health.hp >= health.max,
-        run: () => { if (!Q.usePotion(load(), p.id)) return; save(); closeMapMenu(sc, false); render(); if (!sc.disposed) sc.q.push({ k: 'heal', dur: .72 }); } })), [sc.c.width / 2 - 30, sc.c.height / 2 - 30]);
+        run: () => { if (!Q.usePotion(load(), p.id)) return; save(); closeMapMenu(sc, false); render(); if (!sc.disposed) sc.q.push({ k: 'heal', dur: .72 }); } })), [sc.viewWidth - 30, sc.viewHeight - 30]);
     }); return node;
   }
   function npcName(id) { return id === 'partner' ? Q.playerName(Q.counterpart(Store.operator())) : Q.NPCS.find(n => n.id === id)?.name || ''; }
@@ -705,7 +707,7 @@ const Game = (() => {
 
   function tapDepotStage(sc, event) {
     if (sc.menu) { closeMapMenu(sc); return; } if (sc.disposed) return;
-    const r = sc.c.getBoundingClientRect(), x = (event.clientX - r.left) / r.width * sc.c.width / 2, y = (event.clientY - r.top) / r.height * sc.c.height / 2;
+    const r = PixelSurface.bounds(sc.c), x = (event.clientX - r.left) / r.width * sc.viewWidth, y = (event.clientY - r.top) / r.height * sc.viewHeight;
     const npc = sc.lay.npcs.find(n => { const [nx, ny] = npcPoint(n); return x >= nx - 13 && x < nx + 13 && y >= ny - 32 && y < ny + 3; });
     if (npc) { npcMenu(sc, npc.id, [x, y]); return; }
     const object = sc.world?.hit(x, y);
@@ -1041,9 +1043,8 @@ const Game = (() => {
     dp.querySelector('[data-depot-check]')?.addEventListener('click', () => { dp.querySelector('#q-dep-txt').textContent = 'Position…'; checkDepot(render); });
     const nCr = rewardDays().reduce((sum, d) => sum + d.crates, 0);
     if (!depotStage || depotStage.disposed || depotStage.hubId !== id) {
-      depotStage?.dispose(); depotStage = stage(drawDepot); depotStage.kind = 'depot'; depotStage.hubId = id;
+      depotStage?.dispose(); depotStage = stage(drawDepot, PoolMaps.hub(id).size); depotStage.kind = 'depot'; depotStage.hubId = id;
       depotStage.host.dataset.mapKind = id; depotStage.lay = PoolMaps.hub(id);
-      [depotStage.c.width, depotStage.c.height] = depotStage.lay.size;
       const spawn = depotStage.lay.anchors.sp; depotStage.hc = [spawn.x, spawn.y]; configurePoolStage(depotStage);
     }
     const ds = depotStage, peer = Q.counterpart(Store.operator()), partnerProfile = peer && window.QuestProfiles.get(peer);
@@ -1051,7 +1052,7 @@ const Game = (() => {
     if (ds.revision !== revision) closeMapMenu(ds, false); ds.revision = revision; ds.context = { render, nCr, partnerProfile };
     dp.appendChild(worldLinks()); dp.appendChild(playerHUD(ds, render)); dp.appendChild(ds.host);
     const mapHint = el('<div class="q-hint q-maphint"><span>Touche un personnage pour lui parler. Touche le sol pour marcher.</span><button type="button" class="q-map-shortcut" aria-haspopup="dialog">Parler</button></div>');
-    ds.shortcut = mapHint.querySelector('button'); ds.shortcut.addEventListener('click', () => ds.menu ? closeMapMenu(ds) : depotMenu(ds, 'root', [ds.c.width / 2 - 30, ds.c.height / 2 - 30])); dp.appendChild(mapHint);
+    ds.shortcut = mapHint.querySelector('button'); ds.shortcut.addEventListener('click', () => ds.menu ? closeMapMenu(ds) : depotMenu(ds, 'root', [ds.viewWidth - 30, ds.viewHeight - 30])); dp.appendChild(mapHint);
     const people = el('<div class="q-npc-list" aria-label="Personnages"></div>');
     ds.lay.npcs.forEach(n => { const info = Q.NPCS.find(p => p.id === n.id); const button = el(`<button type="button" data-npc="${n.id}" aria-haspopup="dialog"><b>${esc(npcName(n.id))}</b><small>${esc(info.job)}</small></button>`); button.addEventListener('click', () => npcMenu(ds, n.id, [n.cell[0] * 16 + 8, n.cell[1] * 16])); people.appendChild(button); }); dp.appendChild(people);
     if (id === 'bureau') { const q = Q.dailyQuest(g); if (q) dp.appendChild(el(`<p class="q-hint">Mission de JP · ${q.claimed ? 'récompense récupérée' : q.progress + '/3 algues vertes'}</p>`)); if (nCr) dp.appendChild(el(`<p class="q-hint">PJ garde ${nCr} caisse${nCr > 1 ? 's' : ''} pour toi.</p>`)); }

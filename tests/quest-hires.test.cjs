@@ -16,6 +16,8 @@ test('HD atlas rectangles and timings are valid within a 32 MiB pixel budget', (
   const legacyDir = path.join(__dirname, '../assets/quest-motion');
   const legacy = JSON.parse(fs.readFileSync(path.join(legacyDir, 'manifest.json')));
   for (const file of legacy.pages) { const png = fs.readFileSync(path.join(legacyDir, file)); pixels += png.readUInt32BE(16) * png.readUInt32BE(20) * 4; }
+  const people = fs.readFileSync(path.join(__dirname, '../assets/quest-people/people.png'));
+  pixels += people.readUInt32BE(16) * people.readUInt32BE(20) * 4;
   assert.ok(pixels < 32 * 1048576);
   for (const [id, clip] of Object.entries(pack.clips)) {
     assert.equal(clip.px, 2, id); const [w, h] = pages[clip.page]; let t = 0;

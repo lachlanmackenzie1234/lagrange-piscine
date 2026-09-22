@@ -1,5 +1,5 @@
 /* Service worker — offline cache for the app shell. Bump VERSION on release. */
-const VERSION = 'lp-v0.102.1';
+const VERSION = 'lp-v0.103.0';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
   './js/store.js',
   './js/app.js',
   './js/pixelart.js',
+  './js/pixel-surface.js',
   './js/keeper-art.js',
   './js/maps.js',
   './js/game-motion.js',
@@ -41,6 +42,8 @@ const ASSETS = [
   './assets/quest-hires/icons.png',
   './assets/quest-hires/tiles.png',
   './assets/quest-hires/water.png',
+  './assets/quest-people/manifest.json',
+  './assets/quest-people/people.png',
   './manifest.webmanifest',
   './fonts/PixelifySans-Regular.ttf',
   './icons/icon.svg',

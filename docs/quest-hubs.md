@@ -1,6 +1,6 @@
 # Quest v0.101 · Layered hubs and character integration
 
-For the latest character proportions, see [the compact character pass](quest-characters.md).
+For the latest character proportions, see [the regenerated native people](quest-people.md).
 
 The Bureau is now a compact 384×288 room. At the same panel width, its characters
 appear a third larger than on a 512×384 map. PJ faces a small vertical wooden

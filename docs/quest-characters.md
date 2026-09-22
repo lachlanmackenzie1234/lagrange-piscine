@@ -1,5 +1,8 @@
 # Compact character pass · v0.102.1
 
+Historical render-compression trial. The current build uses [regenerated 64×64
+characters and stable device-pixel rendering](quest-people.md) instead.
+
 Jojo and Karine provide the reference proportions for the keeper, Matt, JP and PJ.
 All humans now have a six-pixel torso, a one-pixel exposed leg band and three-pixel
 boots at map scale. Their existing heads retain the same size and pixels. Combat

@@ -1,0 +1,508 @@
+{
+  "version": "v0.103.0",
+  "nodeTests": 45,
+  "art": {
+    "failures": [],
+    "nativeViews": 24,
+    "stableHeadPoses": 208,
+    "stablePhysicalSamples": 512,
+    "visibleEquipmentCases": 960
+  },
+  "layouts": [
+    {
+      "dpr": 1,
+      "hubs": [
+        {
+          "cache": {
+            "bytes": 853444,
+            "frames": 38,
+            "maxBytes": 8388608
+          },
+          "css": [
+            652,
+            487.5
+          ],
+          "id": "bureau",
+          "physical": [
+            652,
+            488
+          ],
+          "scene": "384x288"
+        },
+        {
+          "cache": {
+            "bytes": 880340,
+            "frames": 42,
+            "maxBytes": 8388608
+          },
+          "css": [
+            652,
+            487.5
+          ],
+          "id": "depot",
+          "physical": [
+            652,
+            488
+          ],
+          "scene": "512x384"
+        }
+      ],
+      "logsUnchanged": true,
+      "menus": [
+        {
+          "fits": true,
+          "id": "pj",
+          "label": "PJ"
+        },
+        {
+          "fits": true,
+          "id": "jp",
+          "label": "JP"
+        },
+        {
+          "fits": true,
+          "id": "partner",
+          "label": "Coll\u00e8gue"
+        },
+        {
+          "fits": true,
+          "id": "matt",
+          "label": "Matt \u00b7 Fourgon"
+        },
+        {
+          "fits": true,
+          "id": "karine",
+          "label": "Karine \u00b7 Atelier"
+        },
+        {
+          "fits": true,
+          "id": "jojo",
+          "label": "Jojo"
+        }
+      ],
+      "viewport": 1100
+    },
+    {
+      "dpr": 2,
+      "hubs": [
+        {
+          "cache": {
+            "bytes": 470880,
+            "frames": 10,
+            "maxBytes": 8388608
+          },
+          "css": [
+            652,
+            487.5
+          ],
+          "id": "bureau",
+          "physical": [
+            1304,
+            975
+          ],
+          "scene": "384x288"
+        },
+        {
+          "cache": {
+            "bytes": 589440,
+            "frames": 17,
+            "maxBytes": 8388608
+          },
+          "css": [
+            652,
+            487.5
+          ],
+          "id": "depot",
+          "physical": [
+            1304,
+            975
+          ],
+          "scene": "512x384"
+        }
+      ],
+      "logsUnchanged": true,
+      "menus": [
+        {
+          "fits": true,
+          "id": "pj",
+          "label": "PJ"
+        },
+        {
+          "fits": true,
+          "id": "jp",
+          "label": "JP"
+        },
+        {
+          "fits": true,
+          "id": "partner",
+          "label": "Coll\u00e8gue"
+        },
+        {
+          "fits": true,
+          "id": "matt",
+          "label": "Matt \u00b7 Fourgon"
+        },
+        {
+          "fits": true,
+          "id": "karine",
+          "label": "Karine \u00b7 Atelier"
+        },
+        {
+          "fits": true,
+          "id": "jojo",
+          "label": "Jojo"
+        }
+      ],
+      "viewport": 1100
+    },
+    {
+      "dpr": 3,
+      "hubs": [
+        {
+          "cache": {
+            "bytes": 780280,
+            "frames": 31,
+            "maxBytes": 8388608
+          },
+          "css": [
+            252,
+            187.5
+          ],
+          "id": "bureau",
+          "physical": [
+            756,
+            563
+          ],
+          "scene": "384x288"
+        },
+        {
+          "cache": {
+            "bytes": 780280,
+            "frames": 31,
+            "maxBytes": 8388608
+          },
+          "css": [
+            252,
+            187.5
+          ],
+          "id": "depot",
+          "physical": [
+            756,
+            563
+          ],
+          "scene": "512x384"
+        }
+      ],
+      "logsUnchanged": true,
+      "menus": [
+        {
+          "fits": true,
+          "id": "pj",
+          "label": "PJ"
+        },
+        {
+          "fits": true,
+          "id": "jp",
+          "label": "JP"
+        },
+        {
+          "fits": true,
+          "id": "partner",
+          "label": "Coll\u00e8gue"
+        },
+        {
+          "fits": true,
+          "id": "matt",
+          "label": "Matt \u00b7 Fourgon"
+        },
+        {
+          "fits": true,
+          "id": "karine",
+          "label": "Karine \u00b7 Atelier"
+        },
+        {
+          "fits": true,
+          "id": "jojo",
+          "label": "Jojo"
+        }
+      ],
+      "viewport": 320
+    }
+  ],
+  "pools": {
+    "logsUnchanged": true,
+    "pools": [
+      {
+        "id": "EC-2",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EC-5",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EC-12",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EC-18",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EC-22",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "AG-7",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "AG-8",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "AG-9",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "AG-21",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "AG-32",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-6B-75",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-19B-90",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-30B-63",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-27B-94",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-40B-52",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-31B-96",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-52B-46",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EP-6E-99",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EPP-3",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EPP-4",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "EPP-7",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "GP-18",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      },
+      {
+        "id": "GP-39",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          652,
+          488
+        ]
+      }
+    ]
+  },
+  "combat": {
+    "after": 168,
+    "before": 180,
+    "buffer": [
+      [
+        494,
+        369
+      ]
+    ],
+    "cache": {
+      "bytes": 8239716,
+      "frames": 192,
+      "maxBytes": 8388608
+    },
+    "immediate": 180,
+    "locked": true,
+    "logsUnchanged": true,
+    "phase": "ready",
+    "turn": "1"
+  },
+  "offline": {
+    "cache": [
+      "lp-v0.103.0"
+    ],
+    "hasPeople": true,
+    "hasSurface": true,
+    "motion": {
+      "failure": null,
+      "keeperFrames": 2,
+      "litFrames": 8,
+      "loaded": true,
+      "nativePeople": 24,
+      "pages": 16,
+      "portraits": 0,
+      "revision": 1
+    },
+    "online": false,
+    "sourcesCached": [],
+    "world": "living-v5"
+  },
+  "walk": {
+    "from": "152,111",
+    "to": "80,63",
+    "activeFpsTarget": 60,
+    "sampledJsDrawMs": [
+      0.49,
+      0.82
+    ],
+    "note": "Desktop Chromium; excludes GPU composition, not a physical-phone benchmark."
+  },
+  "portrait": {
+    "css": [
+      144,
+      144
+    ],
+    "dpr1": [
+      144,
+      144
+    ],
+    "dpr2": [
+      288,
+      288
+    ]
+  }
+}

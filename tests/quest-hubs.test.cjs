@@ -10,7 +10,7 @@ const context = vm.createContext({ window: {} });
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/maps.js'), 'utf8'), context);
 const maps = context.window.PoolMaps;
 
-test('every human shares a compact body while retaining source heads and boots', () => {
+test('the legacy fallback shares a compact body while retaining source heads and boots', () => {
   for (const scale of [.8, 1.6]) {
     const reference = humanGeometry(npcRig.karine.neck, scale);
     for (const rig of [humanStyle, ...Object.values(npcRig)]) {
