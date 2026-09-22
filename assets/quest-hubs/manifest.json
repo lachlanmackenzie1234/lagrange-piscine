@@ -133,14 +133,65 @@
         54,
         85
       ]
+    },
+    "scenic-black": {
+      "r": [
+        0,
+        256,
+        96,
+        76
+      ],
+      "anchor": [
+        48,
+        75
+      ]
+    },
+    "chair-east": {
+      "r": [
+        96,
+        256,
+        32,
+        40
+      ],
+      "anchor": [
+        16,
+        39
+      ]
+    },
+    "chair-south": {
+      "r": [
+        128,
+        256,
+        32,
+        40
+      ],
+      "anchor": [
+        16,
+        39
+      ]
+    },
+    "broadleaf-pot": {
+      "r": [
+        160,
+        256,
+        50,
+        66
+      ],
+      "anchor": [
+        25,
+        65
+      ]
     }
   },
   "sourceSHA256": {
     "bureau": "96a21e18a9f968a0ab10921d4561d0327fc17c74457e422d940a6ff82131a7be",
     "depot": "86cf33b5545b53b2c40fdabc9099353f26c7539b7bfab623f393ae2db627f326",
     "vehicles": "f974e8d67c1c6f1322bba0dc1a712d1865c52d45d56511861bb71503f02017a1",
-    "office": "8b46423446620a28b54eeb321f4fc68d2a9a23e9a25892fc85c0671964f1f6dd"
+    "office": "8b46423446620a28b54eeb321f4fc68d2a9a23e9a25892fc85c0671964f1f6dd",
+    "spares": "7223906bfbfda7d5e961675dcc7d4d52194c5427b578f9250eceaf570b37b4f6",
+    "chairs": "4e3d08f7f6b38ffbe1c35baffa0e7ef20174e1d15a89d8932b44b2bf5ba0cab6",
+    "plant": "25d4f819dbd323e88721f68504678ad7c92c3843ceedab3a7d7cdd085e554271"
   },
-  "pngBytes": 116149,
-  "decodedPixelBytes": 524288
+  "pngBytes": 135317,
+  "decodedPixelBytes": 679936
 }

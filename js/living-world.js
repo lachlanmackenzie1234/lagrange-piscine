@@ -2,6 +2,7 @@
  * Art, collision, gameplay, and maintenance records remain separate.
  */
 const QuestWorld = (() => {
+  const Eco = typeof window === 'undefined' ? require('./quest-ecology.js') : window.QuestEcology;
   const W = 512, H = 384, T = 32, TAU = Math.PI * 2;
   const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
   const seeded = seed => { let n = seed >>> 0; return () => { n = (Math.imul(n, 1664525) + 1013904223) >>> 0; return n / 4294967296; }; };
@@ -81,7 +82,7 @@ function makeGrassSprite(size, variant) {
   // The plan is deterministic and uses existing footprints. Decorative grass
   // never blocks a route, an interaction anchor, or the encounter clearing.
   function plan(layout) {
-    const rand = seeded(hash(layout.id)), props = [], grass = [];
+    const rand = seeded(hash(layout.id)), props = [];
     const clear = (x, y, margin = 0) => {
       const tx = Math.floor(x / T), ty = Math.floor(y / T);
       return x > margin && x < W - margin && y > margin && y < H - margin
@@ -106,12 +107,12 @@ function makeGrassSprite(size, variant) {
       if (!clear(x, y, 10) || props.some(p => Math.hypot(x - p.x, y - p.y) < 26)) continue;
       props.push({ kind: 'foliage', plant: [4, 5, 7][i % 3], x, y, scale: .5 + rand() * .24, phase: rand() * TAU });
     }
-    for (let i = 0; i < 440; i++) {
-      const x = Math.round(rand() * W), y = Math.round(rand() * H), size = Math.floor(rand() * 4), margin = 3 + size * 2;
-      if (!clear(x, y, margin) || !clear(x - margin, y, 0) || !clear(x + margin, y, 0) || grass.some(t => Math.hypot(x - t.x, (y - t.y) * 1.4) < margin + 3)) continue;
-      grass.push({ kind: 'grass', x, y, size, variant: Math.floor(rand() * 3), phase: rand() * TAU });
-    }
-    return { props, grass };
+    const trees = props.filter(p => p.plant != null && p.plant < 4), roster = Eco.treeRoster(layout.id, trees.length);
+    trees.forEach((p, i) => { p.species = roster[i]; p.treeVariant = i % 2; });
+    const cover = Eco.createGroundCover({ width: W, height: H, seed: Eco.hashIdentity(layout.id),
+      eligible: (x, y) => clear(x, y, 5), rockEligible: (x, y) => clear(x, y, 12) && props.every(p => Math.hypot(x - p.x, y - p.y) > 28) });
+    cover.rocks.forEach(o => props.push({ ...o, kind: 'foliage', plant: 6 }));
+    return { props, grass: cover.grass, coverage: cover };
   }
 
   function makeGround(layout) {
@@ -181,8 +182,9 @@ function makeGrassSprite(size, variant) {
   const ready = typeof document === 'undefined' ? Promise.resolve(false) : (async () => {
     try {
       const base = new URL('../assets/quest-world/', document.currentScript.src);
-      const [source, manifest] = await Promise.all([loadImage(new URL('foliage.png', base).href), fetch(new URL('foliage.json', base)).then(r => { if (!r.ok) throw new Error('Foliage manifest unavailable'); return r.json(); })]);
+      const [source, manifest, treePage, treeManifest] = await Promise.all([loadImage(new URL('foliage.png', base).href), fetch(new URL('foliage.json', base)).then(r => { if (!r.ok) throw new Error('Foliage manifest unavailable'); return r.json(); }), loadImage(new URL('trees.png', base).href), fetch(new URL('trees.json', base)).then(r => { if (!r.ok) throw new Error('Tree manifest unavailable'); return r.json(); })]);
       const plants = manifest.regions.map(([x, y, w, h]) => { const c = surface(w, h), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(source, x, y, w, h, 0, 0, w, h); return c; });
+      const trees = Object.fromEntries(Object.entries(treeManifest.regions).map(([id, [x, y, w, h]]) => { const c = surface(w, h); c.getContext('2d').drawImage(treePage, x, y, w, h, 0, 0, w, h); return [id, c]; }));
       const grass = Array.from({ length: 4 }, (_, size) => Array.from({ length: 3 }, (_, variant) => makeGrassSprite(size, variant)));
       const props = Object.fromEntries(['pump', 'pot', 'sign', 'bench', 'lounger'].map(kind => [kind, makeProp(kind)]));
       props.villa = makeHouse(); props.shed = makePump();
@@ -196,10 +198,11 @@ function makeGrassSprite(size, variant) {
         const [page, manifest] = await Promise.all([loadImage(new URL('props.png', hubBase).href), fetch(new URL('manifest.json', hubBase)).then(r => { if (!r.ok) throw new Error('Hub manifest unavailable'); return r.json(); })]);
         for (const [id, { r: [x, y, w, h] }] of Object.entries(manifest.props)) { const c = surface(w, h); c.getContext('2d').drawImage(page, x, y, w, h, 0, 0, w, h); hubProps[id] = c; }
       } catch (error) { hubFailure = error.message; }
-      const all = [...plants, ...grass.flat(), ...Object.values(props), ...Object.values(hubProps)];
-      const animated = new Set([...plants, ...grass.flat()]);
-      art = { plants, grass, props, hubProps, frames: new Map(), shadows: new Map(), alpha: new Map() };
-      all.forEach(c => { if (animated.has(c)) art.frames.set(c, bendFrames(c)); art.shadows.set(c, shadowSprite(c)); art.alpha.set(c, c.getContext('2d').getImageData(0, 0, c.width, c.height).data); });
+      if (hubProps['boss-desk']) { const source = hubProps['boss-desk'], c = surface(source.width, source.height), g = c.getContext('2d'); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(source, 0, 0); hubProps['boss-desk-mirrored'] = c; }
+      const all = [...plants, ...Object.values(trees), ...grass.flat(), ...Object.values(props), ...Object.values(hubProps)];
+      const animated = new Set([...plants, ...Object.values(trees), ...grass.flat()]);
+      art = { plants, trees, grass, props, hubProps, frames: new Map(), shadows: new Map(), shadowFrames: new Map(), alpha: new Map() };
+      all.forEach(c => { if (animated.has(c)) { const frames = bendFrames(c); art.frames.set(c, frames); art.shadowFrames.set(c, frames.map(shadowSprite)); } art.shadows.set(c, shadowSprite(c)); art.alpha.set(c, c.getContext('2d').getImageData(0, 0, c.width, c.height).data); });
       return true;
     } catch (error) { failure = error.message; return false; }
   })();
@@ -227,18 +230,57 @@ function makeGrassSprite(size, variant) {
       [this.width, this.height] = layout.size || [W, H];
       this.interior = layout.id === 'bureau';
       const hub = !!layout.npcs, decoration = hub ? { props: layout.scenery, grass: window.QuestHubArt.grass(layout) } : plan(layout);
+      this.coverage = decoration.coverage; this.tracks = []; this.trackDistance = 0; this.refreshClimate();
       if (hub) { const room = window.QuestHubArt.build(layout.id, art.plants); this.base = room.base; this.foreground = room.foreground; } else this.base = makeGround(layout);
-      this.props = decoration.props.map((o, i) => ({ scale: 1, phase: i * 2.73, ...o, sprite: o.asset ? art.hubProps[o.asset] : o.plant == null ? art.props[o.kind] : art.plants[o.plant] }));
-      this.scenery = [...this.props, ...decoration.grass.map(o => ({ ...o, scale: 1, sprite: art.grass[o.size][o.variant] }))].sort((a, b) => a.y - b.y);
+      this.props = decoration.props.map((o, i) => ({ scale: 1, phase: i * 2.73, ...o, sprite: o.asset ? art.hubProps[o.flipX ? o.asset + '-mirrored' : o.asset] : o.species ? art.trees[o.species + '-' + o.treeVariant] : o.plant == null ? art.props[o.kind] : art.plants[o.plant] }));
+      this.grass = decoration.grass.map(o => ({ ...o, kind: 'grass', scale: 1, sprite: art.grass[o.size][o.variant], bend: 0, bendVelocity: 0, flatten: 0 }));
+      this.scenery = [...this.props, ...this.grass].sort((a, b) => (a.depth ?? a.y) - (b.depth ?? b.y));
       this.hitProps = this.props.slice().sort((a, b) => b.y - a.y);
-      this.shadows = surface(this.width, this.height); const g = this.shadows.getContext('2d');
-      this.props.forEach(o => { const sprite = art.shadows.get(o.sprite); g.save(); g.imageSmoothingEnabled = false; g.globalAlpha = this.interior ? .13 : o.plant != null ? .2 : .25; g.translate(Math.round(o.x), Math.round(o.y)); g.transform(1, 0, this.interior ? -.3 : -.58, this.interior ? .25 : -.3, 0, 0); g.drawImage(sprite, -Math.round(sprite.width * o.scale / 2), -Math.round(sprite.height * o.scale), Math.round(sprite.width * o.scale), Math.round(sprite.height * o.scale)); g.restore(); });
-      const pixels = g.getImageData(0, 0, this.width, this.height).data;
-      this.shade = new Uint8Array(this.width * this.height); for (let i = 0; i < this.shade.length; i++) this.shade[i] = pixels[i * 4 + 3];
+      this.shadows = surface(this.width, this.height); this.shadeSample = surface(Math.ceil(this.width / 4), Math.ceil(this.height / 4));
+      this.shade = new Uint8Array(this.shadeSample.width * this.shadeSample.height); this.makeLawn(); this.updateShadows(0, true);
+    }
+    refreshClimate() {
+      const now = new Date(), atmosphere = Eco.currentAppearance(now);
+      this.climate = { ...atmosphere, patch: { breeze: 22, water: 40, ...atmosphere.patch } };
+      this.cycle = Eco.gardenCycle(this.layout.id, atmosphere.clock.date); this.nextClimate = Date.now() + 60000;
+    }
+    makeLawn() {
+      if (!this.coverage) return;
+      this.lawn = surface(this.width, this.height); const g = this.lawn.getContext('2d'), rand = seeded(hash(this.layout.id));
+      const height = this.cycle.height, colour = `rgb(${Math.round(152 - height * 36)},${Math.round(188 - height * 24)},${Math.round(113 - height * 22)})`;
+      for (const patch of this.coverage.patches) if (patch.kind === 'grass') for (const [x, y] of patch.samples) {
+        g.globalAlpha = .88; box(g, colour, x - 4, y - 4, 8, 8);
+        g.globalAlpha = .17; for (let n = 0; n < 3; n++) box(g, n % 2 ? '#b4c778' : '#578a59', x - 4 + rand() * 8, y - 4 + rand() * 8, 2, 1);
+      }
+    }
+    frameIndex(o, time, quiet) {
+      if (quiet || !art.frames.has(o.sprite)) return 2;
+      const rustle = o.rustledAt == null ? 0 : Math.max(0, 1.6 - (this.time - o.rustledAt));
+      const wind = this.climate.patch.breeze / 100;
+      const displacement = o.species ? Eco.canopyDisplacement({ ...o, rustle }, Math.floor(time * 4) / 4, wind) / 2 : Math.sin(Math.floor(time * 4) / 4 * .9 + o.phase) * (wind * 1.6) + Math.sin(rustle * 20) * rustle;
+      return clamp(Math.round(displacement), -2, 2) + 2;
+    }
+    updateShadows(t, quiet) {
+      const poses = this.props.map(o => this.frameIndex(o, t, quiet));
+      const { patch, visual } = this.climate, key = poses.join(',') + '|' + Math.round(patch.sun / 5) + '|' + visual.cloud + '|' + visual.sunStrength;
+      if (key === this.shadowKey) return; this.shadowKey = key;
+      const g = this.shadows.getContext('2d'); g.clearRect(0, 0, this.width, this.height);
+      this.shadowShear = this.interior ? -.3 : -Math.cos(patch.sun * Math.PI / 180) * .8;
+      this.props.forEach((o, i) => { const sprite = art.shadowFrames.get(o.sprite)?.[poses[i]] || art.shadows.get(o.sprite);
+        if (o.noShadow) return;
+        g.save(); g.imageSmoothingEnabled = false; g.globalAlpha = (this.interior ? .13 : o.plant != null ? .2 : .25) * (1 - visual.cloud * .55) * (.55 + .45 * visual.sunStrength);
+        g.translate(Math.round(o.x), Math.round(o.y)); g.transform(1, 0, this.shadowShear, this.interior ? .25 : -.3, 0, 0);
+        g.drawImage(sprite, -Math.round(sprite.width * o.scale / 2), -Math.round(sprite.height * o.scale), Math.round(sprite.width * o.scale), Math.round(sprite.height * o.scale)); g.restore();
+      });
+      const sample = this.shadeSample.getContext('2d', { willReadFrequently: true }); sample.clearRect(0, 0, this.shadeSample.width, this.shadeSample.height);
+      sample.imageSmoothingEnabled = false; sample.drawImage(this.shadows, 0, 0, this.shadeSample.width, this.shadeSample.height);
+      const pixels = sample.getImageData(0, 0, this.shadeSample.width, this.shadeSample.height).data;
+      for (let i = 0; i < this.shade.length; i++) this.shade[i] = pixels[i * 4 + 3];
     }
     lightAt(x, y) {
-      const shade = this.shade[clamp(Math.floor(y), 0, this.height - 1) * this.width + clamp(Math.floor(x), 0, this.width - 1)];
-      return shade > 40 ? 'shade' : this.interior && !window.QuestHubArt.sunlit(this.layout.id, x, y) ? 'interior' : 'sun';
+      const w = this.shadeSample.width, h = this.shadeSample.height;
+      const shade = this.shade[clamp(Math.floor(y / 4), 0, h - 1) * w + clamp(Math.floor(x / 4), 0, w - 1)];
+      return shade > 28 || this.climate.patch.mood === 'dusk' ? 'shade' : this.interior && !window.QuestHubArt.sunlit(this.layout.id, x, y) ? 'interior' : 'sun';
     }
     grassAt(x, y) {
       return this.pool ? this.layout.ground[Math.floor(y / T)]?.[Math.floor(x / T)] === 'grass' : window.QuestHubArt.isGrass(this.layout.id, x, y);
@@ -258,30 +300,33 @@ function makeGrassSprite(size, variant) {
       });
     }
     rustle(o) {
-      if (o.plant == null) return false;
+      if (o.plant == null || o.plant === 6) return false;
       o.rustledAt = this.time;
       for (let i = 0; i < 6; i++) this.leaves.push({ x: o.x + (i * 13 % 35) - 17, y: o.y - o.sprite.height * o.scale * .6, phase: i * 1.7, start: this.time });
       this.leaves = this.leaves.slice(-36); return true;
     }
     water(g, condition, t) {
       const p = this.pool, state = condition.sunk ? 'sunk' : condition.state;
-      const palette = ({ calme: ['#55b6bd', '#64c0c2', '#70ced0', '#94e2d8'], 'traité': ['#55bbae', '#62c7b2', '#71d0bf', '#94dfcb'], sauvage: ['#648f68', '#78a77b', '#95b98a', '#bdce9b'], critique: ['#455e4b', '#527355', '#6c8a60', '#8eaa74'], sunk: ['#172532', '#1c3040', '#283b4c', '#394557'] })[state] || ['#55b6bd', '#64c0c2', '#70ced0', '#94e2d8'];
+      const look = Eco.WATER_LOOKS[({ calme: 'clear', 'traité': 'treated', sauvage: 'algae', critique: 'murky', sunk: 'murky' })[state] || 'clear'];
+      const palette = state === 'sunk' ? ['#172532', '#1c3040', '#283b4c', '#394557', '#3f4d56'] : look.bands;
+      t *= look.speed * (.45 + this.climate.patch.water / 100);
       g.save(); g.beginPath(); g.rect(p.x, p.y, p.w, p.h); g.clip(); box(g, palette[0], p.x, p.y, p.w, p.h);
-      for (let y = 0; y < p.h; y += 4) box(g, palette[Math.min(3, Math.floor(y / (p.h / 4)))], p.x, p.y + y, p.w, 4);
-      box(g, '#356d79', p.x, p.y, p.w, 4); box(g, '#478f94', p.x, p.y + 4, p.w, 3);
-      g.globalAlpha = .14;
+      for (let y = 0; y < p.h; y += 4) box(g, palette[Math.min(4, Math.floor(y / (p.h / 5)))], p.x, p.y + y, p.w, 4);
+      box(g, look.deep, p.x, p.y, p.w, 4); box(g, look.edge, p.x, p.y + 4, p.w, 3);
+      g.globalAlpha = .14 * look.clarity;
       for (let x = p.x + 15; x < p.x + p.w; x += 20) line(g, '#ddf8dd', [[x, p.y + 10], [x - 3, p.y + p.h]]);
       for (let y = p.y + 15; y < p.y + p.h; y += 18) box(g, '#ebf8db', p.x, y, p.w, 1);
-      for (let i = 0; i < 48; i++) {
-        const x = p.x + i * 37 % p.w, y = p.y + i * 29 % p.h, shift = Math.round(Math.sin(t * .3 + i) * 2);
-        g.globalAlpha = .12 + .07 * (Math.sin(t * .8 + i * 1.7) * .5 + .5);
-        line(g, '#f3ffdd', [[x + shift, y], [x + 4 + shift, y - 2], [x + 8 + shift, y - 2], [x + 12 + shift, y]]);
+      for (let i = 0; i < look.caustics; i++) {
+        const x = p.x + i * 37 % p.w, y = p.y + i * 29 % p.h, shift = Math.round(Math.sin(t * .3 + i) * (1 + this.climate.patch.breeze / 35));
+        g.globalAlpha = (.12 + .07 * (Math.sin(t * .8 + i * 1.7) * .5 + .5)) * look.clarity;
+        line(g, look.shine, [[x + shift, y], [x + 4 + shift, y - 2], [x + 8 + shift, y - 2], [x + 12 + shift, y]]);
         if (i % 3 === 0) line(g, '#ddf7dc', [[x + 4 + shift, y - 2], [x + 6, y - 7], [x + 10, y - 9]]);
       }
       g.globalAlpha = .12; polygon(g, '#daf2d5', [[p.x + 20, p.y], [p.x + 55, p.y], [p.x + p.w, p.y + p.h * .6], [p.x + p.w, p.y + p.h * .8]]);
       g.globalAlpha = .17; polygon(g, '#22575b', [[p.x, p.y], [p.x + 32, p.y], [p.x + 48, p.y + 13], [p.x + 30, p.y + 21], [p.x + 40, p.y + 32], [p.x, p.y + 29]]);
       g.globalAlpha = .75;
       for (let i = 0; i < (condition.s?.dirt || 0) * 16; i++) box(g, i % 3 ? '#849862' : '#b6a775', p.x + 5 + i * 37 % (p.w - 10), p.y + 6 + i * 53 % (p.h - 12), 3, 1);
+      if (look.clarity < .5) for (let i = 0; i < 12; i++) { g.globalAlpha = .2; ellipse(g, look.edge, p.x + i * 43 % p.w, p.y + i * 31 % p.h, 5 + i % 5, 2); }
       g.restore();
       const lx = clamp(this.layout.anchors.la.x * T + 12, p.x + 12, p.x + p.w - 22), ly = p.y + p.h - 10;
       line(g, '#477477', [[lx - 1, ly + 12], [lx - 1, ly - 11], [lx + 2, ly - 14], [lx + 6, ly - 14], [lx + 8, ly - 11], [lx + 8, ly + 4]], 2);
@@ -289,34 +334,46 @@ function makeGrassSprite(size, variant) {
       for (let y = ly - 7; y < ly + 6; y += 6) box(g, '#c2e1cd', lx - 2, y, 12, 2);
     }
     paintObject(g, o, t, hero, quiet) {
-      const grass = o.kind === 'grass', w = Math.round(o.sprite.width * o.scale), h = Math.round(o.sprite.height * o.scale);
-      const brush = grass && !quiet ? Math.max(0, 1 - Math.hypot(hero[0] - o.x, hero[1] - o.y) / 17) * Math.sign(o.x - hero[0]) * 2 : 0;
-      const rustle = o.rustledAt == null ? 0 : Math.max(0, 1.6 - (this.time - o.rustledAt));
-      const sway = quiet || o.plant == null && !grass ? 0 : Math.sin(t * .9 + o.phase) * .7 + brush + Math.sin(rustle * 20) * rustle;
-      const frame = art.frames.get(o.sprite)?.[clamp(Math.round(sway), -2, 2) + 2] || o.sprite;
+      const grass = o.kind === 'grass', source = grass ? art.grass[Math.min(o.size, Math.floor(o.size * this.cycle.height))][o.variant] : o.sprite;
+      const w = Math.round(source.width * o.scale), h = Math.max(3, Math.round(source.height * o.scale * (grass ? (.75 + this.cycle.height * .25) * (1 - o.flatten * .55) : 1)));
+      const sway = quiet ? 0 : Math.sin(t * 1.1 + o.phase) * this.climate.patch.breeze / 60 + (o.bend || 0);
+      const frame = art.frames.get(source)?.[grass ? clamp(Math.round(sway), -2, 2) + 2 : this.frameIndex(o, t, quiet)] || source;
       const behind = (o.occludes || o.plant != null && o.plant < 4) && hero[1] < o.y && hero[1] > o.y - h && Math.abs(hero[0] - o.x) < w * .4;
       g.save(); if (behind) g.globalAlpha = .58;
-      g.drawImage(frame, Math.round(o.x - w / 2 - (frame.width - o.sprite.width) / 2 * o.scale), Math.round(o.y - h), Math.round(frame.width * o.scale), h); g.restore();
+      g.drawImage(frame, Math.round(o.x - w / 2 - (frame.width - source.width) / 2 * o.scale), Math.round(o.y - h), Math.round(frame.width * o.scale), h); g.restore();
     }
     paint(ctx, condition, time, hero, actors = [], quiet = false) {
-      this.time = time; const t = quiet ? 0 : time, foot = hero.map(n => n * 2);
+      const dt = Math.min(.25, Math.max(0, time - this.time)); this.time = time; const t = quiet ? 0 : time, foot = hero.map(n => n * 2);
+      if (Date.now() >= this.nextClimate) { const previous = this.cycle.height; this.refreshClimate(); if (previous !== this.cycle.height) this.makeLawn(); }
+      const vx = dt && this.lastFoot ? (foot[0] - this.lastFoot[0]) / dt : 0, vy = dt && this.lastFoot ? (foot[1] - this.lastFoot[1]) / dt : 0;
+      for (const tuft of this.grass) { const impulse = Eco.passageImpulse(tuft, { x: foot[0], y: foot[1], vx, vy });
+        for (let left = dt; left > 0; left -= .05) Eco.advanceGrassMemory(tuft, impulse, Math.min(.05, left), quiet);
+      }
+      if (!quiet && this.lastFoot && this.grassAt(...foot)) { this.trackDistance += Math.hypot(foot[0] - this.lastFoot[0], foot[1] - this.lastFoot[1]); if (this.trackDistance > 9) { this.tracks.push({ x: foot[0], y: foot[1], at: time }); this.trackDistance = 0; } }
+      this.lastFoot = foot; this.tracks = quiet ? [] : this.tracks.filter(p => time - p.at < 2).slice(-32); this.updateShadows(t, quiet);
       ctx.save(); ctx.scale(.5, .5); ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.base, 0, 0); if (this.pool) this.water(ctx, condition, t); ctx.drawImage(this.shadows, 0, 0);
+      ctx.drawImage(this.base, 0, 0); if (this.lawn) ctx.drawImage(this.lawn, 0, 0); if (this.pool) this.water(ctx, condition, t); ctx.drawImage(this.shadows, 0, 0);
+      for (const track of this.tracks) { ctx.globalAlpha = (1 - (time - track.at) / 2) * .2; ellipse(ctx, '#a7bd78', track.x, track.y, 5, 2); } ctx.globalAlpha = 1;
       actors = actors.slice().sort((a, b) => a.y - b.y);
       for (const actor of actors) {
-        if (actor.castShadow) { ctx.save(); ctx.globalAlpha = this.interior ? .15 : .22; ctx.scale(2, 2); ctx.translate(actor.x, actor.y); ctx.transform(1, 0, this.interior ? -.35 : -.72, this.interior ? .26 : -.36, 0, 0); actor.castShadow(); ctx.restore(); }
+        if (actor.castShadow) { ctx.save(); ctx.globalAlpha = (this.interior ? .15 : .22) * (1 - this.climate.visual.cloud * .55); ctx.scale(2, 2); ctx.translate(actor.x, actor.y); ctx.transform(1, 0, this.shadowShear, this.interior ? .26 : -.36, 0, 0); actor.castShadow(); ctx.restore(); }
         ctx.globalAlpha = this.interior ? .16 : .22; ellipse(ctx, '#254e43', actor.x * 2, actor.y * 2 - 1, actor.shadow || 7, 2);
       } ctx.globalAlpha = 1;
       const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw({ light: this.lightAt(a.x * 2, a.y * 2) }); ctx.restore(); this.footGrass(ctx, a, t); };
       let next = 0;
-      for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= o.y) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); }
+      for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= (o.depth ?? o.y)) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); }
       while (next < actors.length) drawActor(actors[next++]);
       if (condition?.filtre > condition?.interval) { const pump = this.props.find(o => o.kind === 'pump'); if (pump) box(ctx, '#e9ac6a', pump.x + 5, pump.y - 21, 3, 3); }
       this.leaves = this.leaves.filter(e => time - e.start < 2.2);
       if (!quiet) for (const e of this.leaves) { const age = time - e.start; ctx.globalAlpha = Math.min(1, (2.2 - age) * 2); box(ctx, '#d5cf79', e.x + age * 11 + Math.sin(age * 4 + e.phase) * 4, e.y + age * 14, 2, 2); }
       if (this.interior && !quiet) for (let i = 0; i < 7; i++) { const x = 72 + i * 30 + Math.sin(t * .25 + i) * 3, y = 74 + (i * 37 + t * 1.5) % 170; if (window.QuestHubArt.sunlit('bureau', x, y)) { ctx.globalAlpha = .18 + Math.sin(t * .5 + i) * .1; box(ctx, '#fff7d7', x, y); } }
       ctx.globalAlpha = 1; if (this.foreground) ctx.drawImage(this.foreground, 0, 0);
-      ctx.globalAlpha = this.interior ? .025 : .045; box(ctx, '#ffc566', 0, 0, this.width, this.height);
+      const { patch, visual } = this.climate;
+      ctx.globalAlpha = patch.mood === 'dusk' ? .22 : patch.mood === 'golden' ? .1 : (.02 + visual.warmth * .04) * visual.sunStrength;
+      box(ctx, patch.mood === 'dusk' ? '#263756' : '#ffc566', 0, 0, this.width, this.height);
+      if (!this.interior) { ctx.globalAlpha = visual.cloud * .12; box(ctx, '#6d929e', 0, 0, this.width, this.height);
+        if (!quiet && visual.rain > .01) { ctx.globalAlpha = .25; for (let i = 0; i < Math.ceil(visual.rain * 44); i++) { const x = (i * 97 + t * 22) % this.width, y = (i * 61 + t * 150) % this.height; line(ctx, '#d9eee7', [[x, y], [x - 2 - patch.breeze / 30, y + 7]]); } }
+      }
       for (let i = 0; i < 4; i++) { ctx.globalAlpha = .03; const edge = i * 5; box(ctx, '#214e45', edge, edge, this.width - edge * 2, 5); box(ctx, '#214e45', edge, this.height - edge - 5, this.width - edge * 2, 5); box(ctx, '#214e45', edge, edge + 5, 5, this.height - edge * 2 - 10); box(ctx, '#214e45', this.width - edge - 5, edge + 5, 5, this.height - edge * 2 - 10); }
       ctx.restore();
     }

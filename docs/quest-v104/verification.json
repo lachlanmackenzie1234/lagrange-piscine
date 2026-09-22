@@ -1,0 +1,352 @@
+{
+  "version": "v0.104.1",
+  "nodeTests": 60,
+  "inventory": {
+    "inventoryConserved": true,
+    "staleIndexHandled": true,
+    "overflowVisible": true,
+    "onlyMattSells": true,
+    "passCost": 200,
+    "reloadPreservesPass": true,
+    "mattSingleSale": true
+  },
+  "services": {
+    "coins": 290,
+    "craftInMap": true,
+    "hairstylesSelectable": [
+      2,
+      1,
+      3
+    ],
+    "noFooter": true,
+    "passEndsOnExit": true
+  },
+  "combat": {
+    "actionsLocked": true,
+    "first": {
+      "attempts": 1,
+      "bag": 0,
+      "coins": 400,
+      "held": "it-1790079095752-50000",
+      "hp": 1,
+      "xp": 1080
+    },
+    "logsUnchanged": true,
+    "normalDrop": true,
+    "normalResources": true,
+    "recovered": true,
+    "secondDefeat": {
+      "attempts": 2,
+      "itemGone": true,
+      "monsterGone": true
+    },
+    "timedImpact": true
+  },
+  "layouts": [
+    [
+      {
+        "clicked": [
+          "pj",
+          "jp",
+          "partner"
+        ],
+        "dpr": 2,
+        "footerRemoved": true,
+        "id": "bureau",
+        "keyboard": true,
+        "physical": [
+          1304,
+          975
+        ],
+        "popupsFit": true,
+        "viewport": 1000
+      },
+      {
+        "clicked": [
+          "matt",
+          "karine",
+          "jojo"
+        ],
+        "dpr": 2,
+        "footerRemoved": true,
+        "id": "depot",
+        "keyboard": true,
+        "physical": [
+          1304,
+          975
+        ],
+        "popupsFit": true,
+        "viewport": 1000
+      }
+    ],
+    [
+      {
+        "clicked": [
+          "pj",
+          "jp",
+          "partner"
+        ],
+        "dpr": 3,
+        "footerRemoved": true,
+        "id": "bureau",
+        "keyboard": true,
+        "physical": [
+          756,
+          563
+        ],
+        "popupsFit": true,
+        "viewport": 320
+      },
+      {
+        "clicked": [
+          "matt",
+          "karine",
+          "jojo"
+        ],
+        "dpr": 3,
+        "footerRemoved": true,
+        "id": "depot",
+        "keyboard": true,
+        "physical": [
+          756,
+          563
+        ],
+        "popupsFit": true,
+        "viewport": 320
+      }
+    ]
+  ],
+  "pools": {
+    "logsUnchanged": true,
+    "pools": [
+      {
+        "id": "EC-2",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EC-5",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EC-12",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EC-18",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EC-22",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "AG-7",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "AG-8",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "AG-9",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "AG-21",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "AG-32",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-6B-75",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-19B-90",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-30B-63",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-27B-94",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-40B-52",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-31B-96",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-52B-46",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EP-6E-99",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EPP-3",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EPP-4",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "EPP-7",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "GP-18",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      },
+      {
+        "id": "GP-39",
+        "menu": true,
+        "scene": "512x384",
+        "size": [
+          756,
+          563
+        ]
+      }
+    ]
+  },
+  "pixels": {
+    "failures": [],
+    "nativeViews": 32,
+    "stableHeadPoses": 208,
+    "stablePhysicalSamples": 512,
+    "visibleEquipmentCases": 960
+  },
+  "protectedFaceColourCases": 18,
+  "offline": {
+    "cache": [
+      "lp-v0.104.1"
+    ],
+    "hair": true,
+    "motion": true,
+    "nativeViews": 32,
+    "offline": true,
+    "sourcesCached": 0,
+    "trees": true,
+    "world": true
+  },
+  "runtimeAtlasDecodedBytes": 15202740
+}

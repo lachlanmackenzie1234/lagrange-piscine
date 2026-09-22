@@ -45,7 +45,7 @@ const QuestHubArt = (() => {
     g.globalAlpha = .14; box(g, '#426057', 24, 75, 464, 4); box(g, '#426057', 24, 79, 464, 2); g.globalAlpha = 1;
     // Cutaway side walls and warm wood skirting keep the floor framed.
     for (const x of [8, 488]) { box(g, '#c3c5b4', x, 11, 16, H - 11); box(g, '#e1deca', x + 2, 14, 11, H - 14); box(g, '#83795e', x + (x < 100 ? 12 : 0), 68, 4, H - 68); }
-    for (const beam of beams) { g.globalAlpha = .14; polygon(g, '#fff1b6', beam); g.globalAlpha = .055; polygon(g, '#fffbd4', beam.map(([x, y], i) => [x + (i % 3 ? 4 : -4), y])); }
+    for (const beam of beams) { g.globalAlpha = .23; polygon(g, '#fff1b6', beam); g.globalAlpha = .08; polygon(g, '#fffbd4', beam.map(([x, y], i) => [x + (i % 3 ? 4 : -4), y])); }
     g.globalAlpha = 1;
     // A small threshold mat follows the bottom-right entrance.
     box(g, '#7b9086', 379, 300, 49, 24); box(g, '#a7b3a1', 381, 302, 45, 20);

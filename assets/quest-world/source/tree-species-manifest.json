@@ -1,0 +1,18 @@
+{
+  "version": "coastal-tree-species-1",
+  "file": "coastal-tree-species.png",
+  "size": [1983, 793],
+  "generator": "built-in ImageGen",
+  "prompt": "tree-species-prompt.txt",
+  "rows": [{"variant": "mature", "y": 0, "height": 426}, {"variant": "young", "y": 436, "height": 357}],
+  "columns": [
+    {"id": "oak", "name": "Chêne", "x": 0, "width": 460},
+    {"id": "pine", "name": "Pin maritime", "x": 460, "width": 342},
+    {"id": "umbrella", "name": "Pin parasol", "x": 802, "width": 438},
+    {"id": "holm", "name": "Chêne vert", "x": 1240, "width": 392},
+    {"id": "birch", "name": "Bouleau", "x": 1632, "width": 351}
+  ],
+  "defaultDominantShare": 70,
+  "residenceDominants": {"GP": "oak", "EPP": "pine", "AG": "umbrella", "EP": "holm", "EC": "birch"},
+  "notes": "Source RGBA is retained. Native sprites, alpha cleanup, wind poses and matching shadows are derived in Canvas at runtime."
+}

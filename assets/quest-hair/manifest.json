@@ -1,0 +1,351 @@
+{
+  "version": "hair-native-64",
+  "pages": [
+    "hair.png"
+  ],
+  "clips": {
+    "keeper/base/south": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "short",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            0,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/base/east": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "short",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            64,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/base/north": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "short",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            128,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/base/west": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "short",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            192,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/bald/south": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "bald",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            256,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/bald/east": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "bald",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            320,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/bald/north": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "bald",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            384,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/bald/west": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "bald",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            448,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/long/south": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "long",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            512,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/long/east": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "long",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            576,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/long/north": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "long",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            640,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "keeper/long/west": {
+      "page": "hair.png",
+      "px": 4,
+      "nativeBody": true,
+      "hairStyle": "long",
+      "a": [
+        32,
+        63
+      ],
+      "loop": false,
+      "duration": 1,
+      "reduced": 0,
+      "f": [
+        {
+          "r": [
+            704,
+            0,
+            64,
+            64
+          ],
+          "d": 1,
+          "o": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "sources": {
+    "short": "36f7a8ac432ff3490803eb38460fa2b857fd15a9143c41f65f852bc05ec33994",
+    "bald": "ae1bf6428233afcbca5a7a11aba6350de454b08fc06ad7eb7f89a77d67895662",
+    "long": "250ee2844bd1714ca2cd7d80a214be31988f803941dbac59231ac52e270997b2"
+  },
+  "pngBytes": 51766,
+  "decodedPixelBytes": 196608
+}

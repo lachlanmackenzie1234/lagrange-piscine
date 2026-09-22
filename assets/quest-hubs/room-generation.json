@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "date": "2026-09-22",
+  "reference": "source/office-layout.png",
+  "assets": {
+    "plant": {
+      "source": "source/broadleaf-pot.png",
+      "prompt": "Use case: stylized-concept. A single isolated indoor monstera/philodendron houseplant for a cosy pixel RPG office, matching the reference furniture's crisp pixel clusters, subtle dark outlines, warm light from the bottom/front, restrained illustrated shading, and overhead three-quarter camera. Big broad glossy deep green leaves with natural splits, a few lighter sage new leaves, branching stems, planted in a squat square warm terracotta pot. Full object visible, no cast shadow or floor, genuine transparent background, no text. Compact readable silhouette, meant to export at 50x66 native pixels. Detailed painted-pixel quality matching the reference sofa and desk; no photorealism, no vector-flat shapes."
+    }
+  }
+}

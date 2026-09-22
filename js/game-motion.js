@@ -14,7 +14,7 @@ const QuestMotion = (() => {
     pj: Object.freeze({ neck: 23, waist: 40, ankle: 59 }),
   });
   let data = null, loaded = false, failure = null, revision = 0;
-  const pages = new Map(), keeperCache = new Map(), keeperBases = new Map(), dressedBases = new Map();
+  const pages = new Map(), keeperCache = new Map(), keeperBases = new Map(), dressedBases = new Map(), npcPoses = new Map();
   const variants = new Map(), sourceIds = new WeakMap(); let nextSourceId = 0;
   const reduced = () => !!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const fullSet = (equip = {}) => { const values = slots.map((slot) => equip[slot]?.res); return sets.includes(values[0]) && values.every((v) => v === values[0]) ? values[0] : null; };
@@ -106,6 +106,24 @@ const QuestMotion = (() => {
   }
   function npc(ctx, id, direction, elapsed, x, y, options = {}) {
     const clip = data?.clips[`npc/${id}/${direction}`], page = clip && pages.get(clip.page); if (!page) return false;
+    if (clip.nativeBody && options.motion === 'walk') {
+      const index = Math.floor(elapsed / 150) % 4, key = `${id}/${direction}/${index}`;
+      if (!npcPoses.has(key)) {
+        const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d', { willReadFrequently: true });
+        g.drawImage(page, ...clip.f[0].r, 0, 0, 64, 64); const source = g.getImageData(0, 0, 64, 64), out = g.createImageData(64, 64);
+        out.data.set(source.data); out.data.fill(0, 57 * 64 * 4); const stride = [0, 1, 0, -1][index];
+        for (let yy = 57; yy < 64; yy++) for (let xx = 0; xx < 64; xx++) {
+          const i = (yy * 64 + xx) * 4; if (!source.data[i + 3]) continue;
+          const side = xx < 32 ? -1 : 1, dx = ['east', 'west'].includes(direction) ? side * stride : 0;
+          const dy = ['east', 'west'].includes(direction) ? 0 : side * stride;
+          const px = xx + dx, py = yy + dy; if (px >= 0 && px < 64 && py >= 0 && py < 64) out.data.set(source.data.subarray(i, i + 4), (py * 64 + px) * 4);
+        }
+        g.putImageData(out, 0, 0); npcPoses.set(key, c);
+      }
+      const zoom = (options.scale ?? humanStyle.scale) / humanStyle.scale, scale = zoom / 4, base = npcPoses.get(key), tone = options.shadow ? 'shadow' : options.light;
+      const source = tone ? variant(base, [0, 0, 64, 64], tone) : base, dest = [x - 32 * scale, y - (63 + index % 2) * scale, 64 * scale, 64 * scale];
+      if (root.PixelSurface) root.PixelSurface.drawImage(ctx, source, [0, 0, 64, 64], dest); else ctx.drawImage(source, ...dest); return true;
+    }
     if (clip.nativeBody) return draw(ctx, `npc/${id}/${direction}`, elapsed, x, y, { ...options, scale: (options.scale ?? humanStyle.scale) / humanStyle.scale });
     const frame = frameAt(clip, elapsed, reduced());
     // Keep Jojo's apron inside the torso and JP's long trouser section inside
@@ -172,12 +190,16 @@ const QuestMotion = (() => {
     const paint = () => { const ctx = c.getContext('2d'); ctx.clearRect(0, 0, 32, 32); ctx.imageSmoothingEnabled = false; ctx.save(); ctx.scale(2, 2); if (!draw(ctx, id, 0, 0, 0) && fallback) ctx.drawImage(fallback, 0, 0, 16, 16); ctx.restore(); };
     paint(); ready.then(paint); return c;
   }
-  function keeperBase(direction) {
-    if (keeperBases.has(direction)) return keeperBases.get(direction);
-    const clip = data?.clips['keeper/base/' + direction], page = clip && pages.get(clip.page); if (!page) return null;
+  function keeperBase(direction, hair = 1) {
+    const key = hair + '/' + direction;
+    if (keeperBases.has(key)) return keeperBases.get(key);
+    const style = hair === 2 ? 'bald' : hair === 3 ? 'long' : 'base';
+    const clip = data?.clips[`keeper/${style}/${direction}`] || data?.clips['keeper/base/' + direction], page = clip && pages.get(clip.page); if (!page) return null;
     const [, , w, h] = clip.f[0].r;
     const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(page, ...clip.f[0].r, 0, 0, w, h); const pixels = ctx.getImageData(0, 0, w, h); keeperBases.set(direction, pixels); return pixels;
+    ctx.drawImage(page, ...clip.f[0].r, 0, 0, w, h); const pixels = ctx.getImageData(0, 0, w, h); pixels.hairStyle = clip.hairStyle; keeperBases.set(key, pixels);
+    if (hair !== 2 && clip.hairStyle) { const bald = keeperBase(direction, 2); if (bald?.hairStyle === 'bald') pixels.baldReference = bald.data; }
+    return pixels;
   }
 
   const fallback = {
@@ -193,7 +215,7 @@ const QuestMotion = (() => {
 
   function keeper(ctx, x, y, avatar, equip, options = {}) {
     const direction = options.direction || 'south', motion = options.motion || 'idle';
-    const base = keeperBase(direction), native = !!base && !!data?.clips['keeper/base/' + direction]?.nativeBody;
+    const base = keeperBase(direction, avatar.hair), native = !!base && !!data?.clips['keeper/base/' + direction]?.nativeBody;
     const width = base?.width || 48, height = base?.height || 64, legStart = native ? 57 : 50;
     const f = frameAt(keeperClip(direction, motion), options.elapsed || 0, reduced());
     const look = slots.map((s) => equip?.[s] ? [equip[s].res, equip[s].rar, !!equip[s].cursed] : null);
@@ -257,7 +279,7 @@ const QuestMotion = (() => {
   const ready = typeof document === 'undefined' ? Promise.resolve(false) : (async () => {
     try {
       const script = document.currentScript.src;
-      const packs = [{ base: new URL('../assets/quest-motion/', script), prefix: 'v3/' }, { base: new URL('../assets/quest-hires/', script), prefix: 'hd/' }, { base: new URL('../assets/quest-people/', script), prefix: 'people/' }];
+      const packs = [{ base: new URL('../assets/quest-motion/', script), prefix: 'v3/' }, { base: new URL('../assets/quest-hires/', script), prefix: 'hd/' }, { base: new URL('../assets/quest-people/', script), prefix: 'people/' }, { base: new URL('../assets/quest-hair/', script), prefix: 'hair/' }];
       const manifests = await Promise.allSettled(packs.map(async pack => { const response = await fetch(new URL('manifest.json', pack.base)); if (!response.ok) throw new Error('Animation manifest unavailable'); return response.json(); }));
       data = { clips: {}, keeper: {}, auras: {} }; const jobs = [];
       manifests.forEach((result, i) => {
@@ -275,7 +297,7 @@ const QuestMotion = (() => {
         Object.entries(manifest.clips).forEach(([id, clip]) => { const page = pack.prefix + clip.page; if (pages.has(page)) data.clips[id] = { ...clip, page }; });
       });
       loaded = jobs.length > 0 && manifests.every(r => r.status === 'fulfilled') && results.every((r) => r.status === 'fulfilled'); if (!loaded) failure = 'Some animation pages could not be loaded';
-      revision++; keeperCache.clear(); keeperBases.clear(); dressedBases.clear(); variants.clear(); portraits.forEach(p => { p.dirty = true; }); return loaded;
+      revision++; keeperCache.clear(); keeperBases.clear(); dressedBases.clear(); npcPoses.clear(); variants.clear(); portraits.forEach(p => { p.dirty = true; }); return loaded;
     } catch (error) { failure = error.message; return false; }
   })();
   const tile = (ctx, kind, variant, x, y) => draw(ctx, `tile/${kind}/${Math.abs(variant || 0) % 4}`, 0, x, y);

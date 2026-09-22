@@ -1,5 +1,8 @@
 # Compact people · native 64×64
 
+The current keeper uses [the bald/short/long hair pack](../quest-hair/README.md).
+This atlas still supplies the NPCs and the fallback keeper.
+
 Six regenerated characters: the basic keeper, Jojo, Karine, Matt, JP and PJ.
 Each has south, east, north and west views. The other player uses the keeper
 with their existing synced appearance and independently equipped items.
