@@ -127,7 +127,7 @@
         // 4. tree shadows, then scenery and the keeper in depth order
         scene.updateShadows(still ? 0 : t, still); ctx.drawImage(scene.shadows, 0, 0);
         scene.onFootGrass = (g, actor) => field.paintForegroundGrass(g, { x: actor.x * 2, y: actor.y * 2 }, tick, still);
-        scene.onObjectGrass = budget.blend ? (g, o, c) => field.paintForegroundGrass(g, { x: c.x, y: c.y, w: c.w + 6, h: Math.min(c.h, 40) }, tick, still) : null;
+        scene.onObjectGrass = budget.blend ? (g, o, c) => field.paintForegroundGrass(g, { x: c.x, y: c.y, w: c.w + 8, h: Math.min(c.h, 40), depth: 4 }, tick, still) : null;
         const actor = { x: hero.x / 2, y: hero.y / 2, shadow: 7, draw: () => QuestMotion.keeper(ctx, Math.round(hero.x) / 2, Math.round(hero.y) / 2, avatar, {}, options),
           castShadow: () => QuestMotion.keeper(ctx, 0, 0, avatar, {}, { ...options, shadow: true }) };
         scene.paintScenery(ctx, { state: stateSelect.value }, t, [hero.x, hero.y], [actor], still);

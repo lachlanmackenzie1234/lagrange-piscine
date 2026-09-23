@@ -410,7 +410,7 @@ const TerrainStudy = (() => {
       g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); g.imageSmoothingEnabled = false;
       for (let row = Math.floor((subject.y - 3) / 16); row <= Math.floor((subject.y + 45) / 16); row++) for (const cell of this.rows?.get(row) || []) {
         if (cell.y < subject.y - 3 || cell.y > subject.y + 45 || Math.abs(cell.x - subject.x) > reach) continue;
-        const mask = QuestZones.foregroundRoots(cell, subject.y - 1); if (!mask) continue;
+        const mask = QuestZones.foregroundRoots(cell, subject.y - (subject.depth ?? 1)); if (!mask) continue;
         const image = this.tinted(this.sprite(cell, tick / 10, quiet, mask)); g.drawImage(image, cell.x - image.width / 2, cell.y - image.height + 6);
       }
       g.restore();
@@ -429,10 +429,10 @@ const TerrainStudy = (() => {
       }
       return out;
     }
-    // Objects standing in the meadow: blades right at their base grow shorter,
-    // as under anything that has stood in a lawn for a while.
+    // Objects standing in the meadow: the blades right at their base grow taller.
     settle(marks = []) {
-      for (const c of this.cells) { c.settle = 1; for (const m of marks) if (Math.abs(c.x - m.x) <= m.w / 2 + 3 && c.y >= m.y - 7 && c.y <= m.y + 5) { c.settle = .6; break; } }
+      // A mower never reaches the foot of a boulder or a trunk: that ring grows taller.
+      for (const c of this.cells) { c.settle = 1; for (const m of marks) if (Math.abs(c.x - m.x) <= m.w / 2 + 4 && c.y >= m.y - 6 && c.y <= m.y + 8) { c.settle = 1.35; break; } }
       this.build(false);
     }
     paintBase(g, hero, quiet = false) {
