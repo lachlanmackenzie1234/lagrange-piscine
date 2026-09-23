@@ -1,0 +1,42 @@
+{
+  "controls": true,
+  "deterministicReplay": true,
+  "fluid": {
+    "advectedCells": 2703,
+    "bytes": 125952,
+    "cells": 2852,
+    "divergence": 0.009122359292186114,
+    "divergenceAfter": 0.04186236194116717,
+    "divergenceBefore": 0.10030832013742676,
+    "grid": [
+      64,
+      48
+    ],
+    "maskedBoundary": true,
+    "maxSpeed": 0.6310859784277838,
+    "projection": {
+      "after": 0.009122359292186114,
+      "before": 0.009394469475828756
+    }
+  },
+  "materialScale": {
+    "contactDisplacement": [
+      7.428935391144861,
+      1.2817696826853726,
+      0.7884310551611825
+    ],
+    "grains": [
+      0.5,
+      0.25,
+      0.75
+    ],
+    "windMobility": [
+      0.533,
+      0.0702,
+      0
+    ]
+  },
+  "noGameStores": true,
+  "rootedSpring": true,
+  "sandAdvection": true
+}

@@ -1,0 +1,28 @@
+{
+  "buildMs": 50.900000005960464,
+  "contact": {
+    "deeperWetPrint": true,
+    "dryParticles": 4,
+    "isolated": true,
+    "wetParticles": 1
+  },
+  "controls": true,
+  "materials": {
+    "dryMean": 126.19932725694444,
+    "mixedSandEarthSamples": 51,
+    "normalizedWeights": true,
+    "stableTexture": true,
+    "wetMean": 71.75303819444444
+  },
+  "noGameStores": true,
+  "sequence": true,
+  "settles": true,
+  "storageUnchanged": true,
+  "mobile": {
+    "viewport": 320,
+    "dpr": 3,
+    "horizontalOverflow": false,
+    "emulated": true
+  },
+  "uncaughtBrowserErrors": 0
+}

@@ -25,6 +25,28 @@ live renderer caps it at eight world pixels for the compact keeper. Base
 texture and animated blades are separate, avoiding doubled grass. Weekly
 visual growth and weather remain cosmetic and never write maintenance logs.
 
+## Surface experiments
+
+The isolated [Surface lab](../art/surface-lab/) now contains grass, sand, earth,
+gravel and water. Its base materials are continuous colour/grain fields;
+rocks can be separate artwork later. Three mixed maps explore shores and
+paths, with weather-driven wetting, mud, dust, puddles and drying.
+
+Water uses a small projected 2D velocity solver. Grass uses rooted springs;
+sand, earth and gravel use increasing wind resistance and 0.5 / 0.25 / 0.75 px base texture scales.
+The range extends below a pixel using averaged grain colour. Seasonal palettes,
+temperature, humidity, freeze/thaw and a read-only saved-weather bridge are
+available in the isolated lab.
+Sand's fine texture and shading follow accumulated wind displacement; earth
+drifts much more slowly, and gravel only moves locally under footsteps.
+Palette, monochrome, contrast, shading and flow-vector controls are available,
+alongside the replayable interaction sequence. See the
+[models and verification guide](../art/surface-lab/README.md).
+
+The [earlier height trial](../art/surface-lab/studies/grass-height.html) remains
+available for comparison. These studies do not change the live game's grass
+height or maintenance data.
+
 ## Assets and budget
 
 - [Native files, source prompts and reproducible packing](../assets/quest-zones/README.md)

@@ -49,11 +49,18 @@ python3 -m http.server 8000   # then open http://localhost:8000
 
 ### Deploy free on GitHub Pages
 
-1. Push this branch / merge to `main`.
+1. Merge to `master` (the configured GitHub Pages source branch).
 2. Repo **Settings → Pages → Build and deployment → Source: Deploy from a branch**,
    pick the branch and `/ (root)`.
 3. Open the published URL on your phone → browser menu → **Add to Home Screen**.
    It then launches full-screen and works offline.
+
+## Art studies
+
+[Pocket Coast art studies](art/README.md) collect the pixel asset exports, seeded
+map generator, living-world and sound studies, and interactive surface lab.
+Serve the repository root to explore them. They remain separate from the
+production game's maps and are not included in its offline precache.
 
 ## Data model
 

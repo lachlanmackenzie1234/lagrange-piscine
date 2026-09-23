@@ -1,0 +1,47 @@
+{
+  "controls": {
+    "mapMemory": true,
+    "newWeatherOnEntry": true,
+    "readOnlyWeather": true,
+    "regions": true
+  },
+  "disposal": true,
+  "foreground": [
+    {
+      "maxChannelError": 0.4650000000000034,
+      "season": "spring",
+      "testedPixels": 703
+    },
+    {
+      "maxChannelError": 0.5492600000000039,
+      "season": "winter",
+      "testedPixels": 703
+    }
+  ],
+  "memory": {
+    "bytes": 11280,
+    "entries": 3,
+    "grainBytes": 16809984,
+    "inactiveStateFrozen": true,
+    "maxBytes": 12288,
+    "maxEntries": 3,
+    "onlyNewWeatherApplied": true,
+    "renderBuffersReused": true,
+    "snapshotBytes": 3072
+  },
+  "regions": {
+    "edgeScale": 2.507951068878174,
+    "interiorScale": 1.6661752356216313,
+    "max": 2.192908107613792,
+    "mean": 1.000102202004651,
+    "min": 0.25,
+    "seeded": true
+  },
+  "wear": {
+    "after": 0.28,
+    "before": 1,
+    "changedChannels": 2120,
+    "sourcesReused": true,
+    "worldAnchored": true
+  }
+}

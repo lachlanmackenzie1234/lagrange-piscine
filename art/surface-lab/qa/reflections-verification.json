@@ -1,0 +1,104 @@
+{
+  "adaptive": {
+    "evening": [
+      236,
+      205,
+      164
+    ],
+    "missingTimeSafe": true,
+    "night": [
+      170,
+      196,
+      232
+    ],
+    "physicsUnchanged": true,
+    "recordedTime": true,
+    "reversible": true
+  },
+  "audio": {
+    "maxVoices": 32,
+    "offByDefault": true,
+    "offlineFootstep": {
+      "duration": 0.4,
+      "energy": 1.228324431086434,
+      "peak": 0.07868894189596176
+    },
+    "live": {
+      "cues": {
+        "stone-step": 1
+      },
+      "enabled": "true",
+      "noiseBytes": 384000,
+      "peak": 4,
+      "state": "running"
+    },
+    "muted": {
+      "beds": 0,
+      "state": "suspended",
+      "voices": 0
+    }
+  },
+  "budget": {
+    "bytes": 2359296,
+    "counts": {
+      "earth": 0,
+      "grass": 36,
+      "gravel": 0,
+      "keeper": 0,
+      "sand": 0,
+      "water": 0
+    },
+    "sites": 3072
+  },
+  "controls": true,
+  "materials": {
+    "earth": {
+      "dry": 30,
+      "materialOff": true,
+      "wet": 322
+    },
+    "grass": {
+      "dry": 31,
+      "materialOff": true,
+      "wet": 260
+    },
+    "gravel": {
+      "dry": 94,
+      "materialOff": true,
+      "wet": 189
+    },
+    "sand": {
+      "dry": 33,
+      "materialOff": true,
+      "wet": 119
+    },
+    "water": {
+      "dry": 1371,
+      "materialOff": true,
+      "wet": 1371
+    }
+  },
+  "motion": {
+    "gravelStatic": true,
+    "iceStatic": true,
+    "reducedMotionStatic": true,
+    "waterShimmers": true
+  },
+  "browser": {
+    "audioEnabled": "false",
+    "audioState": "uninitialized",
+    "dpr": 3,
+    "drawOnlyMs": {
+      "max": 12.17,
+      "mean": 10.418
+    },
+    "grainBytes": 16809984,
+    "poseBytes": 3365136,
+    "reflectionBytes": 2359296,
+    "scrollWidth": 320,
+    "width": 320,
+    "noConsoleErrors": true,
+    "mobileInspected": true,
+    "note": "Draw only on local desktop Chromium with a mobile viewport, not a physical-phone benchmark."
+  }
+}

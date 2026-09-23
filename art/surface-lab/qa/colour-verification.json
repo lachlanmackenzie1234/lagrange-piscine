@@ -1,0 +1,21 @@
+{
+  "controls": {
+    "customPair": true,
+    "greyscaleAndInk": true,
+    "pigmentLightingAndFinalSaturation": true,
+    "presetSwatches": true,
+    "storageUnchanged": true
+  },
+  "lighting": {
+    "cacheBytes": 98304,
+    "changedChannels": 575709,
+    "customPair": true,
+    "independentDesaturation": true,
+    "independentOfPigment": true,
+    "physicsUnchanged": true
+  },
+  "pigment": {
+    "physicsUnchanged": true,
+    "richness": true
+  }
+}

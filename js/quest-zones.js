@@ -39,7 +39,8 @@ function meadowHeight(growth, zone = 'wild', flatten = 0, maximum = 15) {
 }
 function meadowShape(cell, { growth, lushness, time, wind, quiet, maximum = 15 }) {
   const gust = Math.sin(time * 1.3 + cell.x * .024 + cell.y * .013);
-  return { height: meadowHeight(growth, cell.zone, cell.flatten, maximum), amount: clamp(Math.round(2 + lushness*.025 + growth*1.5),2,6),
+  const maturity = clamp((meadowHeight(growth,cell.zone,0,maximum)-15)/25,0,1);
+  return { height: meadowHeight(growth, cell.zone, cell.flatten, maximum), amount: clamp(Math.round((2 + lushness*.025 + growth*1.5)*(1-maturity*.5)),2,6),
     pose: quiet ? 0 : clamp(Math.round(gust * wind * 2 + (cell.bend || 0) * .6),-6,6), variant: cell.variant, mask: cell.mask };
 }
 function foregroundRoots(cell, footY) {
@@ -49,11 +50,27 @@ function meadowPalette(theme, growth) {
   const [cut,tall] = theme.floor;
   const base = cut.map((channel,i) => Math.round(channel + (tall[i]-channel)*growth));
   const color = delta => `rgb(${base.map((v,i)=>clamp(v+delta[i],0,255)).join(',')})`;
-  return { base: color([0,0,0]), root: color([-16,-19,-10]), blade: color([3,8,-1]), tip: color([21,24,9]), fleck: color([10,11,2]) };
+  return { base: color([0,0,0]), root: color([-16,-19,-10]), blade: color([3,8,-1]), tip: color([21,24,9]), fleck: color([10,11,2]),
+    longShade: color([-18,-15,-25]), longBlade: color([-5,0,-10]), longTip: color([16,22,0]) };
 }
 function canvas(w,h) { const c=document.createElement('canvas');c.width=w;c.height=h;return c; }
 function blade(g, x, y, h, pose, variant, index, palette) {
   const lean = pose + ((index + variant) % 3 - 1), tall = Math.max(1, Math.round(h * (.62 + ((index*3+variant)%5)*.095)));
+  if (h > 15) {
+    // Longer blades keep upright roots, bow through the upper half and let
+    // their tips droop. Stable individual lean mixes with the shared breeze.
+    const flex = clamp((h-15)/25,0,1), side = (index+variant)%2 ? 1 : -1;
+    const bend = pose*(1+flex*1.15) + side*flex*(5+((index*3+variant)%5)*1.3) + ((index+variant)%3-1);
+    const sag = flex*(.1+Math.min(.1,Math.abs(bend)*.005)), steps = tall*3;
+    for (let i=0;i<=steps;i++) {
+      const t=i/steps,u=1-t;
+      const dx=3*u*t*t*bend*.38+t*t*t*bend;
+      const rise=3*u*u*t*tall*.45+3*u*t*t*tall*(1+flex*.1)+t*t*t*tall*(1-sag);
+      g.fillStyle=t<.2?palette.longShade:t>.85?palette.longTip:(index+variant)%3?palette.longBlade:palette.blade;
+      g.fillRect(Math.round(x+dx),Math.round(y-rise),1,1);
+    }
+    return;
+  }
   for (let dy = 0; dy < tall; dy++) {
     const dx = Math.round(lean * (dy/tall) ** 1.3);
     g.fillStyle = dy < 2 ? palette.root : dy >= tall-2 ? palette.tip : palette.blade;
@@ -61,10 +78,11 @@ function blade(g, x, y, h, pose, variant, index, palette) {
   }
 }
 function meadowSprite(shape, palette) {
-  const c=canvas(24,28),g=c.getContext('2d');
+  const half=Math.ceil(12+clamp((shape.height-15)/25,0,1)*24);
+  const c=canvas(half*2,Math.max(28,shape.height+9)),g=c.getContext('2d'),rootY=c.height-6;
   BLADE_ROOTS.forEach(([dx,dy],i) => {
     if (!(shape.mask & (1<<i)) || (i+shape.variant)%6 >= shape.amount) return;
-    blade(g,12+dx,22+dy,shape.height,shape.pose,shape.variant,i,palette);
+    blade(g,half+dx,rootY+dy,shape.height,shape.pose,shape.variant,i,palette);
   });
   return c;
 }

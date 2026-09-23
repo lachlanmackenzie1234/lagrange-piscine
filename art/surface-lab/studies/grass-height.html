@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tall grass · Pocket Coast</title>
+<style>
+  @font-face { font-family: Pixel; src: url('../../../fonts/PixelifySans-Regular.ttf'); }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 22px; background: #f2efd9; color: #263d35; font-family: system-ui, sans-serif; }
+  main { width: min(100%, calc((100dvh - 200px) * 1.333333)); min-width: min(100%, 320px); max-width: 960px; margin: auto; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  h1 { font: 500 28px Pixel, monospace; margin: 0; }
+  .tag { font-size: 13px; color: #526858; }
+  .controls { display: flex; gap: 20px; align-items: center; margin-bottom: 15px; }
+  label { flex: 1; display: grid; gap: 9px; font-size: 14px; }
+  .value { display: flex; justify-content: space-between; gap: 8px; }
+  input { width: 100%; accent-color: #416d57; }
+  output { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  button { border: 2px solid #476451; border-radius: 0; background: #fffce9; color: #263d35; padding: 10px 14px; font: 18px Pixel, monospace; cursor: pointer; min-height: 44px; }
+  button:focus-visible, canvas:focus-visible { outline: 3px solid #a76432; outline-offset: 4px; }
+  .screen { background: #8eb773; border: 3px solid #263d35; box-shadow: 4px 4px #c1c8a5; position: relative; }
+  canvas { display: block; width: 100%; aspect-ratio: 4 / 3; image-rendering: pixelated; touch-action: manipulation; cursor: crosshair; }
+  #status { position: absolute; inset: 0; display: grid; place-items: center; background: #f2efd9; padding: 25px; text-align: center; }
+  #status[hidden] { display: none; }
+  footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; line-height: 1.5; color: #526858; margin-top: 16px; }
+  @media (max-width: 480px) { body { padding: 14px; } h1 { font-size: 24px; } .controls { gap: 12px; } button { padding: 9px; } }
+</style>
+<main>
+  <header><h1>Tall grass</h1><span class="tag" id="pool-name">GP-39 · Pocket Coast</span></header>
+  <div class="controls">
+    <label><span class="value"><span>Blade length</span><output id="height-label" for="grass-height">5× · 40 px</output></span>
+      <input id="grass-height" type="range" min="8" max="40" value="40" step="1" aria-label="Blade length">
+    </label>
+    <button id="walk" type="button" aria-pressed="true">Pause walk</button>
+  </div>
+  <div class="screen">
+    <canvas id="grass-map" width="1024" height="768" tabindex="0" aria-label="Grass simulation. Click open ground or use arrow keys to walk through the grass.">Interactive grass simulation.</canvas>
+    <div id="status" role="status">Loading the garden…</div>
+  </div>
+  <footer><span>Tap to walk · Arrow keys / WASD</span><span>Full growth · 1× = 8 px · Preview only</span></footer>
+</main>
+<script src="../../../js/quest-core.js"></script>
+<script src="../../../js/pixelart.js"></script>
+<script src="../../../js/maps.js"></script>
+<script src="../../../js/pixel-surface.js"></script>
+<script src="../../../js/keeper-art.js"></script>
+<script src="../../../js/game-motion.js"></script>
+<script src="../../../js/quest-ecology.js"></script>
+<script src="../../../js/quest-zones.js?grass-preview=curved-2"></script>
+<script src="../../../js/living-world.js?grass-preview=curved-2"></script>
+<script src="grass-height.js?curved=2"></script>
+</html>
