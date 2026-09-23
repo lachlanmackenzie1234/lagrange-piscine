@@ -202,7 +202,7 @@ function makeGrassSprite(size, variant) {
       return c;
     });
   }
-  let art = null, failure = null, hubFailure = null, battleBackdrop = null;
+  let art = null, failure = null, hubFailure = null, battleBackdrop = null; const contacts = new Map();
   const ready = typeof document === 'undefined' ? Promise.resolve(false) : (async () => {
     try {
       const base = new URL('../assets/quest-world/', document.currentScript.src);
@@ -394,6 +394,19 @@ function makeGrassSprite(size, variant) {
       const sway = Math.round(Math.sin(t * 1.2 + x) * .5);
       for (const [dx, h] of [[-6, 2], [-3, 4], [2, 3], [5, 2]]) { box(g, '#5d8c61', x + dx, y - h + 1, 1, h); box(g, '#b1c77c', x + dx + sway, y - h + 1, 1, 1); }
     }
+    // Where a prop touches the ground, read from its own alpha: the opaque
+    // extent of its bottom rows. Item-agnostic; cached per sprite. Scene space.
+    contact(o) {
+      const sprite = o.sprite, w = sprite.width, h = sprite.height;
+      if (!contacts.has(sprite)) {
+        const alpha = art.alpha.get(sprite), rows = Math.max(2, Math.round(h * .08)); let min = w, max = -1;
+        for (let y = h - rows; y < h; y++) for (let x = 0; x < w; x++) if (alpha[(y * w + x) * 4 + 3] > 40) { if (x < min) min = x; if (x > max) max = x; }
+        contacts.set(sprite, max < 0 ? { centre: w / 2, width: w } : { centre: (min + max + 1) / 2, width: max - min + 1 });
+      }
+      const c = contacts.get(sprite);
+      return { x: o.x + (c.centre - o.anchor[0]) * o.scale, y: o.y, w: c.width * o.scale, h: h * o.scale };
+    }
+    contacts() { return this.props.filter(o => o.kind !== 'grass' && this.grassAt(o.x, o.y)).map(o => this.contact(o)); }
     hit(x, y) {
       x *= 2; y *= 2;
       return this.hitProps.find(o => {
@@ -456,7 +469,7 @@ function makeGrassSprite(size, variant) {
       } ctx.globalAlpha = 1;
       const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw({ light: this.lightAt(a.x * 2, a.y * 2) }); ctx.restore(); this.footGrass(ctx, a, t, quiet); };
       let next = 0;
-      for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= (o.depth ?? o.y)) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); }
+      for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= (o.depth ?? o.y)) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); if (this.onObjectGrass && o.kind !== 'grass' && this.grassAt(o.x, o.y)) this.onObjectGrass(ctx, o, this.contact(o)); }
       while (next < actors.length) drawActor(actors[next++]);
       if (condition?.filtre > condition?.interval) { const pump = this.props.find(o => o.kind === 'pump'); if (pump) box(ctx, '#e9ac6a', pump.x + 5, pump.y - 21, 3, 3); }
       this.leaves = this.leaves.filter(e => time - e.start < 2.2);

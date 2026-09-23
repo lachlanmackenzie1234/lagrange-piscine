@@ -84,15 +84,16 @@
     function saveWear() { try { const bytes = field.variation.snapshot(); localStorage.setItem(WEAR_KEY + L.id, btoa(String.fromCharCode(...bytes))); } catch (e) { /* study only */ } }
     function loadWear() { try { const s = localStorage.getItem(WEAR_KEY + L.id); if (s) field.variation.restore(Uint8Array.from(atob(s), c => c.charCodeAt(0))); } catch (e) { /* ignore */ } }
 
+    const q = new URLSearchParams(location.search), budget = { grainRes: +(q.get('res') || 1), grainRate: +(q.get('grain') ?? 6), grassRate: +(q.get('grass') ?? 8), spriteCacheSize: 2048, spriteCacheBytes: 10 * 1048576, blend: q.get('blend') !== '0' };
     function open(id) {
       if (field) { saveWear(); field.dispose(); }
       const [res] = id.split('-'); L = PoolMaps.get(id, res); layout = PoolSurface.build(L);
       SurfaceMaps.register(layout.id, layout);
-      const q = new URLSearchParams(location.search), budget = { grainRes: +(q.get('res') || 1), grainRate: +(q.get('grain') ?? 6), grassRate: +(q.get('grass') ?? 8), spriteCacheSize: 2048, spriteCacheBytes: 10 * 1048576 };
       field = new TerrainStudy.Field({ layout: layout.id, blend: 12, length: 16, grain: .5, wind: .2, shade: .5, moisture: .3, ...budget, ...PRESETS[preset === 'lacanau' ? 'sec' : preset] });
       loadWear();
       scene = QuestWorld.create(L, { surface: true, sprite: o => o.kind === 'villa' ? facade(o.object || { w: 4, h: 3 }, res) : null });
       if (!scene) throw Error('Le décor de ' + id + ' n’a pas pu être construit.');
+      if (budget.blend) field.settle(scene.contacts());
       hero = { ...layout.spawn }; facing = 'south'; path = null; target = null; tourIndex = 0;
       if (hourMode !== 'manual') applyHour(hourMode); else applyLook();
       canvas.dataset.pool = id; canvas.dataset.borrowed = String(!!L.borrowed); location.hash = id;
@@ -126,6 +127,7 @@
         // 4. tree shadows, then scenery and the keeper in depth order
         scene.updateShadows(still ? 0 : t, still); ctx.drawImage(scene.shadows, 0, 0);
         scene.onFootGrass = (g, actor) => field.paintForegroundGrass(g, { x: actor.x * 2, y: actor.y * 2 }, tick, still);
+        scene.onObjectGrass = budget.blend ? (g, o, c) => field.paintForegroundGrass(g, { x: c.x, y: c.y, w: c.w + 6, h: Math.min(c.h, 40) }, tick, still) : null;
         const actor = { x: hero.x / 2, y: hero.y / 2, shadow: 7, draw: () => QuestMotion.keeper(ctx, Math.round(hero.x) / 2, Math.round(hero.y) / 2, avatar, {}, options),
           castShadow: () => QuestMotion.keeper(ctx, 0, 0, avatar, {}, { ...options, shadow: true }) };
         scene.paintScenery(ctx, { state: stateSelect.value }, t, [hero.x, hero.y], [actor], still);

@@ -179,6 +179,7 @@ const TerrainStudy = (() => {
     build(reseed = true) {
       if (reseed) {
         this.cells = QuestZones.createMeadow({ width: W, height: H, eligible: (x, y) => rootEligible(x, y, this.options.blend, this.options.mode, this.options.layout) });
+        this.rows = new Map(); for (const c of this.cells) { const row = Math.floor(c.y / 16); if (!this.rows.has(row)) this.rows.set(row, []); this.rows.get(row).push(c); }
         for (const c of this.cells) {
           c.weight = this.weight(c.x, c.y); c.patch = growthPatch(c.x, c.y);
           c.variant = Math.floor(random(c.x, c.y, 37) * 4); c.phase = random(c.x, c.y, 82) * TAU;
@@ -186,7 +187,7 @@ const TerrainStudy = (() => {
       }
       const interior = this.cells.filter(c => c.weight > .95);
       this.growthHeight = fitGrowth(interior.length ? interior.map(c => c.patch) : this.patchMap, this.options.length);
-      for (const c of this.cells) { c.targetLength = this.growthHeight(c.patch); c.length ??= c.targetLength; c.tone = c.length < 18 ? 0 : c.length < 28 ? 1 : 2; }
+      for (const c of this.cells) { c.targetLength = this.growthHeight(c.patch) * (c.settle || 1); c.length ??= c.targetLength; c.tone = c.length < 18 ? 0 : c.length < 28 ? 1 : 2; }
       const heights = interior.map(c => c.targetLength);
       this.growthStats = { mean: heights.length ? heights.reduce((a, b) => a + b, 0) / heights.length : 0, min: heights.length ? Math.min(...heights) : 0, max: heights.length ? Math.max(...heights) : 0 };
       this.variation.configure(this.options, (x, y) => this.materials(x, y));
@@ -394,25 +395,46 @@ const TerrainStudy = (() => {
       for (const p of this.dust) { g.globalAlpha = (1 - p.age / p.life) * .48; pixel(g, p.colour, p.x, p.y, 1, 1); }
       g.globalAlpha = 1;
     }
-    tintGrass(layer, look = this.grassLook) {
+    tintGrass(layer, look = this.grassLook, rect = [0, 0, layer.width, layer.height]) {
       const g = layer.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop';
-      g.globalAlpha = look.wet * .15; g.fillStyle = '#254a38'; g.fillRect(0, 0, layer.width, layer.height);
-      g.globalAlpha = look.frost * .28; g.fillStyle = '#e3ebed'; g.fillRect(0, 0, layer.width, layer.height); g.restore();
+      g.globalAlpha = look.wet * .15; g.fillStyle = '#254a38'; g.fillRect(...rect);
+      g.globalAlpha = look.frost * .28; g.fillStyle = '#e3ebed'; g.fillRect(...rect); g.restore();
     }
-    paintForegroundGrass(g, hero, tick, quiet) {
-      const x = Math.floor(hero.x) - 17, y = Math.floor(hero.y) - 42, front = this.foregroundGrass.getContext('2d');
-      front.setTransform(1, 0, 0, 1, 0, 0); front.clearRect(0, 0, W, H); front.imageSmoothingEnabled = false;
-      // Match the background's raster origin, including fractional device scale.
-      front.save(); front.beginPath(); front.rect(x, y, 34, 47); front.clip();
-      for (const cell of this.cells) {
-        if (cell.y < hero.y - 3 || cell.y > hero.y + 45 || Math.abs(cell.x - hero.x) > 54) continue;
-        const mask = QuestZones.foregroundRoots(cell, hero.y - 1); if (!mask) continue;
-        const image = this.sprite(cell, tick / 10, quiet, mask); front.drawImage(image, cell.x - image.width / 2, cell.y - image.height + 6);
+    // Rooted blades redrawn over the base of a subject that stands in the grass:
+    // the keeper (defaults), or any scenery object given its contact width w
+    // and height h. Only the blades rooted in front of the contact line are
+    // drawn, so the subject sits in the grass instead of floating on it.
+    paintForegroundGrass(g, subject, tick, quiet) {
+      const w = Math.ceil(subject.w || 34), h = Math.ceil(subject.h || 47), reach = w / 2 + 37;
+      const x = Math.floor(subject.x - w / 2), y = Math.floor(subject.y - h + 5);
+      g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); g.imageSmoothingEnabled = false;
+      for (let row = Math.floor((subject.y - 3) / 16); row <= Math.floor((subject.y + 45) / 16); row++) for (const cell of this.rows?.get(row) || []) {
+        if (cell.y < subject.y - 3 || cell.y > subject.y + 45 || Math.abs(cell.x - subject.x) > reach) continue;
+        const mask = QuestZones.foregroundRoots(cell, subject.y - 1); if (!mask) continue;
+        const image = this.tinted(this.sprite(cell, tick / 10, quiet, mask)); g.drawImage(image, cell.x - image.width / 2, cell.y - image.height + 6);
       }
-      front.restore(); this.tintGrass(this.foregroundGrass); g.drawImage(this.foregroundGrass, 0, 0);
+      g.restore();
     }
-    // The ground up to and including the rooted grass. Returns the grass tick
-    // that paintActor needs for the blades redrawn over an actor's feet.
+    // A blade sprite with the current wet / frost tint baked in, so foreground
+    // blades draw straight into the scene. Small bounded cache per look.
+    tinted(image) {
+      const look = this.grassLook || { wet: 0, frost: 0 }, wet = Math.round(look.wet * 8) / 8, frost = Math.round(look.frost * 8) / 8;
+      if (!wet && !frost) return image;
+      const key = wet + '/' + frost; if (this.tintKey !== key) { this.tintKey = key; this.tints = new Map(); this.tintBytes = 0; }
+      let out = this.tints.get(image);
+      if (!out) {
+        out = makeCanvas(image.width, image.height); const c = out.getContext('2d'); c.drawImage(image, 0, 0); this.tintGrass(out, { wet, frost });
+        this.tints.set(image, out); this.tintBytes += out.width * out.height * 4;
+        while (this.tintBytes > 2 * 1048576 || this.tints.size > 1024) { const first = this.tints.keys().next().value, old = this.tints.get(first); this.tints.delete(first); this.tintBytes -= old.width * old.height * 4; }
+      }
+      return out;
+    }
+    // Objects standing in the meadow: blades right at their base grow shorter,
+    // as under anything that has stood in a lawn for a while.
+    settle(marks = []) {
+      for (const c of this.cells) { c.settle = 1; for (const m of marks) if (Math.abs(c.x - m.x) <= m.w / 2 + 3 && c.y >= m.y - 7 && c.y <= m.y + 5) { c.settle = .6; break; } }
+      this.build(false);
+    }
     paintBase(g, hero, quiet = false) {
       if (this.disposed) return -1;
       g.imageSmoothingEnabled = false; this.paintGround(g, quiet);

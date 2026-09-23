@@ -90,6 +90,12 @@ roof. The basin keeps the game's four water states.
   `?res=2&grain=0&grass=0` to compare with the uncapped lab look. In the
   headless test renderer these cut a frame from about 100 ms to 20 ms with no
   visible change; a phone should be measured on the device.
+- Objects sit in the grass rather than on it. The scene reads each prop's
+  contact line from the opaque bottom rows of its own sprite (`Scene.contact`),
+  and after drawing the prop the field redraws the blades rooted in front of
+  that line over its base, the same pass the keeper's feet get. Blades right
+  at a base also grow shorter (`Field.settle`). Nothing is per item;
+  `?blend=0` on the study URL shows the difference.
 - Weather presets (sec, brise, pluie, tempête, gel) and time of day; "Météo
   Lacanau" applies the app's cached Open-Meteo record through `SurfaceClimate`.
 - Worn paths persist per pool in `localStorage` under `lp-surface-study.wear.*`
