@@ -1,0 +1,19 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "date": "2026-09-22",
+  "reference": "../quest-people/source/keeper.png",
+  "styles": {
+    "bald": {
+      "source": "source/bald.png",
+      "prompt": "Use case: precise-object-edit. Asset: compact pixel-game character sprite sheet. Edit the reference sheet ONLY by changing the hairstyle as described. Preserve the same character identity, facial features, eye shapes, expression, skin tone, body, hands, clothes, tiny legs, boots, poses, camera, outlines and pixel-art shading. Preserve the same 2x2 layout and order: south front top-left, east facing right top-right, north back bottom-left, west facing left bottom-right. Each figure fully isolated with wide transparent gutters and genuine transparent background, no floor/shadow, labels or text. Keep the full rounded head, tiny round torso and almost no legs. No hats or accessories. Hair change: completely BALD, a smooth rounded skin-coloured scalp with gentle pixel highlights and no hair, stubble, sideburns or fringe. Keep the existing eyebrows and face exactly."
+    },
+    "short": {
+      "source": "source/short.png",
+      "prompt": "Use case: precise-object-edit. Asset: compact pixel-game character sprite sheet. Edit the reference sheet ONLY by changing the hairstyle as described. Preserve the same character identity, facial features, eye shapes, expression, skin tone, body, hands, clothes, tiny legs, boots, poses, camera, outlines and pixel-art shading. Preserve the same 2x2 layout and order: south front top-left, east facing right top-right, north back bottom-left, west facing left bottom-right. Each figure fully isolated with wide transparent gutters and genuine transparent background, no floor/shadow, labels or text. Keep the full rounded head, tiny round torso and almost no legs. No hats or accessories. Hair change: SHORT neat close-cropped brown hair, rounded natural top with a small side part, clean short sides above the ears, no spikes, no tall quiff, no long fringe. The head stays the same scale."
+    },
+    "long": {
+      "source": "source/long.png",
+      "prompt": "Use case: precise-object-edit. Asset: compact pixel-game character sprite sheet. Edit the reference sheet ONLY by changing the hairstyle as described. Preserve the same character identity, facial features, eye shapes, expression, skin tone, body, hands, clothes, tiny legs, boots, poses, camera, outlines and pixel-art shading. Preserve the same 2x2 layout and order: south front top-left, east facing right top-right, north back bottom-left, west facing left bottom-right. Each figure fully isolated with wide transparent gutters and genuine transparent background, no floor/shadow, labels or text. Keep the full rounded head, tiny round torso and almost no legs. No hats or accessories. Hair change: LONG brown straight hair reaching the shoulders, clear side part, hair framing both sides of the face and covering the back of the neck, eyes and eyebrows fully visible. Distinct long silhouette, no ponytail, no spikes. Keep the torso and feet exactly the same size and position."
+    }
+  }
+}

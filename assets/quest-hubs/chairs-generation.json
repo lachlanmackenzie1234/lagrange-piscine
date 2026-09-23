@@ -1,0 +1,7 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "date": "2026-09-22",
+  "reference": "source/office-layout.png",
+  "source": "source/chairs.png",
+  "prompt": "Use case: stylized-concept. Create a transparent pixel RPG prop sprite sheet using the supplied office furniture only as the style, palette, pixel shading and overhead three-quarter camera reference. Exactly FOUR separate views of the SAME small charcoal navy padded office swivel chair with muted grey five-star caster base, arms, visible seat cushion and compact low back. Arrange a regular 2x2 grid: top-left chair facing east/right (open sitting side points right), top-right chair facing west/left, bottom-left chair facing south/toward viewer, bottom-right chair facing north/away. No person. No desk. All objects fully isolated with generous transparent gutters, real transparent background, no floor or cast shadows. Crisp chunky pixel-art edges and restrained highlights, designed to export at 32x40 pixels; simple readable shapes not photorealistic. No labels or text."
+}

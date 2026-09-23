@@ -1,0 +1,39 @@
+{
+  "climate": {
+    "hotEarth": 0.012033176707482822,
+    "hotWaterLoss": 0.120580131571718,
+    "humidEarth": 0.5674531285824158,
+    "iceAfterCold": 0.9715059984094312,
+    "iceAfterHeat": 0.00017491162551246068
+  },
+  "controls": {
+    "cachedFallback": true,
+    "grainMinimum": true,
+    "heatAndFrost": true,
+    "missingRecordMessage": true,
+    "savedWeatherReadOnly": true,
+    "seasonalBlend": true
+  },
+  "fineGrain": {
+    "coarseContrast": 19352,
+    "fineContrast": 1410,
+    "sourceSize": [
+      128,
+      128
+    ]
+  },
+  "noGameStores": true,
+  "records": {
+    "deterministic": true,
+    "missingValuesIgnored": true,
+    "nativeSchema": true
+  },
+  "seasons": {
+    "changedChannels": 585050,
+    "terrainAndWeatherPreserved": true
+  },
+  "waterStates": {
+    "iceHasNoSplashOrAmbientMotion": true,
+    "shoreRecedesAndRefills": true
+  }
+}

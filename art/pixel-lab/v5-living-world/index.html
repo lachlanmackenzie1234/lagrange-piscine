@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#192e29">
+  <title>Living world · Lagrange Quest</title>
+  <link rel="icon" href="../../../icons/icon.svg">
+  <link rel="stylesheet" href="simulator.css">
+  <script src="../../../js/weather.js"></script>
+  <script type="module" src="simulator.mjs"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Lagrange Quest living world"><span class="brand-mark">L<span>Q</span></span><span>LAGRANGE <b>QUEST</b></span></a>
+    <span class="top-divider"></span><span class="edition">THE PIXEL LAB <span>/</span> 05</span>
+    <div class="top-actions"><span class="sandbox"><i></i> Interactive study</span><button id="reset" class="quiet-button" type="button">Reset world <span aria-hidden="true">↺</span></button></div>
+  </header>
+
+  <main class="layout">
+    <section class="world-column" aria-labelledby="world-title">
+      <div class="world-heading"><div><p class="eyebrow">LACANAU · A POCKET OF THE COAST</p><h1 id="world-title">A little world, alive.</h1></div><span class="version-tag">FIELD STUDY 05</span></div>
+      <div class="world-shell">
+        <div class="world-topline"><div><span class="location-dot"></span><strong id="garden-name">Eden Club</strong><span class="location-unit" id="garden-code">EC 2</span></div><span id="time-label">17:20 · golden light</span></div>
+        <div class="canvas-wrap" id="canvas-wrap">
+          <canvas id="world" width="512" height="384" tabindex="0" aria-label="Interactive pool garden. Tap a path to walk, a tree to rustle it, the pool to care for it, or the green creature to start an encounter. Use arrow keys or WASD to walk and Enter to meet the creature."></canvas>
+          <div class="loading" id="loading"><span class="loading-sprite">✦</span><span>Opening the garden…</span></div>
+          <div class="scene-badge"><span class="live-dot"></span><span id="scene-weather">A gentle coastal breeze</span></div>
+          <button class="scene-pause" id="pause" type="button" aria-label="Pause ambient animation" aria-pressed="false">Ⅱ</button>
+          <div class="toast" id="toast" role="status" aria-live="polite"></div>
+          <div class="interaction" id="interaction" hidden>
+            <div class="interaction-top"><div><span class="eyebrow" id="interaction-kind">ENCOUNTER</span><h2 id="interaction-title">Algue verte</h2></div><button id="interaction-close" class="icon-button" aria-label="Close interaction" type="button">×</button></div>
+            <p id="interaction-description"></p><div class="interaction-actions" id="interaction-actions"></div>
+          </div>
+        </div>
+        <div class="world-bottomline"><span><span class="tiny-cross" aria-hidden="true">✛</span> Tap to wander. Tap something to discover it.</span><span class="key-hint"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to walk</span></div>
+      </div>
+      <div class="zone-art-strip"><span><i aria-hidden="true"></i><span id="zone-art-label">Orange · Timbered cottage</span></span><a href="asset-library.html">Explore the art sets ↗</a></div>
+      <section class="soundscape" aria-labelledby="sound-title">
+        <div class="sound-heading"><div><h2 id="sound-title">Sound of the garden.</h2><p id="sound-status" role="status">Off · starts when you choose</p></div><button id="sound-toggle" type="button" aria-pressed="false">Enable sound</button></div>
+        <div id="sound-mix" class="sound-mix" hidden>
+          <label>Music <output id="sound-music-value" for="sound-music">35%</output><input id="sound-music" type="range" min="0" max="100" value="35"></label>
+          <label>Ambience <output id="sound-ambience-value" for="sound-ambience">55%</output><input id="sound-ambience" type="range" min="0" max="100" value="55"></label>
+          <label>Effects <output id="sound-effects-value" for="sound-effects">60%</output><input id="sound-effects" type="range" min="0" max="100" value="60"></label>
+          <label class="music-choice" for="music-theme">Music selection <select id="music-theme"><option value="auto">Follow the garden & encounters</option><option value="garden">A keeper’s morning</option><option value="dusk">After the last round</option><option value="battle">Trouble at the waterline</option><option value="off">Ambience only</option></select></label>
+        </div>
+        <a class="sound-library-link" href="sound-library.html">Listen to the sound library ↗</a>
+      </section>
+      <section class="garden-cycle" aria-labelledby="cycle-title">
+        <div class="cycle-heading"><div><span class="eyebrow">THE GARDENER’S ROUND</span><h2 id="cycle-title">Seven days in the grass.</h2></div><button id="cut-grass" type="button">Gardener visit <span>✂</span></button></div>
+        <div class="garden-clocks" id="garden-clocks" aria-label="Compare sample garden cycles"></div>
+        <div class="cycle-preview"><div><label for="days-ahead">Preview the next week</label><output id="days-ahead-output" for="days-ahead">Today</output></div><input id="days-ahead" type="range" min="0" max="7" step="1" value="0"><div class="cycle-scale"><span>Today</span><span>+7 days</span></div></div>
+        <p id="cycle-summary" class="cycle-summary"></p><p class="forest-summary" id="forest-summary"></p><p class="cycle-note">Example garden schedules. A visit cuts today’s grass; each garden keeps its own weekly rhythm.</p>
+      </section>
+      <div class="discovery-row" aria-label="Places to explore">
+        <button type="button" data-discover="pool"><span class="discovery-icon water-icon">≈</span><span><b>The basin</b><small>Ripples, reflections & care</small></span><span class="discovery-arrow">↗</span></button>
+        <button type="button" data-discover="monster"><img src="../v3-complete/exports/native/monsters-base/monster-algue.png" alt=""><span><b>A little trouble</b><small>Meet the garden’s visitor</small></span><span class="discovery-arrow">↗</span></button>
+        <button type="button" data-discover="pump"><span class="discovery-icon pump-icon">▤</span><span><b>The pump house</b><small>A working corner of the world</small></span><span class="discovery-arrow">↗</span></button>
+      </div>
+      <p class="footnote"><span class="little-leaf">❧</span> A fictional pool garden. Explore, experiment, and find the feel. <span>Simulation only.</span></p>
+    </section>
+
+    <aside class="studio" aria-labelledby="studio-title">
+      <div class="studio-heading"><span class="eyebrow">THE ATMOSPHERE</span><h2 id="studio-title">Find your kind of calm.</h2><p>A few small changes. A different place.</p></div>
+      <section class="overview-weather" aria-label="Aperçu weather connection"><label><span>Use Aperçu weather</span><input id="weather-auto" type="checkbox" checked><span class="switch" aria-hidden="true"></span></label><p id="overview-values" role="status">Reading the latest weather…</p><div><small id="overview-status">Shared with the app’s overview</small><button id="refresh-weather" type="button" aria-label="Refresh Aperçu weather">↻</button></div></section>
+      <fieldset class="mood-control"><legend>Time of day</legend><div class="moods"><button data-mood="day" type="button" aria-pressed="false"><span>☀</span>Daylight</button><button data-mood="golden" type="button" aria-pressed="true"><span>◒</span>Golden</button><button data-mood="dusk" type="button" aria-pressed="false"><span>☾</span>Blue hour</button></div></fieldset>
+      <div class="slider-group">
+        <label for="lushness"><span>Garden lushness</span><output id="lushness-output" for="lushness">Lush</output></label><input id="lushness" type="range" min="0" max="100" value="72"><div class="range-labels"><span>Light lawn</span><span>Full meadow</span></div><p class="coverage-hint">Continuous fine grass, with occasional clumps and rocks. Growth sets its depth around the keeper.</p>
+        <label for="treeBias"><span>Dominant tree share</span><output id="treeBias-output" for="treeBias">70%</output></label><input id="treeBias" type="range" min="40" max="100" step="5" value="70"><div class="range-labels"><span id="dominant-tree-name">Bouleaux</span><span>Residence character</span></div>
+        <label for="breeze"><span>Coastal breeze</span><output id="breeze-output" for="breeze">Gentle</output></label><input id="breeze" type="range" min="0" max="100" value="35">
+        <label for="water"><span>Water movement</span><output id="water-output" for="water">Shimmering</output></label><input id="water" type="range" min="0" max="100" value="55">
+        <label for="sun"><span>Sun direction</span><output id="sun-output" for="sun">West</output></label><input id="sun" type="range" min="15" max="165" value="42">
+        <label for="keeper"><span>Keeper size</span><output id="keeper-output" for="keeper">Small</output></label><input id="keeper" type="range" min="55" max="105" value="72">
+        <label for="body"><span>Body height</span><output id="body-output" for="body">50%</output></label><input id="body" type="range" min="40" max="100" step="5" value="50"><div class="range-labels"><span>Little keeper</span><span>Original proportions</span></div>
+      </div>
+      <fieldset class="water-control"><legend>Pool water appearance</legend><div class="water-states"><button type="button" data-pool-state="clear" aria-pressed="true"><i style="--water-color:#6bc8ca"></i>Clear</button><button type="button" data-pool-state="treated" aria-pressed="false"><i style="--water-color:#a7e7d6"></i>Treated</button><button type="button" data-pool-state="algae" aria-pressed="false"><i style="--water-color:#85a35f"></i>Algae</button><button type="button" data-pool-state="murky" aria-pressed="false"><i style="--water-color:#3e5d49"></i>Murky</button></div><p>Preview the pool’s colour and texture. Weather controls the movement.</p></fieldset>
+      <div class="toggle-group"><label><span>Cast shadows<small>Light gives the garden its depth</small></span><input id="shadows" type="checkbox" checked><span class="switch" aria-hidden="true"></span></label><label><span>See the tile grid<small>The structure beneath the scene</small></span><input id="grid" type="checkbox"><span class="switch" aria-hidden="true"></span></label><label><span>Quiet motion<small>Still foliage and gentle feedback</small></span><input id="quiet" type="checkbox"><span class="switch" aria-hidden="true"></span></label></div>
+      <button id="save-look" class="save-look" type="button">Save this atmosphere <span>↓</span></button>
+      <div class="studio-note"><span>MADE TO BE EXPLORED</span><p>Rustle a tree. Skim the water. Follow the path. A creature encounter opens a turn-based battle.</p><div class="palette"><i style="--swatch:#294d45"></i><i style="--swatch:#528868"></i><i style="--swatch:#aaca6e"></i><i style="--swatch:#eddb9b"></i><i style="--swatch:#62c4c9"></i><i style="--swatch:#bd7350"></i></div></div>
+    </aside>
+  </main>
+  <footer class="footer"><span>LAGRANGE QUEST <i>/</i> LIVING WORLD</span><a href="README.md">Study notes ↗</a><span>512 × 384 · built for a little adventure</span></footer>
+
+  <dialog id="battle" aria-labelledby="battle-title">
+    <div class="battle-header"><span><span class="battle-star">✦</span> A POOLSIDE ENCOUNTER</span><button type="button" id="retreat" class="quiet-button">Return to garden <span>↗</span></button></div>
+    <div class="battle-stage"><canvas id="battle-canvas" width="512" height="264" aria-label="A keeper and an algae creature face one another across a garden clearing."></canvas><div class="hp-card enemy-card"><div><h2 id="battle-title">ALGUE VERTE</h2><span>Lv. 4</span></div><label><span>HP</span><progress id="enemy-hp" max="84" value="84" aria-label="Creature health"></progress></label><small id="enemy-hp-text">84 / 84</small></div><div class="hp-card keeper-card"><div><b>THE KEEPER</b><span>Lv. 5</span></div><label><span>HP</span><progress id="hero-hp" max="72" value="72" aria-label="Keeper health"></progress></label><small id="hero-hp-text">72 / 72</small></div></div>
+    <div class="battle-controls"><div class="battle-narration"><span class="eyebrow" id="turn-label">YOUR TURN</span><p id="battle-message" role="status" aria-live="polite">A restless Algue verte emerges from the garden. What will you do?</p><span class="battle-caption">A little practice, far from the real pool log.</span></div><div id="battle-moves" class="battle-moves"><button type="button" data-move="net"><b>Skimmer</b><small>SWEEP · 11 POWER</small></button><button type="button" data-move="brush"><b>Brush</b><small>SCRUB · 17 POWER</small></button><button type="button" data-move="robot"><b>Robot</b><small>CLEAN · 21 POWER</small></button><button type="button" data-move="burst"><b>Chlorine burst</b><small>SPLASH · 28 POWER</small></button></div><button id="battle-done" class="battle-done" hidden type="button">Back to the garden ↗</button></div>
+  </dialog>
+</body>
+</html>

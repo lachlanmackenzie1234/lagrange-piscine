@@ -1,0 +1,904 @@
+{
+  "version": "pocket-coast-map-v1",
+  "id": "EPP-7",
+  "residence": "EPP",
+  "label": "EPP 7",
+  "seed": 675159920,
+  "revision": 0,
+  "fictionalLayout": true,
+  "theme": "Holiday court",
+  "border": "hedge",
+  "width": 16,
+  "height": 12,
+  "tileSize": 16,
+  "pixelWidth": 256,
+  "pixelHeight": 192,
+  "archetype": "south-terrace",
+  "mirrored": true,
+  "pool": {
+    "x": 5,
+    "y": 6,
+    "w": 7,
+    "h": 3
+  },
+  "deck": {
+    "x": 4,
+    "y": 5,
+    "w": 9,
+    "h": 5
+  },
+  "arena": {
+    "x": 9,
+    "y": 2,
+    "w": 3,
+    "h": 3
+  },
+  "anchors": {
+    "entrance": {
+      "x": 14,
+      "y": 11
+    },
+    "houseDoor": {
+      "x": 6,
+      "y": 4
+    },
+    "shedDoor": {
+      "x": 2,
+      "y": 7
+    },
+    "ladder": {
+      "x": 6,
+      "y": 9
+    },
+    "skimmer": {
+      "x": 10,
+      "y": 9
+    },
+    "pumpAccess": {
+      "x": 4,
+      "y": 7
+    },
+    "encounter": {
+      "x": 10,
+      "y": 3
+    },
+    "playerSpawn": {
+      "x": 14,
+      "y": 9
+    }
+  },
+  "objects": [
+    {
+      "kind": "villa",
+      "x": 5,
+      "y": 1,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "kind": "shed",
+      "x": 2,
+      "y": 5,
+      "w": 2,
+      "h": 2
+    },
+    {
+      "kind": "pump",
+      "x": 4,
+      "y": 6,
+      "w": 1,
+      "h": 1,
+      "salt": false
+    },
+    {
+      "kind": "lounger",
+      "x": 12,
+      "y": 7,
+      "w": 1,
+      "h": 1,
+      "variant": 1
+    },
+    {
+      "kind": "lounger",
+      "x": 12,
+      "y": 8,
+      "w": 1,
+      "h": 1,
+      "variant": 0
+    },
+    {
+      "kind": "pine",
+      "x": 14,
+      "y": 1,
+      "w": 1,
+      "h": 2,
+      "variant": 2
+    },
+    {
+      "kind": "tree",
+      "x": 13,
+      "y": 7,
+      "w": 1,
+      "h": 1,
+      "variant": 0
+    },
+    {
+      "kind": "tree",
+      "x": 4,
+      "y": 2,
+      "w": 1,
+      "h": 1,
+      "variant": 0
+    },
+    {
+      "kind": "tree",
+      "x": 4,
+      "y": 10,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "sign",
+      "x": 2,
+      "y": 3,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "pot",
+      "x": 14,
+      "y": 3,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "bench",
+      "x": 4,
+      "y": 5,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    }
+  ],
+  "paths": [
+    {
+      "to": "entrance",
+      "cells": [
+        {
+          "x": 14,
+          "y": 11
+        }
+      ]
+    },
+    {
+      "to": "houseDoor",
+      "cells": [
+        {
+          "x": 14,
+          "y": 11
+        },
+        {
+          "x": 14,
+          "y": 10
+        },
+        {
+          "x": 14,
+          "y": 9
+        },
+        {
+          "x": 14,
+          "y": 8
+        },
+        {
+          "x": 14,
+          "y": 7
+        },
+        {
+          "x": 14,
+          "y": 6
+        },
+        {
+          "x": 14,
+          "y": 5
+        },
+        {
+          "x": 14,
+          "y": 4
+        },
+        {
+          "x": 13,
+          "y": 4
+        },
+        {
+          "x": 12,
+          "y": 4
+        },
+        {
+          "x": 11,
+          "y": 4
+        },
+        {
+          "x": 10,
+          "y": 4
+        },
+        {
+          "x": 9,
+          "y": 4
+        },
+        {
+          "x": 8,
+          "y": 4
+        },
+        {
+          "x": 7,
+          "y": 4
+        },
+        {
+          "x": 6,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "to": "shedDoor",
+      "cells": [
+        {
+          "x": 14,
+          "y": 11
+        },
+        {
+          "x": 14,
+          "y": 10
+        },
+        {
+          "x": 14,
+          "y": 9
+        },
+        {
+          "x": 13,
+          "y": 9
+        },
+        {
+          "x": 12,
+          "y": 9
+        },
+        {
+          "x": 11,
+          "y": 9
+        },
+        {
+          "x": 10,
+          "y": 9
+        },
+        {
+          "x": 9,
+          "y": 9
+        },
+        {
+          "x": 8,
+          "y": 9
+        },
+        {
+          "x": 7,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 5,
+          "y": 9
+        },
+        {
+          "x": 4,
+          "y": 9
+        },
+        {
+          "x": 4,
+          "y": 8
+        },
+        {
+          "x": 4,
+          "y": 7
+        },
+        {
+          "x": 3,
+          "y": 7
+        },
+        {
+          "x": 2,
+          "y": 7
+        }
+      ]
+    },
+    {
+      "to": "ladder",
+      "cells": [
+        {
+          "x": 14,
+          "y": 11
+        },
+        {
+          "x": 14,
+          "y": 10
+        },
+        {
+          "x": 14,
+          "y": 9
+        },
+        {
+          "x": 13,
+          "y": 9
+        },
+        {
+          "x": 12,
+          "y": 9
+        },
+        {
+          "x": 11,
+          "y": 9
+        },
+        {
+          "x": 10,
+          "y": 9
+        },
+        {
+          "x": 9,
+          "y": 9
+        },
+        {
+          "x": 8,
+          "y": 9
+        },
+        {
+          "x": 7,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "to": "skimmer",
+      "cells": [
+        {
+          "x": 14,
+          "y": 11
+        },
+        {
+          "x": 14,
+          "y": 10
+        },
+        {
+          "x": 14,
+          "y": 9
+        },
+        {
+          "x": 13,
+          "y": 9
+        },
+        {
+          "x": 12,
+          "y": 9
+        },
+        {
+          "x": 11,
+          "y": 9
+        },
+        {
+          "x": 10,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "to": "pumpAccess",
+      "cells": [
+        {
+          "x": 14,
+          "y": 11
+        },
+        {
+          "x": 14,
+          "y": 10
+        },
+        {
+          "x": 14,
+          "y": 9
+        },
+        {
+          "x": 13,
+          "y": 9
+        },
+        {
+          "x": 12,
+          "y": 9
+        },
+        {
+          "x": 11,
+          "y": 9
+        },
+        {
+          "x": 10,
+          "y": 9
+        },
+        {
+          "x": 9,
+          "y": 9
+        },
+        {
+          "x": 8,
+          "y": 9
+        },
+        {
+          "x": 7,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 5,
+          "y": 9
+        },
+        {
+          "x": 4,
+          "y": 9
+        },
+        {
+          "x": 4,
+          "y": 8
+        },
+        {
+          "x": 4,
+          "y": 7
+        }
+      ]
+    }
+  ],
+  "ground": [
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "grass",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "paving",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "paving",
+      "grass",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "sand",
+      "sand",
+      "paving",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "paving",
+      "grass",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "paving",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "paving",
+      "grass",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "paving",
+      "sand",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "sand",
+      "grass"
+    ]
+  ],
+  "collision": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+    ]
+  ],
+  "terrainSeed": 1040939570,
+  "generationAttempt": 1
+}

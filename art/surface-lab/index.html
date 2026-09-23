@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surface lab · Pocket Coast</title>
+<link rel="stylesheet" href="lab.css?v=14">
+<main>
+  <header><h1>Surface lab</h1><a class="tag" href="studies/grass-height.html">Earlier height study ↗</a></header>
+  <div class="toolbar">
+    <div class="switches" role="group" aria-label="Terrain">
+      <button type="button" data-mode="blend" aria-pressed="true">Blend</button>
+      <button type="button" data-mode="grass" aria-pressed="false">Grass</button>
+      <button type="button" data-mode="sand" aria-pressed="false">Sand</button>
+      <button type="button" data-mode="earth" aria-pressed="false">Earth</button>
+      <button type="button" data-mode="gravel" aria-pressed="false">Gravel</button>
+      <button type="button" data-mode="water" aria-pressed="false">Water</button>
+    </div>
+    <div class="actions">
+      <button type="button" id="wind-direction" aria-label="Wind direction: east">Wind →</button>
+      <button type="button" id="walk" aria-pressed="true">Pause walk</button>
+      <button type="button" id="clear">Clear tracks</button>
+    </div>
+  </div>
+  <div class="map-row"><label>Map<select id="map-layout" aria-label="Map layout"><option value="garden">Rain garden</option><option value="coast">Dune pond</option><option value="stream">Gravel stream</option></select></label><output id="conditions" aria-live="off">Damp soil · 0 puddles</output></div>
+  <div class="controls material-controls">
+    <label><span class="value"><span>Grass average</span><output id="length-value" for="length">≈20 px</output></span><input id="length" aria-label="Average grass length" type="range" min="10" max="40" step="1" value="20"></label>
+    <label><span class="value"><span>Grain scale</span><output id="grain-value" for="grain">1×</output></span><input id="grain" aria-label="Material grain scale" type="range" min="0.25" max="4" step="0.25" value="1"></label>
+    <label id="earth-control"><span class="value"><span>Initial dampness</span><output id="moisture-value" for="moisture">35%</output></span><input id="moisture" aria-label="Initial ground moisture" type="range" min="0" max="100" step="1" value="35"></label>
+    <label><span class="value"><span>Wind</span><output id="wind-value" for="wind">35%</output></span><input id="wind" aria-label="Wind strength" type="range" min="0" max="100" step="1" value="35"></label>
+    <label><span class="value"><span>Edge blend</span><output id="edge-value" for="edge">24 px</output></span><input id="edge" aria-label="Edge blend width" type="range" min="0" max="48" step="1" value="24"></label>
+  </div>
+  <p class="scale-note" id="grain-relation">Texture scale · Sand 0.5 px · Earth 0.25 px · Gravel 0.75 px</p>
+  <details class="regional-panel">
+    <summary>Grain regions & paths</summary>
+    <div class="controls regional-controls">
+      <label><span class="value"><span>Patch variation</span><output id="variation-value" for="variation">55%</output></span><input id="variation" aria-label="Grain patch variation" type="range" min="0" max="100" value="55"></label>
+      <label><span class="value"><span>Edge buildup</span><output id="edge-grain-value" for="edge-grain">55%</output></span><input id="edge-grain" aria-label="Grain edge buildup" type="range" min="0" max="100" value="55"></label>
+      <label><span class="value"><span>Path wear</span><output id="path-wear-value" for="path-wear">65%</output></span><input id="path-wear" aria-label="Path wear strength" type="range" min="0" max="100" value="65"></label>
+    </div>
+    <div class="weather-note"><output id="grain-local">Regional grain scale</output><button id="clear-wear" type="button">Reset wear</button></div>
+    <output id="scene-memory" class="material-state">Map states are kept while you explore.</output>
+  </details>
+  <details class="weather-panel" open>
+    <summary>Weather & conditions</summary>
+    <div class="controls weather-controls">
+      <label>Weather<select id="weather-preset" aria-label="Weather preset"><option value="calm">Calm</option><option value="breeze">Dry breeze</option><option value="rain">Rain</option><option value="drying">Dry out</option><option value="frost">Frost · −2°C</option><option value="heat">Heat · 40°C</option><option value="custom">Custom</option></select></label>
+      <label><span class="value"><span>Temperature</span><output id="temperature-value" for="temperature">18°C</output></span><input id="temperature" aria-label="Air temperature" type="range" min="-15" max="45" value="18"></label>
+      <label><span class="value"><span>Humidity</span><output id="humidity-value" for="humidity">55%</output></span><input id="humidity" aria-label="Relative humidity" type="range" min="0" max="100" value="55"></label>
+      <label><span class="value"><span>Rain</span><output id="rain-value" for="rain">0%</output></span><input id="rain" aria-label="Rain intensity" type="range" min="0" max="100" value="0"></label>
+      <label><span class="value"><span>Sun / drying</span><output id="sun-value" for="sun">65%</output></span><input id="sun" aria-label="Sun and drying" type="range" min="0" max="100" value="65"></label>
+      <label>Weather clock<select id="weather-speed" aria-label="Weather simulation speed"><option value="1">1×</option><option value="4">4×</option><option value="8">8×</option></select></label>
+    </div>
+    <output id="material-state" class="material-state" aria-live="off">Fine soil · Liquid water</output>
+    <div class="weather-note"><span>Wind: drifting sand · slow earth · gravel moves underfoot.</span><button id="reset-weather" type="button">Reset conditions</button></div>
+    <div class="weather-note"><button id="logged-weather" type="button">Use latest logged weather</button><output id="weather-source" aria-live="polite">Manual study</output></div>
+  </details>
+  <details class="appearance">
+    <summary>Colour & light</summary>
+    <details class="colour-layer" name="colour-layer"><summary class="colour-stage">1 · Seasonal pigment</summary>
+    <div class="controls season-controls">
+      <label>Season from<select id="season-from" aria-label="Season from"><option value="spring">Spring</option><option value="summer" selected>Summer</option><option value="autumn">Autumn</option><option value="winter">Winter</option></select></label>
+      <label>Season to<select id="season-to" aria-label="Season to"><option value="spring">Spring</option><option value="summer">Summer</option><option value="autumn" selected>Autumn</option><option value="winter">Winter</option></select></label>
+      <label><span class="value"><span>Season blend</span><output id="season-blend-value" for="season-blend">0%</output></span><input id="season-blend" aria-label="Season blend" type="range" min="0" max="100" value="0"></label>
+      <label><span class="value"><span>Richness</span><output id="richness-value" for="richness">125%</output></span><input id="richness" aria-label="Pigment richness" type="range" min="60" max="180" value="125"></label>
+    </div>
+    </details>
+    <details class="colour-layer" name="colour-layer" open><summary class="colour-stage">2 · Light & shadow</summary>
+    <div class="controls lighting-controls">
+      <label>Lighting palette<select id="lighting" aria-label="Lighting palette"><option value="neutral">Neutral</option><option value="sun" selected>Sun / blue shade</option><option value="sky">Sky / warm shade</option><option value="amber">Gold / violet shade</option><option value="rose">Rose / teal shade</option><option value="custom">Custom pair</option></select></label>
+      <label>Highlight colour<input id="key-light" type="color" aria-label="Highlight colour" value="#ffe3a5"></label>
+      <label>Shadow colour<input id="shadow-colour" type="color" aria-label="Shadow colour" value="#425880"></label>
+      <label><span class="value"><span>Light blend</span><output id="light-strength-value" for="light-strength">55%</output></span><input id="light-strength" aria-label="Lighting blend" type="range" min="0" max="100" value="55"></label>
+      <label><span class="value"><span>Light colour</span><output id="light-saturation-value" for="light-saturation">100%</output></span><input id="light-saturation" aria-label="Lighting saturation" type="range" min="0" max="200" value="100"></label>
+      <label><span class="value"><span>Cast shadows</span><output id="shade-value" for="shade">55%</output></span><input id="shade" aria-label="Shading strength" type="range" min="0" max="100" step="1" value="55"></label>
+    </div>
+    <details class="reflection-panel"><summary>Surface reflections</summary>
+      <div class="controls reflection-controls">
+        <label><span class="value"><span>Reflection strength</span><output id="reflection-strength-value">65%</output></span><input id="reflection-strength" aria-label="Reflection strength" type="range" min="0" max="150" value="65"></label>
+        <label><span class="value"><span>Wet sheen</span><output id="reflection-wet-value">100%</output></span><input id="reflection-wet" aria-label="Wet reflection boost" type="range" min="0" max="150" value="100"></label>
+        <label><span class="value"><span>Roughness</span><output id="reflection-roughness-value">50%</output></span><input id="reflection-roughness" aria-label="Surface roughness" type="range" min="0" max="100" value="50"></label>
+        <label><span class="value"><span>Water</span><output id="reflect-water-value">78%</output></span><input id="reflect-water" aria-label="Water reflectivity" type="range" min="0" max="100" value="78"></label>
+        <label><span class="value"><span>Grass</span><output id="reflect-grass-value">20%</output></span><input id="reflect-grass" aria-label="Grass reflectivity" type="range" min="0" max="100" value="20"></label>
+        <label><span class="value"><span>Sand</span><output id="reflect-sand-value">9%</output></span><input id="reflect-sand" aria-label="Sand reflectivity" type="range" min="0" max="100" value="9"></label>
+        <label><span class="value"><span>Earth</span><output id="reflect-earth-value">8%</output></span><input id="reflect-earth" aria-label="Earth reflectivity" type="range" min="0" max="100" value="8"></label>
+        <label><span class="value"><span>Gravel</span><output id="reflect-gravel-value">25%</output></span><input id="reflect-gravel" aria-label="Gravel reflectivity" type="range" min="0" max="100" value="25"></label>
+        <label><span class="value"><span>Keeper</span><output id="reflect-keeper-value">14%</output></span><input id="reflect-keeper" aria-label="Keeper reflectivity" type="range" min="0" max="100" value="14"></label>
+      </div>
+      <p class="scale-note">White glints follow surfaces. Use Reflection mask in Final grade to inspect them.</p>
+    </details>
+    </details>
+    <details class="colour-layer" name="colour-layer"><summary class="colour-stage">3 · Final grade</summary>
+    <div class="controls look-controls">
+      <label>Finishing tint<select id="palette" aria-label="Colour palette"><option value="coast">Clear</option><option value="gold">Golden hour</option><option value="moss">Cool moss</option><option value="dusk">Dusk</option></select></label>
+      <label>View<select id="view" aria-label="Colour view"><option value="colour">Colour</option><option value="grey">Greyscale</option><option value="ink">Black & white</option><option value="reflections">Reflection mask</option></select></label>
+      <label><span class="value"><span>Contrast</span><output id="contrast-value" for="contrast">100%</output></span><input id="contrast" aria-label="Contrast" type="range" min="60" max="180" step="1" value="100"></label>
+      <label><span class="value"><span>Saturation</span><output id="saturation-value" for="saturation">100%</output></span><input id="saturation" aria-label="Final saturation" type="range" min="0" max="200" value="100"></label>
+      <label><span class="value"><span>Exposure</span><output id="exposure-value" for="exposure">100%</output></span><input id="exposure" aria-label="Final exposure" type="range" min="60" max="140" value="100"></label>
+      <label class="flow-view"><input id="flow-vectors" type="checkbox">Show water flow vectors</label>
+    </div>
+    </details>
+    <details class="adaptive-panel"><summary>Adaptive weather & time</summary>
+      <div class="controls adaptive-controls">
+        <label>Colour driver<select id="colour-driver" aria-label="Colour driver"><option value="manual">Manual</option><option value="weather">Weather + study time</option><option value="recorded">Saved weather + time</option></select></label>
+        <label><span class="value"><span>Study hour</span><output id="study-hour-value">18:00</output></span><input id="study-hour" aria-label="Study time of day" type="range" min="0" max="24" step="0.25" value="18"></label>
+        <label><span class="value"><span>Adaptation</span><output id="adaptation-value">75%</output></span><input id="adaptation" aria-label="Adaptive colour blend" type="range" min="0" max="100" value="75"></label>
+      </div>
+      <output id="adaptive-status" class="material-state">Manual colour controls</output>
+    </details>
+  </details>
+  <details class="sound-panel"><summary>Sound of the map</summary>
+    <div class="weather-note"><button id="sound-toggle" type="button" aria-pressed="false" disabled>Enable sound</button><output id="sound-status" aria-live="polite">Sound off</output></div>
+    <div class="controls sound-controls">
+      <label>Music<select id="sound-track" aria-label="Music selection"><option value="auto">Automatic</option><option value="garden">A keeper’s morning</option><option value="dusk">After the last round</option><option value="battle">Trouble at the waterline</option><option value="off">Ambience only</option></select></label>
+      <label><span class="value"><span>Music level</span><output id="sound-music-value">20%</output></span><input id="sound-music" aria-label="Music level" type="range" min="0" max="100" value="20"></label>
+      <label><span class="value"><span>Ambience</span><output id="sound-ambience-value">45%</output></span><input id="sound-ambience" aria-label="Ambience level" type="range" min="0" max="100" value="45"></label>
+      <label><span class="value"><span>Effects</span><output id="sound-effects-value">35%</output></span><input id="sound-effects" aria-label="Effects level" type="range" min="0" max="100" value="35"></label>
+    </div>
+  </details>
+  <div class="screen">
+    <canvas id="terrain" width="1024" height="768" tabindex="0" aria-label="Interactive grass, sand, earth, gravel and shallow water. Tap or use arrow keys to walk. Rain builds puddles; water responds with ripples.">Interactive material and weather map.</canvas>
+    <div id="status" role="status">Preparing the materials…</div>
+  </div>
+  <div class="sequence">
+    <button id="sequence-play" type="button">Play sequence</button>
+    <label class="sequence-progress"><span class="value"><span>Grow → bend → settle</span><output id="sequence-phase" for="sequence-time">Ready</output></span><input id="sequence-time" aria-label="Sequence progress" type="range" min="0" max="100" step="0.5" value="0"></label>
+    <label class="recovery"><span class="value"><span>Recovery</span><output id="recovery-value" for="recovery">8 s</output></span><input id="recovery" aria-label="Recovery duration" type="range" min="4" max="12" step="1" value="8"></label>
+  </div>
+  <footer><span>Tap to walk · Arrows / WASD · Space toggles auto walk</span><span id="surface-label" aria-live="off">Soft sand</span></footer>
+</main>
+<svg class="filter-definitions" aria-hidden="true" width="0" height="0"><defs><filter id="surface-ink" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope="1" intercept="-0.1"/><feFuncG type="linear" slope="1" intercept="-0.1"/><feFuncB type="linear" slope="1" intercept="-0.1"/></feComponentTransfer><feComponentTransfer><feFuncR type="discrete" tableValues="0 1"/><feFuncG type="discrete" tableValues="0 1"/><feFuncB type="discrete" tableValues="0 1"/></feComponentTransfer></filter></defs></svg>
+<script src="../../js/quest-core.js"></script>
+<script src="../../js/pixelart.js"></script>
+<script src="../../js/pixel-surface.js"></script>
+<script src="../../js/keeper-art.js"></script>
+<script src="../../js/game-motion.js"></script>
+<script src="../../js/quest-ecology.js"></script>
+<script src="../../js/quest-zones.js?terrain-study=1"></script>
+<script src="materials/colour.js?v=7"></script>
+<script src="materials/adaptive-colour.js?v=1"></script>
+<script src="materials/climate.js?v=4"></script>
+<script src="materials/weather.js?v=2"></script>
+<script src="materials/motion.js?v=4"></script>
+<script src="materials/dynamics.js?v=4"></script>
+<script src="materials/grain.js?v=5"></script>
+<script src="materials/fluid.js?v=2"></script>
+<script src="materials/earth.js?v=4"></script>
+<script src="materials/gravel.js?v=4"></script>
+<script src="materials/maps.js?v=1"></script>
+<script src="materials/variation.js?v=2"></script>
+<script src="materials/grain-layer.js?v=2"></script>
+<script src="materials/memory.js?v=1"></script>
+<script src="materials/water.js?v=11"></script>
+<script src="materials/reflections.js?v=8"></script>
+<script src="materials/field.js?v=23"></script>
+<script src="sound.js?v=5"></script>
+<script src="lab.js?v=23"></script>
+</html>

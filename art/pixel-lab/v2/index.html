@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Four ways to Lacanau · Lagrange Quest</title>
+  <link rel="icon" href="favicon.svg"><link rel="stylesheet" href="gallery.css"><script type="module" src="gallery.mjs"></script>
+</head>
+<body>
+  <div class="page">
+    <header><a href="#" class="brand"><b>L/Q</b><span>LAGRANGE QUEST<br><small>THE ART ROOM</small></span></a><span class="edition">EXPLORATION <b>02</b></span><a class="pack" href="lacanau-style-studies-v2.zip" download>Download all exports <span>↗</span></a></header>
+    <main>
+      <section class="intro"><div><p class="eyebrow">A NEW LOOK AT A FAMILIAR PLACE</p><h1>One coast.<br>Four different worlds.</h1></div><div class="brief"><span class="brief-label">THE SAME LITTLE ADVENTURE</span><p>A keeper, a net, a suspicious pool.<br> Four takes on the characters, equipment<br> and places that make it ours.</p><div class="palette" aria-label="Shared set colours"><i style="--color:#2f4fdf"></i><i style="--color:#2aa845"></i><i style="--color:#e39b12"></i><i style="--color:#7b3fc4"></i><i style="--color:#1f9e8a"></i><span>FIVE SETS. ONE IDENTITY.</span></div></div></section>
+      <div class="toolbar"><nav aria-label="Style studies" id="style-nav"></nav><button type="button" id="compare" class="compare-button" aria-pressed="true">Compare all <span>⊞</span></button></div>
+      <section id="overview" aria-label="Four style comparison"><div class="comparison-grid" id="cards"></div></section>
+      <section id="focus-view" aria-label="Selected art direction" hidden>
+        <div class="focus-heading"><div><p class="eyebrow" id="focus-category"></p><h2 id="focus-title"></h2></div><div class="focus-actions"><button type="button" id="expand">View larger ↗</button><a id="download" download>Download PNG ↓</a></div></div>
+        <div class="focus-content"><button type="button" id="focus-image-button" aria-label="Expand selected concept board"><img id="focus-image" width="1536" height="1024" alt=""></button><aside><span class="detail-number" id="detail-number"></span><h3 id="detail-heading"></h3><p id="detail-description"></p><dl><dt>SHAPE & LINE</dt><dd id="detail-shapes"></dd><dt>WORLD VIEW</dt><dd id="detail-view"></dd><dt>WHERE IT FITS</dt><dd id="detail-fit"></dd></dl><a id="prompt-link" class="text-link">Read the generation prompt ↗</a></aside></div>
+      </section>
+      <section class="comparison-notes" aria-label="Design comparison"><div class="notes-heading"><p class="eyebrow">WHAT ACTUALLY CHANGES</p><h2>A different way<br>to tell the same story.</h2><p>Each export uses the same coastal kit.<br>The style changes its personality.</p></div><div class="table-wrap"><table><thead><tr><th scope="col">DIRECTION</th><th scope="col">CHARACTER</th><th scope="col">EQUIPMENT</th><th scope="col">WORLD</th></tr></thead><tbody id="comparison-rows"></tbody></table></div></section>
+      <section class="bottom-notes"><div><p class="eyebrow">THE REFERENCES</p><p>The new Zelda, Dofus and Waven screenshots informed these trials. The keeper, pool monsters and equipment retain the Lacanau identities from the first study.</p><a href="README.md" class="text-link">Direction notes & reference map ↗</a></div><div><p class="eyebrow">THE EXPORTS</p><p>These are generated concept boards for choosing an art direction. They are not native sprite sheets. Pocket Coast and Sunlit Adventure explore pixel art; Storybook and Tideglass explore a larger illustrated canvas.</p></div><div><p class="eyebrow">THE PIXEL BUDGET</p><p>Current game: stage 128 × 96, trainer 24 × 32, creatures 24 × 24, monsters 28 × 24, items 16 × 16. A chosen direction still needs a native sprite pass at those sizes.</p><a href="../v1/" class="text-link" id="previous-lab">Open the original native-pixel lab ↗</a></div></section>
+    </main>
+    <footer><span>LACANAU, THROUGH FOUR DIFFERENT LENSES.</span><a href="manifest.json">Export manifest ↗</a><span>LAGRANGE QUEST / 2026</span></footer>
+  </div>
+  <dialog id="lightbox" aria-labelledby="lightbox-title"><div class="lightbox-bar"><h2 id="lightbox-title"></h2><button type="button" id="close-lightbox" aria-label="Close large image">Close ×</button></div><img id="lightbox-image" alt=""><a id="lightbox-download" download>Download full-size PNG ↓</a></dialog>
+</body>
+</html>

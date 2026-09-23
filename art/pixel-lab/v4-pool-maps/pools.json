@@ -1,0 +1,163 @@
+[
+  {
+    "id": "EC-2",
+    "res": "EC",
+    "unit": "2",
+    "type": "T4",
+    "salt": false
+  },
+  {
+    "id": "EC-5",
+    "res": "EC",
+    "unit": "5",
+    "type": "T4",
+    "salt": false
+  },
+  {
+    "id": "EC-12",
+    "res": "EC",
+    "unit": "12",
+    "type": "T4",
+    "salt": false
+  },
+  {
+    "id": "EC-18",
+    "res": "EC",
+    "unit": "18",
+    "type": "T4",
+    "salt": false
+  },
+  {
+    "id": "EC-22",
+    "res": "EC",
+    "unit": "22",
+    "type": "T4",
+    "salt": false
+  },
+  {
+    "id": "AG-7",
+    "res": "AG",
+    "unit": "7",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "AG-8",
+    "res": "AG",
+    "unit": "8",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "AG-9",
+    "res": "AG",
+    "unit": "9",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "AG-21",
+    "res": "AG",
+    "unit": "21",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "AG-32",
+    "res": "AG",
+    "unit": "32",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EP-6B-75",
+    "res": "EP",
+    "unit": "6B/75",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EP-19B-90",
+    "res": "EP",
+    "unit": "19B/90",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EP-30B-63",
+    "res": "EP",
+    "unit": "30B/63",
+    "type": "",
+    "salt": true
+  },
+  {
+    "id": "EP-27B-94",
+    "res": "EP",
+    "unit": "27B/94",
+    "type": "",
+    "salt": true
+  },
+  {
+    "id": "EP-40B-52",
+    "res": "EP",
+    "unit": "40B/52",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EP-31B-96",
+    "res": "EP",
+    "unit": "31B/96",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EP-52B-46",
+    "res": "EP",
+    "unit": "52B/46",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EP-6E-99",
+    "res": "EP",
+    "unit": "6E/99",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EPP-3",
+    "res": "EPP",
+    "unit": "3",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "EPP-4",
+    "res": "EPP",
+    "unit": "4",
+    "type": "",
+    "salt": true
+  },
+  {
+    "id": "EPP-7",
+    "res": "EPP",
+    "unit": "7",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "GP-18",
+    "res": "GP",
+    "unit": "18",
+    "type": "",
+    "salt": false
+  },
+  {
+    "id": "GP-39",
+    "res": "GP",
+    "unit": "39",
+    "type": "",
+    "salt": false
+  }
+]

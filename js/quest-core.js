@@ -3,6 +3,8 @@ const QuestCore = (() => {
   const SLOTS = ['tête', 'torse', 'jambes', 'pieds', 'amulette', 'perche', 'robot', 'balai'];
   const SETS = ['EC', 'AG', 'EP', 'EPP', 'GP'];
   const RARITIES = ['common', 'uncommon', 'rare', 'vrare', 'epic', 'legend'];
+  const BAG_SIZES = [8, 16, 32, 64, 128];
+  const DEFEAT = Object.freeze({ coinShare: .2, minimumCoins: 10, xpShare: .1, itemChance: .2, attempts: 2 });
   const POTIONS = [
     { id: 'small', name: 'Potion de vie', heal: 40, price: 8 },
     { id: 'large', name: 'Grande potion', heal: 100, price: 20 },
@@ -24,10 +26,81 @@ const QuestCore = (() => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
   function normalize(g) {
+    if (!Array.isArray(g.bag)) g.bag = [];
+    if (!g.equip || typeof g.equip !== 'object' || Array.isArray(g.equip)) g.equip = {};
+    g.bagTier = integer(g.bagTier, 0, BAG_SIZES.length - 1);
+    g.depotPass = g.depotPass === true;
     if (!g.potions || typeof g.potions !== 'object' || Array.isArray(g.potions)) g.potions = {};
     POTIONS.forEach(p => { g.potions[p.id] = integer(g.potions[p.id], 0, 9999); });
     if (!g.dailyQuests || typeof g.dailyQuests !== 'object' || Array.isArray(g.dailyQuests)) g.dailyQuests = {};
     return g;
+  }
+  const bagCapacity = g => BAG_SIZES[integer(g.bagTier, 0, BAG_SIZES.length - 1)];
+  // Resolve identity at action time. A stale menu/index or a repeated click can
+  // never remove a different item, overwrite a new outfit, or consume a swap.
+  function equipItem(g, id) {
+    const index = g.bag.findIndex(it => it.id === id);
+    if (!id || index < 0) return false;
+    const item = g.bag[index]; if (item.crate || !SLOTS.includes(item.slot)) return false;
+    const previous = g.equip[item.slot];
+    if (previous?.id === item.id) return false;
+    g.bag.splice(index, 1); g.equip[item.slot] = item;
+    if (previous) g.bag.splice(index, 0, previous);
+    return true;
+  }
+  function unequipItem(g, slot, id) {
+    if (!id || g.equip[slot]?.id !== id || g.bag.length >= bagCapacity(g)) return false;
+    g.bag.push(g.equip[slot]); delete g.equip[slot]; return true;
+  }
+  function sellItem(g, id, price, access) {
+    const index = g.bag.findIndex(it => it.id === id);
+    if (!access || !id || index < 0 || g.bag[index].crate || !(price > 0)) return 0;
+    g.bag.splice(index, 1); g.coins += price; return price;
+  }
+  function buyDepotPass(g) {
+    if (g.depotPass || !(g.coins >= 200)) return false;
+    g.coins -= 200; g.depotPass = true; return true;
+  }
+  function beginBattle(monster) {
+    if (!monster || monster.gone || monster.engaged || integer(monster.attempts) >= DEFEAT.attempts) return false;
+    monster.attempts = integer(monster.attempts) + 1; monster.engaged = true; return true;
+  }
+  function loseBattle(g, monster, roll = Math.random(), pick = Math.random()) {
+    if (!monster?.engaged || monster.gone) return null;
+    monster.engaged = false;
+    const coins = Math.min(integer(g.coins), Math.max(DEFEAT.minimumCoins, Math.ceil(integer(g.coins) * DEFEAT.coinShare)));
+    const xp = Math.min(integer(g.xp), Math.ceil(integer(g.xp) * DEFEAT.xpShare));
+    g.coins -= coins; g.xp -= xp; g.hp = 1;
+    let item = null;
+    if (monster.attempts === 1 && roll < DEFEAT.itemChance) {
+      const eligible = g.bag.filter(it => !it.crate && SLOTS.includes(it.slot));
+      item = eligible[Math.min(eligible.length - 1, Math.max(0, Math.floor(pick * eligible.length)))] || null;
+      if (item) g.bag.splice(g.bag.indexOf(item), 1);
+    }
+    const vanished = monster.attempts >= DEFEAT.attempts;
+    const lostItem = vanished ? monster.loss?.item || null : item;
+    monster.loss = vanished ? null : { coins, xp, item };
+    monster.gone = vanished; monster.hp = monster.maxHp;
+    return { coins, xp, item: lostItem, vanished };
+  }
+  function winBattle(g, monster) {
+    if (!monster?.engaged || monster.gone) return null;
+    const loss = monster.loss || { coins: 0, xp: 0, item: null };
+    monster.engaged = false; monster.gone = true; monster.loss = null;
+    g.coins += integer(loss.coins); g.xp += integer(loss.xp);
+    // Recovered property is allowed to overflow a full bag; the UI shows every
+    // owned item and new collections wait until room is available.
+    // The resolved combat is the idempotency guard. Do not discard property
+    // merely because an older save reused another item's ID.
+    if (loss.item) g.bag.push(loss.item);
+    return loss;
+  }
+  function leaveBattle(monster) {
+    if (!monster?.engaged || monster.gone) return null;
+    monster.engaged = false; monster.hp = monster.maxHp;
+    const vanished = integer(monster.attempts) >= DEFEAT.attempts, item = monster.loss?.item || null;
+    if (vanished) { monster.gone = true; monster.loss = null; }
+    return { vanished, item: vanished ? item : null };
   }
   function freshState() { return normalize({ xp: 0, coins: 0, wins: 0, fights: 0, bag: [], bagTier: 0, equip: {}, calmed: {}, res: {}, avatar: { hair: 1, hairColor: '#4a2e1a', skin: '#e8b88a' }, pending: null, enc: null }); }
   function loadPlayer(storage, name, base = 'lagrange-piscine.quest') {
@@ -111,7 +184,7 @@ const QuestCore = (() => {
       .filter(r => !r.deleted && playerId(r.by) === id && Number.isFinite(Date.parse(r.at)))
       .sort((a, b) => b.at.localeCompare(a.at))[0] || null;
   }
-  return { SLOTS, SETS, RARITIES, POTIONS, NPCS, playerId, counterpart, playerName, dayKey, normalize, freshState, loadPlayer, maxHP, health, buyPotion, usePotion, dailyQuest, acceptQuest, recordKill, claimQuest, sanitizeAvatar, visualEquipment, profile, sanitizeProfile, profileKey, lastActivity };
+  return { SLOTS, SETS, RARITIES, POTIONS, NPCS, BAG_SIZES, DEFEAT, bagCapacity, equipItem, unequipItem, sellItem, buyDepotPass, beginBattle, loseBattle, winBattle, leaveBattle, playerId, counterpart, playerName, dayKey, normalize, freshState, loadPlayer, maxHP, health, buyPotion, usePotion, dailyQuest, acceptQuest, recordKill, claimQuest, sanitizeAvatar, visualEquipment, profile, sanitizeProfile, profileKey, lastActivity };
 })();
 if (typeof window !== 'undefined') window.QuestCore = QuestCore;
 if (typeof module !== 'undefined') module.exports = QuestCore;

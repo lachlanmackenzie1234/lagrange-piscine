@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "clips": 347,
+  "frames": 2028,
+  "counts": {
+    "character": 180,
+    "monster": 50,
+    "species": 10,
+    "pool-creature": 46,
+    "set-aura": 10,
+    "rarity-aura": 12,
+    "action-fx": 7,
+    "event-fx": 11,
+    "service-fx": 5,
+    "water": 4,
+    "loot": 12
+  },
+  "intentionalEmptyFrames": 83,
+  "fourDirectionWalksChecked": 20,
+  "animatedPreviews": 10,
+  "binaryAlpha": true,
+  "atlasFramesMatch": true,
+  "sameInputsSameExports": true,
+  "sourcePoseBoundsCheckedByGenerator": true,
+  "runtime": {
+    "passed": true,
+    "checks": 6107,
+    "auraGating": "pass",
+    "frameTiming": "pass",
+    "reducedMotion": "pass"
+  },
+  "liveAppIntegration": false
+}

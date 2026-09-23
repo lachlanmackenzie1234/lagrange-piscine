@@ -1,0 +1,77 @@
+[
+  {
+    "id": "01-pool-depot-overworld",
+    "title": "Pool and depot overworld",
+    "kind": "environment",
+    "requestedSize": [
+      1536,
+      1152
+    ],
+    "requestedTransparentBackground": false,
+    "references": [
+      "screenshots/screens/pokemon_2.webp",
+      "screenshots/screens/pokemon-3.webp",
+      "art/pixel-lab/v2/styles/01-pocket-coast.png"
+    ]
+  },
+  {
+    "id": "02-depot-interior",
+    "title": "Depot interior",
+    "kind": "environment",
+    "requestedSize": [
+      1536,
+      1152
+    ],
+    "requestedTransparentBackground": false,
+    "references": [
+      "screenshots/screens/pokemon-phoenix-red-complete-v1-0-v0-l8lhhe41ecog1.webp",
+      "screenshots/screens/pokemon_2.webp",
+      "art/pixel-lab/v2/styles/01-pocket-coast.png"
+    ]
+  },
+  {
+    "id": "03-trainer-directions",
+    "title": "Five trainers in four directions",
+    "kind": "sprite-sheet",
+    "requestedSize": [
+      1024,
+      1600
+    ],
+    "requestedTransparentBackground": true,
+    "references": [
+      "screenshots/screens/pokemon_2.webp",
+      "screenshots/screens/pokemon-3.webp",
+      "art/pixel-lab/v2/styles/01-pocket-coast.png"
+    ]
+  },
+  {
+    "id": "04-creatures-monsters",
+    "title": "Five companions and three monsters",
+    "kind": "sprite-sheet",
+    "requestedSize": [
+      1536,
+      768
+    ],
+    "requestedTransparentBackground": true,
+    "references": [
+      "screenshots/screens/pokemon.webp",
+      "screenshots/screens/pokemon-phoenix-red-complete-v1-0-v0-l8lhhe41ecog1.webp",
+      "art/pixel-lab/v2/styles/01-pocket-coast.png"
+    ]
+  },
+  {
+    "id": "05-equipment-icons",
+    "title": "Forty equipment icons",
+    "kind": "sprite-sheet",
+    "requestedSize": [
+      1536,
+      960
+    ],
+    "requestedTransparentBackground": true,
+    "references": [
+      "screenshots/screens/pokemon_2.webp",
+      "screenshots/screens/pokemon-phoenix-red-complete-v1-0-v0-l8lhhe41ecog1.webp",
+      "art/pixel-lab/v2/styles/01-pocket-coast.png"
+    ]
+  }
+]

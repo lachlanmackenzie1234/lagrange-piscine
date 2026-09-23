@@ -22,9 +22,13 @@ SPECS = [
     ('workshop', 'depot', (640, 0, 896, 584), (220, 152)),
     ('potions', 'depot', (0, 584, 768, 440), (80, 84)),
     ('storage', 'depot', (768, 584, 768, 440), (108, 86)),
+    ('scenic-black', 'spares', (0, 0, 1035, 828), (96, 76)),
+    ('chair-east', 'chairs', (0, 0, 561, 720), (32, 40)),
+    ('chair-south', 'chairs', (0, 720, 561, 682), (32, 40)),
 ]
-source_files = {'bureau': 'bureau-props.png', 'depot': 'depot-props.png', 'vehicles': 'vehicles.png', 'office': 'office-layout.png'}
+source_files = {'bureau': 'bureau-props.png', 'depot': 'depot-props.png', 'vehicles': 'vehicles.png', 'office': 'office-layout.png', 'spares': 'spare-cars.png', 'chairs': 'chairs.png', 'plant': 'broadleaf-pot.png'}
 sources = {name: Image.open(DEST / 'source' / file).convert('RGBA') for name, file in source_files.items()}
+SPECS += [('broadleaf-pot', 'plant', (0, 0, *sources['plant'].size), (50, 66))]
 sprites = []
 for name, sheet, (x, y, w, h), (width, height) in SPECS:
     crop = sources[sheet].crop((x, y, x + w, y + h))
@@ -92,5 +96,5 @@ for name, bounds, size in [
     sprite = Image.new('RGBA', size)
     sprite.paste(crop, (round((size[0] - fitted[0]) / 2), size[1] - fitted[1] - 1))
     sprite.save(exports / (name + '.png'), optimize=True)
-    vehicles.append({'id': name, 'file': name + '.png', 'size': list(size), 'inUse': False})
+    vehicles.append({'id': name, 'file': name + '.png', 'size': list(size), 'inUse': name == 'scenic-black'})
 (exports / 'manifest.json').write_text(json.dumps({'vehicles': vehicles}, indent=2) + '\n')

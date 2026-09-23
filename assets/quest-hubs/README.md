@@ -1,5 +1,12 @@
 # Layered hubs and vehicle exports · v0.101
 
+The current v0.104.1 layout is documented in [the hub/game update](../../docs/quest-v104.md).
+The runtime atlas now contains 15 props (512×332, 135,317 bytes), including the
+black Scénic, two chair views and a broad-leaf indoor plant. The Scénic is in use;
+the Polo remains a spare. New prompts are in [chairs-generation.json](chairs-generation.json)
+and [room-generation.json](room-generation.json). The earlier inventory below
+describes the original v0.101 export.
+
 Created with the **built-in ImageGen tool**. The final prompts and reference
 roles are saved in [generation.json](generation.json); the full-resolution
 transparent outputs are preserved in `source/`.

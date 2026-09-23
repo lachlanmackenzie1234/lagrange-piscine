@@ -1,0 +1,61 @@
+{
+  "version": 2,
+  "title": "Four ways to Lacanau",
+  "generator": "Built-in ImageGen",
+  "artifactType": "art-direction concept boards",
+  "newDirections": 4,
+  "nativeSprites": false,
+  "paletteValidated": false,
+  "images": [
+    {
+      "id": "00-field-kit-baseline",
+      "file": "styles/00-field-kit-baseline.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2352580,
+      "sha256": "7e6e674d17ae29bf685ee7437d895de8295093412db0b5496339bee4fec84e49",
+      "role": "existing-baseline",
+      "prompt": "prompts/00-field-kit-baseline.txt"
+    },
+    {
+      "id": "01-pocket-coast",
+      "file": "styles/01-pocket-coast.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1638048,
+      "sha256": "21397f12fb8441eae4161142f08704d4e7f24654d5e8828a96d4cc554d7594d1",
+      "role": "new-style-concept",
+      "prompt": "prompts/01-pocket-coast.txt"
+    },
+    {
+      "id": "02-sunlit-adventure",
+      "file": "styles/02-sunlit-adventure.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2281838,
+      "sha256": "51c07e1ee4c9d6ade77596315e4e0bfe31518ab99ff5279c3c74456ab584d915",
+      "role": "new-style-concept",
+      "prompt": "prompts/02-sunlit-adventure.txt"
+    },
+    {
+      "id": "03-coastal-storybook",
+      "file": "styles/03-coastal-storybook.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2958455,
+      "sha256": "54d46689625733974b05c9cce3ca66fc2234be237ed8a217a6d9857404421a72",
+      "role": "new-style-concept",
+      "prompt": "prompts/03-coastal-storybook.txt"
+    },
+    {
+      "id": "04-tideglass-tactics",
+      "file": "styles/04-tideglass-tactics.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2255876,
+      "sha256": "4308e529b984f3d3a2622ac7c834cc0da953a17020a572d253c40a88bf3b406f",
+      "role": "new-style-concept",
+      "prompt": "prompts/04-tideglass-tactics.txt"
+    }
+  ]
+}

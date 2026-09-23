@@ -1,0 +1,19 @@
+Use case: stylized-concept. Asset type: raw PNG art export for the original Pocket Coast / Lagrange Quest game.
+Style target: the compact overhead raster pixel-art language of the supplied handheld RPG screenshots. Restrained, clearly tiled, small chibi sprites, simple dark-slate contours, two or three broad tones per material, clean square pixel steps, sparse intentional highlights. Sea blue, faded mint grass, pale yellow sand, slate shadows, soft cream highlights, muted blue-grey roofs. Keep the blue / green / amber / purple / teal identities of the five original pool-worker outfits.
+Composition should look like actual game assets, NOT an illustrated promotional board. NO headings, text, letters, digits, logos, watermark, captions, labels, legend, interface, panels, decorative border, vignette or drop-shadow frame. Do not reproduce any proprietary character, creature, emblem or map layout from the reference games.
+The Pocket Coast reference is ONLY for our original subject identities and practical pool equipment; do NOT copy its board layout, horizon, presentation frame, oversized figures or saturated rendering.
+No smooth vector illustration, painting, modern 3D, isometric diamonds, oblique landscape illustration, depth of field, bloom, gradients, tiny texture noise or anti-aliasing. The result should feel authored with purposeful small raster clusters and enlarged with nearest-neighbour square pixels.
+Primary request: RAW TRANSPARENT PNG sprite sheet, 1536x768 landscape, exactly EIGHT isolated creature sprites in FOUR equal columns and TWO equal rows. Genuine alpha transparency, not a painted checkerboard or background. Same sprite scale and centred feet baseline in each cell; generous clear padding; no text, labels, cell borders, scenery or shadows.
+Input roles: image 1 is the principal small overworld creature-sprite scale reference; image 2 is only a reference for carefully grouped classic creature sprite pixels and readable expressive eyes, not a character to copy. Image 3 supplies the original Pocket Coast creatures and practical world identity.
+Give every creature an original silhouette, simple readable face, a few coherent colour clusters and compact gently angled front view. This is a tiny handheld-world sprite sheet, not large detailed battle portraits. Friendly creatures fit about 24x24 logical pixels; monsters about 28x24. Visible coarse pixel steps; 3-5 tones per sprite plus slate outline.
+EXACT order, top row from left:
+1. EC Écume: small BLUE OTTER, round cream belly, whisker cheeks, one curled wave-like tail and a small shell pendant. It is a mammal, no turtle shell, no franchise creature.
+2. AG Oyatin: green dune gecko, cream belly, curved leaf-shaped tail and one little marram-grass tuft.
+3. EP Pignotte: amber pinecone sprite, squat scale-like body, two tiny feet, simple smiling eyes and three green pine needles on top.
+4. EPP Bouémitte: lavender hermit crab with a simple violet spiral shell and a purple-and-cream inflatable swim ring.
+Bottom row from left:
+5. GP Clapot: teal reed frog with broad webbed feet, pale belly and one reed-like crest.
+6. Algue verte: squat dark-green crab monster with two broad claws, an algae-leaf crown and grumpy eyes.
+7. Calcaire: short stubborn snail with a pale chalk angular shell, two dark eye stalks and a sandy foot.
+8. Filtre saturé: squat blue-grey filter tank monster, one circular cream pressure-gauge face with a tiny red needle, stubby pipe arms and two pipe feet.
+All eight must be separated and complete. No extra creatures. Simple restrained mint, slate, cream, blue, amber, lavender and teal handheld colours. Only the eight alpha-cutout sprites.

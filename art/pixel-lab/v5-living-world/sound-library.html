@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sound library · Lagrange Quest</title><link rel="icon" href="../../../icons/icon.svg">
+  <link rel="stylesheet" href="asset-library.css"><link rel="stylesheet" href="sound-library.css">
+  <script type="module" src="audio/library.mjs"></script>
+</head>
+<body>
+  <header><a class="brand" href="./">LQ <span>LAGRANGE QUEST / SOUND STUDY</span></a><a href="./">Back to the garden ↗</a></header>
+  <main>
+    <div class="intro"><p class="eyebrow">A SMALL SOUND LIBRARY · 01</p><h1>A little music.<br>A world around it.</h1><p>Warm farm-game calm, with a hint of handheld adventure. Three original theme sketches, a changing atmosphere, and small sounds that make the garden respond.</p><a class="download" href="audio/exports/sound-library-v1.zip" download>Download the sound kit <span>↓</span></a></div>
+    <div class="listening-bar"><div><span class="eyebrow">NOW LISTENING</span><p id="listening-status" role="status">Choose a theme, atmosphere, or sound.</p></div><button id="stop-audio" type="button" disabled>Stop all sound ■</button><div class="library-mix"><label>Music<input id="library-music" type="range" min="0" max="100" value="55"></label><label>Ambience<input id="library-ambience" type="range" min="0" max="100" value="60"></label><label>Effects<input id="library-effects" type="range" min="0" max="100" value="70"></label></div></div>
+    <section aria-labelledby="music-title"><div class="section-heading"><div><p class="eyebrow">01 / THE MELODIES</p><h2 id="music-title">A tune for the round.</h2></div><p>Short, original loops.<br>Leave room for the world underneath.</p></div><div id="music-cards" class="music-cards"></div></section>
+    <section aria-labelledby="ambience-title"><div class="section-heading"><div><p class="eyebrow">02 / THE AIR AROUND YOU</p><h2 id="ambience-title">Weather you can hear.</h2></div><p>Soft synthesized nature sounds.<br>In the simulator, they follow the weather controls.</p></div><div id="ambience-cards" class="ambience-cards"></div></section>
+    <section aria-labelledby="effects-title"><div class="section-heading"><div><p class="eyebrow">03 / THE LITTLE MOMENTS</p><h2 id="effects-title">Something stirs.</h2></div><p>Small cues for movement, care, and encounters.<br>Preview individually or over a theme.</p></div><div id="effect-groups"></div></section>
+    <section class="source-note"><h2>A first sound palette.</h2><p>These are original compositions and synthesized effects made for this study. They are sketches to audition and refine alongside the art. The runtime creates them locally; the downloadable kit includes three MP3 music previews, sixteen WAV effects, and the editable scores.</p><div><a href="audio/README.md">Sound notes & reference direction ↗</a><a href="./">Try the sounds in the garden ↗</a><a href="asset-library.html">Browse the art sets ↗</a></div></section>
+  </main><footer>3 THEMES · 4 ATMOSPHERES · 16 EFFECTS <a href="./">Return to the living world ↗</a></footer>
+</body>
+</html>

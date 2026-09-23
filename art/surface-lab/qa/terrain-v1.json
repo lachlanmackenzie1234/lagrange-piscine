@@ -1,0 +1,74 @@
+{
+  "blend": {
+    "cells": 1673
+  },
+  "budget": {
+    "bytes": 946176,
+    "drawMs": 3.86,
+    "frames": 352
+  },
+  "clearTracks": true,
+  "controls": {
+    "edge": 48,
+    "grain": 2,
+    "length": 10,
+    "wind": 1
+  },
+  "footprintsExpire": true,
+  "grass": {
+    "bent": 13,
+    "cells": 3072,
+    "tracks": 0
+  },
+  "grassRecovers": true,
+  "keyboard": true,
+  "noGameStores": true,
+  "sand": {
+    "grass": 0,
+    "tracks": 10
+  },
+  "storageUnchanged": true,
+  "windDirectionChanged": true,
+  "patchAndSandStudy": {
+    "footprints": {
+      "calmGone": true,
+      "defaultLife": 3.95,
+      "directionPreserves": true,
+      "goneBySeconds": 4.1,
+      "strongWindGone": true
+    },
+    "grain": {
+      "coarse": [
+        256,
+        192
+      ],
+      "fine": [
+        1024,
+        768
+      ]
+    },
+    "grassRecovery": true,
+    "growth": {
+      "max": 40,
+      "mean": 19.97971602434077,
+      "min": 10,
+      "neighbourDifference": 1.0373831775700937,
+      "tallShare": 0.1352265043948614
+    },
+    "noGameStores": true,
+    "shimmer": {
+      "changedPixels": 100887,
+      "grassChangedPixels": 0,
+      "reducedMotionStatic": true
+    },
+    "stablePatches": true,
+    "storageUnchanged": true
+  },
+  "mobile": {
+    "viewport": 320,
+    "dpr": 3,
+    "horizontalOverflow": false,
+    "testedByEmulation": true
+  },
+  "uncaughtBrowserErrors": 0
+}

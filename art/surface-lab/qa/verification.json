@@ -1,0 +1,78 @@
+{
+  "cache": {
+    "bytes": 3782560,
+    "frames": 768
+  },
+  "grassTrail": {
+    "flattenAfterThreeSeconds": 0.43297733150305184,
+    "settledByTenSeconds": true,
+    "touched": 11
+  },
+  "growth": {
+    "max": 40,
+    "mean": 19.99765395894428,
+    "min": 10
+  },
+  "growthTransition": true,
+  "lookControls": true,
+  "noGameStores": true,
+  "playPauseScrub": true,
+  "sandStages": {
+    "impact": true,
+    "rimAndScatter": true,
+    "settled": true,
+    "softTailAfterPrint": true
+  },
+  "sequence": [
+    {
+      "at": 0,
+      "bent": 0,
+      "growth": 0.5,
+      "phase": "Growing",
+      "prints": 0,
+      "trails": 0
+    },
+    {
+      "at": 1,
+      "bent": 0,
+      "growth": 0.75,
+      "phase": "Growing",
+      "prints": 0,
+      "trails": 0
+    },
+    {
+      "at": 2.6,
+      "bent": 0,
+      "growth": 1,
+      "phase": "Trailing bend",
+      "prints": 4,
+      "trails": 4
+    },
+    {
+      "at": 4.2,
+      "bent": 25,
+      "growth": 1,
+      "phase": "Displacement",
+      "prints": 14,
+      "trails": 14
+    },
+    {
+      "at": 7,
+      "bent": 33,
+      "growth": 1,
+      "phase": "Settling",
+      "prints": 19,
+      "trails": 19
+    },
+    {
+      "at": 13,
+      "bent": 0,
+      "growth": 1,
+      "phase": "At rest",
+      "prints": 0,
+      "trails": 0
+    }
+  ],
+  "shadingPixels": 15595,
+  "storageUnchanged": true
+}

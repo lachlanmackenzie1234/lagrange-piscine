@@ -21,8 +21,15 @@ const KeeperArt = (() => {
       const i = (y * 64 + x) * 4; if (!image.data[i + 3]) continue;
       const [h, s, v] = hsv(image.data[i], image.data[i + 1], image.data[i + 2]); let target = null, factor = 1;
       const skin = y < 58 && h > .035 && h < .13 && s > .28 && s < .8 && v > .56;
-      const hairRegion = back ? y < 48 : y < 28 || y < 46 && (side ? direction === 'east' ? x < 30 : x > 34 : x < 19 || x > 46);
-      const hair = hairRegion && h > .015 && h < .16 && s > .25 && v > .12 && v < .62 && !skin;
+      const hairBottom = base.hairStyle === 'long' ? 54 : 48;
+      const hairRegion = base.hairStyle !== 'bald' && (back ? y < hairBottom : y < 28 || y < hairBottom && (side ? direction === 'east' ? x < 30 : x > 34 : x < 19 || x > 46));
+      const reference = base.baldReference;
+      const difference = reference ? Math.abs(image.data[i] - reference[i]) + Math.abs(image.data[i + 1] - reference[i + 1]) + Math.abs(image.data[i + 2] - reference[i + 2]) : 0;
+      // The registered bald reference also identifies bright highlights above
+      // the face, without recolouring warm skin pixels on the ears or hands.
+      const highlightArea = y < 25 || back && y < 46 && x >= 20 && x <= 45;
+      const highlight = reference && highlightArea && h > .015 && h < .16 && s > .22 && v > .12 && v < .94 && (!reference[i + 3] || difference > 45);
+      const hair = highlight || hairRegion && h > .015 && h < .16 && s > .25 && v > .12 && v < .62 && !skin;
       if (skin) { target = avatar.skin; factor = .7 + .35 * v; }
       if (hair) { target = avatar.hairColor; factor = .5 + v; }
       if (equip.torse && y >= 47 && y <= 55 && !skin && v > .27 && s < .4) { target = pal('torse')[0]; factor = .55 + .5 * v; }
@@ -45,8 +52,7 @@ const KeeperArt = (() => {
     };
     const cursed = (slot, x, y) => { if (equip[slot]?.cursed) { f('#713b92', x, y, 3, 2); f('#f2b0e9', x + 1, y - 1); } };
     ctx.save(); if (direction === 'west') { ctx.translate(64, 0); ctx.scale(-1, 1); }
-    if (avatar.hair === 2 && !equip['tête']) { f(shade(hair, .65), 29, 3, 3, 5); f(hair, 30, 4, 2, 4); f(shade(hair, 1.2), 37, 5, 2, 3); }
-    if (avatar.hair === 3 && !equip['tête']) { f(shade(hair, .65), side ? 17 : 16, 36, 4, 12); f(hair, side ? 18 : 17, 36, 2, 10); if (!side) { f(shade(hair, .65), 45, 36, 3, 12); f(hair, 45, 36, 2, 10); } }
+    if (!base.hairStyle && avatar.hair === 3 && !equip['tête']) { f(shade(hair, .65), side ? 17 : 16, 36, 4, 12); if (!side) f(shade(hair, .65), 45, 36, 3, 12); }
     if (hat === 'EC') { crown('#376ba9', [[28,9,1],[23,19,2],[20,25,3],[18,29,4],[17,31,9]]); f('#254e85', 32, 8, 1, 13); box('#376ba9', side ? 40 : 12, 23, side ? 17 : 27, 4); f('#82b1d3', side ? 42 : 14, 24, side ? 12 : 21); if (!back) f(trim('tête'), 27, 16, 5, 3); }
     if (hat === 'AG') { crown('#438462', [[25,15,1],[22,21,3],[20,25,5],[19,27,10]]); f('#294f40', 20, 21, 25, 3); box('#438462', 11, 24, 44, 4); f('#75ab7b', 15, 25, 34); f(trim('tête'), 26, 21, 4, 2); }
     if (hat === 'EP') { crown('#c6a263', [[26,13,1],[23,19,3],[22,21,5],[20,25,11]]); f('#856038', 21, 22, 23, 3); box('#d8b77b', 9, 25, 48, 4); f('#f4d89a', 12, 26, 42); for (const y of [10,14,18]) f('#e2be7f', 25, y, 14); f(trim('tête'), 30, 22, 4, 2); }

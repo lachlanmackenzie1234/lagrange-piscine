@@ -1,0 +1,51 @@
+{
+  "cache": {
+    "bytes": 3307120,
+    "frames": 768
+  },
+  "controls": {
+    "drying": true,
+    "maps": 3,
+    "modes": true,
+    "rainPuddles": 6
+  },
+  "gravelContact": true,
+  "maps": {
+    "coast": {
+      "earth": 9.3,
+      "grass": 30.5,
+      "gravel": 7.2,
+      "sand": 38.7,
+      "water": 14.2
+    },
+    "garden": {
+      "earth": 11.9,
+      "grass": 63.8,
+      "gravel": 7.5,
+      "sand": 9.6,
+      "water": 7.2
+    },
+    "stream": {
+      "earth": 30.7,
+      "grass": 33.3,
+      "gravel": 21.8,
+      "sand": 3.7,
+      "water": 10.5
+    }
+  },
+  "noGameStores": true,
+  "resetAndScrub": true,
+  "storageUnchanged": true,
+  "water": {
+    "animatedPixels": 176114,
+    "reducedMotionStatic": true,
+    "wadingRipples": true
+  },
+  "weather": {
+    "dryEarth": 0.07968444448833047,
+    "dustReturns": true,
+    "puddlesAfterDrying": 0,
+    "puddlesAt25Seconds": 30,
+    "wetEarth": 0.9478492380131568
+  }
+}

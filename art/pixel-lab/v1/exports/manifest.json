@@ -1,0 +1,3238 @@
+{
+  "version": 1,
+  "direction": "Lacanau field kit",
+  "status": "visual-trials",
+  "generatedFrom": "../assets.mjs",
+  "palette": "palette.json",
+  "sampling": "nearest-neighbour",
+  "alpha": "binary, straight RGBA",
+  "coordinates": "top-left origin; anchors are native pixel coordinates",
+  "sets": [
+    {
+      "id": "EC",
+      "name": "Pool Boy",
+      "subtitle": "Eden Club",
+      "motif": "Backward cap · square net · rubber clogs",
+      "pal": [
+        "#7ec8ff",
+        "#2f4fdf",
+        "#1a1c5a"
+      ],
+      "creature": "Écume",
+      "creatureNote": "A wave-crested pool otter.",
+      "items": [
+        "Casquette",
+        "Polo",
+        "Short cargo",
+        "Crocs",
+        "Sifflet",
+        "Perche télescopique",
+        "Robot Dolphin",
+        "Balai de fond"
+      ]
+    },
+    {
+      "id": "AG",
+      "name": "Surfeur des dunes",
+      "subtitle": "Atlantic Green",
+      "motif": "Floppy brim · bamboo joints · wave stripe",
+      "pal": [
+        "#b5f27a",
+        "#2aa845",
+        "#124d2a"
+      ],
+      "creature": "Oyatin",
+      "creatureNote": "A dune gecko with a marram-grass tail.",
+      "items": [
+        "Bob",
+        "Combinaison 3/2",
+        "Boardshort",
+        "Chaussons néoprène",
+        "Dent de requin",
+        "Perche en bambou",
+        "Robot Longboard",
+        "Balai wax"
+      ]
+    },
+    {
+      "id": "EP",
+      "name": "Jardinier du golf",
+      "subtitle": "Eden Parc",
+      "motif": "Wide straw brim · patch pockets · rake teeth",
+      "pal": [
+        "#f2c14e",
+        "#e39b12",
+        "#8a4a1e"
+      ],
+      "creature": "Pignotte",
+      "creatureNote": "A pinecone sprite with a needle tuft.",
+      "items": [
+        "Chapeau de paille",
+        "Gilet à poches",
+        "Pantalon kaki",
+        "Bottes de jardin",
+        "Trèfle à quatre feuilles",
+        "Râteau-perche",
+        "Robot tondeuse égaré",
+        "Balai brosse"
+      ]
+    },
+    {
+      "id": "EPP",
+      "name": "Locataire",
+      "subtitle": "Eden Parc Pitch",
+      "motif": "Huge sunglasses · swimwear · inflatable ring",
+      "pal": [
+        "#c9b6e8",
+        "#7b3fc4",
+        "#3a1a5a"
+      ],
+      "creature": "Bouémitte",
+      "creatureNote": "A tiny hermit who found a swim ring.",
+      "items": [
+        "Lunettes de soleil",
+        "Marcel",
+        "Slip de bain",
+        "Tongs",
+        "Bracelet all-inclusive",
+        "Épuisette à crevettes",
+        "Robot gonflable",
+        "Balai du placard"
+      ]
+    },
+    {
+      "id": "GP",
+      "name": "Gardien du Green",
+      "subtitle": "Green Parc",
+      "motif": "Visor · windbreaker stripe · key-shaped hook",
+      "pal": [
+        "#8ee6d2",
+        "#1f9e8a",
+        "#0f4a42"
+      ],
+      "creature": "Clapot",
+      "creatureNote": "A watchful reed frog with a key-like crest.",
+      "items": [
+        "Visière",
+        "Coupe-vent",
+        "Jogging",
+        "Baskets",
+        "Clé du local",
+        "Perche du gardien",
+        "Robot de garde",
+        "Balai de ronde"
+      ]
+    }
+  ],
+  "rarities": [
+    {
+      "id": "common",
+      "name": "Commun",
+      "color": "#6b7a87",
+      "rank": 1
+    },
+    {
+      "id": "uncommon",
+      "name": "Peu commun",
+      "color": "#2aa845",
+      "rank": 2
+    },
+    {
+      "id": "rare",
+      "name": "Rare",
+      "color": "#2f4fdf",
+      "rank": 3
+    },
+    {
+      "id": "vrare",
+      "name": "Très rare",
+      "color": "#7b3fc4",
+      "rank": 4
+    },
+    {
+      "id": "epic",
+      "name": "Épique",
+      "color": "#e39b12",
+      "rank": 5
+    },
+    {
+      "id": "legend",
+      "name": "Légendaire",
+      "color": "#d82f2f",
+      "rank": 6
+    }
+  ],
+  "slots": [
+    {
+      "id": "head",
+      "gameSlot": "tête"
+    },
+    {
+      "id": "body",
+      "gameSlot": "torse"
+    },
+    {
+      "id": "legs",
+      "gameSlot": "jambes"
+    },
+    {
+      "id": "feet",
+      "gameSlot": "pieds"
+    },
+    {
+      "id": "charm",
+      "gameSlot": "amulette"
+    },
+    {
+      "id": "pole",
+      "gameSlot": "perche"
+    },
+    {
+      "id": "robot",
+      "gameSlot": "robot"
+    },
+    {
+      "id": "broom",
+      "gameSlot": "balai"
+    }
+  ],
+  "monsters": [
+    {
+      "id": "algue",
+      "name": "Algue verte",
+      "note": "Algae crown, crab claws, low centre of gravity.",
+      "pal": [
+        "#b5f27a",
+        "#2aa845",
+        "#124d2a"
+      ]
+    },
+    {
+      "id": "calcaire",
+      "name": "Calcaire",
+      "note": "An angular chalk shell on a stubborn little snail.",
+      "pal": [
+        "#f4efe0",
+        "#c9c0a8",
+        "#7a7a90"
+      ]
+    },
+    {
+      "id": "filtre",
+      "name": "Filtre saturé",
+      "note": "A pressure-gauge eye and two heavy pipe feet.",
+      "pal": [
+        "#b8c4d6",
+        "#5a6b8a",
+        "#26304a"
+      ]
+    }
+  ],
+  "atlases": {
+    "trainers": {
+      "cell": [
+        24,
+        32
+      ],
+      "columns": [
+        "EC",
+        "AG",
+        "EP",
+        "EPP",
+        "GP"
+      ],
+      "rows": [
+        "idle",
+        "step-left",
+        "step-right"
+      ]
+    },
+    "creatures": {
+      "cell": [
+        24,
+        24
+      ],
+      "columns": [
+        "EC",
+        "AG",
+        "EP",
+        "EPP",
+        "GP"
+      ]
+    },
+    "monsters": {
+      "cell": [
+        28,
+        24
+      ],
+      "columns": [
+        "algue",
+        "calcaire",
+        "filtre"
+      ]
+    },
+    "equipment": {
+      "cell": [
+        16,
+        16
+      ],
+      "columns": [
+        "head",
+        "body",
+        "legs",
+        "feet",
+        "charm",
+        "pole",
+        "robot",
+        "broom"
+      ],
+      "rows": [
+        "EC",
+        "AG",
+        "EP",
+        "EPP",
+        "GP"
+      ],
+      "rarity": "common"
+    },
+    "tiles": {
+      "cell": [
+        16,
+        16
+      ],
+      "columns": [
+        "sand",
+        "paving",
+        "grass",
+        "water",
+        "hedge",
+        "deck",
+        "roof"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "id": "trainer-ec-0",
+      "category": "trainer",
+      "set": "EC",
+      "frame": 0,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ec-0.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-ec-1",
+      "category": "trainer",
+      "set": "EC",
+      "frame": 1,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ec-1.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-ec-2",
+      "category": "trainer",
+      "set": "EC",
+      "frame": 2,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ec-2.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "creature-ec",
+      "category": "creature",
+      "set": "EC",
+      "name": "Écume",
+      "anchor": [
+        12,
+        23
+      ],
+      "file": "creature/creature-ec.png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "item-ec-head-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "head",
+      "rarity": "common",
+      "file": "item/item-ec-head-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-head-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "head",
+      "rarity": "uncommon",
+      "file": "item/item-ec-head-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-head-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "head",
+      "rarity": "rare",
+      "file": "item/item-ec-head-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-head-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "head",
+      "rarity": "vrare",
+      "file": "item/item-ec-head-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-head-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "head",
+      "rarity": "epic",
+      "file": "item/item-ec-head-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-head-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "head",
+      "rarity": "legend",
+      "file": "item/item-ec-head-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-body-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "body",
+      "rarity": "common",
+      "file": "item/item-ec-body-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-body-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "body",
+      "rarity": "uncommon",
+      "file": "item/item-ec-body-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-body-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "body",
+      "rarity": "rare",
+      "file": "item/item-ec-body-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-body-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "body",
+      "rarity": "vrare",
+      "file": "item/item-ec-body-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-body-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "body",
+      "rarity": "epic",
+      "file": "item/item-ec-body-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-body-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "body",
+      "rarity": "legend",
+      "file": "item/item-ec-body-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-legs-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "legs",
+      "rarity": "common",
+      "file": "item/item-ec-legs-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-legs-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "legs",
+      "rarity": "uncommon",
+      "file": "item/item-ec-legs-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-legs-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "legs",
+      "rarity": "rare",
+      "file": "item/item-ec-legs-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-legs-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "legs",
+      "rarity": "vrare",
+      "file": "item/item-ec-legs-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-legs-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "legs",
+      "rarity": "epic",
+      "file": "item/item-ec-legs-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-legs-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "legs",
+      "rarity": "legend",
+      "file": "item/item-ec-legs-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-feet-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "feet",
+      "rarity": "common",
+      "file": "item/item-ec-feet-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-feet-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "feet",
+      "rarity": "uncommon",
+      "file": "item/item-ec-feet-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-feet-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "feet",
+      "rarity": "rare",
+      "file": "item/item-ec-feet-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-feet-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "feet",
+      "rarity": "vrare",
+      "file": "item/item-ec-feet-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-feet-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "feet",
+      "rarity": "epic",
+      "file": "item/item-ec-feet-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-feet-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "feet",
+      "rarity": "legend",
+      "file": "item/item-ec-feet-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-charm-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "charm",
+      "rarity": "common",
+      "file": "item/item-ec-charm-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-charm-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "charm",
+      "rarity": "uncommon",
+      "file": "item/item-ec-charm-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-charm-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "charm",
+      "rarity": "rare",
+      "file": "item/item-ec-charm-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-charm-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "charm",
+      "rarity": "vrare",
+      "file": "item/item-ec-charm-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-charm-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "charm",
+      "rarity": "epic",
+      "file": "item/item-ec-charm-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-charm-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "charm",
+      "rarity": "legend",
+      "file": "item/item-ec-charm-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-pole-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "pole",
+      "rarity": "common",
+      "file": "item/item-ec-pole-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-pole-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "pole",
+      "rarity": "uncommon",
+      "file": "item/item-ec-pole-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-pole-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "pole",
+      "rarity": "rare",
+      "file": "item/item-ec-pole-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-pole-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "pole",
+      "rarity": "vrare",
+      "file": "item/item-ec-pole-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-pole-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "pole",
+      "rarity": "epic",
+      "file": "item/item-ec-pole-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-pole-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "pole",
+      "rarity": "legend",
+      "file": "item/item-ec-pole-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-robot-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "robot",
+      "rarity": "common",
+      "file": "item/item-ec-robot-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-robot-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "robot",
+      "rarity": "uncommon",
+      "file": "item/item-ec-robot-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-robot-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "robot",
+      "rarity": "rare",
+      "file": "item/item-ec-robot-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-robot-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "robot",
+      "rarity": "vrare",
+      "file": "item/item-ec-robot-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-robot-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "robot",
+      "rarity": "epic",
+      "file": "item/item-ec-robot-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-robot-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "robot",
+      "rarity": "legend",
+      "file": "item/item-ec-robot-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-broom-common",
+      "category": "item",
+      "set": "EC",
+      "slot": "broom",
+      "rarity": "common",
+      "file": "item/item-ec-broom-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-broom-uncommon",
+      "category": "item",
+      "set": "EC",
+      "slot": "broom",
+      "rarity": "uncommon",
+      "file": "item/item-ec-broom-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-broom-rare",
+      "category": "item",
+      "set": "EC",
+      "slot": "broom",
+      "rarity": "rare",
+      "file": "item/item-ec-broom-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-broom-vrare",
+      "category": "item",
+      "set": "EC",
+      "slot": "broom",
+      "rarity": "vrare",
+      "file": "item/item-ec-broom-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-broom-epic",
+      "category": "item",
+      "set": "EC",
+      "slot": "broom",
+      "rarity": "epic",
+      "file": "item/item-ec-broom-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ec-broom-legend",
+      "category": "item",
+      "set": "EC",
+      "slot": "broom",
+      "rarity": "legend",
+      "file": "item/item-ec-broom-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "stage-ec-courtyard",
+      "category": "stage",
+      "set": "EC",
+      "mode": "courtyard",
+      "file": "stage/stage-ec-courtyard.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-ec-encounter",
+      "category": "stage",
+      "set": "EC",
+      "mode": "encounter",
+      "file": "stage/stage-ec-encounter.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-ec-tactical",
+      "category": "stage",
+      "set": "EC",
+      "mode": "tactical",
+      "file": "stage/stage-ec-tactical.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "trainer-ag-0",
+      "category": "trainer",
+      "set": "AG",
+      "frame": 0,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ag-0.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-ag-1",
+      "category": "trainer",
+      "set": "AG",
+      "frame": 1,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ag-1.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-ag-2",
+      "category": "trainer",
+      "set": "AG",
+      "frame": 2,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ag-2.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "creature-ag",
+      "category": "creature",
+      "set": "AG",
+      "name": "Oyatin",
+      "anchor": [
+        12,
+        23
+      ],
+      "file": "creature/creature-ag.png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "item-ag-head-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "head",
+      "rarity": "common",
+      "file": "item/item-ag-head-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-head-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "head",
+      "rarity": "uncommon",
+      "file": "item/item-ag-head-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-head-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "head",
+      "rarity": "rare",
+      "file": "item/item-ag-head-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-head-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "head",
+      "rarity": "vrare",
+      "file": "item/item-ag-head-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-head-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "head",
+      "rarity": "epic",
+      "file": "item/item-ag-head-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-head-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "head",
+      "rarity": "legend",
+      "file": "item/item-ag-head-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-body-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "body",
+      "rarity": "common",
+      "file": "item/item-ag-body-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-body-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "body",
+      "rarity": "uncommon",
+      "file": "item/item-ag-body-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-body-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "body",
+      "rarity": "rare",
+      "file": "item/item-ag-body-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-body-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "body",
+      "rarity": "vrare",
+      "file": "item/item-ag-body-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-body-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "body",
+      "rarity": "epic",
+      "file": "item/item-ag-body-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-body-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "body",
+      "rarity": "legend",
+      "file": "item/item-ag-body-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-legs-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "legs",
+      "rarity": "common",
+      "file": "item/item-ag-legs-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-legs-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "legs",
+      "rarity": "uncommon",
+      "file": "item/item-ag-legs-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-legs-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "legs",
+      "rarity": "rare",
+      "file": "item/item-ag-legs-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-legs-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "legs",
+      "rarity": "vrare",
+      "file": "item/item-ag-legs-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-legs-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "legs",
+      "rarity": "epic",
+      "file": "item/item-ag-legs-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-legs-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "legs",
+      "rarity": "legend",
+      "file": "item/item-ag-legs-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-feet-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "feet",
+      "rarity": "common",
+      "file": "item/item-ag-feet-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-feet-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "feet",
+      "rarity": "uncommon",
+      "file": "item/item-ag-feet-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-feet-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "feet",
+      "rarity": "rare",
+      "file": "item/item-ag-feet-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-feet-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "feet",
+      "rarity": "vrare",
+      "file": "item/item-ag-feet-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-feet-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "feet",
+      "rarity": "epic",
+      "file": "item/item-ag-feet-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-feet-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "feet",
+      "rarity": "legend",
+      "file": "item/item-ag-feet-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-charm-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "charm",
+      "rarity": "common",
+      "file": "item/item-ag-charm-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-charm-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "charm",
+      "rarity": "uncommon",
+      "file": "item/item-ag-charm-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-charm-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "charm",
+      "rarity": "rare",
+      "file": "item/item-ag-charm-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-charm-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "charm",
+      "rarity": "vrare",
+      "file": "item/item-ag-charm-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-charm-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "charm",
+      "rarity": "epic",
+      "file": "item/item-ag-charm-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-charm-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "charm",
+      "rarity": "legend",
+      "file": "item/item-ag-charm-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-pole-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "pole",
+      "rarity": "common",
+      "file": "item/item-ag-pole-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-pole-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "pole",
+      "rarity": "uncommon",
+      "file": "item/item-ag-pole-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-pole-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "pole",
+      "rarity": "rare",
+      "file": "item/item-ag-pole-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-pole-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "pole",
+      "rarity": "vrare",
+      "file": "item/item-ag-pole-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-pole-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "pole",
+      "rarity": "epic",
+      "file": "item/item-ag-pole-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-pole-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "pole",
+      "rarity": "legend",
+      "file": "item/item-ag-pole-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-robot-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "robot",
+      "rarity": "common",
+      "file": "item/item-ag-robot-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-robot-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "robot",
+      "rarity": "uncommon",
+      "file": "item/item-ag-robot-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-robot-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "robot",
+      "rarity": "rare",
+      "file": "item/item-ag-robot-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-robot-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "robot",
+      "rarity": "vrare",
+      "file": "item/item-ag-robot-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-robot-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "robot",
+      "rarity": "epic",
+      "file": "item/item-ag-robot-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-robot-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "robot",
+      "rarity": "legend",
+      "file": "item/item-ag-robot-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-broom-common",
+      "category": "item",
+      "set": "AG",
+      "slot": "broom",
+      "rarity": "common",
+      "file": "item/item-ag-broom-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-broom-uncommon",
+      "category": "item",
+      "set": "AG",
+      "slot": "broom",
+      "rarity": "uncommon",
+      "file": "item/item-ag-broom-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-broom-rare",
+      "category": "item",
+      "set": "AG",
+      "slot": "broom",
+      "rarity": "rare",
+      "file": "item/item-ag-broom-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-broom-vrare",
+      "category": "item",
+      "set": "AG",
+      "slot": "broom",
+      "rarity": "vrare",
+      "file": "item/item-ag-broom-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-broom-epic",
+      "category": "item",
+      "set": "AG",
+      "slot": "broom",
+      "rarity": "epic",
+      "file": "item/item-ag-broom-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ag-broom-legend",
+      "category": "item",
+      "set": "AG",
+      "slot": "broom",
+      "rarity": "legend",
+      "file": "item/item-ag-broom-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "stage-ag-courtyard",
+      "category": "stage",
+      "set": "AG",
+      "mode": "courtyard",
+      "file": "stage/stage-ag-courtyard.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-ag-encounter",
+      "category": "stage",
+      "set": "AG",
+      "mode": "encounter",
+      "file": "stage/stage-ag-encounter.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-ag-tactical",
+      "category": "stage",
+      "set": "AG",
+      "mode": "tactical",
+      "file": "stage/stage-ag-tactical.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "trainer-ep-0",
+      "category": "trainer",
+      "set": "EP",
+      "frame": 0,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ep-0.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-ep-1",
+      "category": "trainer",
+      "set": "EP",
+      "frame": 1,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ep-1.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-ep-2",
+      "category": "trainer",
+      "set": "EP",
+      "frame": 2,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-ep-2.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "creature-ep",
+      "category": "creature",
+      "set": "EP",
+      "name": "Pignotte",
+      "anchor": [
+        12,
+        23
+      ],
+      "file": "creature/creature-ep.png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "item-ep-head-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "head",
+      "rarity": "common",
+      "file": "item/item-ep-head-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-head-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "head",
+      "rarity": "uncommon",
+      "file": "item/item-ep-head-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-head-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "head",
+      "rarity": "rare",
+      "file": "item/item-ep-head-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-head-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "head",
+      "rarity": "vrare",
+      "file": "item/item-ep-head-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-head-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "head",
+      "rarity": "epic",
+      "file": "item/item-ep-head-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-head-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "head",
+      "rarity": "legend",
+      "file": "item/item-ep-head-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-body-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "body",
+      "rarity": "common",
+      "file": "item/item-ep-body-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-body-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "body",
+      "rarity": "uncommon",
+      "file": "item/item-ep-body-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-body-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "body",
+      "rarity": "rare",
+      "file": "item/item-ep-body-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-body-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "body",
+      "rarity": "vrare",
+      "file": "item/item-ep-body-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-body-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "body",
+      "rarity": "epic",
+      "file": "item/item-ep-body-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-body-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "body",
+      "rarity": "legend",
+      "file": "item/item-ep-body-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-legs-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "legs",
+      "rarity": "common",
+      "file": "item/item-ep-legs-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-legs-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "legs",
+      "rarity": "uncommon",
+      "file": "item/item-ep-legs-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-legs-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "legs",
+      "rarity": "rare",
+      "file": "item/item-ep-legs-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-legs-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "legs",
+      "rarity": "vrare",
+      "file": "item/item-ep-legs-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-legs-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "legs",
+      "rarity": "epic",
+      "file": "item/item-ep-legs-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-legs-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "legs",
+      "rarity": "legend",
+      "file": "item/item-ep-legs-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-feet-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "feet",
+      "rarity": "common",
+      "file": "item/item-ep-feet-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-feet-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "feet",
+      "rarity": "uncommon",
+      "file": "item/item-ep-feet-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-feet-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "feet",
+      "rarity": "rare",
+      "file": "item/item-ep-feet-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-feet-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "feet",
+      "rarity": "vrare",
+      "file": "item/item-ep-feet-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-feet-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "feet",
+      "rarity": "epic",
+      "file": "item/item-ep-feet-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-feet-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "feet",
+      "rarity": "legend",
+      "file": "item/item-ep-feet-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-charm-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "charm",
+      "rarity": "common",
+      "file": "item/item-ep-charm-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-charm-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "charm",
+      "rarity": "uncommon",
+      "file": "item/item-ep-charm-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-charm-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "charm",
+      "rarity": "rare",
+      "file": "item/item-ep-charm-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-charm-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "charm",
+      "rarity": "vrare",
+      "file": "item/item-ep-charm-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-charm-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "charm",
+      "rarity": "epic",
+      "file": "item/item-ep-charm-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-charm-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "charm",
+      "rarity": "legend",
+      "file": "item/item-ep-charm-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-pole-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "pole",
+      "rarity": "common",
+      "file": "item/item-ep-pole-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-pole-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "pole",
+      "rarity": "uncommon",
+      "file": "item/item-ep-pole-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-pole-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "pole",
+      "rarity": "rare",
+      "file": "item/item-ep-pole-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-pole-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "pole",
+      "rarity": "vrare",
+      "file": "item/item-ep-pole-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-pole-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "pole",
+      "rarity": "epic",
+      "file": "item/item-ep-pole-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-pole-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "pole",
+      "rarity": "legend",
+      "file": "item/item-ep-pole-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-robot-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "robot",
+      "rarity": "common",
+      "file": "item/item-ep-robot-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-robot-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "robot",
+      "rarity": "uncommon",
+      "file": "item/item-ep-robot-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-robot-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "robot",
+      "rarity": "rare",
+      "file": "item/item-ep-robot-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-robot-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "robot",
+      "rarity": "vrare",
+      "file": "item/item-ep-robot-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-robot-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "robot",
+      "rarity": "epic",
+      "file": "item/item-ep-robot-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-robot-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "robot",
+      "rarity": "legend",
+      "file": "item/item-ep-robot-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-broom-common",
+      "category": "item",
+      "set": "EP",
+      "slot": "broom",
+      "rarity": "common",
+      "file": "item/item-ep-broom-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-broom-uncommon",
+      "category": "item",
+      "set": "EP",
+      "slot": "broom",
+      "rarity": "uncommon",
+      "file": "item/item-ep-broom-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-broom-rare",
+      "category": "item",
+      "set": "EP",
+      "slot": "broom",
+      "rarity": "rare",
+      "file": "item/item-ep-broom-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-broom-vrare",
+      "category": "item",
+      "set": "EP",
+      "slot": "broom",
+      "rarity": "vrare",
+      "file": "item/item-ep-broom-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-broom-epic",
+      "category": "item",
+      "set": "EP",
+      "slot": "broom",
+      "rarity": "epic",
+      "file": "item/item-ep-broom-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-ep-broom-legend",
+      "category": "item",
+      "set": "EP",
+      "slot": "broom",
+      "rarity": "legend",
+      "file": "item/item-ep-broom-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "stage-ep-courtyard",
+      "category": "stage",
+      "set": "EP",
+      "mode": "courtyard",
+      "file": "stage/stage-ep-courtyard.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-ep-encounter",
+      "category": "stage",
+      "set": "EP",
+      "mode": "encounter",
+      "file": "stage/stage-ep-encounter.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-ep-tactical",
+      "category": "stage",
+      "set": "EP",
+      "mode": "tactical",
+      "file": "stage/stage-ep-tactical.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "trainer-epp-0",
+      "category": "trainer",
+      "set": "EPP",
+      "frame": 0,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-epp-0.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-epp-1",
+      "category": "trainer",
+      "set": "EPP",
+      "frame": 1,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-epp-1.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-epp-2",
+      "category": "trainer",
+      "set": "EPP",
+      "frame": 2,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-epp-2.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "creature-epp",
+      "category": "creature",
+      "set": "EPP",
+      "name": "Bouémitte",
+      "anchor": [
+        12,
+        23
+      ],
+      "file": "creature/creature-epp.png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "item-epp-head-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "head",
+      "rarity": "common",
+      "file": "item/item-epp-head-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-head-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "head",
+      "rarity": "uncommon",
+      "file": "item/item-epp-head-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-head-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "head",
+      "rarity": "rare",
+      "file": "item/item-epp-head-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-head-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "head",
+      "rarity": "vrare",
+      "file": "item/item-epp-head-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-head-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "head",
+      "rarity": "epic",
+      "file": "item/item-epp-head-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-head-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "head",
+      "rarity": "legend",
+      "file": "item/item-epp-head-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-body-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "body",
+      "rarity": "common",
+      "file": "item/item-epp-body-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-body-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "body",
+      "rarity": "uncommon",
+      "file": "item/item-epp-body-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-body-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "body",
+      "rarity": "rare",
+      "file": "item/item-epp-body-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-body-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "body",
+      "rarity": "vrare",
+      "file": "item/item-epp-body-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-body-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "body",
+      "rarity": "epic",
+      "file": "item/item-epp-body-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-body-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "body",
+      "rarity": "legend",
+      "file": "item/item-epp-body-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-legs-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "legs",
+      "rarity": "common",
+      "file": "item/item-epp-legs-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-legs-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "legs",
+      "rarity": "uncommon",
+      "file": "item/item-epp-legs-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-legs-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "legs",
+      "rarity": "rare",
+      "file": "item/item-epp-legs-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-legs-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "legs",
+      "rarity": "vrare",
+      "file": "item/item-epp-legs-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-legs-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "legs",
+      "rarity": "epic",
+      "file": "item/item-epp-legs-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-legs-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "legs",
+      "rarity": "legend",
+      "file": "item/item-epp-legs-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-feet-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "feet",
+      "rarity": "common",
+      "file": "item/item-epp-feet-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-feet-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "feet",
+      "rarity": "uncommon",
+      "file": "item/item-epp-feet-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-feet-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "feet",
+      "rarity": "rare",
+      "file": "item/item-epp-feet-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-feet-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "feet",
+      "rarity": "vrare",
+      "file": "item/item-epp-feet-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-feet-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "feet",
+      "rarity": "epic",
+      "file": "item/item-epp-feet-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-feet-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "feet",
+      "rarity": "legend",
+      "file": "item/item-epp-feet-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-charm-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "charm",
+      "rarity": "common",
+      "file": "item/item-epp-charm-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-charm-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "charm",
+      "rarity": "uncommon",
+      "file": "item/item-epp-charm-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-charm-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "charm",
+      "rarity": "rare",
+      "file": "item/item-epp-charm-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-charm-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "charm",
+      "rarity": "vrare",
+      "file": "item/item-epp-charm-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-charm-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "charm",
+      "rarity": "epic",
+      "file": "item/item-epp-charm-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-charm-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "charm",
+      "rarity": "legend",
+      "file": "item/item-epp-charm-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-pole-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "pole",
+      "rarity": "common",
+      "file": "item/item-epp-pole-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-pole-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "pole",
+      "rarity": "uncommon",
+      "file": "item/item-epp-pole-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-pole-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "pole",
+      "rarity": "rare",
+      "file": "item/item-epp-pole-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-pole-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "pole",
+      "rarity": "vrare",
+      "file": "item/item-epp-pole-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-pole-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "pole",
+      "rarity": "epic",
+      "file": "item/item-epp-pole-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-pole-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "pole",
+      "rarity": "legend",
+      "file": "item/item-epp-pole-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-robot-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "robot",
+      "rarity": "common",
+      "file": "item/item-epp-robot-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-robot-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "robot",
+      "rarity": "uncommon",
+      "file": "item/item-epp-robot-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-robot-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "robot",
+      "rarity": "rare",
+      "file": "item/item-epp-robot-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-robot-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "robot",
+      "rarity": "vrare",
+      "file": "item/item-epp-robot-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-robot-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "robot",
+      "rarity": "epic",
+      "file": "item/item-epp-robot-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-robot-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "robot",
+      "rarity": "legend",
+      "file": "item/item-epp-robot-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-broom-common",
+      "category": "item",
+      "set": "EPP",
+      "slot": "broom",
+      "rarity": "common",
+      "file": "item/item-epp-broom-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-broom-uncommon",
+      "category": "item",
+      "set": "EPP",
+      "slot": "broom",
+      "rarity": "uncommon",
+      "file": "item/item-epp-broom-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-broom-rare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "broom",
+      "rarity": "rare",
+      "file": "item/item-epp-broom-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-broom-vrare",
+      "category": "item",
+      "set": "EPP",
+      "slot": "broom",
+      "rarity": "vrare",
+      "file": "item/item-epp-broom-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-broom-epic",
+      "category": "item",
+      "set": "EPP",
+      "slot": "broom",
+      "rarity": "epic",
+      "file": "item/item-epp-broom-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-epp-broom-legend",
+      "category": "item",
+      "set": "EPP",
+      "slot": "broom",
+      "rarity": "legend",
+      "file": "item/item-epp-broom-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "stage-epp-courtyard",
+      "category": "stage",
+      "set": "EPP",
+      "mode": "courtyard",
+      "file": "stage/stage-epp-courtyard.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-epp-encounter",
+      "category": "stage",
+      "set": "EPP",
+      "mode": "encounter",
+      "file": "stage/stage-epp-encounter.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-epp-tactical",
+      "category": "stage",
+      "set": "EPP",
+      "mode": "tactical",
+      "file": "stage/stage-epp-tactical.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "trainer-gp-0",
+      "category": "trainer",
+      "set": "GP",
+      "frame": 0,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-gp-0.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-gp-1",
+      "category": "trainer",
+      "set": "GP",
+      "frame": 1,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-gp-1.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "trainer-gp-2",
+      "category": "trainer",
+      "set": "GP",
+      "frame": 2,
+      "anchor": [
+        12,
+        31
+      ],
+      "file": "trainer/trainer-gp-2.png",
+      "width": 24,
+      "height": 32
+    },
+    {
+      "id": "creature-gp",
+      "category": "creature",
+      "set": "GP",
+      "name": "Clapot",
+      "anchor": [
+        12,
+        23
+      ],
+      "file": "creature/creature-gp.png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "item-gp-head-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "head",
+      "rarity": "common",
+      "file": "item/item-gp-head-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-head-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "head",
+      "rarity": "uncommon",
+      "file": "item/item-gp-head-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-head-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "head",
+      "rarity": "rare",
+      "file": "item/item-gp-head-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-head-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "head",
+      "rarity": "vrare",
+      "file": "item/item-gp-head-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-head-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "head",
+      "rarity": "epic",
+      "file": "item/item-gp-head-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-head-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "head",
+      "rarity": "legend",
+      "file": "item/item-gp-head-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-body-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "body",
+      "rarity": "common",
+      "file": "item/item-gp-body-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-body-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "body",
+      "rarity": "uncommon",
+      "file": "item/item-gp-body-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-body-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "body",
+      "rarity": "rare",
+      "file": "item/item-gp-body-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-body-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "body",
+      "rarity": "vrare",
+      "file": "item/item-gp-body-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-body-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "body",
+      "rarity": "epic",
+      "file": "item/item-gp-body-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-body-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "body",
+      "rarity": "legend",
+      "file": "item/item-gp-body-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-legs-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "legs",
+      "rarity": "common",
+      "file": "item/item-gp-legs-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-legs-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "legs",
+      "rarity": "uncommon",
+      "file": "item/item-gp-legs-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-legs-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "legs",
+      "rarity": "rare",
+      "file": "item/item-gp-legs-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-legs-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "legs",
+      "rarity": "vrare",
+      "file": "item/item-gp-legs-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-legs-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "legs",
+      "rarity": "epic",
+      "file": "item/item-gp-legs-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-legs-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "legs",
+      "rarity": "legend",
+      "file": "item/item-gp-legs-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-feet-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "feet",
+      "rarity": "common",
+      "file": "item/item-gp-feet-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-feet-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "feet",
+      "rarity": "uncommon",
+      "file": "item/item-gp-feet-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-feet-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "feet",
+      "rarity": "rare",
+      "file": "item/item-gp-feet-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-feet-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "feet",
+      "rarity": "vrare",
+      "file": "item/item-gp-feet-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-feet-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "feet",
+      "rarity": "epic",
+      "file": "item/item-gp-feet-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-feet-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "feet",
+      "rarity": "legend",
+      "file": "item/item-gp-feet-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-charm-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "charm",
+      "rarity": "common",
+      "file": "item/item-gp-charm-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-charm-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "charm",
+      "rarity": "uncommon",
+      "file": "item/item-gp-charm-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-charm-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "charm",
+      "rarity": "rare",
+      "file": "item/item-gp-charm-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-charm-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "charm",
+      "rarity": "vrare",
+      "file": "item/item-gp-charm-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-charm-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "charm",
+      "rarity": "epic",
+      "file": "item/item-gp-charm-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-charm-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "charm",
+      "rarity": "legend",
+      "file": "item/item-gp-charm-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-pole-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "pole",
+      "rarity": "common",
+      "file": "item/item-gp-pole-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-pole-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "pole",
+      "rarity": "uncommon",
+      "file": "item/item-gp-pole-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-pole-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "pole",
+      "rarity": "rare",
+      "file": "item/item-gp-pole-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-pole-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "pole",
+      "rarity": "vrare",
+      "file": "item/item-gp-pole-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-pole-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "pole",
+      "rarity": "epic",
+      "file": "item/item-gp-pole-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-pole-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "pole",
+      "rarity": "legend",
+      "file": "item/item-gp-pole-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-robot-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "robot",
+      "rarity": "common",
+      "file": "item/item-gp-robot-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-robot-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "robot",
+      "rarity": "uncommon",
+      "file": "item/item-gp-robot-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-robot-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "robot",
+      "rarity": "rare",
+      "file": "item/item-gp-robot-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-robot-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "robot",
+      "rarity": "vrare",
+      "file": "item/item-gp-robot-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-robot-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "robot",
+      "rarity": "epic",
+      "file": "item/item-gp-robot-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-robot-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "robot",
+      "rarity": "legend",
+      "file": "item/item-gp-robot-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-broom-common",
+      "category": "item",
+      "set": "GP",
+      "slot": "broom",
+      "rarity": "common",
+      "file": "item/item-gp-broom-common.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-broom-uncommon",
+      "category": "item",
+      "set": "GP",
+      "slot": "broom",
+      "rarity": "uncommon",
+      "file": "item/item-gp-broom-uncommon.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-broom-rare",
+      "category": "item",
+      "set": "GP",
+      "slot": "broom",
+      "rarity": "rare",
+      "file": "item/item-gp-broom-rare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-broom-vrare",
+      "category": "item",
+      "set": "GP",
+      "slot": "broom",
+      "rarity": "vrare",
+      "file": "item/item-gp-broom-vrare.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-broom-epic",
+      "category": "item",
+      "set": "GP",
+      "slot": "broom",
+      "rarity": "epic",
+      "file": "item/item-gp-broom-epic.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "item-gp-broom-legend",
+      "category": "item",
+      "set": "GP",
+      "slot": "broom",
+      "rarity": "legend",
+      "file": "item/item-gp-broom-legend.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "stage-gp-courtyard",
+      "category": "stage",
+      "set": "GP",
+      "mode": "courtyard",
+      "file": "stage/stage-gp-courtyard.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-gp-encounter",
+      "category": "stage",
+      "set": "GP",
+      "mode": "encounter",
+      "file": "stage/stage-gp-encounter.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "stage-gp-tactical",
+      "category": "stage",
+      "set": "GP",
+      "mode": "tactical",
+      "file": "stage/stage-gp-tactical.png",
+      "width": 128,
+      "height": 96
+    },
+    {
+      "id": "monster-algue",
+      "category": "monster",
+      "name": "Algue verte",
+      "anchor": [
+        14,
+        23
+      ],
+      "file": "monster/monster-algue.png",
+      "width": 28,
+      "height": 24
+    },
+    {
+      "id": "monster-calcaire",
+      "category": "monster",
+      "name": "Calcaire",
+      "anchor": [
+        14,
+        23
+      ],
+      "file": "monster/monster-calcaire.png",
+      "width": 28,
+      "height": 24
+    },
+    {
+      "id": "monster-filtre",
+      "category": "monster",
+      "name": "Filtre saturé",
+      "anchor": [
+        14,
+        23
+      ],
+      "file": "monster/monster-filtre.png",
+      "width": 28,
+      "height": 24
+    },
+    {
+      "id": "tile-sand",
+      "category": "tile",
+      "file": "tile/tile-sand.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "tile-paving",
+      "category": "tile",
+      "file": "tile/tile-paving.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "tile-grass",
+      "category": "tile",
+      "file": "tile/tile-grass.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "tile-water",
+      "category": "tile",
+      "file": "tile/tile-water.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "tile-hedge",
+      "category": "tile",
+      "file": "tile/tile-hedge.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "tile-deck",
+      "category": "tile",
+      "file": "tile/tile-deck.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "tile-roof",
+      "category": "tile",
+      "file": "tile/tile-roof.png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "atlas-trainers",
+      "category": "atlas",
+      "file": "atlas/atlas-trainers.png",
+      "width": 120,
+      "height": 96
+    },
+    {
+      "id": "atlas-creatures",
+      "category": "atlas",
+      "file": "atlas/atlas-creatures.png",
+      "width": 120,
+      "height": 24
+    },
+    {
+      "id": "atlas-monsters",
+      "category": "atlas",
+      "file": "atlas/atlas-monsters.png",
+      "width": 84,
+      "height": 24
+    },
+    {
+      "id": "atlas-equipment",
+      "category": "atlas",
+      "file": "atlas/atlas-equipment.png",
+      "width": 128,
+      "height": 80
+    },
+    {
+      "id": "atlas-tiles",
+      "category": "atlas",
+      "file": "atlas/atlas-tiles.png",
+      "width": 112,
+      "height": 16
+    },
+    {
+      "id": "stage-isometric-study",
+      "category": "study",
+      "file": "study/stage-isometric-study.png",
+      "width": 128,
+      "height": 96
+    }
+  ]
+}

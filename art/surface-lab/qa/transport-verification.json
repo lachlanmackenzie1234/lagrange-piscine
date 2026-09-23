@@ -1,0 +1,62 @@
+{
+  "continuousWindTurn": true,
+  "directions": [
+    {
+      "degrees": 0,
+      "earth": 2.5689136646622983,
+      "sand": 19.504714861324867
+    },
+    {
+      "degrees": 45,
+      "earth": 2.169691002483624,
+      "sand": 16.473579833671955
+    },
+    {
+      "degrees": 90,
+      "earth": 1.5296323124765925,
+      "sand": 11.613874965100054
+    },
+    {
+      "degrees": 135,
+      "earth": 1.9005235250828665,
+      "sand": 14.429900838592136
+    },
+    {
+      "degrees": 180,
+      "earth": 2.306255743979591,
+      "sand": 17.510460278363556
+    },
+    {
+      "degrees": 225,
+      "earth": 2.3418439646517686,
+      "sand": 17.780667139022682
+    },
+    {
+      "degrees": 270,
+      "earth": 1.4094780114987222,
+      "sand": 10.701592309527332
+    },
+    {
+      "degrees": 315,
+      "earth": 1.8971365377537543,
+      "sand": 14.404184823685917
+    }
+  ],
+  "gravel": {
+    "contactChangedChannels": 1268,
+    "outsideContactChangedPixels": 0,
+    "recovered": true,
+    "windStatic": true
+  },
+  "normalizedWindResponse": [
+    0.9,
+    0.533,
+    0.0702,
+    0
+  ],
+  "renderedTranslation": {
+    "earth": 1,
+    "sand": 1
+  },
+  "stillAirAndReducedMotion": true
+}

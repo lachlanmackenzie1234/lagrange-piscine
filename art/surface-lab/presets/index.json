@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "looks": [
+    {
+      "id": "late-evening-vibe",
+      "name": "Late evening vibe",
+      "file": "late-evening-vibe.json"
+    }
+  ]
+}

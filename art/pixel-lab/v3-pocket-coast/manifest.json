@@ -1,0 +1,182 @@
+{
+  "version": 3,
+  "direction": "Pocket Coast - restrained handheld overhead style",
+  "generator": "Built-in ImageGen",
+  "format": "enlarged-source-exports",
+  "nativePixelGridValidated": false,
+  "sourcePaletteValidated": false,
+  "nativeGameTargets": {
+    "stage": [
+      128,
+      96
+    ],
+    "trainer": [
+      24,
+      32
+    ],
+    "creature": [
+      24,
+      24
+    ],
+    "monster": [
+      28,
+      24
+    ],
+    "item": [
+      16,
+      16
+    ]
+  },
+  "assets": [
+    {
+      "id": "01-pool-depot-overworld",
+      "file": "exports/01-pool-depot-overworld.png",
+      "width": 1448,
+      "height": 1086,
+      "mode": "RGB",
+      "bytes": 1826306,
+      "sha256": "bf0e6511e24bcd050a0dfa5a2b13276953d89819a07a73f898c53fe288ea5a06",
+      "prompt": "prompts/01-pool-depot-overworld.txt",
+      "kind": "environment",
+      "hasTransparentBackground": false
+    },
+    {
+      "id": "02-depot-interior",
+      "file": "exports/02-depot-interior.png",
+      "width": 1448,
+      "height": 1086,
+      "mode": "RGB",
+      "bytes": 1582371,
+      "sha256": "753e73265dcae9abe300cd7dc3caf50a1c70e252828e731cb162b1cf11242780",
+      "prompt": "prompts/02-depot-interior.txt",
+      "kind": "environment",
+      "hasTransparentBackground": false
+    },
+    {
+      "id": "03-trainer-directions",
+      "file": "exports/03-trainer-directions.png",
+      "width": 1003,
+      "height": 1568,
+      "mode": "RGBA",
+      "bytes": 1029314,
+      "sha256": "43b6ef33bc41ccd9d990a809801dc2cc071026956ac51505e9f9fc09056f1793",
+      "prompt": "prompts/03-trainer-directions.txt",
+      "kind": "sprite-sheet",
+      "hasTransparentBackground": true,
+      "fullyTransparentPixels": 1026506,
+      "partiallyTransparentPixels": 544050,
+      "fullyOpaquePixels": 2148,
+      "alphaBounds": [
+        25,
+        21,
+        993,
+        1568
+      ],
+      "layout": {
+        "rows": [
+          "EC",
+          "AG",
+          "EP",
+          "EPP",
+          "GP"
+        ],
+        "columns": [
+          "south-front",
+          "east-right",
+          "west-left",
+          "north-back"
+        ],
+        "observedSpriteCount": 20,
+        "sliceCoordinatesValidated": false
+      }
+    },
+    {
+      "id": "04-creatures-monsters",
+      "file": "exports/04-creatures-monsters.png",
+      "width": 1774,
+      "height": 887,
+      "mode": "RGBA",
+      "bytes": 839255,
+      "sha256": "76854c8740008326d0ace5c2fae2bb3f2f489fe4a6efc9222980165fb107bff5",
+      "prompt": "prompts/04-creatures-monsters.txt",
+      "kind": "sprite-sheet",
+      "hasTransparentBackground": true,
+      "fullyTransparentPixels": 1080296,
+      "partiallyTransparentPixels": 491761,
+      "fullyOpaquePixels": 1481,
+      "alphaBounds": [
+        0,
+        0,
+        1760,
+        887
+      ],
+      "layout": {
+        "rows": [
+          [
+            "ec-ecume",
+            "ag-oyatin",
+            "ep-pignotte",
+            "epp-bouemitte"
+          ],
+          [
+            "gp-clapot",
+            "algue",
+            "calcaire",
+            "filtre"
+          ]
+        ],
+        "observedSpriteCount": 8,
+        "sliceCoordinatesValidated": false
+      }
+    },
+    {
+      "id": "05-equipment-icons",
+      "file": "exports/05-equipment-icons.png",
+      "width": 1586,
+      "height": 992,
+      "mode": "RGBA",
+      "bytes": 1094595,
+      "sha256": "5b8cb43bb7a351891ed1229979319c683875e2f2cfd097d8e537b6cf7ace6f3d",
+      "prompt": "prompts/05-equipment-icons.txt",
+      "kind": "sprite-sheet",
+      "hasTransparentBackground": true,
+      "fullyTransparentPixels": 934689,
+      "partiallyTransparentPixels": 637919,
+      "fullyOpaquePixels": 704,
+      "alphaBounds": [
+        13,
+        19,
+        1564,
+        992
+      ],
+      "layout": {
+        "rows": [
+          "EC",
+          "AG",
+          "EP",
+          "EPP",
+          "GP"
+        ],
+        "columns": [
+          "head",
+          "body",
+          "legs",
+          "feet",
+          "charm",
+          "pole",
+          "robot",
+          "brush"
+        ],
+        "observedIconCount": 40,
+        "sliceCoordinatesValidated": false
+      }
+    }
+  ],
+  "review": [
+    "All five PNGs decode successfully.",
+    "20 trainers, 8 creatures/monsters and 40 equipment icons visually reviewed.",
+    "All three sprite sheets have genuine transparent pixels; alpha is not binary.",
+    "Maps contain no character or UI overlays.",
+    "No native-size slicing, palette reduction or animation is included."
+  ]
+}

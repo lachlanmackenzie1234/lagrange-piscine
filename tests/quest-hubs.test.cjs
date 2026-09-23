@@ -45,7 +45,7 @@ test('layered hub stations have packed art, solid footprints and reachable appro
     for (const a of Object.values(layout.anchors)) assert.deepEqual(Array.from(maps.route(layout.coll, from, [a.x, a.y]).at(-1)), [a.x, a.y]);
   }
   const office = maps.hub('bureau'), spawn = [office.anchors.sp.x, office.anchors.sp.y];
-  for (const to of [[3, 2], [8, 2]]) assert.deepEqual(Array.from(maps.route(office.coll, spawn, to).at(-1)), to, 'space behind desks');
+  for (const to of [[2, 2], [8, 2]]) assert.deepEqual(Array.from(maps.route(office.coll, spawn, to).at(-1)), to, 'space behind desks');
   assert.deepEqual(Array.from(office.size), [384, 288]);
   office.coll.forEach((row, y) => row.forEach((blocked, x) => { if (!blocked) assert.ok((x + 1) * 32 <= office.size[0] && (y + 1) * 32 <= office.size[1], 'walkable floor fits smaller room'); }));
 });
