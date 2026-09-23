@@ -1,0 +1,137 @@
+{
+  "battleRendered": true,
+  "layering": {
+    "headPixelsChanged": 0,
+    "lowerBodyPixelsChanged": 280
+  },
+  "ok": true,
+  "passage": {
+    "peakBentCells": 7,
+    "recoveredBentCells": 0
+  },
+  "renderCpuMs": {
+    "median": 3.699999988079071,
+    "p95": 4.799999982118607
+  },
+  "viewport": {
+    "height": 1100,
+    "width": 1440
+  },
+  "zones": [
+    {
+      "accentClumps": 31,
+      "actions": [
+        "test",
+        "skim",
+        "treat",
+        "wash",
+        "water-garden",
+        "door"
+      ],
+      "depths": [
+        4,
+        10,
+        17
+      ],
+      "forest": {
+        "large": 4,
+        "medium": 7,
+        "small": 3
+      },
+      "id": "EC-2",
+      "meadowCells": 2292
+    },
+    {
+      "accentClumps": 32,
+      "actions": [
+        "test",
+        "skim",
+        "treat",
+        "wash",
+        "water-garden",
+        "door"
+      ],
+      "depths": [
+        4,
+        10,
+        17
+      ],
+      "forest": {
+        "large": 4,
+        "medium": 7,
+        "small": 3
+      },
+      "id": "AG-7",
+      "meadowCells": 2292
+    },
+    {
+      "accentClumps": 33,
+      "actions": [
+        "test",
+        "skim",
+        "treat",
+        "wash",
+        "water-garden",
+        "door"
+      ],
+      "depths": [
+        4,
+        10,
+        17
+      ],
+      "forest": {
+        "large": 4,
+        "medium": 7,
+        "small": 3
+      },
+      "id": "EP-6B-75",
+      "meadowCells": 2292
+    },
+    {
+      "accentClumps": 31,
+      "actions": [
+        "test",
+        "skim",
+        "treat",
+        "wash",
+        "water-garden",
+        "door"
+      ],
+      "depths": [
+        4,
+        10,
+        17
+      ],
+      "forest": {
+        "large": 4,
+        "medium": 7,
+        "small": 3
+      },
+      "id": "EPP-3",
+      "meadowCells": 2292
+    },
+    {
+      "accentClumps": 31,
+      "actions": [
+        "test",
+        "skim",
+        "treat",
+        "wash",
+        "water-garden",
+        "door"
+      ],
+      "depths": [
+        4,
+        10,
+        17
+      ],
+      "forest": {
+        "large": 4,
+        "medium": 7,
+        "small": 3
+      },
+      "id": "GP-18",
+      "meadowCells": 2292
+    }
+  ]
+}

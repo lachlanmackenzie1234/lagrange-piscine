@@ -1,0 +1,342 @@
+{
+  "battle": {
+    "ambientBeds": 3,
+    "background": false,
+    "cuesAccepted": {
+      "encounter": 1,
+      "select": 1
+    },
+    "enabled": true,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.43,
+      "wind": 0.22
+    },
+    "mix": {
+      "ambience": 0.55,
+      "effects": 0.6,
+      "music": 0.35
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 14,
+    "selection": "auto",
+    "state": "running",
+    "timerActive": true,
+    "track": "battle",
+    "voices": 14
+  },
+  "closed": "closed",
+  "enabled": {
+    "ambientBeds": 3,
+    "background": false,
+    "cuesAccepted": {},
+    "enabled": true,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.43,
+      "wind": 0.22
+    },
+    "mix": {
+      "ambience": 0.55,
+      "effects": 0.6,
+      "music": 0.35
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 10,
+    "selection": "auto",
+    "state": "running",
+    "timerActive": true,
+    "track": "garden",
+    "voices": 8
+  },
+  "fastToggle": {
+    "ambientBeds": 3,
+    "background": false,
+    "cuesAccepted": {
+      "brush": 1,
+      "burst": 1,
+      "door": 1,
+      "encounter": 1,
+      "grass-step": 1,
+      "hit": 1,
+      "hose": 1,
+      "lose": 1,
+      "net": 1,
+      "pump": 1,
+      "robot": 1,
+      "rustle": 1,
+      "select": 1,
+      "splash": 1,
+      "stone-step": 1,
+      "win": 1
+    },
+    "enabled": true,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.55,
+      "wind": 0.35
+    },
+    "mix": {
+      "ambience": 0.1,
+      "effects": 0.2,
+      "music": 0.15
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 32,
+    "selection": "auto",
+    "state": "running",
+    "timerActive": true,
+    "track": "garden",
+    "voices": 2
+  },
+  "hidden": {
+    "ambientBeds": 0,
+    "background": true,
+    "cuesAccepted": {
+      "brush": 1,
+      "burst": 1,
+      "door": 1,
+      "encounter": 1,
+      "grass-step": 1,
+      "hit": 1,
+      "hose": 1,
+      "lose": 1,
+      "net": 1,
+      "pump": 1,
+      "robot": 1,
+      "rustle": 1,
+      "select": 1,
+      "splash": 1,
+      "stone-step": 1,
+      "win": 1
+    },
+    "enabled": true,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.55,
+      "wind": 0.35
+    },
+    "mix": {
+      "ambience": 0.1,
+      "effects": 0.2,
+      "music": 0.15
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 32,
+    "selection": "auto",
+    "state": "suspended",
+    "timerActive": false,
+    "track": null,
+    "voices": 0
+  },
+  "muted": {
+    "ambientBeds": 0,
+    "background": false,
+    "cuesAccepted": {
+      "burst": 3,
+      "encounter": 1,
+      "hit": 2,
+      "select": 1,
+      "splash": 1,
+      "win": 1
+    },
+    "enabled": false,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.43,
+      "wind": 0.22
+    },
+    "mix": {
+      "ambience": 0.55,
+      "effects": 0.6,
+      "music": 0.35
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 22,
+    "selection": "auto",
+    "state": "suspended",
+    "timerActive": false,
+    "track": null,
+    "voices": 0
+  },
+  "ok": true,
+  "outcome": {
+    "audio": {
+      "ambientBeds": 3,
+      "background": false,
+      "cuesAccepted": {
+        "burst": 3,
+        "encounter": 1,
+        "hit": 2,
+        "select": 1,
+        "win": 1
+      },
+      "enabled": true,
+      "environment": {
+        "active": true,
+        "mood": "golden",
+        "rain": 0,
+        "water": 0.43,
+        "wind": 0.22
+      },
+      "mix": {
+        "ambience": 0.55,
+        "effects": 0.6,
+        "music": 0.35
+      },
+      "noiseBytes": 384000,
+      "peakVoices": 22,
+      "selection": "auto",
+      "state": "running",
+      "timerActive": true,
+      "track": null,
+      "voices": 9
+    },
+    "battle": {
+      "enemy": 0,
+      "hero": 46,
+      "outcome": "win",
+      "phase": "done",
+      "turn": 3
+    }
+  },
+  "returned": {
+    "ambientBeds": 3,
+    "background": false,
+    "cuesAccepted": {
+      "burst": 3,
+      "encounter": 1,
+      "hit": 2,
+      "select": 1,
+      "splash": 1,
+      "win": 1
+    },
+    "enabled": true,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.43,
+      "wind": 0.22
+    },
+    "mix": {
+      "ambience": 0.55,
+      "effects": 0.6,
+      "music": 0.35
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 22,
+    "selection": "auto",
+    "state": "running",
+    "timerActive": true,
+    "track": "garden",
+    "voices": 12
+  },
+  "stopped": {
+    "ambientBeds": 0,
+    "background": false,
+    "cuesAccepted": {
+      "brush": 1,
+      "burst": 1,
+      "door": 1,
+      "encounter": 1,
+      "grass-step": 1,
+      "hit": 1,
+      "hose": 1,
+      "lose": 1,
+      "net": 1,
+      "pump": 1,
+      "robot": 1,
+      "rustle": 1,
+      "select": 1,
+      "splash": 1,
+      "stone-step": 1,
+      "win": 1
+    },
+    "enabled": false,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.55,
+      "wind": 0.35
+    },
+    "mix": {
+      "ambience": 0.1,
+      "effects": 0,
+      "music": 0
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 32,
+    "selection": "auto",
+    "state": "suspended",
+    "timerActive": false,
+    "track": null,
+    "voices": 0
+  },
+  "voiceCap": {
+    "ambientBeds": 3,
+    "background": false,
+    "cuesAccepted": {
+      "brush": 1,
+      "burst": 1,
+      "door": 1,
+      "encounter": 1,
+      "grass-step": 1,
+      "hit": 1,
+      "hose": 1,
+      "lose": 1,
+      "net": 1,
+      "pump": 1,
+      "robot": 1,
+      "rustle": 1,
+      "select": 1,
+      "splash": 1,
+      "stone-step": 1,
+      "win": 1
+    },
+    "enabled": true,
+    "environment": {
+      "active": true,
+      "mood": "golden",
+      "rain": 0,
+      "water": 0.55,
+      "wind": 0.35
+    },
+    "mix": {
+      "ambience": 0.1,
+      "effects": 0.2,
+      "music": 0.15
+    },
+    "noiseBytes": 384000,
+    "peakVoices": 32,
+    "selection": "auto",
+    "state": "running",
+    "timerActive": true,
+    "track": "garden",
+    "voices": 32
+  },
+  "library": {
+    "initialState": "uninitialized",
+    "initialAudioAssetRequests": 0,
+    "downloadFilesVerified": 20,
+    "desktopWidth": 1440,
+    "mobileWidth": 390,
+    "horizontalOverflow": false
+  },
+  "exports": {
+    "music": 3,
+    "effects": 16,
+    "zipBytes": 1416538
+  }
+}

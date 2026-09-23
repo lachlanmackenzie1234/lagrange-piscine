@@ -1,0 +1,44 @@
+[
+  {
+    "id": "01-pocket-coast",
+    "title": "Pocket Coast",
+    "references": [
+      "screenshots/screens/legend-of-zelda-links-awakening-dx-gameplay-best-game-boy-color-games.jpg"
+    ],
+    "role": "The handheld reference supplies coarse pixel density and shape language. Character identities are described in the prompt."
+  },
+  {
+    "id": "02-sunlit-adventure",
+    "title": "Sunlit Adventure",
+    "references": [
+      "screenshots/screens/zelda-combat.jpg",
+      "screenshots/screens/zelda-depot.png",
+      "screenshots/screens/zelda-items.jpg",
+      "art/pixel-lab/v1/concepts/lacanau-field-kit.png"
+    ],
+    "role": "Style references, plus the v1 board for subject identity only."
+  },
+  {
+    "id": "03-coastal-storybook",
+    "title": "Coastal Storybook",
+    "references": [
+      "screenshots/screens/dofus-retro-character-creation.webp",
+      "screenshots/screens/map-monsters-dofus.webp",
+      "screenshots/screens/dofus-map-ui.webp",
+      "screenshots/screens/dofus-inventory-ui.webp",
+      "art/pixel-lab/v1/concepts/lacanau-field-kit.png"
+    ],
+    "role": "Style references, plus the v1 board for subject identity only."
+  },
+  {
+    "id": "04-tideglass-tactics",
+    "title": "Tideglass Tactics",
+    "references": [
+      "screenshots/screens/waven-spells-character.webp",
+      "screenshots/screens/waven-combat-2.webp",
+      "screenshots/screens/waven-home-map-depot-map.webp",
+      "art/pixel-lab/v1/concepts/lacanau-field-kit.png"
+    ],
+    "role": "Style references, plus the v1 board for subject identity only."
+  }
+]

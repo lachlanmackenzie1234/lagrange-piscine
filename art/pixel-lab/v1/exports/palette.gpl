@@ -1,0 +1,44 @@
+GIMP Palette
+Name: Lagrange Quest - existing palette
+Columns: 8
+#
+ 32  32  58	ink
+255 251 233	paper
+246 241 220	cream
+255 255 255	white
+233 213 154	sand
+242 193  78	straw
+201 165  90	ochre
+138  74  30	wood
+232 184 138	skin
+244 239 224	skinLight
+201 138  74	skinDark
+ 74  46  26	hair
+126 200 255	blueLight
+ 47  79 223	blue
+ 26  28  90	blueDark
+181 242 122	greenLight
+ 42 168  69	green
+ 18  77  42	greenDark
+242 193  78	goldLight
+227 155  18	gold
+138  74  30	goldDark
+201 182 232	purpleLight
+123  63 196	purple
+ 58  26  90	purpleDark
+142 230 210	tealLight
+ 31 158 138	teal
+ 15  74  66	tealDark
+142 212 255	waterLight
+ 74 168 255	water
+ 47 127 214	waterDark
+244 239 224	stoneLight
+201 192 168	stone
+122 122 144	stoneDark
+184 196 214	steelLight
+ 90 107 138	steel
+ 38  48  74	steelDark
+255 179 167	redLight
+216  47  47	red
+ 90  26  26	redDark
+107 122 135	common

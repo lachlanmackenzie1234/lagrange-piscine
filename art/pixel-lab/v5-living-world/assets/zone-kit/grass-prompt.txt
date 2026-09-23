@@ -1,0 +1,15 @@
+Use case: stylized-concept
+Asset type: transparent coastal RPG ground vegetation atlas, exactly FIVE COLUMNS by THREE ROWS, FIFTEEN individual reusable grass patch sprites.
+Polished retro handheld RPG pixel art for a lush coastal garden, elevated three-quarter top-down view on a square ground grid. Clearly visible stepped pixel edges, coherent leaf and material clusters, restrained dark blue-green outlines, three or four colour shades per material, warm upper-left light and cool teal underside shadows. Clean and charming architectural forms, rich but readable at native game size. No painterly blur, no smooth vector surfaces, no 3D-rendered gloss. All objects share one camera and light. True transparent RGBA background, no checkerboard, labels, text, grid lines, ground plates, detached cast shadows or watermark. Each sprite must be fully contained in its own generously separated cell.
+All grass is natural green. Columns have subtly different zone character and small flower accents; the colour names below are accents, never solid unnatural-coloured grass.
+LEFT to RIGHT:
+1 EC / ORANGE-ACCENT MEADOW: fresh sunny lime-green grass and clover, warm highlights, a very occasional tiny orange/cream flower.
+2 AG / GREEN COASTAL GRASS: broad olive-green coastal blades, some sandy yellow-green tips, mostly pure grass.
+3 EP / TEAL-ACCENT LAWN: fine soft green grass with cool celadon/teal shaded roots, a few clover leaves and tiny white flowers.
+4 EPP / VIOLET-ACCENT WOODLAND GRASS: deep natural green blades in rounded clumps, very occasional tiny violet flower heads, cool shaded roots.
+5 GP / BLUE-ACCENT FOREST GRASS: richer blue-green shaded broad grass and small fernlike edges, very occasional tiny pale-blue flower.
+Rows:
+TOP: SHORT CUT GRASS PATCHES. Low dense carpet tufts, wide and shallow, about 32x8 native pixels. Broken natural edges and visible tiny cut blades.
+MIDDLE: MEDIUM TUFTS. Rounded overlapping grass masses, visible individual clusters, around 32x16 native pixels. Dark rooted underside and lighter leaf tips.
+BOTTOM: TALL LUSH TUFTS. Full dense clumps of longer blades, around 32x24 native pixels. Broad coherent silhouettes filled with overlapping leaves rather than sparse isolated spikes, blades fan slightly outward.
+Every sprite stands on a common bottom-centre anchor. Keep the 3 row heights visibly different. Each patch has a naturally ragged transparent outline; no rectangular soil tile, no square background, no rocks, no trees, no pots, no characters, no baked shadows. Maintain a shared light direction and crisp stepped pixel structure. Generous transparent space between every patch, no captions or labels.

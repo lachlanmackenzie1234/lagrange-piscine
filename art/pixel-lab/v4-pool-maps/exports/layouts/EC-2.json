@@ -1,0 +1,832 @@
+{
+  "version": "pocket-coast-map-v1",
+  "id": "EC-2",
+  "residence": "EC",
+  "label": "EC 2",
+  "seed": 4239208650,
+  "revision": 0,
+  "fictionalLayout": true,
+  "theme": "Pine courtyard",
+  "border": "hedge",
+  "width": 16,
+  "height": 12,
+  "tileSize": 16,
+  "pixelWidth": 256,
+  "pixelHeight": 192,
+  "archetype": "side-court",
+  "mirrored": true,
+  "pool": {
+    "x": 4,
+    "y": 4,
+    "w": 5,
+    "h": 4
+  },
+  "deck": {
+    "x": 3,
+    "y": 3,
+    "w": 7,
+    "h": 6
+  },
+  "arena": {
+    "x": 12,
+    "y": 4,
+    "w": 3,
+    "h": 3
+  },
+  "anchors": {
+    "entrance": {
+      "x": 6,
+      "y": 11
+    },
+    "houseDoor": {
+      "x": 11,
+      "y": 4
+    },
+    "shedDoor": {
+      "x": 13,
+      "y": 9
+    },
+    "ladder": {
+      "x": 5,
+      "y": 8
+    },
+    "skimmer": {
+      "x": 7,
+      "y": 8
+    },
+    "pumpAccess": {
+      "x": 12,
+      "y": 9
+    },
+    "encounter": {
+      "x": 13,
+      "y": 5
+    },
+    "playerSpawn": {
+      "x": 6,
+      "y": 9
+    }
+  },
+  "objects": [
+    {
+      "kind": "villa",
+      "x": 10,
+      "y": 1,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "kind": "shed",
+      "x": 13,
+      "y": 7,
+      "w": 2,
+      "h": 2
+    },
+    {
+      "kind": "pump",
+      "x": 12,
+      "y": 8,
+      "w": 1,
+      "h": 1,
+      "salt": false
+    },
+    {
+      "kind": "lounger",
+      "x": 3,
+      "y": 5,
+      "w": 1,
+      "h": 1,
+      "variant": 1
+    },
+    {
+      "kind": "tree",
+      "x": 6,
+      "y": 2,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "tree",
+      "x": 2,
+      "y": 5,
+      "w": 1,
+      "h": 1,
+      "variant": 0
+    },
+    {
+      "kind": "tree",
+      "x": 2,
+      "y": 7,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "tree",
+      "x": 8,
+      "y": 10,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "tree",
+      "x": 1,
+      "y": 6,
+      "w": 1,
+      "h": 1,
+      "variant": 1
+    },
+    {
+      "kind": "tree",
+      "x": 6,
+      "y": 1,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "tree",
+      "x": 7,
+      "y": 1,
+      "w": 1,
+      "h": 1,
+      "variant": 0
+    },
+    {
+      "kind": "pine",
+      "x": 14,
+      "y": 1,
+      "w": 1,
+      "h": 2,
+      "variant": 0
+    },
+    {
+      "kind": "sign",
+      "x": 13,
+      "y": 10,
+      "w": 1,
+      "h": 1,
+      "variant": 2
+    },
+    {
+      "kind": "pot",
+      "x": 7,
+      "y": 2,
+      "w": 1,
+      "h": 1,
+      "variant": 0
+    },
+    {
+      "kind": "pot",
+      "x": 14,
+      "y": 10,
+      "w": 1,
+      "h": 1,
+      "variant": 0
+    }
+  ],
+  "paths": [
+    {
+      "to": "entrance",
+      "cells": [
+        {
+          "x": 6,
+          "y": 11
+        }
+      ]
+    },
+    {
+      "to": "houseDoor",
+      "cells": [
+        {
+          "x": 6,
+          "y": 11
+        },
+        {
+          "x": 6,
+          "y": 10
+        },
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 8
+        },
+        {
+          "x": 7,
+          "y": 8
+        },
+        {
+          "x": 8,
+          "y": 8
+        },
+        {
+          "x": 9,
+          "y": 8
+        },
+        {
+          "x": 9,
+          "y": 7
+        },
+        {
+          "x": 9,
+          "y": 6
+        },
+        {
+          "x": 9,
+          "y": 5
+        },
+        {
+          "x": 9,
+          "y": 4
+        },
+        {
+          "x": 10,
+          "y": 4
+        },
+        {
+          "x": 11,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "to": "shedDoor",
+      "cells": [
+        {
+          "x": 6,
+          "y": 11
+        },
+        {
+          "x": 6,
+          "y": 10
+        },
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 7,
+          "y": 9
+        },
+        {
+          "x": 8,
+          "y": 9
+        },
+        {
+          "x": 9,
+          "y": 9
+        },
+        {
+          "x": 10,
+          "y": 9
+        },
+        {
+          "x": 11,
+          "y": 9
+        },
+        {
+          "x": 12,
+          "y": 9
+        },
+        {
+          "x": 13,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "to": "ladder",
+      "cells": [
+        {
+          "x": 6,
+          "y": 11
+        },
+        {
+          "x": 6,
+          "y": 10
+        },
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 8
+        },
+        {
+          "x": 5,
+          "y": 8
+        }
+      ]
+    },
+    {
+      "to": "skimmer",
+      "cells": [
+        {
+          "x": 6,
+          "y": 11
+        },
+        {
+          "x": 6,
+          "y": 10
+        },
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 8
+        },
+        {
+          "x": 7,
+          "y": 8
+        }
+      ]
+    },
+    {
+      "to": "pumpAccess",
+      "cells": [
+        {
+          "x": 6,
+          "y": 11
+        },
+        {
+          "x": 6,
+          "y": 10
+        },
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 7,
+          "y": 9
+        },
+        {
+          "x": 8,
+          "y": 9
+        },
+        {
+          "x": 9,
+          "y": 9
+        },
+        {
+          "x": 10,
+          "y": 9
+        },
+        {
+          "x": 11,
+          "y": 9
+        },
+        {
+          "x": 12,
+          "y": 9
+        }
+      ]
+    }
+  ],
+  "ground": [
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "slab",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "slab",
+      "sand",
+      "sand",
+      "sand",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "slab",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "slab",
+      "sand",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "slab",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "slab",
+      "sand",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "slab",
+      "water",
+      "water",
+      "water",
+      "water",
+      "water",
+      "slab",
+      "sand",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "slab",
+      "sand",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "sand",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "sand",
+      "sand",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ],
+    [
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "sand",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass",
+      "grass"
+    ]
+  ],
+  "collision": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "terrainSeed": 2564007963,
+  "generationAttempt": 0
+}

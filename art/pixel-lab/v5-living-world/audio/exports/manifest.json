@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "provenance": "Original note scores and procedural synthesis; no third-party recordings or game music",
+  "assets": [
+    {
+      "id": "select",
+      "kind": "effects",
+      "file": "effects/select.wav",
+      "bytes": 48556,
+      "duration": 0.55,
+      "peak": 0.07990647107362747,
+      "rms": 0.024473201269329753,
+      "sampleRate": 22050
+    },
+    {
+      "id": "grass-step",
+      "kind": "effects",
+      "file": "effects/grass-step.wav",
+      "bytes": 35324,
+      "duration": 0.4,
+      "peak": 0.07868894189596176,
+      "rms": 0.008344633260761108,
+      "sampleRate": 22050
+    },
+    {
+      "id": "stone-step",
+      "kind": "effects",
+      "file": "effects/stone-step.wav",
+      "bytes": 36208,
+      "duration": 0.41,
+      "peak": 0.09198073297739028,
+      "rms": 0.019922953013313142,
+      "sampleRate": 22050
+    },
+    {
+      "id": "rustle",
+      "kind": "effects",
+      "file": "effects/rustle.wav",
+      "bytes": 79424,
+      "duration": 0.9,
+      "peak": 0.08890456706285477,
+      "rms": 0.012768852513873004,
+      "sampleRate": 22050
+    },
+    {
+      "id": "splash",
+      "kind": "effects",
+      "file": "effects/splash.wav",
+      "bytes": 79424,
+      "duration": 0.9,
+      "peak": 0.13642871379852295,
+      "rms": 0.020761448342046147,
+      "sampleRate": 22050
+    },
+    {
+      "id": "door",
+      "kind": "effects",
+      "file": "effects/door.wav",
+      "bytes": 70604,
+      "duration": 0.8,
+      "peak": 0.10206929594278336,
+      "rms": 0.023033851329541617,
+      "sampleRate": 22050
+    },
+    {
+      "id": "pump",
+      "kind": "effects",
+      "file": "effects/pump.wav",
+      "bytes": 374896,
+      "duration": 4.25,
+      "peak": 0.05415738746523857,
+      "rms": 0.018828520394199383,
+      "sampleRate": 22050
+    },
+    {
+      "id": "hose",
+      "kind": "effects",
+      "file": "effects/hose.wav",
+      "bytes": 286696,
+      "duration": 3.25,
+      "peak": 0.09942276775836945,
+      "rms": 0.02639413939700268,
+      "sampleRate": 22050
+    },
+    {
+      "id": "encounter",
+      "kind": "effects",
+      "file": "effects/encounter.wav",
+      "bytes": 92656,
+      "duration": 1.05,
+      "peak": 0.19721291959285736,
+      "rms": 0.055251025141058056,
+      "sampleRate": 22050
+    },
+    {
+      "id": "net",
+      "kind": "effects",
+      "file": "effects/net.wav",
+      "bytes": 57376,
+      "duration": 0.65,
+      "peak": 0.101022906601429,
+      "rms": 0.01655162079135254,
+      "sampleRate": 22050
+    },
+    {
+      "id": "brush",
+      "kind": "effects",
+      "file": "effects/brush.wav",
+      "bytes": 57376,
+      "duration": 0.65,
+      "peak": 0.05839093029499054,
+      "rms": 0.009522844764030312,
+      "sampleRate": 22050
+    },
+    {
+      "id": "robot",
+      "kind": "effects",
+      "file": "effects/robot.wav",
+      "bytes": 75016,
+      "duration": 0.85,
+      "peak": 0.09854067862033844,
+      "rms": 0.024849777166976367,
+      "sampleRate": 22050
+    },
+    {
+      "id": "burst",
+      "kind": "effects",
+      "file": "effects/burst.wav",
+      "bytes": 83836,
+      "duration": 0.95,
+      "peak": 0.1242256909608841,
+      "rms": 0.022682294212289626,
+      "sampleRate": 22050
+    },
+    {
+      "id": "hit",
+      "kind": "effects",
+      "file": "effects/hit.wav",
+      "bytes": 48556,
+      "duration": 0.55,
+      "peak": 0.15210086107254028,
+      "rms": 0.036538481112944415,
+      "sampleRate": 22050
+    },
+    {
+      "id": "win",
+      "kind": "effects",
+      "file": "effects/win.wav",
+      "bytes": 154396,
+      "duration": 1.75,
+      "peak": 0.14284485578536987,
+      "rms": 0.03448984156220632,
+      "sampleRate": 22050
+    },
+    {
+      "id": "lose",
+      "kind": "effects",
+      "file": "effects/lose.wav",
+      "bytes": 132344,
+      "duration": 1.5,
+      "peak": 0.09412366151809692,
+      "rms": 0.0241465322541772,
+      "sampleRate": 22050
+    },
+    {
+      "id": "garden",
+      "kind": "music",
+      "file": "music/garden.mp3",
+      "bytes": 275271,
+      "duration": 22.857142857142858,
+      "peak": 0.20470857620239255,
+      "rms": 0.04907723859275533,
+      "sampleRate": 22050
+    },
+    {
+      "id": "dusk",
+      "kind": "music",
+      "file": "music/dusk.mp3",
+      "bytes": 339845,
+      "duration": 28.235294117647054,
+      "peak": 0.2272789031267166,
+      "rms": 0.056700800370833616,
+      "sampleRate": 22050
+    },
+    {
+      "id": "battle",
+      "kind": "music",
+      "file": "music/battle.mp3",
+      "bytes": 199725,
+      "duration": 16.551724137931036,
+      "peak": 0.27946552634239197,
+      "rms": 0.07368870557382995,
+      "sampleRate": 22050
+    }
+  ]
+}

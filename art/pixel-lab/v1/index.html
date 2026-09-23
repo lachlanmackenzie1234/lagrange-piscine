@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lacanau field kit · Lagrange Quest</title>
+  <link rel="icon" href="favicon.svg">
+  <link rel="stylesheet" href="lab.css">
+  <script type="module" src="lab.mjs"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead"><a class="wordmark" href="#">L/Q <span>LAGRANGE QUEST</span></a><div class="edition">ART STUDY <b>01</b> <span>SEPTEMBER 2026</span></div></header>
+    <main>
+      <section class="intro">
+        <div><p class="eyebrow">LACANAU FIELD KIT</p><h1>Off duty.<br>On a quest.</h1></div>
+        <div class="intro-copy"><p>A little adventure between the pines.<br>Sun-faded workwear. Unlikely treasures.<br>Something suspicious in the pool.</p><div class="tagline"><span class="status-dot"></span> ISOLATED VISUAL TRIALS · V1</div><a href="lacanau-field-kit-v1.zip" download class="pack-link">Download the asset pack <span>↗</span></a></div>
+        <div class="mascot"><canvas id="hero-creature" aria-label="Écume, the wave-crested pool otter"></canvas><span>MEET ÉCUME</span></div>
+      </section>
+      <nav class="set-picker" aria-label="Equipment set"></nav>
+      <section class="workbench" aria-label="World and equipment previews">
+        <article class="world-panel">
+          <div class="panel-title"><span>01 / A PLACE TO PLAY</span><span id="zone-label">EDEN CLUB</span></div>
+          <div class="scene-tabs" role="group" aria-label="Scene study">
+            <button type="button" data-scene="courtyard" aria-pressed="true">Courtyard</button><button type="button" data-scene="encounter" aria-pressed="false">Encounter</button><button type="button" data-scene="tactical" aria-pressed="false">Tactics</button><button type="button" data-scene="isometric" aria-pressed="false">2.5D study</button>
+          </div>
+          <div class="game-frame">
+            <div class="game-top"><span id="scene-place">EDEN CLUB · COURTYARD</span><span id="scene-meta">16 × 16 TILES</span></div>
+            <div class="scene-surface"><canvas id="scene" width="128" height="96" aria-label="128 by 96 pixel pool courtyard study"></canvas></div>
+            <div id="battle-hud" class="battle-hud" hidden><div><span>YOUR TURN</span><strong>01:30</strong></div><div><span>ACTION</span><strong>● ● ● ● ● ●</strong></div><div><span>MOVEMENT</span><strong>◆ ◆ ◆</strong></div></div>
+            <div class="dialogue"><span class="cursor">▸</span><p id="scene-caption">The net is ready. The water is suspiciously quiet.</p></div>
+          </div>
+          <div class="scene-note"><span>128 × 96 <b>native pixels</b></span><span id="scene-note">Orthographic ground · shallow front faces</span></div>
+          <div class="species-row"><div><canvas id="companion" aria-label="Creature study"></canvas><span><strong id="creature-name"></strong><small>COMPANION · 24 × 24</small></span></div><div><canvas id="foe" aria-label="Algae crab monster study"></canvas><span><strong>Algue verte</strong><small>MONSTER · 28 × 24</small></span></div></div>
+        </article>
+        <article class="wardrobe-panel">
+          <div class="panel-title"><span>02 / DRESS FOR THE DAY</span><span>8 PIECES</span></div>
+          <div class="wardrobe-head"><div><p class="eyebrow" id="set-code">EC / THE ORIGINAL</p><h2 id="set-name">Pool Boy</h2></div><span class="set-mark" id="set-mark">EC</span></div>
+          <div class="paperdoll"><div id="left-slots" class="slot-column"></div><div class="trainer-portrait"><div class="portrait-grid"></div><canvas id="trainer" aria-label="24 by 32 pixel trainer wearing the selected set"></canvas><span>24 × 32</span></div><div id="right-slots" class="slot-column"></div></div>
+          <p class="motif" id="set-motif"></p>
+          <div class="selected-item"><canvas id="selected-icon" aria-label="Selected item at 3 times native size"></canvas><div><small id="selected-slot">TÊTE / HEAD</small><strong id="selected-name">Casquette</strong><span id="selected-rarity">Commun · Pool Boy</span></div><button type="button" id="download-item" class="download-icon" aria-label="Download selected 16 by 16 PNG" title="Download native PNG">↓</button></div>
+          <div class="rarity-label"><span>RARITY STUDY</span><span id="rarity-name">COMMUN</span></div>
+          <div class="rarity-picker" aria-label="Item rarity"></div>
+          <p class="quiet">The set owns the colour. Rarity lives in the clasp, trim and frame.</p>
+        </article>
+      </section>
+      <section class="field-guide" aria-labelledby="guide-title">
+        <div class="section-heading"><div><p class="eyebrow">03 / SMALL BUT FULL OF CHARACTER</p><h2 id="guide-title">The field guide.</h2></div><div class="view-options"><button type="button" id="native-toggle" aria-pressed="false">View at 1×</button><button type="button" id="background-toggle" aria-pressed="false">Dark ground</button></div></div>
+        <div id="creature-guide" class="creature-guide"></div>
+        <div class="monster-strip"><div class="monster-intro"><p class="eyebrow">POOL PROBLEMS,<br>WITH PERSONALITY.</p><p>Three first encounters.<br>Big shapes, tiny bad attitudes.</p></div><div id="monster-guide" class="monster-guide"></div></div>
+      </section>
+      <section class="equipment-sheet" aria-labelledby="kit-title">
+        <div class="section-heading"><div><p class="eyebrow">04 / EVERYDAY OBJECTS, UNLIKELY LOOT</p><h2 id="kit-title">Five sets. Forty silhouettes.</h2></div><a class="text-link" href="exports/atlas/atlas-equipment.png" download>Save native atlas ↗</a></div>
+        <div class="table-scroll"><table><thead><tr><th scope="col">PANOPLIE</th><th scope="col">HEAD</th><th scope="col">BODY</th><th scope="col">LEGS</th><th scope="col">FEET</th><th scope="col">CHARM</th><th scope="col">POLE</th><th scope="col">ROBOT</th><th scope="col">BROOM</th></tr></thead><tbody id="kit-rows"></tbody></table></div>
+      </section>
+      <section class="concept-section" aria-labelledby="concept-title"><div class="section-heading"><div><p class="eyebrow">05 / THE NORTH STAR</p><h2 id="concept-title">A summer worth exploring.</h2></div><span class="concept-label">GENERATED CONCEPT ART<br>Art direction · not a sprite sheet</span></div><a href="concepts/lacanau-field-kit.png" target="_blank" rel="noopener"><img class="concept" src="concepts/lacanau-field-kit.png" alt="Lacanau field kit concept board: a coastal pool courtyard, workwear trainers, five creatures, three monsters and pool equipment." loading="lazy" width="1536" height="1024"></a></section>
+      <section class="notes"><div><p class="eyebrow">A COHERENT LITTLE WORLD</p><h3>Same light. Same ink.</h3><p>One-pixel outlines, light from the upper left, three-tone material ramps. Large clusters carry the silhouette; a few bright pixels give it life.</p></div><div><p class="eyebrow">2D FIRST</p><h3>Room for tactics.</h3><p>The 128 × 96 stage holds an 8 × 6 grid of 16-pixel tiles. AP, MP, range and a 90-second turn can sit around it. The tactics and 2.5D views above are composition studies.</p></div><div><p class="eyebrow">READY TO EXPERIMENT</p><h3>Keep the source.</h3><p>Native PNGs, transparent sprite atlases, all six rarity variants, a palette and an asset manifest. Every pixel can be edited and exported again.</p><a class="text-link" href="README.md">Art direction & integration notes ↗</a></div></section>
+    </main>
+    <footer><a class="wordmark" href="#">L/Q <span>LACANAU FIELD KIT</span></a><span>A LAGRANGE QUEST EXPERIMENT · 2026</span><a href="exports/manifest.json">Asset manifest ↗</a></footer>
+  </div>
+</body>
+</html>

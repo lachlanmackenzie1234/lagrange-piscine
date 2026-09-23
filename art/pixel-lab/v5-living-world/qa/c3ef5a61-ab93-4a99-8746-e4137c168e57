@@ -1,0 +1,20 @@
+{
+  "study": "Lagrange Quest · Living world 05",
+  "version": 1,
+  "scene": "EC-02-garden",
+  "resolution": [
+    512,
+    384
+  ],
+  "settings": {
+    "mood": "dusk",
+    "lushness": 72,
+    "breeze": 35,
+    "water": 55,
+    "sun": 42,
+    "keeper": 72,
+    "shadows": true,
+    "grid": false,
+    "quiet": false
+  }
+}

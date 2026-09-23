@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "poolCount": 23,
+  "testedRevisionsPerPool": 25,
+  "testedLayouts": 575,
+  "maxRejectedAttempts": 4,
+  "minWalkableCells": 83,
+  "checks": [
+    "all walkable cells connected",
+    "every functional anchor reachable",
+    "3x3 encounter area clear",
+    "structures and water do not overlap",
+    "paths remain unblocked",
+    "same seed reproduces byte-identical JSON",
+    "pool order does not matter",
+    "live state does not change layout",
+    "reroll changes geometry",
+    "all 23 default layouts distinct",
+    "invalid inputs rejected"
+  ]
+}
