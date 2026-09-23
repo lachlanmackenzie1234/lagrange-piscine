@@ -14,8 +14,10 @@ atlases under `assets/`; these source packs are not in its offline precache.
 | Living world v5 | [Interactive garden](pixel-lab/v5-living-world/index.html) | [Notes](pixel-lab/v5-living-world/README.md) |
 | Sound study | [Listen](pixel-lab/v5-living-world/sound-library.html) | [Scores, synthesis and downloads](pixel-lab/v5-living-world/audio/README.md) |
 | Surface lab | [Interactive materials](surface-lab/index.html) | [Notes](surface-lab/README.md), [saved looks](surface-lab/presets/README.md) |
+| Pool study | [A pool map on the living ground](surface-lab/pool.html) | [Notes](surface-lab/README.md#pool-study) |
 
 The surface lab contains grass, sand, earth, gravel and water, regional grain
 variation, weather response, colour grading, reflections and opt-in sound.
-Its map rebuilding and weather/material integration into the production game
-remain a separate development pass.
+The pool study composes it under the real pool maps with the zone kit's trees
+and sheds; wiring that composition into the production game remains a separate
+development pass.

@@ -44,8 +44,11 @@ const TerrainStudy = (() => {
       this.options = { length: 20, grain: .5, variation: .55, edgeGrain: .55, pathWear: .65, moisture: .35, wind: .35, angle: 0, blend: 24, mode: 'blend', layout: 'garden', rain: 0, sun: .65, speed: 1, temperature: 18, humidity: .55, seasonFrom: 'summer', seasonTo: 'autumn', seasonBlend: 0, richness: 1.25, lightPalette: 'sun', lightStrength: .55, lightSaturation: 1, keyLight: '#ffe3a5', shadowColour: '#425880', vectors: false, shade: .55, recovery: 8, ...options };
       this.options = { ...SurfaceReflections.defaults, colourDriver: 'manual', studyHour: 18, observedHour: null, adaptation: .75, ...this.options };
       this.weather = new SurfaceWeather.State(this.options.moisture); this.water = new SurfaceWater.Layer(); this.reflections = new SurfaceReflections.Layer(); this.sequenceWeather = null;
-      this.variation = new SurfaceVariation.Field(); this.grainScratch = makeCanvas(W * 2, H * 2);
-      this.grainLayers = Object.fromEntries(SurfaceVariation.types.map(type => [type, new SurfaceGrainLayer.Layer(type, this.variation, this.grainScratch)]));
+      // grainRes: grain texture resolution per scene pixel (2 in the lab; 1 is enough on a phone).
+      // grainRate / grassRate: optional caps (Hz) on grain re-renders and grass layer rebuilds.
+      const grainRes = Math.max(1, Math.min(2, Math.round(this.options.grainRes || 2)));
+      this.variation = new SurfaceVariation.Field(); this.grainScratch = makeCanvas(W * grainRes, H * grainRes);
+      this.grainLayers = Object.fromEntries(SurfaceVariation.types.map(type => [type, new SurfaceGrainLayer.Layer(type, this.variation, this.grainScratch, grainRes)]));
       this.sandGrains = this.grainLayers.sand.output; this.earthGrains = this.grainLayers.earth.output;
       this.sandOffset = { x: 0, y: 0 }; this.earthOffset = { x: 0, y: 0 };
       this.base = makeCanvas(); this.wetBase = makeCanvas(); this.grassLayer = makeCanvas(); this.frames = new Map(); this.bytes = 0;
@@ -223,9 +226,11 @@ const TerrainStudy = (() => {
       g.save(); g.clearRect(0, 0, W, H); g.globalCompositeOperation = 'lighter';
       g.globalAlpha = 1 - this.wetness('grass'); g.drawImage(this.base, 0, 0);
       g.globalAlpha = this.wetness('grass'); g.drawImage(this.wetBase, 0, 0); g.globalAlpha = 1;
+      const grainDue = !this.options.grainRate || this.time - (this.grainAt ?? -1) >= 1 / this.options.grainRate;
+      if (grainDue) { this.grainAt = this.time; this.grainOffsets = { sand: { ...this.sandOffset }, earth: { ...this.earthOffset } }; }
       for (const type of SurfaceVariation.types) {
         const layer = this.grainLayers[type]; if (!layer.active) continue;
-        layer.render(quiet || type === 'gravel' ? {x:0,y:0} : this[type + 'Offset'], this.wetness(type));
+        layer.render(quiet || type === 'gravel' ? {x:0,y:0} : this.grainOffsets[type], this.wetness(type), grainDue);
         g.drawImage(layer.output, 0, 0, W, H);
       }
       g.restore();
@@ -271,7 +276,7 @@ const TerrainStudy = (() => {
       const shape = this.shape(cell, time, quiet, mask), key = [shape.height, shape.amount, shape.pose, shape.variant, shape.mask, cell.tone].join('/');
       if (!this.frames.has(key)) {
         const image = QuestZones.meadowSprite(shape, this.palettes[cell.tone]); this.frames.set(key, image); this.bytes += image.width * image.height * 4;
-        while (this.bytes > 4 * 1048576 || this.frames.size > 768) { const key = this.frames.keys().next().value, old = this.frames.get(key); this.frames.delete(key); this.bytes -= old.width * old.height * 4; }
+        while (this.bytes > (this.options.spriteCacheBytes || 4 * 1048576) || this.frames.size > (this.options.spriteCacheSize || 768)) { const key = this.frames.keys().next().value, old = this.frames.get(key); this.frames.delete(key); this.bytes -= old.width * old.height * 4; }
       }
       return this.frames.get(key);
     }
@@ -406,14 +411,18 @@ const TerrainStudy = (() => {
       }
       front.restore(); this.tintGrass(this.foregroundGrass); g.drawImage(this.foregroundGrass, 0, 0);
     }
-    paint(g, hero, drawActor, drawShadow, quiet = false) {
-      if (this.disposed) return;
+    // The ground up to and including the rooted grass. Returns the grass tick
+    // that paintActor needs for the blades redrawn over an actor's feet.
+    paintBase(g, hero, quiet = false) {
+      if (this.disposed) return -1;
       g.imageSmoothingEnabled = false; this.paintGround(g, quiet);
       this.paintSandLight(g, quiet, false); this.paintTracks(g); this.paintGrains(g, quiet);
       if (this.weather.frost > .01) { g.save(); g.globalAlpha = this.weather.frost * .28; g.fillStyle = '#e3ebed'; g.fillRect(0, 0, W, H); g.restore(); }
       this.water.paint(g, this.time, { ...this.options, season: this.season, sharedReflections: true }, quiet);
       const tick = quiet ? -1 : Math.floor(this.time * 10);
-      if (this.dirty || this.grassTick !== tick) {
+      const due = this.grassTick == null || !this.options.grassRate || this.time - (this.grassAt ?? -1) >= 1 / this.options.grassRate;
+      if ((this.dirty || this.grassTick !== tick) && due) {
+        this.grassAt = this.time;
         const field = this.grassLayer.getContext('2d'); field.clearRect(0, 0, W, H); field.imageSmoothingEnabled = false;
         const shadow = this.grassShadow.getContext('2d'); shadow.clearRect(0, 0, W, H); shadow.imageSmoothingEnabled = false;
         for (const cell of this.cells) {
@@ -426,12 +435,21 @@ const TerrainStudy = (() => {
       }
       g.globalAlpha = this.options.shade * .3 * (this.sequenceState?.shade ?? 1); g.drawImage(this.grassShadow, 0, 0); g.globalAlpha = 1;
       g.drawImage(this.grassLayer, 0, 0);
-      g.save(); g.globalAlpha = this.options.shade * .4; g.translate(hero.x, hero.y); g.transform(1, 0, -.7, -.3, 0, 0); drawShadow(); g.restore();
+      return tick;
+    }
+    // One actor: its cast shadow, the actor itself, wading water and the blades over its feet.
+    paintActor(g, hero, tick, drawActor, drawShadow, quiet = false) {
+      if (this.disposed) return;
+      if (drawShadow) { g.save(); g.globalAlpha = this.options.shade * .4; g.translate(hero.x, hero.y); g.transform(1, 0, -.7, -.3, 0, 0); drawShadow(); g.restore(); }
       g.globalAlpha = this.options.shade * .27; oval(g, '#466145', hero.x, hero.y - 1, 8, 2); g.globalAlpha = 1;
       drawActor(); this.water.foreground(g, hero);
       // Redraw the same rooted blades over the actor; bending, shortening and
       // the open sandy margin create the passage, without moving the keeper.
       this.paintForegroundGrass(g, hero, tick, quiet);
+    }
+    // Atmosphere over everything: rain haze, lighting, rain streaks, reflections.
+    paintFront(g, hero, quiet = false) {
+      if (this.disposed) return;
       g.save(); g.globalAlpha = this.options.rain * .08; pixel(g, '#78939f', 0, 0, W, H); g.restore();
       this.paintLighting(g);
       if (this.options.vectors) this.water.vectors(g);
@@ -440,6 +458,12 @@ const TerrainStudy = (() => {
           g.strokeStyle = '#d6e7df'; g.lineWidth = 1; g.beginPath(); g.moveTo(Math.round(x), Math.round(y)); g.lineTo(Math.round(x - this.options.wind * 5), Math.round(y - 6)); g.stroke(); }
         g.restore(); }
       this.reflections.paint(g, this, hero, quiet, this.options.reflectionView);
+    }
+    paint(g, hero, drawActor, drawShadow, quiet = false) {
+      if (this.disposed) return;
+      const tick = this.paintBase(g, hero, quiet);
+      this.paintActor(g, hero, tick, drawActor, drawShadow, quiet);
+      this.paintFront(g, hero, quiet);
     }
     get stats() { return { reflections: this.reflections.stats, variation: this.variation.stats, grainBytes: Object.values(this.grainLayers).reduce((n, layer) => n + layer.bytes, this.grainScratch.width * this.grainScratch.height * 4), cells: this.cells.length, bent: this.cells.filter(c => c.flatten > .05).length,
       tracks: this.tracks.filter(p => p.gravel > .02 && SurfaceGravel.response(this.time - p.at, this.options.recovery).settle > .004 || p.sand > .02 && footprintOpacity(this.time - p.at, this.options.wind) > .004 || p.earth > .02 && SurfaceEarth.response(this.time - p.at, this.wetness('earth'), this.options.recovery).indent > .004).length,

@@ -62,6 +62,39 @@ The same layout under four seasonal/weather states (0.5× grain scale):
 
 ![Spring humidity, summer evaporation, autumn mud and winter ice](qa/climate-seasons.png)
 
+## Pool study
+
+[`pool.html`](pool.html) puts a real pool map on the living ground. Pick any of
+the 23 pools; the map's grass, sand paths, the gravel apron around the pump
+shed, the earth under trees and the forest edge of Grand Piquey become the lab's
+continuous materials, and the terrace, basin, trees, shed and props come from
+`PoolMaps`, the living world and the zone kit. Villas are a provisional flat
+roof. The basin keeps the game's four water states.
+
+- `js/pool-surface.js` turns a `PoolMaps` layout into a `SurfaceMaps` sampler:
+  each map cell is classed grass, sand, earth, gravel, hard (terrace) or solid
+  (basin, buildings); signed distance fields on a 4 px grid give soft edges,
+  and hard/solid ground fades the field out so the map's own art shows through.
+  `SurfaceMaps.register(id, sampler)` accepts such external layouts.
+- The field paints in three passes so the scene can sort actors and scenery
+  between them: `paintBase` (ground, water, rooted grass), `paintActor`
+  (shadow, actor, blades over the feet) and `paintFront` (haze, light, rain,
+  reflections). `paint` still composes all three for this lab.
+- The living world's `Scene` takes `{ surface: true }` to skip its own lawn
+  and meadow, a `sprite(prop)` override, and exposes `paintScenery` and
+  `paintSky` separately.
+- Budget options on the field, off by default so the lab is unchanged:
+  `grainRes` (grain texture pixels per scene pixel, 2 here, 1 in the study),
+  `grainRate` and `grassRate` (Hz caps on grain re-renders and grass layer
+  rebuilds), `spriteCacheSize` / `spriteCacheBytes`. The study's URL takes
+  `?res=2&grain=0&grass=0` to compare with the uncapped lab look. In the
+  headless test renderer these cut a frame from about 100 ms to 20 ms with no
+  visible change; a phone should be measured on the device.
+- Weather presets (sec, brise, pluie, tempête, gel) and time of day; "Météo
+  Lacanau" applies the app's cached Open-Meteo record through `SurfaceClimate`.
+- Worn paths persist per pool in `localStorage` under `lp-surface-study.wear.*`
+  (study only, 3 KB each). "Effacer l'usure" clears them.
+
 ## Three colour layers
 
 **Colour & light** has three independently adjustable stages:

@@ -1,6 +1,6 @@
 /* Seeded, continuous material maps. All five weights sum to one. */
 const SurfaceMaps = (() => {
-  const W = 512, H = 384, types = ['grass', 'sand', 'earth', 'gravel', 'water'];
+  const W = 512, H = 384, types = ['grass', 'sand', 'earth', 'gravel', 'water'], custom = {};
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
   const smooth = (a, b, x) => { const t = clamp((x-a)/(b-a)); return t*t*(3-2*t); };
   const edge = (distance, blend) => blend ? smooth(-blend/2, blend/2, distance) : Number(distance >= 0);
@@ -8,6 +8,7 @@ const SurfaceMaps = (() => {
   function mix(base, kind, amount) { const out={}; for(const t of types) out[t]=(base[t]||0)*(1-amount);out[kind]+=amount;return out; }
   function sample(x,y,blend=24,mode='blend',layout='garden') {
     if(types.includes(mode)) return Object.fromEntries(types.map(t=>[t,Number(t===mode)]));
+    if(custom[layout]) return custom[layout].sample(x,y,blend);
     let m={grass:1,sand:0,earth:0,gravel:0,water:0};
     if(layout==='coast') {
       m={grass:0,sand:1,earth:0,gravel:0,water:0};
@@ -35,6 +36,7 @@ const SurfaceMaps = (() => {
     return m;
   }
   function depth(x,y,layout='garden',mode='blend') {
+    if(custom[layout]) return custom[layout].depth?custom[layout].depth(x,y):0;
     if(mode==='water')return clamp(.25+Math.sin(x/110)*.1+y/H*.45);
     if(layout==='coast')return clamp(ellipse(x,y,163,210,108,82)/70);
     if(layout==='stream')return clamp(1-Math.abs(x-(257+Math.sin(y/73)*44+Math.sin(y/29)*8))/32)*.65;
@@ -42,7 +44,10 @@ const SurfaceMaps = (() => {
   }
   const layouts={garden:'Rain garden',coast:'Dune pond',stream:'Gravel stream'};
   const tours={garden:[[300,274],[418,308],[393,112],[279,111],[113,140],[91,318]],coast:[[385,297],[185,231],[132,155],[350,84],[459,217],[286,329]],stream:[[114,146],[252,165],[408,108],[394,290],[270,286],[88,320]]};
-  return {W,H,types,layouts,sample,depth,tour:id=>(tours[id]||tours.garden).map(p=>p.slice()),spawn:id=>({x:(tours[id]||tours.garden)[0][0],y:(tours[id]||tours.garden)[0][1]})};
+  /* External layouts (a pool map, a yard) register a sampler: sample(x,y,blend) returns the five weights, plus optional depth(x,y), tour and spawn. */
+  function register(id,sampler){ if(!sampler){delete custom[id];return;} custom[id]=sampler; }
+  const tourOf=id=>custom[id]?.tour?custom[id].tour.map(p=>p.slice()):(tours[id]||tours.garden).map(p=>p.slice());
+  return {W,H,types,layouts,sample,depth,register,tour:tourOf,spawn:id=>{const t=tourOf(id);return custom[id]?.spawn?{...custom[id].spawn}:{x:t[0][0],y:t[0][1]};}};
 })();
 if(typeof window!=='undefined')window.SurfaceMaps=SurfaceMaps;
 if(typeof module!=='undefined')module.exports=SurfaceMaps;

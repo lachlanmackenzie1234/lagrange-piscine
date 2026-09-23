@@ -263,7 +263,8 @@ function makeGrassSprite(size, variant) {
       if (hub) { const room = window.QuestHubArt.build(layout.id, art.plants); this.base = room.base; this.foreground = room.foreground; } else this.base = makeGround(layout);
       this.props = decoration.props.map((o, i) => {
         const zoneAsset = o.species ? `${o.species}-${o.treeSize}` : null;
-        const sprite = zoneAsset ? art.zones[zoneAsset] : o.asset ? art.hubProps[o.flipX ? o.asset + '-mirrored' : o.asset] : o.plant == null ? art.props[o.kind] : art.plants[o.plant];
+        const custom = options.sprite?.(o), sprite = custom || (zoneAsset ? art.zones[zoneAsset] : o.asset ? art.hubProps[o.flipX ? o.asset + '-mirrored' : o.asset] : o.plant == null ? art.props[o.kind] : art.plants[o.plant]);
+        if (custom && !art.shadows.has(custom)) { art.shadows.set(custom, shadowSprite(custom)); art.alpha.set(custom, custom.getContext('2d').getImageData(0, 0, custom.width, custom.height).data); }
         return { scale: 1, phase: i * 2.73, ...o, zoneAsset, sprite, anchor: zoneAsset ? art.zoneMeta[zoneAsset].anchor : [sprite.width / 2, sprite.height] };
       });
       this.grass = decoration.grass.map(o => ({ ...o, kind: 'grass', scale: 1, sprite: o.zoneAccent ? art.zones[`${this.theme.id}-${Zones.grassStage(this.cycle.height)}`] : art.grass[o.size][o.variant], bend: 0, bendVelocity: 0, flatten: 0 }));
@@ -271,12 +272,13 @@ function makeGrassSprite(size, variant) {
       this.hitProps = this.props.slice().sort((a, b) => b.y - a.y);
       this.shadows = surface(this.width, this.height); this.shadeSample = surface(Math.ceil(this.width / 4), Math.ceil(this.height / 4));
       this.meadowFrames = new Map(); this.meadowFrameBytes = 0; this.meadowDirty = true;
+      this.surface = !!options.surface; // an external surface field paints lawn and meadow
       this.lawnAt = this.pool ? lawnEligibility(layout) : null;
-      this.meadow = this.pool ? Zones.createMeadow({ width: this.width, height: this.height, eligible: this.lawnAt,
+      this.meadow = this.pool && !this.surface ? Zones.createMeadow({ width: this.width, height: this.height, eligible: this.lawnAt,
         zoneAt: (x, y) => inside(x, y, rect(layout.deck), 12) ? 'trimmed' : 'wild' }) : [];
       this.meadowIndex = new Map(this.meadow.map(c => [Math.floor(c.y / 8) * Math.ceil(this.width / 8) + Math.floor(c.x / 8), c]));
-      this.meadowLayer = this.pool ? surface(this.width, this.height) : null;
-      this.shade = new Uint8Array(this.shadeSample.width * this.shadeSample.height); this.makeLawn(); this.updateShadows(0, true);
+      this.meadowLayer = this.pool && !this.surface ? surface(this.width, this.height) : null;
+      this.shade = new Uint8Array(this.shadeSample.width * this.shadeSample.height); if (!this.surface) this.makeLawn(); this.updateShadows(0, true);
     }
     refreshClimate() {
       const now = new Date(), atmosphere = Eco.currentAppearance(now);
@@ -386,6 +388,7 @@ function makeGrassSprite(size, variant) {
     footGrass(g, actor, t, quiet) {
       const x = Math.round(actor.x * 2), y = Math.round(actor.y * 2);
       if (!this.grassAt(x, y) || actor.grass === false) return;
+      if (this.onFootGrass) { this.onFootGrass(g, actor, t, quiet); return; }
       if (this.meadowLayer) { this.foregroundMeadow(g, actor, t, quiet); return; }
       // A few rooted blades overlap the soles rather than drawing a green halo.
       const sway = Math.round(Math.sin(t * 1.2 + x) * .5);
@@ -442,9 +445,39 @@ function makeGrassSprite(size, variant) {
       const anchor = grass ? [source.width / 2, source.height] : o.anchor;
       g.drawImage(frame, Math.round(o.x - (anchor[0] + (frame.width - source.width) / 2) * o.scale), Math.round(o.y - anchor[1] / source.height * h), Math.round(frame.width * o.scale), h); g.restore();
     }
+    // Fresh footprints, actor shadows, then scenery and actors in depth order. Coordinates: scene space (512x384).
+    paintScenery(ctx, condition, time, foot, actors, quiet = false) {
+      const t = quiet ? 0 : time;
+      for (const track of this.tracks) { ctx.globalAlpha = (1 - (time - track.at) / 2) * .2; ellipse(ctx, '#a7bd78', track.x, track.y, 5, 2); } ctx.globalAlpha = 1;
+      actors = actors.slice().sort((a, b) => a.y - b.y);
+      for (const actor of actors) {
+        if (actor.castShadow) { ctx.save(); ctx.globalAlpha = (this.interior ? .15 : .22) * (1 - this.climate.visual.cloud * .55); ctx.scale(2, 2); ctx.translate(actor.x, actor.y); ctx.transform(1, 0, this.shadowShear, this.interior ? .26 : -.36, 0, 0); actor.castShadow(); ctx.restore(); }
+        ctx.globalAlpha = this.interior ? .16 : .22; ellipse(ctx, '#254e43', actor.x * 2, actor.y * 2 - 1, actor.shadow || 7, 2);
+      } ctx.globalAlpha = 1;
+      const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw({ light: this.lightAt(a.x * 2, a.y * 2) }); ctx.restore(); this.footGrass(ctx, a, t, quiet); };
+      let next = 0;
+      for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= (o.depth ?? o.y)) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); }
+      while (next < actors.length) drawActor(actors[next++]);
+      if (condition?.filtre > condition?.interval) { const pump = this.props.find(o => o.kind === 'pump'); if (pump) box(ctx, '#e9ac6a', pump.x + 5, pump.y - 21, 3, 3); }
+      this.leaves = this.leaves.filter(e => time - e.start < 2.2);
+      if (!quiet) for (const e of this.leaves) { const age = time - e.start; ctx.globalAlpha = Math.min(1, (2.2 - age) * 2); box(ctx, '#d5cf79', e.x + age * 11 + Math.sin(age * 4 + e.phase) * 4, e.y + age * 14, 2, 2); }
+      if (this.interior && !quiet) for (let i = 0; i < 7; i++) { const x = 72 + i * 30 + Math.sin(t * .25 + i) * 3, y = 74 + (i * 37 + t * 1.5) % 170; if (window.QuestHubArt.sunlit('bureau', x, y)) { ctx.globalAlpha = .18 + Math.sin(t * .5 + i) * .1; box(ctx, '#fff7d7', x, y); } }
+      ctx.globalAlpha = 1; if (this.foreground) ctx.drawImage(this.foreground, 0, 0);
+    }
+    // Time-of-day mood, cloud, rain and the vignette. Scene space.
+    paintSky(ctx, t, quiet = false) {
+      const { patch, visual } = this.climate;
+      ctx.globalAlpha = patch.mood === 'dusk' ? .22 : patch.mood === 'golden' ? .1 : (.02 + visual.warmth * .04) * visual.sunStrength;
+      box(ctx, patch.mood === 'dusk' ? '#263756' : '#ffc566', 0, 0, this.width, this.height);
+      if (!this.interior) { ctx.globalAlpha = visual.cloud * .12; box(ctx, '#6d929e', 0, 0, this.width, this.height);
+        if (!quiet && visual.rain > .01) { ctx.globalAlpha = .25; for (let i = 0; i < Math.ceil(visual.rain * 44); i++) { const x = (i * 97 + t * 22) % this.width, y = (i * 61 + t * 150) % this.height; line(ctx, '#d9eee7', [[x, y], [x - 2 - patch.breeze / 30, y + 7]]); } }
+      }
+      for (let i = 0; i < 4; i++) { ctx.globalAlpha = .03; const edge = i * 5; box(ctx, '#214e45', edge, edge, this.width - edge * 2, 5); box(ctx, '#214e45', edge, this.height - edge - 5, this.width - edge * 2, 5); box(ctx, '#214e45', edge, edge + 5, 5, this.height - edge * 2 - 10); box(ctx, '#214e45', this.width - edge - 5, edge + 5, 5, this.height - edge * 2 - 10); }
+      ctx.globalAlpha = 1;
+    }
     paint(ctx, condition, time, hero, actors = [], quiet = false) {
       const dt = Math.min(.25, Math.max(0, time - this.time)); this.time = time; const t = quiet ? 0 : time, foot = hero.map(n => n * 2);
-      if (Date.now() >= this.nextClimate) { const previous = this.cycle.height; this.refreshClimate(); if (previous !== this.cycle.height) this.makeLawn(); }
+      if (Date.now() >= this.nextClimate) { const previous = this.cycle.height; this.refreshClimate(); if (previous !== this.cycle.height && !this.surface) this.makeLawn(); }
       const vx = dt && this.lastFoot ? (foot[0] - this.lastFoot[0]) / dt : 0, vy = dt && this.lastFoot ? (foot[1] - this.lastFoot[1]) / dt : 0;
       for (const tuft of this.grass) { const impulse = Eco.passageImpulse(tuft, { x: foot[0], y: foot[1], vx, vy });
         for (let left = dt; left > 0; left -= .05) Eco.advanceGrassMemory(tuft, impulse, Math.min(.05, left), quiet);
@@ -462,28 +495,8 @@ function makeGrassSprite(size, variant) {
       this.lastFoot = foot; this.tracks = quiet ? [] : this.tracks.filter(p => time - p.at < 2).slice(-32); this.updateShadows(t, quiet);
       ctx.save(); ctx.scale(.5, .5); ctx.imageSmoothingEnabled = false;
       ctx.drawImage(this.base, 0, 0); if (this.lawn) ctx.drawImage(this.lawn, 0, 0); if (this.pool) this.water(ctx, condition, t); this.paintMeadow(ctx, t, quiet); ctx.drawImage(this.shadows, 0, 0);
-      for (const track of this.tracks) { ctx.globalAlpha = (1 - (time - track.at) / 2) * .2; ellipse(ctx, '#a7bd78', track.x, track.y, 5, 2); } ctx.globalAlpha = 1;
-      actors = actors.slice().sort((a, b) => a.y - b.y);
-      for (const actor of actors) {
-        if (actor.castShadow) { ctx.save(); ctx.globalAlpha = (this.interior ? .15 : .22) * (1 - this.climate.visual.cloud * .55); ctx.scale(2, 2); ctx.translate(actor.x, actor.y); ctx.transform(1, 0, this.shadowShear, this.interior ? .26 : -.36, 0, 0); actor.castShadow(); ctx.restore(); }
-        ctx.globalAlpha = this.interior ? .16 : .22; ellipse(ctx, '#254e43', actor.x * 2, actor.y * 2 - 1, actor.shadow || 7, 2);
-      } ctx.globalAlpha = 1;
-      const drawActor = a => { ctx.save(); ctx.scale(2, 2); a.draw({ light: this.lightAt(a.x * 2, a.y * 2) }); ctx.restore(); this.footGrass(ctx, a, t, quiet); };
-      let next = 0;
-      for (const o of this.scenery) { while (next < actors.length && actors[next].y * 2 <= (o.depth ?? o.y)) drawActor(actors[next++]); this.paintObject(ctx, o, t, foot, quiet); }
-      while (next < actors.length) drawActor(actors[next++]);
-      if (condition?.filtre > condition?.interval) { const pump = this.props.find(o => o.kind === 'pump'); if (pump) box(ctx, '#e9ac6a', pump.x + 5, pump.y - 21, 3, 3); }
-      this.leaves = this.leaves.filter(e => time - e.start < 2.2);
-      if (!quiet) for (const e of this.leaves) { const age = time - e.start; ctx.globalAlpha = Math.min(1, (2.2 - age) * 2); box(ctx, '#d5cf79', e.x + age * 11 + Math.sin(age * 4 + e.phase) * 4, e.y + age * 14, 2, 2); }
-      if (this.interior && !quiet) for (let i = 0; i < 7; i++) { const x = 72 + i * 30 + Math.sin(t * .25 + i) * 3, y = 74 + (i * 37 + t * 1.5) % 170; if (window.QuestHubArt.sunlit('bureau', x, y)) { ctx.globalAlpha = .18 + Math.sin(t * .5 + i) * .1; box(ctx, '#fff7d7', x, y); } }
-      ctx.globalAlpha = 1; if (this.foreground) ctx.drawImage(this.foreground, 0, 0);
-      const { patch, visual } = this.climate;
-      ctx.globalAlpha = patch.mood === 'dusk' ? .22 : patch.mood === 'golden' ? .1 : (.02 + visual.warmth * .04) * visual.sunStrength;
-      box(ctx, patch.mood === 'dusk' ? '#263756' : '#ffc566', 0, 0, this.width, this.height);
-      if (!this.interior) { ctx.globalAlpha = visual.cloud * .12; box(ctx, '#6d929e', 0, 0, this.width, this.height);
-        if (!quiet && visual.rain > .01) { ctx.globalAlpha = .25; for (let i = 0; i < Math.ceil(visual.rain * 44); i++) { const x = (i * 97 + t * 22) % this.width, y = (i * 61 + t * 150) % this.height; line(ctx, '#d9eee7', [[x, y], [x - 2 - patch.breeze / 30, y + 7]]); } }
-      }
-      for (let i = 0; i < 4; i++) { ctx.globalAlpha = .03; const edge = i * 5; box(ctx, '#214e45', edge, edge, this.width - edge * 2, 5); box(ctx, '#214e45', edge, this.height - edge - 5, this.width - edge * 2, 5); box(ctx, '#214e45', edge, edge + 5, 5, this.height - edge * 2 - 10); box(ctx, '#214e45', this.width - edge - 5, edge + 5, 5, this.height - edge * 2 - 10); }
+      this.paintScenery(ctx, condition, time, foot, actors, quiet);
+      this.paintSky(ctx, t, quiet);
       ctx.restore();
     }
   }

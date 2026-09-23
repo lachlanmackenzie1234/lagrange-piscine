@@ -7,7 +7,7 @@ const SurfaceWater=(()=>{
  class Layer{
   constructor(){this.layer=canvas();this.overlay=canvas();this.mask=canvas();this.image=this.layer.getContext('2d').createImageData(W,H);this.flow=new SurfaceFluid.Flow();this.ripples=[];this.alpha=new Uint8Array(W*H);this.depth=new Float32Array(W*H);this.puddle=new Uint8Array(W*H);this.active=[];this.count=0;this.ice=0}
   setup(alpha,depth,materials){this.permanent=new Uint8Array(alpha);this.permanentDepth=new Float32Array(depth);this.spots=[];
-   for(let y=0;y<5;y++)for(let x=0;x<6;x++){const xx=40+x*83+(hash(x,y,177)-.5)*34,yy=42+y*68+(hash(x,y,193)-.5)*25,m=materials(xx,yy);if(m.water>.2)continue;
+   for(let y=0;y<5;y++)for(let x=0;x<6;x++){const xx=40+x*83+(hash(x,y,177)-.5)*34,yy=42+y*68+(hash(x,y,193)-.5)*25,m=materials(xx,yy);if(m.water>.2||m.solid)continue;
     this.spots.push({x:xx,y:yy,rx:10+hash(x,y,211)*13,ry:5+hash(x,y,223)*7,threshold:.035+hash(x,y,229)*.22,retain:m.earth+m.gravel*.74+m.grass*.44+m.sand*.27});
    }this.levelKey=null;this.tick=null;this.clear();this.update(0)}
   clear(){this.ripples.length=0;this.flow.clear();this.tick=null}
