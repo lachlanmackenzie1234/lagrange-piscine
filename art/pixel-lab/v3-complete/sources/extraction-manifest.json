@@ -1,0 +1,1997 @@
+{
+  "EC-head": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 0,
+    "row": 0,
+    "cell": [
+      0,
+      0,
+      198,
+      227
+    ],
+    "content": [
+      26,
+      105,
+      174,
+      202
+    ],
+    "sourceSize": [
+      148,
+      97
+    ]
+  },
+  "EC-body": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 1,
+    "row": 0,
+    "cell": [
+      198,
+      0,
+      396,
+      227
+    ],
+    "content": [
+      224,
+      78,
+      373,
+      205
+    ],
+    "sourceSize": [
+      149,
+      127
+    ]
+  },
+  "EC-legs": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 2,
+    "row": 0,
+    "cell": [
+      396,
+      0,
+      595,
+      227
+    ],
+    "content": [
+      419,
+      84,
+      557,
+      207
+    ],
+    "sourceSize": [
+      138,
+      123
+    ]
+  },
+  "EC-feet": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 3,
+    "row": 0,
+    "cell": [
+      595,
+      0,
+      793,
+      227
+    ],
+    "content": [
+      607,
+      111,
+      759,
+      205
+    ],
+    "sourceSize": [
+      152,
+      94
+    ]
+  },
+  "EC-charm": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 4,
+    "row": 0,
+    "cell": [
+      793,
+      0,
+      991,
+      227
+    ],
+    "content": [
+      817,
+      94,
+      946,
+      223
+    ],
+    "sourceSize": [
+      129,
+      129
+    ]
+  },
+  "EC-pole": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 5,
+    "row": 0,
+    "cell": [
+      991,
+      0,
+      1181,
+      227
+    ],
+    "content": [
+      1009,
+      49,
+      1161,
+      223
+    ],
+    "sourceSize": [
+      152,
+      174
+    ]
+  },
+  "EC-robot": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 6,
+    "row": 0,
+    "cell": [
+      1181,
+      0,
+      1388,
+      227
+    ],
+    "content": [
+      1199,
+      76,
+      1356,
+      214
+    ],
+    "sourceSize": [
+      157,
+      138
+    ]
+  },
+  "EC-brush": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 7,
+    "row": 0,
+    "cell": [
+      1388,
+      0,
+      1586,
+      227
+    ],
+    "content": [
+      1410,
+      94,
+      1554,
+      214
+    ],
+    "sourceSize": [
+      144,
+      120
+    ]
+  },
+  "EC-south": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 0,
+    "row": 0,
+    "cell": [
+      0,
+      0,
+      251,
+      327
+    ],
+    "content": [
+      77,
+      81,
+      247,
+      301
+    ],
+    "sourceSize": [
+      170,
+      220
+    ]
+  },
+  "EC-east": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 1,
+    "row": 0,
+    "cell": [
+      251,
+      0,
+      502,
+      327
+    ],
+    "content": [
+      305,
+      80,
+      456,
+      301
+    ],
+    "sourceSize": [
+      151,
+      221
+    ]
+  },
+  "EC-west": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 2,
+    "row": 0,
+    "cell": [
+      502,
+      0,
+      752,
+      327
+    ],
+    "content": [
+      543,
+      80,
+      698,
+      301
+    ],
+    "sourceSize": [
+      155,
+      221
+    ]
+  },
+  "EC-north": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 3,
+    "row": 0,
+    "cell": [
+      752,
+      0,
+      1003,
+      327
+    ],
+    "content": [
+      785,
+      80,
+      941,
+      301
+    ],
+    "sourceSize": [
+      156,
+      221
+    ]
+  },
+  "AG-head": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 0,
+    "row": 1,
+    "cell": [
+      0,
+      227,
+      198,
+      424
+    ],
+    "content": [
+      33,
+      289,
+      182,
+      385
+    ],
+    "sourceSize": [
+      149,
+      96
+    ]
+  },
+  "AG-body": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 1,
+    "row": 1,
+    "cell": [
+      198,
+      227,
+      396,
+      424
+    ],
+    "content": [
+      220,
+      264,
+      380,
+      405
+    ],
+    "sourceSize": [
+      160,
+      141
+    ]
+  },
+  "AG-legs": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 2,
+    "row": 1,
+    "cell": [
+      396,
+      227,
+      595,
+      424
+    ],
+    "content": [
+      419,
+      271,
+      564,
+      406
+    ],
+    "sourceSize": [
+      145,
+      135
+    ]
+  },
+  "AG-feet": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 3,
+    "row": 1,
+    "cell": [
+      595,
+      227,
+      793,
+      424
+    ],
+    "content": [
+      605,
+      294,
+      759,
+      406
+    ],
+    "sourceSize": [
+      154,
+      112
+    ]
+  },
+  "AG-charm": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 4,
+    "row": 1,
+    "cell": [
+      793,
+      227,
+      991,
+      424
+    ],
+    "content": [
+      837,
+      286,
+      947,
+      404
+    ],
+    "sourceSize": [
+      110,
+      118
+    ]
+  },
+  "AG-pole": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 5,
+    "row": 1,
+    "cell": [
+      991,
+      227,
+      1181,
+      424
+    ],
+    "content": [
+      1008,
+      231,
+      1157,
+      420
+    ],
+    "sourceSize": [
+      149,
+      189
+    ]
+  },
+  "AG-robot": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 6,
+    "row": 1,
+    "cell": [
+      1181,
+      227,
+      1388,
+      424
+    ],
+    "content": [
+      1182,
+      291,
+      1382,
+      409
+    ],
+    "sourceSize": [
+      200,
+      118
+    ]
+  },
+  "AG-brush": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 7,
+    "row": 1,
+    "cell": [
+      1388,
+      227,
+      1586,
+      424
+    ],
+    "content": [
+      1416,
+      289,
+      1555,
+      397
+    ],
+    "sourceSize": [
+      139,
+      108
+    ]
+  },
+  "AG-south": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 0,
+    "row": 1,
+    "cell": [
+      0,
+      327,
+      251,
+      625
+    ],
+    "content": [
+      73,
+      356,
+      221,
+      590
+    ],
+    "sourceSize": [
+      148,
+      234
+    ]
+  },
+  "AG-east": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 1,
+    "row": 1,
+    "cell": [
+      251,
+      327,
+      502,
+      625
+    ],
+    "content": [
+      312,
+      353,
+      435,
+      590
+    ],
+    "sourceSize": [
+      123,
+      237
+    ]
+  },
+  "AG-west": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 2,
+    "row": 1,
+    "cell": [
+      502,
+      327,
+      752,
+      625
+    ],
+    "content": [
+      565,
+      353,
+      690,
+      590
+    ],
+    "sourceSize": [
+      125,
+      237
+    ]
+  },
+  "AG-north": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 3,
+    "row": 1,
+    "cell": [
+      752,
+      327,
+      1003,
+      625
+    ],
+    "content": [
+      785,
+      360,
+      929,
+      590
+    ],
+    "sourceSize": [
+      144,
+      230
+    ]
+  },
+  "EP-head": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 0,
+    "row": 2,
+    "cell": [
+      0,
+      424,
+      198,
+      618
+    ],
+    "content": [
+      24,
+      484,
+      186,
+      588
+    ],
+    "sourceSize": [
+      162,
+      104
+    ]
+  },
+  "EP-body": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 1,
+    "row": 2,
+    "cell": [
+      198,
+      424,
+      396,
+      618
+    ],
+    "content": [
+      233,
+      453,
+      373,
+      593
+    ],
+    "sourceSize": [
+      140,
+      140
+    ]
+  },
+  "EP-legs": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 2,
+    "row": 2,
+    "cell": [
+      396,
+      424,
+      595,
+      618
+    ],
+    "content": [
+      425,
+      454,
+      554,
+      607
+    ],
+    "sourceSize": [
+      129,
+      153
+    ]
+  },
+  "EP-feet": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 3,
+    "row": 2,
+    "cell": [
+      595,
+      424,
+      793,
+      618
+    ],
+    "content": [
+      606,
+      463,
+      756,
+      606
+    ],
+    "sourceSize": [
+      150,
+      143
+    ]
+  },
+  "EP-charm": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 4,
+    "row": 2,
+    "cell": [
+      793,
+      424,
+      991,
+      618
+    ],
+    "content": [
+      837,
+      461,
+      925,
+      592
+    ],
+    "sourceSize": [
+      88,
+      131
+    ]
+  },
+  "EP-pole": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 5,
+    "row": 2,
+    "cell": [
+      991,
+      424,
+      1181,
+      618
+    ],
+    "content": [
+      1003,
+      429,
+      1173,
+      613
+    ],
+    "sourceSize": [
+      170,
+      184
+    ]
+  },
+  "EP-robot": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 6,
+    "row": 2,
+    "cell": [
+      1181,
+      424,
+      1388,
+      618
+    ],
+    "content": [
+      1193,
+      457,
+      1377,
+      604
+    ],
+    "sourceSize": [
+      184,
+      147
+    ]
+  },
+  "EP-brush": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 7,
+    "row": 2,
+    "cell": [
+      1388,
+      424,
+      1586,
+      618
+    ],
+    "content": [
+      1409,
+      487,
+      1555,
+      591
+    ],
+    "sourceSize": [
+      146,
+      104
+    ]
+  },
+  "EP-south": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 0,
+    "row": 2,
+    "cell": [
+      0,
+      625,
+      251,
+      904
+    ],
+    "content": [
+      62,
+      660,
+      243,
+      877
+    ],
+    "sourceSize": [
+      181,
+      217
+    ]
+  },
+  "EP-east": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 1,
+    "row": 2,
+    "cell": [
+      251,
+      625,
+      502,
+      904
+    ],
+    "content": [
+      306,
+      660,
+      473,
+      878
+    ],
+    "sourceSize": [
+      167,
+      218
+    ]
+  },
+  "EP-west": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 2,
+    "row": 2,
+    "cell": [
+      502,
+      625,
+      752,
+      904
+    ],
+    "content": [
+      528,
+      660,
+      695,
+      878
+    ],
+    "sourceSize": [
+      167,
+      218
+    ]
+  },
+  "EP-north": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 3,
+    "row": 2,
+    "cell": [
+      752,
+      625,
+      1003,
+      904
+    ],
+    "content": [
+      777,
+      660,
+      944,
+      877
+    ],
+    "sourceSize": [
+      167,
+      217
+    ]
+  },
+  "EPP-head": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 0,
+    "row": 3,
+    "cell": [
+      0,
+      618,
+      198,
+      809
+    ],
+    "content": [
+      26,
+      678,
+      192,
+      767
+    ],
+    "sourceSize": [
+      166,
+      89
+    ]
+  },
+  "EPP-body": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 1,
+    "row": 3,
+    "cell": [
+      198,
+      618,
+      396,
+      809
+    ],
+    "content": [
+      239,
+      646,
+      359,
+      787
+    ],
+    "sourceSize": [
+      120,
+      141
+    ]
+  },
+  "EPP-legs": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 2,
+    "row": 3,
+    "cell": [
+      396,
+      618,
+      595,
+      809
+    ],
+    "content": [
+      420,
+      678,
+      552,
+      771
+    ],
+    "sourceSize": [
+      132,
+      93
+    ]
+  },
+  "EPP-feet": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 3,
+    "row": 3,
+    "cell": [
+      595,
+      618,
+      793,
+      809
+    ],
+    "content": [
+      607,
+      662,
+      759,
+      783
+    ],
+    "sourceSize": [
+      152,
+      121
+    ]
+  },
+  "EPP-charm": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 4,
+    "row": 3,
+    "cell": [
+      793,
+      618,
+      991,
+      809
+    ],
+    "content": [
+      817,
+      674,
+      962,
+      771
+    ],
+    "sourceSize": [
+      145,
+      97
+    ]
+  },
+  "EPP-pole": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 5,
+    "row": 3,
+    "cell": [
+      991,
+      618,
+      1181,
+      795
+    ],
+    "content": [
+      1009,
+      636,
+      1157,
+      790
+    ],
+    "sourceSize": [
+      148,
+      154
+    ]
+  },
+  "EPP-robot": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 6,
+    "row": 3,
+    "cell": [
+      1181,
+      618,
+      1388,
+      809
+    ],
+    "content": [
+      1199,
+      652,
+      1375,
+      780
+    ],
+    "sourceSize": [
+      176,
+      128
+    ]
+  },
+  "EPP-brush": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 7,
+    "row": 3,
+    "cell": [
+      1388,
+      618,
+      1586,
+      809
+    ],
+    "content": [
+      1418,
+      622,
+      1546,
+      799
+    ],
+    "sourceSize": [
+      128,
+      177
+    ]
+  },
+  "EPP-south": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 0,
+    "row": 3,
+    "cell": [
+      0,
+      904,
+      251,
+      1196
+    ],
+    "content": [
+      73,
+      941,
+      246,
+      1166
+    ],
+    "sourceSize": [
+      173,
+      225
+    ]
+  },
+  "EPP-east": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 1,
+    "row": 3,
+    "cell": [
+      251,
+      904,
+      502,
+      1196
+    ],
+    "content": [
+      318,
+      931,
+      452,
+      1166
+    ],
+    "sourceSize": [
+      134,
+      235
+    ]
+  },
+  "EPP-west": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 2,
+    "row": 3,
+    "cell": [
+      502,
+      904,
+      752,
+      1196
+    ],
+    "content": [
+      549,
+      930,
+      684,
+      1166
+    ],
+    "sourceSize": [
+      135,
+      236
+    ]
+  },
+  "EPP-north": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 3,
+    "row": 3,
+    "cell": [
+      752,
+      904,
+      1003,
+      1196
+    ],
+    "content": [
+      785,
+      950,
+      945,
+      1166
+    ],
+    "sourceSize": [
+      160,
+      216
+    ]
+  },
+  "GP-head": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 0,
+    "row": 4,
+    "cell": [
+      0,
+      809,
+      198,
+      992
+    ],
+    "content": [
+      26,
+      848,
+      178,
+      945
+    ],
+    "sourceSize": [
+      152,
+      97
+    ]
+  },
+  "GP-body": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 1,
+    "row": 4,
+    "cell": [
+      198,
+      809,
+      396,
+      992
+    ],
+    "content": [
+      213,
+      818,
+      385,
+      959
+    ],
+    "sourceSize": [
+      172,
+      141
+    ]
+  },
+  "GP-legs": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 2,
+    "row": 4,
+    "cell": [
+      396,
+      809,
+      595,
+      992
+    ],
+    "content": [
+      436,
+      819,
+      556,
+      959
+    ],
+    "sourceSize": [
+      120,
+      140
+    ]
+  },
+  "GP-feet": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 3,
+    "row": 4,
+    "cell": [
+      595,
+      809,
+      793,
+      992
+    ],
+    "content": [
+      602,
+      849,
+      760,
+      954
+    ],
+    "sourceSize": [
+      158,
+      105
+    ]
+  },
+  "GP-charm": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 4,
+    "row": 4,
+    "cell": [
+      793,
+      809,
+      991,
+      992
+    ],
+    "content": [
+      837,
+      834,
+      946,
+      952
+    ],
+    "sourceSize": [
+      109,
+      118
+    ]
+  },
+  "GP-pole": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 5,
+    "row": 4,
+    "cell": [
+      991,
+      795,
+      1181,
+      992
+    ],
+    "content": [
+      998,
+      796,
+      1153,
+      968
+    ],
+    "sourceSize": [
+      155,
+      172
+    ]
+  },
+  "GP-robot": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 6,
+    "row": 4,
+    "cell": [
+      1181,
+      809,
+      1388,
+      992
+    ],
+    "content": [
+      1193,
+      816,
+      1369,
+      961
+    ],
+    "sourceSize": [
+      176,
+      145
+    ]
+  },
+  "GP-brush": {
+    "sheet": "source-art/05-equipment-icons.png",
+    "column": 7,
+    "row": 4,
+    "cell": [
+      1388,
+      809,
+      1586,
+      992
+    ],
+    "content": [
+      1425,
+      839,
+      1549,
+      955
+    ],
+    "sourceSize": [
+      124,
+      116
+    ]
+  },
+  "GP-south": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 0,
+    "row": 4,
+    "cell": [
+      0,
+      1196,
+      251,
+      1568
+    ],
+    "content": [
+      73,
+      1229,
+      237,
+      1466
+    ],
+    "sourceSize": [
+      164,
+      237
+    ]
+  },
+  "GP-east": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 1,
+    "row": 4,
+    "cell": [
+      251,
+      1196,
+      502,
+      1568
+    ],
+    "content": [
+      317,
+      1226,
+      461,
+      1466
+    ],
+    "sourceSize": [
+      144,
+      240
+    ]
+  },
+  "GP-west": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 2,
+    "row": 4,
+    "cell": [
+      502,
+      1196,
+      752,
+      1568
+    ],
+    "content": [
+      541,
+      1226,
+      684,
+      1466
+    ],
+    "sourceSize": [
+      143,
+      240
+    ]
+  },
+  "GP-north": {
+    "sheet": "source-art/03-trainer-directions.png",
+    "column": 3,
+    "row": 4,
+    "cell": [
+      752,
+      1196,
+      1003,
+      1568
+    ],
+    "content": [
+      785,
+      1230,
+      943,
+      1466
+    ],
+    "sourceSize": [
+      158,
+      236
+    ]
+  },
+  "species-EC": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 0,
+    "row": 0,
+    "cell": [
+      0,
+      0,
+      444,
+      464
+    ],
+    "content": [
+      119,
+      146,
+      388,
+      417
+    ],
+    "sourceSize": [
+      269,
+      271
+    ]
+  },
+  "species-AG": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 1,
+    "row": 0,
+    "cell": [
+      444,
+      0,
+      887,
+      464
+    ],
+    "content": [
+      541,
+      126,
+      825,
+      417
+    ],
+    "sourceSize": [
+      284,
+      291
+    ]
+  },
+  "species-EP": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 2,
+    "row": 0,
+    "cell": [
+      887,
+      0,
+      1328,
+      464
+    ],
+    "content": [
+      978,
+      133,
+      1182,
+      424
+    ],
+    "sourceSize": [
+      204,
+      291
+    ]
+  },
+  "species-EPP": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 3,
+    "row": 0,
+    "cell": [
+      1328,
+      0,
+      1774,
+      464
+    ],
+    "content": [
+      1345,
+      138,
+      1649,
+      429
+    ],
+    "sourceSize": [
+      304,
+      291
+    ]
+  },
+  "species-GP": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 0,
+    "row": 1,
+    "cell": [
+      0,
+      464,
+      444,
+      887
+    ],
+    "content": [
+      126,
+      498,
+      402,
+      798
+    ],
+    "sourceSize": [
+      276,
+      300
+    ]
+  },
+  "monster-algue": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 1,
+    "row": 1,
+    "cell": [
+      444,
+      464,
+      887,
+      887
+    ],
+    "content": [
+      486,
+      510,
+      855,
+      793
+    ],
+    "sourceSize": [
+      369,
+      283
+    ]
+  },
+  "monster-moutarde": {
+    "sheet": "source-art/06-missing-bestiary.png",
+    "column": 0,
+    "row": 0,
+    "cell": [
+      0,
+      0,
+      444,
+      444
+    ],
+    "content": [
+      85,
+      158,
+      398,
+      412
+    ],
+    "sourceSize": [
+      313,
+      254
+    ]
+  },
+  "monster-feuilles": {
+    "sheet": "source-art/06-missing-bestiary.png",
+    "column": 1,
+    "row": 0,
+    "cell": [
+      444,
+      0,
+      887,
+      444
+    ],
+    "content": [
+      527,
+      98,
+      825,
+      418
+    ],
+    "sourceSize": [
+      298,
+      320
+    ]
+  },
+  "monster-aiguille": {
+    "sheet": "source-art/06-missing-bestiary.png",
+    "column": 2,
+    "row": 0,
+    "cell": [
+      887,
+      0,
+      1330,
+      444
+    ],
+    "content": [
+      934,
+      143,
+      1263,
+      418
+    ],
+    "sourceSize": [
+      329,
+      275
+    ]
+  },
+  "monster-calcaire": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 2,
+    "row": 1,
+    "cell": [
+      887,
+      464,
+      1328,
+      887
+    ],
+    "content": [
+      968,
+      543,
+      1240,
+      790
+    ],
+    "sourceSize": [
+      272,
+      247
+    ]
+  },
+  "monster-moustique": {
+    "sheet": "source-art/06-missing-bestiary.png",
+    "column": 3,
+    "row": 0,
+    "cell": [
+      1330,
+      0,
+      1774,
+      444
+    ],
+    "content": [
+      1380,
+      126,
+      1694,
+      411
+    ],
+    "sourceSize": [
+      314,
+      285
+    ]
+  },
+  "monster-filtre": {
+    "sheet": "source-art/04-creatures-monsters.png",
+    "column": 3,
+    "row": 1,
+    "cell": [
+      1328,
+      464,
+      1774,
+      887
+    ],
+    "content": [
+      1329,
+      515,
+      1661,
+      790
+    ],
+    "sourceSize": [
+      332,
+      275
+    ]
+  },
+  "monster-sable": {
+    "sheet": "source-art/06-missing-bestiary.png",
+    "column": 0,
+    "row": 1,
+    "cell": [
+      0,
+      444,
+      444,
+      887
+    ],
+    "content": [
+      52,
+      538,
+      425,
+      804
+    ],
+    "sourceSize": [
+      373,
+      266
+    ]
+  },
+  "monster-gland": {
+    "sheet": "source-art/06-missing-bestiary.png",
+    "column": 1,
+    "row": 1,
+    "cell": [
+      444,
+      444,
+      887,
+      887
+    ],
+    "content": [
+      539,
+      502,
+      794,
+      800
+    ],
+    "sourceSize": [
+      255,
+      298
+    ]
+  },
+  "monster-locataire": {
+    "sheet": "source-art/06-missing-bestiary.png",
+    "column": 2,
+    "row": 1,
+    "cell": [
+      887,
+      444,
+      1330,
+      887
+    ],
+    "content": [
+      938,
+      519,
+      1258,
+      804
+    ],
+    "sourceSize": [
+      320,
+      285
+    ]
+  },
+  "resource-algue": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 0,
+    "row": 0,
+    "cell": [
+      0,
+      0,
+      288,
+      294
+    ],
+    "content": [
+      55,
+      51,
+      279,
+      294
+    ],
+    "sourceSize": [
+      224,
+      243
+    ]
+  },
+  "resource-moutarde": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 1,
+    "row": 0,
+    "cell": [
+      288,
+      0,
+      561,
+      301
+    ],
+    "content": [
+      306,
+      108,
+      554,
+      301
+    ],
+    "sourceSize": [
+      248,
+      193
+    ]
+  },
+  "resource-feuilles": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 2,
+    "row": 0,
+    "cell": [
+      561,
+      0,
+      841,
+      296
+    ],
+    "content": [
+      598,
+      108,
+      839,
+      296
+    ],
+    "sourceSize": [
+      241,
+      188
+    ]
+  },
+  "resource-aiguille": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 3,
+    "row": 0,
+    "cell": [
+      841,
+      0,
+      1122,
+      301
+    ],
+    "content": [
+      894,
+      86,
+      1110,
+      301
+    ],
+    "sourceSize": [
+      216,
+      215
+    ]
+  },
+  "resource-calcaire": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 4,
+    "row": 0,
+    "cell": [
+      1122,
+      0,
+      1402,
+      289
+    ],
+    "content": [
+      1168,
+      121,
+      1352,
+      289
+    ],
+    "sourceSize": [
+      184,
+      168
+    ]
+  },
+  "resource-moustique": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 0,
+    "row": 1,
+    "cell": [
+      0,
+      294,
+      288,
+      563
+    ],
+    "content": [
+      54,
+      345,
+      274,
+      563
+    ],
+    "sourceSize": [
+      220,
+      218
+    ]
+  },
+  "resource-filtre": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 1,
+    "row": 1,
+    "cell": [
+      288,
+      301,
+      561,
+      566
+    ],
+    "content": [
+      340,
+      344,
+      520,
+      566
+    ],
+    "sourceSize": [
+      180,
+      222
+    ]
+  },
+  "resource-sable": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 2,
+    "row": 1,
+    "cell": [
+      561,
+      296,
+      841,
+      566
+    ],
+    "content": [
+      574,
+      367,
+      831,
+      566
+    ],
+    "sourceSize": [
+      257,
+      199
+    ]
+  },
+  "resource-gland": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 3,
+    "row": 1,
+    "cell": [
+      841,
+      301,
+      1122,
+      561
+    ],
+    "content": [
+      901,
+      352,
+      1069,
+      560
+    ],
+    "sourceSize": [
+      168,
+      208
+    ]
+  },
+  "resource-locataire": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 4,
+    "row": 1,
+    "cell": [
+      1122,
+      289,
+      1402,
+      573
+    ],
+    "content": [
+      1192,
+      331,
+      1344,
+      573
+    ],
+    "sourceSize": [
+      152,
+      242
+    ]
+  },
+  "utility-crate": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 0,
+    "row": 2,
+    "cell": [
+      0,
+      563,
+      326,
+      842
+    ],
+    "content": [
+      48,
+      609,
+      288,
+      824
+    ],
+    "sourceSize": [
+      240,
+      215
+    ]
+  },
+  "utility-choc": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 1,
+    "row": 2,
+    "cell": [
+      288,
+      566,
+      561,
+      842
+    ],
+    "content": [
+      370,
+      603,
+      520,
+      826
+    ],
+    "sourceSize": [
+      150,
+      223
+    ]
+  },
+  "utility-phm": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 2,
+    "row": 2,
+    "cell": [
+      561,
+      566,
+      841,
+      842
+    ],
+    "content": [
+      626,
+      601,
+      776,
+      826
+    ],
+    "sourceSize": [
+      150,
+      225
+    ]
+  },
+  "utility-floc": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 3,
+    "row": 2,
+    "cell": [
+      841,
+      561,
+      1122,
+      842
+    ],
+    "content": [
+      862,
+      623,
+      1088,
+      831
+    ],
+    "sourceSize": [
+      226,
+      208
+    ]
+  },
+  "utility-lavage": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 4,
+    "row": 2,
+    "cell": [
+      1122,
+      573,
+      1402,
+      842
+    ],
+    "content": [
+      1146,
+      618,
+      1357,
+      822
+    ],
+    "sourceSize": [
+      211,
+      204
+    ]
+  },
+  "utility-coin": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 0,
+    "row": 3,
+    "cell": [
+      0,
+      842,
+      288,
+      1122
+    ],
+    "content": [
+      63,
+      875,
+      258,
+      1071
+    ],
+    "sourceSize": [
+      195,
+      196
+    ]
+  },
+  "utility-xp": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 1,
+    "row": 3,
+    "cell": [
+      288,
+      842,
+      561,
+      1122
+    ],
+    "content": [
+      336,
+      866,
+      527,
+      1070
+    ],
+    "sourceSize": [
+      191,
+      204
+    ]
+  },
+  "utility-health": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 2,
+    "row": 3,
+    "cell": [
+      561,
+      842,
+      841,
+      1122
+    ],
+    "content": [
+      603,
+      893,
+      804,
+      1063
+    ],
+    "sourceSize": [
+      201,
+      170
+    ]
+  },
+  "utility-ap": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 3,
+    "row": 3,
+    "cell": [
+      841,
+      842,
+      1122,
+      1122
+    ],
+    "content": [
+      895,
+      870,
+      1050,
+      1072
+    ],
+    "sourceSize": [
+      155,
+      202
+    ]
+  },
+  "utility-mp": {
+    "sheet": "source-art/07-resources-and-utilities.png",
+    "column": 4,
+    "row": 3,
+    "cell": [
+      1122,
+      842,
+      1402,
+      1122
+    ],
+    "content": [
+      1146,
+      875,
+      1359,
+      1072
+    ],
+    "sourceSize": [
+      213,
+      197
+    ]
+  }
+}

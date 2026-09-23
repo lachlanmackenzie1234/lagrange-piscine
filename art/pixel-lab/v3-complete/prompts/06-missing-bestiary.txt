@@ -1,0 +1,15 @@
+Use case: stylized-concept.
+Asset: an expansion sprite sheet for the supplied Pocket Coast v3 creature art.
+Input image 1 is the principal reference. Match its EXACT charming chunky pixel rendering, dark slate outline, limited flat colour clusters, simple expressive eyes, compact proportions and blue/green/cream material tones. Image 2 is a secondary reference only for small handheld-game sprite readability. Do not copy any franchise creature.
+Create a raw transparent PNG containing EXACTLY SEVEN different monster sprites. Layout: FOUR evenly spaced columns and TWO rows, with the bottom-right cell completely empty. Top row 4 monsters; bottom row 3 monsters followed by empty transparency. Every complete sprite is isolated, centred in its cell with a generous clear transparent margin. Genuine alpha transparency, no black or checkerboard background. No text, letters, numbers, grid, panels, labels, ground shadows, UI, borders or decoration.
+These must be new original pool-problem monsters in the same art family as the blue otter, algae crab, snail and gauge-tank reference. Small raster shapes designed with an eventual 28x24-pixel monster canvas in mind; visibly square clusters, 3 or 4 tones per material, no gradients, fine texture, photorealism or smooth vector outline.
+EXACT order, left to right:
+TOP 1 / Algue moutarde: squat mischievous mustard-yellow algae puff, powdery scalloped dome, olive underside, two tiny feet, sleepy suspicious eyes, visibly different from the green algae crab.
+TOP 2 / Nuée de feuilles: a compact whirling amber/brown leaf creature, three large curled leaves wrapping around a small face, two tiny leaf feet, an asymmetric wind-swept silhouette.
+TOP 3 / Aiguille de pin: an original small spiky dark-green pine-needle critter, a bundle of long needles forming a low hedgehog-like body, lighter green tips, two alert cream eyes, four tiny twig feet. Keep readable and broad.
+TOP 4 / Moustique-tigre: stylised purple mosquito enemy, small dark body with two cream tiger stripes, two broad pale-lavender wings, four short visible legs and a single short pointed proboscis. Cute grumpy eyes, no gore or anatomy detail.
+BOTTOM 1 / Golem de sable: squat sandy golem, broad tan blocky arms, cream highlights, a tiny sandcastle turret on its head and grumpy eyes. Compact chunky silhouette.
+BOTTOM 2 / Le Gland: acorn enemy, a warm-brown round acorn body with a dark textured cap, one small green leaf sprouting from the cap, annoyed eyes, two stubby feet and small clenched arms. Clearly an acorn, not a pinecone.
+BOTTOM 3 / Locataire nocturne: mischievous pale cream splash-spirit with dark sunglasses sitting in a red-and-cream inflatable swim ring, two small ghostlike arms, cheeky expression. A compact comic pool visitor monster, no realistic person.
+BOTTOM 4 must remain EMPTY and transparent.
+All seven share the same viewpoint, scale, outline and flat pixel light direction as input image 1. Format requested 1536x768; retain enough padding that no extremity touches a cell edge. Raw sprite sheet only.

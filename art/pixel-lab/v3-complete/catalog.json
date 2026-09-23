@@ -1,0 +1,519 @@
+{
+  "sets": [
+    {
+      "id": "EC",
+      "name": "Pool Boy",
+      "aura": "#2f4fdf",
+      "epic": "du Grand Skimmer",
+      "legend": "du Pool Boy Éternel",
+      "items": [
+        {
+          "slot": "tête",
+          "name": "Casquette",
+          "gender": "f",
+          "flavour": "vissée à l’envers depuis 2019."
+        },
+        {
+          "slot": "torse",
+          "name": "Polo",
+          "gender": "m",
+          "flavour": "col relevé, taches de chlore portées en médailles."
+        },
+        {
+          "slot": "jambes",
+          "name": "Short cargo",
+          "gender": "m",
+          "flavour": "douze poches, aucune ne ferme."
+        },
+        {
+          "slot": "pieds",
+          "name": "Crocs",
+          "gender": "fp",
+          "flavour": "mode sport enclenché, toujours."
+        },
+        {
+          "slot": "amulette",
+          "name": "Sifflet",
+          "gender": "m",
+          "flavour": "personne n’a jamais su pourquoi."
+        },
+        {
+          "slot": "perche",
+          "name": "Perche télescopique",
+          "gender": "f",
+          "flavour": "bloquée à 3,80 m depuis juin."
+        },
+        {
+          "slot": "robot",
+          "name": "Robot Dolphin",
+          "gender": "m",
+          "flavour": "il connaît le bassin mieux que toi."
+        },
+        {
+          "slot": "balai",
+          "name": "Balai de fond",
+          "gender": "m",
+          "flavour": "les poils penchent à gauche, comme son propriétaire."
+        }
+      ]
+    },
+    {
+      "id": "AG",
+      "name": "Surfeur des dunes",
+      "aura": "#2aa845",
+      "epic": "de l’Océan",
+      "legend": "de la Vague Parfaite",
+      "items": [
+        {
+          "slot": "tête",
+          "name": "Bob",
+          "gender": "m",
+          "flavour": "délavé par trois étés de Lacanau."
+        },
+        {
+          "slot": "torse",
+          "name": "Combinaison 3/2",
+          "gender": "f",
+          "flavour": "sent la marée basse, même sèche."
+        },
+        {
+          "slot": "jambes",
+          "name": "Boardshort",
+          "gender": "m",
+          "flavour": "le cordon a rendu l’âme, pas lui."
+        },
+        {
+          "slot": "pieds",
+          "name": "Chaussons néoprène",
+          "gender": "mp",
+          "flavour": "sable garanti dans chaque orteil."
+        },
+        {
+          "slot": "amulette",
+          "name": "Dent de requin",
+          "gender": "f",
+          "flavour": "authentique, dit le vendeur de la plage."
+        },
+        {
+          "slot": "perche",
+          "name": "Perche en bambou",
+          "gender": "f",
+          "flavour": "coupée dans la dune, plie sans rompre."
+        },
+        {
+          "slot": "robot",
+          "name": "Robot Longboard",
+          "gender": "m",
+          "flavour": "glisse plus qu’il n’aspire."
+        },
+        {
+          "slot": "balai",
+          "name": "Balai wax",
+          "gender": "m",
+          "flavour": "laisse une trace brillante, bizarrement."
+        }
+      ]
+    },
+    {
+      "id": "EP",
+      "name": "Jardinier du golf",
+      "aura": "#e39b12",
+      "epic": "du Golfeur Fantôme",
+      "legend": "du Green Impeccable",
+      "items": [
+        {
+          "slot": "tête",
+          "name": "Chapeau de paille",
+          "gender": "m",
+          "flavour": "un trou pile au-dessus de l’œil droit."
+        },
+        {
+          "slot": "torse",
+          "name": "Gilet à poches",
+          "gender": "m",
+          "flavour": "gants, tees, un sachet de floc oublié."
+        },
+        {
+          "slot": "jambes",
+          "name": "Pantalon kaki",
+          "gender": "m",
+          "flavour": "genoux verts à vie."
+        },
+        {
+          "slot": "pieds",
+          "name": "Bottes de jardin",
+          "gender": "fp",
+          "flavour": "boueuses à l’intérieur, mystère."
+        },
+        {
+          "slot": "amulette",
+          "name": "Trèfle à quatre feuilles",
+          "gender": "m",
+          "flavour": "plastifié, donc éternel."
+        },
+        {
+          "slot": "perche",
+          "name": "Râteau-perche",
+          "gender": "m",
+          "flavour": "ramasse feuilles ET balles perdues."
+        },
+        {
+          "slot": "robot",
+          "name": "Robot tondeuse égaré",
+          "gender": "m",
+          "flavour": "a pris le bassin pour un fairway."
+        },
+        {
+          "slot": "balai",
+          "name": "Balai brosse",
+          "gender": "m",
+          "flavour": "coupe l’algue au ras du gazon."
+        }
+      ]
+    },
+    {
+      "id": "EPP",
+      "name": "Locataire",
+      "aura": "#7b3fc4",
+      "epic": "de la Caution Récupérée",
+      "legend": "du Locataire de la Semaine 33",
+      "items": [
+        {
+          "slot": "tête",
+          "name": "Lunettes de soleil",
+          "gender": "fp",
+          "flavour": "oubliées sur le transat, adoptées."
+        },
+        {
+          "slot": "torse",
+          "name": "Marcel",
+          "gender": "m",
+          "flavour": "blanc à l’origine."
+        },
+        {
+          "slot": "jambes",
+          "name": "Slip de bain",
+          "gender": "m",
+          "flavour": "le fameux. On ne pose pas de questions."
+        },
+        {
+          "slot": "pieds",
+          "name": "Tongs",
+          "gender": "fp",
+          "flavour": "échouées au skimmer, dépareillées."
+        },
+        {
+          "slot": "amulette",
+          "name": "Bracelet all-inclusive",
+          "gender": "m",
+          "flavour": "expiré depuis samedi, toujours porté."
+        },
+        {
+          "slot": "perche",
+          "name": "Épuisette à crevettes",
+          "gender": "f",
+          "flavour": "inefficace, mais quelle allure."
+        },
+        {
+          "slot": "robot",
+          "name": "Robot gonflable",
+          "gender": "m",
+          "flavour": "flotte. C’est tout."
+        },
+        {
+          "slot": "balai",
+          "name": "Balai du placard",
+          "gender": "m",
+          "flavour": "emprunté, jamais rendu."
+        }
+      ]
+    },
+    {
+      "id": "GP",
+      "name": "Gardien du Green",
+      "aura": "#1f9e8a",
+      "epic": "des Clés Perdues",
+      "legend": "du Dernier Gardien",
+      "items": [
+        {
+          "slot": "tête",
+          "name": "Visière",
+          "gender": "f",
+          "flavour": "protège du soleil et des regards."
+        },
+        {
+          "slot": "torse",
+          "name": "Coupe-vent",
+          "gender": "m",
+          "flavour": "fait du bruit à chaque pas, on te sait là."
+        },
+        {
+          "slot": "jambes",
+          "name": "Jogging",
+          "gender": "m",
+          "flavour": "les poches sont pleines de galets, littéralement."
+        },
+        {
+          "slot": "pieds",
+          "name": "Baskets",
+          "gender": "fp",
+          "flavour": "lacées une fois, pour toujours."
+        },
+        {
+          "slot": "amulette",
+          "name": "Clé du local",
+          "gender": "f",
+          "flavour": "ouvre tout, sauf le local."
+        },
+        {
+          "slot": "perche",
+          "name": "Perche du gardien",
+          "gender": "f",
+          "flavour": "sert aussi à pointer."
+        },
+        {
+          "slot": "robot",
+          "name": "Robot de garde",
+          "gender": "m",
+          "flavour": "surveille la piscine la nuit, parle à personne."
+        },
+        {
+          "slot": "balai",
+          "name": "Balai de ronde",
+          "gender": "m",
+          "flavour": "un tour, pas deux."
+        }
+      ]
+    }
+  ],
+  "rarities": [
+    {
+      "id": "common",
+      "name": "Commun",
+      "color": "#6b7a87"
+    },
+    {
+      "id": "uncommon",
+      "name": "Peu commun",
+      "color": "#2aa845"
+    },
+    {
+      "id": "rare",
+      "name": "Rare",
+      "color": "#2f4fdf"
+    },
+    {
+      "id": "vrare",
+      "name": "Très rare",
+      "color": "#7b3fc4"
+    },
+    {
+      "id": "epic",
+      "name": "Épique",
+      "color": "#e39b12"
+    },
+    {
+      "id": "legend",
+      "name": "Légendaire",
+      "color": "#d82f2f"
+    }
+  ],
+  "epithets": {
+    "common": {
+      "m": "échoué",
+      "f": "échouée",
+      "mp": "échoués",
+      "fp": "échouées"
+    },
+    "uncommon": {
+      "m": "dépareillé",
+      "f": "dépareillée",
+      "mp": "dépareillés",
+      "fp": "dépareillées"
+    },
+    "rare": "de compétition",
+    "vrare": "de la marée haute"
+  },
+  "rarityFlavour": {
+    "common": "Ça fait le boulot. Parfois.",
+    "uncommon": "Il en manque une partie, mais laquelle ?",
+    "rare": "Vu une fois sur un vrai pro.",
+    "vrare": "Remonté par la marée haute, sec en une heure.",
+    "epic": "On en parle encore au dépôt.",
+    "legend": "Une légende à Lacanau. Personne ne l’a jamais vu deux fois."
+  },
+  "monsters": [
+    {
+      "id": "algue",
+      "name": "Algue verte",
+      "element": "Algue",
+      "palette": [
+        "#b5f27a",
+        "#2aa845",
+        "#124d2a"
+      ],
+      "description": "Naît d’un chlore qui a rendu l’âme. Vert le matin, olive le soir, propriétaire de la piscine dès le troisième jour.",
+      "resource": "Algue séchée"
+    },
+    {
+      "id": "moutarde",
+      "name": "Algue moutarde",
+      "element": "Algue",
+      "palette": [
+        "#f5e27a",
+        "#c9a227",
+        "#6b4e10"
+      ],
+      "description": "Son plus grand pouvoir est le doute. Es-tu sûr que c’est elle ? Non, car elle sème le doute.",
+      "resource": "Poudre moutarde"
+    },
+    {
+      "id": "feuilles",
+      "name": "Nuée de feuilles",
+      "element": "Air",
+      "palette": [
+        "#f2c14e",
+        "#e39b12",
+        "#8a4a1e"
+      ],
+      "description": "Les pins de Lacanau ne perdent jamais leurs aiguilles, sauf dans les skimmers. Elle revient chaque vent d’ouest.",
+      "resource": "Feuilles mortes"
+    },
+    {
+      "id": "aiguille",
+      "name": "Aiguille de pin",
+      "element": "Air",
+      "palette": [
+        "#9fd36a",
+        "#3f7d2a",
+        "#2a3a1a"
+      ],
+      "description": "Sa proie ? Ton skimmer. Aïe aïe, ça pique ! Balai ? Tu parles. Seul le robot y tentera sa chance, ou une perche dextre et patiente.",
+      "resource": "Aiguilles de pin"
+    },
+    {
+      "id": "calcaire",
+      "name": "Calcaire",
+      "element": "Terre",
+      "palette": [
+        "#f4efe0",
+        "#c9c0a8",
+        "#7a7a90"
+      ],
+      "description": "Un pH qui monte et ne redescend pas. Il s’installe sur la ligne d’eau et considère que c’est chez lui.",
+      "resource": "Écaille de calcaire"
+    },
+    {
+      "id": "moustique",
+      "name": "Moustique-tigre",
+      "element": "Air",
+      "palette": [
+        "#c9b6e8",
+        "#7b3fc4",
+        "#20203a"
+      ],
+      "description": "Adore une filtration en retard et une eau qui ne bouge plus. Repart dès que la pompe reprend son souffle.",
+      "resource": "Aile de moustique"
+    },
+    {
+      "id": "filtre",
+      "name": "Filtre saturé",
+      "element": "Terre",
+      "palette": [
+        "#b8c4d6",
+        "#5a6b8a",
+        "#26304a"
+      ],
+      "description": "Hélas. Ou le niveau d’eau ou ton skimmer est tombé dans les ténèbres, mon ami. À toi d’affronter les conséquences !",
+      "resource": "Manomètre rouillé"
+    },
+    {
+      "id": "sable",
+      "name": "Golem de sable",
+      "element": "Terre",
+      "palette": [
+        "#e9d59a",
+        "#c9a55a",
+        "#8a4a1e"
+      ],
+      "description": "Le vieux sable du filtre qui rêve de redevenir dune. Un lavage l’assomme, un sable neuf l’exile.",
+      "resource": "Sable fin"
+    },
+    {
+      "id": "gland",
+      "name": "Le Gland",
+      "element": "Terre",
+      "palette": [
+        "#c98a4a",
+        "#8a5a2a",
+        "#3a2a1a"
+      ],
+      "description": "Au nom d’une piscine verte ! Un gland est tombé dans la piscine, pisciniste. Ne panique pas. Demande-toi plutôt qui est le vrai gland dans l’histoire ?",
+      "resource": "Gland verni"
+    },
+    {
+      "id": "locataire",
+      "name": "Locataire nocturne",
+      "element": "Feu",
+      "palette": [
+        "#ffb3a7",
+        "#d82f2f",
+        "#5a1a1a"
+      ],
+      "description": "On ne le voit jamais, on ne voit que ses traces : le chlore plonge, l’eau mousse, la bouée reste.",
+      "resource": "Tube de crème solaire"
+    }
+  ],
+  "moves": [
+    {
+      "id": "perche",
+      "name": "Perche"
+    },
+    {
+      "id": "balai",
+      "name": "Balai"
+    },
+    {
+      "id": "robot",
+      "name": "Robot"
+    },
+    {
+      "id": "choc",
+      "name": "Choc"
+    },
+    {
+      "id": "phm",
+      "name": "pH−"
+    },
+    {
+      "id": "floc",
+      "name": "Floc"
+    },
+    {
+      "id": "lavage",
+      "name": "Lavage"
+    }
+  ],
+  "creatures": [
+    {
+      "id": "EC",
+      "name": "Écume"
+    },
+    {
+      "id": "AG",
+      "name": "Oyatin"
+    },
+    {
+      "id": "EP",
+      "name": "Pignotte"
+    },
+    {
+      "id": "EPP",
+      "name": "Bouémitte"
+    },
+    {
+      "id": "GP",
+      "name": "Clapot"
+    }
+  ]
+}
